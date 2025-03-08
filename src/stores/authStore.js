@@ -2,6 +2,8 @@
 import { defineStore } from 'pinia';
 import { authService } from '@/services/auth.service';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
+import { apiService } from '@/services/api.service';
+import { API_ENDPOINTS } from '@/config/api.config';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -28,6 +30,41 @@ export const useAuthStore = defineStore('auth', {
     isEmployee: (state) => state.userRole === 'employee',
   },
   actions: {
+    // we need to update the user data in the storage after the profile picture, username, email, password is updated
+    async updateUserData() {
+      try {
+        const response = await apiService.get(API_ENDPOINTS.AUTH.USER);
+        
+        // The backend directly returns the user object with roles and permissions
+        if (response) {
+          // Update user data in store
+          this.user = response;
+          
+          // Update roles if available
+          if (response.roles && response.roles.length) {
+            this.userRole = response.roles[0].name.toLowerCase();
+            this.setStorageItem(STORAGE_KEYS.USER_ROLE, this.userRole);
+          }
+          
+          // Update permissions if available
+          if (response.permissions) {
+            this.permissions = response.permissions;
+            this.setStorageItem(STORAGE_KEYS.PERMISSIONS, this.permissions);
+          }
+          
+          // Save user data to storage
+          this.setStorageItem(STORAGE_KEYS.USER, this.user);
+          return this.user;
+        }
+        
+        console.log('User data response:', response);
+        throw new Error('Failed to fetch user data: Invalid response structure');
+      } catch (error) {
+        console.error('Error updating user data:', error);
+        return null;
+      }
+    },
+    
     // --- Local Storage Helpers ---
     setStorageItem(key, value) {
       localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : value);

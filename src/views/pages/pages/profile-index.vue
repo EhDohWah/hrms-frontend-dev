@@ -27,235 +27,189 @@
 
       <div class="card">
         <div class="card-body">
-          <div class="border-bottom mb-3 pb-3">
+          <!-- Alert Component -->
+          <div v-if="alert.show" class="alert alert-dismissible fade show" :class="`alert-${alert.type}`" role="alert">
+            {{ alert.message }}
+            <button type="button" class="btn-close" @click="alert.show = false"></button>
+          </div>
+
+          <div class="border-bottom mb-4 pb-3">
             <h4>Profile</h4>
           </div>
-          <form action="#">
-            <div class="border-bottom mb-3">
-              <div class="row">
-                <div class="col-md-12">
-                  <div>
-                    <h6 class="mb-3">Basic Information</h6>
-                    <div
-                      class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-3 mb-4"
-                    >
-                      <div
-                        class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-dashed me-2 flex-shrink-0 text-dark frames"
-                      >
-                        <i class="ti ti-photo text-gray-3 fs-16"></i>
-                      </div>
-                      <div class="profile-upload">
-                        <div class="mb-2">
-                          <h6 class="mb-1">Profile Photo</h6>
-                          <p class="fs-12">Recommended image size is 40px x 40px</p>
-                        </div>
-                        <div class="profile-uploader d-flex align-items-center">
-                          <div class="drag-upload-btn btn btn-sm btn-primary me-2">
-                            Upload
-                            <input
-                              type="file"
-                              class="form-control image-sign"
-                              multiple=""
-                            />
-                          </div>
-                          <a href="javascript:void(0);" class="btn btn-light btn-sm"
-                            >Cancel</a
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+
+          <!-- Profile Picture Section -->
+          <div class="border-bottom mb-4 pb-4">
+            <h6 class="mb-3 text-primary">Profile Picture</h6>
+            <div class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-4">
+              <div
+                class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-primary me-4 flex-shrink-0 text-dark frames"
+              >
+                <img
+                  v-if="profileImage"
+                  :src="profileImage"
+                  alt="Profile"
+                  class="img-fluid rounded-circle"
+                />
+                <i v-else class="ti ti-photo text-gray-3 fs-16"></i>
               </div>
-              <div class="row">
-                <div class="col-md-6">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-4">
-                      <label class="form-label mb-md-0">First Name</label>
-                    </div>
-                    <div class="col-md-8">
-                      <input type="text" class="form-control" />
-                    </div>
-                  </div>
+              <div class="profile-upload">
+                <div class="mb-3">
+                  <p class="fs-12 text-muted">
+                    Recommended image size is 40px x 40px
+                  </p>
                 </div>
-                <div class="col-md-6">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-4">
-                      <label class="form-label mb-md-0">Last Name</label>
-                    </div>
-                    <div class="col-md-8">
-                      <input type="text" class="form-control" />
-                    </div>
+                <div class="profile-uploader d-flex align-items-center">
+                  <div class="drag-upload-btn btn btn-primary me-3">
+                    <i class="ti ti-upload me-1"></i> Upload
+                    <input
+                      type="file"
+                      class="form-control image-sign"
+                      @change="handleImageUpload"
+                    />
                   </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-4">
-                      <label class="form-label mb-md-0">Email</label>
-                    </div>
-                    <div class="col-md-8">
-                      <input type="text" class="form-control" />
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-4">
-                      <label class="form-label mb-md-0">Phone</label>
-                    </div>
-                    <div class="col-md-8">
-                      <input type="text" class="form-control" />
-                    </div>
-                  </div>
+                  <button class="btn btn-primary" @click="saveProfilePicture" :disabled="isLoading">
+                    <i class="ti ti-device-floppy me-1"></i> Save Picture
+                  </button>
                 </div>
               </div>
             </div>
-            <div class="border-bottom mb-3">
-              <h6 class="mb-3">Address Information</h6>
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-2">
-                      <label class="form-label mb-md-0">Address</label>
-                    </div>
-                    <div class="col-md-10">
-                      <input type="text" class="form-control" />
-                    </div>
-                  </div>
+          </div>
+
+          <!-- Username, Email, and Change Password in two equal columns -->
+          <div class="border-bottom mb-4 pb-4">
+            <div class="row">
+              <!-- Left column: Username & Email -->
+              <div class="col-12 col-md-6 mb-4 mb-md-0">
+                <!-- Username Section -->
+                <h6 class="mb-3 text-primary">Username</h6>
+                <div class="input-group mb-4">
+                  <span class="input-group-text bg-light">
+                    <i class="ti ti-user"></i>
+                  </span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-model="username"
+                    placeholder="Enter your username"
+                  />
+                  <button class="btn btn-primary" @click="saveUsername" :disabled="isLoading">
+                    <i class="ti ti-device-floppy me-1"></i> Save
+                  </button>
                 </div>
-                <div class="col-md-6">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-4">
-                      <label class="form-label mb-md-0">City</label>
-                    </div>
-                    <div class="col-md-8">
-                      <input type="text" class="form-control" />
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-4">
-                      <label class="form-label mb-md-0">State</label>
-                    </div>
-                    <div class="col-md-8">
-                      <div>
-                        <vue-select :options="IndukF" id="indfrws" placeholder="Select" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-4">
-                      <label class="form-label mb-md-0">Country</label>
-                    </div>
-                    <div class="col-md-8">
-                      <div>
-                        <vue-select
-                          :options="TurkPro"
-                          id="turkpro"
-                          placeholder="Select"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-4">
-                      <label class="form-label mb-md-0">Postal Code</label>
-                    </div>
-                    <div class="col-md-8">
-                      <input type="text" class="form-control" />
-                    </div>
-                  </div>
+
+                <!-- Email Section -->
+                <h6 class="mb-3 text-primary">Email</h6>
+                <div class="input-group">
+                  <span class="input-group-text bg-light">
+                    <i class="ti ti-mail"></i>
+                  </span>
+                  <input
+                    type="email"
+                    class="form-control"
+                    v-model="email"
+                    placeholder="Enter your email"
+                  />
+                  <button class="btn btn-primary" @click="saveEmail" :disabled="isLoading">
+                    <i class="ti ti-device-floppy me-1"></i> Save
+                  </button>
                 </div>
               </div>
-            </div>
-            <div class="border-bottom mb-3">
-              <h6 class="mb-3">Change Password</h6>
-              <div class="row">
-                <div class="col-md-4">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-5">
-                      <label class="form-label mb-md-0">Current Password</label>
-                    </div>
-                    <div class="col-md-7">
-                      <div class="pass-group">
+
+              <!-- Right column: Change Password -->
+              <div class="col-12 col-md-6">
+                <h6 class="mb-3 text-primary">Change Password</h6>
+                <div class="card shadow-sm border">
+                  <div class="card-body">
+                    <div class="mb-3">
+                      <label class="form-label">Current Password</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-light">
+                          <i class="ti ti-lock"></i>
+                        </span>
                         <input
                           :type="showPassword ? 'text' : 'password'"
-                          class="pass-input form-control"
+                          class="form-control"
+                          v-model="currentPassword"
+                          placeholder="Enter current password"
                         />
                         <span
                           @click="toggleShow"
-                          class="ti toggle-password"
-                          :class="{
-                            'ti-eye': showPassword,
-                            'ti-eye-off': !showPassword,
-                          }"
-                        ></span>
+                          class="input-group-text bg-light cursor-pointer"
+                        >
+                          <i
+                            class="ti"
+                            :class="{
+                              'ti-eye': showPassword,
+                              'ti-eye-off': !showPassword
+                            }"
+                          ></i>
+                        </span>
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-5">
-                      <label class="form-label mb-md-0">New Password</label>
-                    </div>
-                    <div class="col-md-7">
-                      <div class="pass-group">
+
+                    <div class="mb-3">
+                      <label class="form-label">New Password</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-light">
+                          <i class="ti ti-lock"></i>
+                        </span>
                         <input
                           :type="showPassword1 ? 'text' : 'password'"
-                          class="pass-inputs form-control"
-                          placeholder="New Password"
+                          class="form-control"
+                          v-model="newPassword"
+                          placeholder="Enter new password"
                         />
                         <span
                           @click="toggleShow1"
-                          class="ti toggle-passwords"
-                          :class="{
-                            'ti-eye': showPassword1,
-                            'ti-eye-off': !showPassword1,
-                          }"
-                        ></span>
+                          class="input-group-text bg-light cursor-pointer"
+                        >
+                          <i
+                            class="ti"
+                            :class="{
+                              'ti-eye': showPassword1,
+                              'ti-eye-off': !showPassword1
+                            }"
+                          ></i>
+                        </span>
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="row align-items-center mb-3">
-                    <div class="col-md-5">
-                      <label class="form-label mb-md-0">Confirm Password</label>
-                    </div>
-                    <div class="col-md-7">
-                      <div class="pass-group">
+
+                    <div class="mb-3">
+                      <label class="form-label">Confirm Password</label>
+                      <div class="input-group">
+                        <span class="input-group-text bg-light">
+                          <i class="ti ti-lock"></i>
+                        </span>
                         <input
                           :type="showPassword2 ? 'text' : 'password'"
-                          class="pass-inputs form-control"
-                          placeholder="Confirm Password"
+                          class="form-control"
+                          v-model="confirmPassword"
+                          placeholder="Confirm new password"
                         />
                         <span
                           @click="toggleShow2"
-                          class="ti toggle-passwords"
-                          :class="{
-                            'ti-eye': showPassword2,
-                            'ti-eye-off': !showPassword2,
-                          }"
-                        ></span>
+                          class="input-group-text bg-light cursor-pointer"
+                        >
+                          <i
+                            class="ti"
+                            :class="{
+                              'ti-eye': showPassword2,
+                              'ti-eye-off': !showPassword2
+                            }"
+                          ></i>
+                        </span>
                       </div>
                     </div>
+
+                    <button class="btn btn-primary w-100" @click="savePassword" :disabled="isLoading">
+                      <i class="ti ti-device-floppy me-1"></i> Save Password
+                    </button>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="d-flex align-items-center justify-content-end">
-              <button type="button" class="btn btn-outline-light border me-3">
-                Cancel
-              </button>
-              <button type="submit" class="btn btn-primary">Save</button>
-            </div>
-          </form>
+          </div>
+          <!-- End of two-column row -->
         </div>
       </div>
     </div>
@@ -271,30 +225,37 @@
   </div>
   <!-- /Page Wrapper -->
 </template>
+
 <script>
+import { userService } from '@/services/user.service';
+import { useAuthStore } from '@/stores/authStore';
+
 export default {
   data() {
     return {
       title: "Profile",
       text: "Pages",
       text1: "Profile",
-      TurkPro: ["Select", "Belgium", "Turkey", "Ukraine"],
-      IndukF: ["Select", "France", "India", "UK"],
       showPassword: false,
       showPassword1: false,
       showPassword2: false,
+      username: "",
+      email: "",
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+      profileImage: null,
+      selectedFile: null,
+      isLoading: false,
+      alert: {
+        show: false,
+        type: 'success',
+        message: ''
+      }
     };
   },
-  computed: {
-    buttonLabel() {
-      return this.showPassword ? "Hide" : "Show";
-    },
-    buttonLabel1() {
-      return this.showPassword1 ? "Hide" : "Show";
-    },
-    buttonLabel2() {
-      return this.showPassword2 ? "Hide" : "Show";
-    },
+  mounted() {
+    this.fetchUserDetails();
   },
   methods: {
     toggleHeader() {
@@ -310,6 +271,189 @@ export default {
     toggleShow2() {
       this.showPassword2 = !this.showPassword2;
     },
-  },
+    showAlert(type, message, duration = 5000) {
+      this.alert = {
+        show: true,
+        type: type,
+        message: message
+      };
+      
+      // Auto-hide alert after duration
+      setTimeout(() => {
+        this.alert.show = false;
+      }, duration);
+    },
+    async fetchUserDetails() {
+      try {
+        this.isLoading = true;
+        const response = await userService.getCurrentUser();
+        if (response && response.data) {
+          const userData = response.data;
+          this.username = userData.name || "";
+          this.email = userData.email || "";
+          if (userData.profile_picture) {
+            this.profileImage = `${process.env.VUE_APP_PUBLIC_URL}/storage/${userData.profile_picture}`;
+          }
+        }
+      } catch (error) {
+        this.showAlert('danger', 'Failed to load user details');
+        console.error('Error fetching user details:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.selectedFile = file;
+        this.profileImage = URL.createObjectURL(file);
+      }
+    },
+
+    async saveProfilePicture() {
+      if (!this.selectedFile) {
+        this.showAlert('warning', 'Please select an image first');
+        return;
+      }
+      
+      try {
+        this.isLoading = true;
+        const response = await userService.updateProfilePicture(this.selectedFile);
+        
+        if (response && response.success) {
+          // Refresh global state
+          const authStore = useAuthStore();
+          await authStore.updateUserData();
+          if (!authStore.user) {
+            console.error('Failed to update user data in store');
+            throw new Error('Failed to update user data');
+          }
+          this.showAlert('success', 'Profile picture updated successfully');
+        } else {
+          throw new Error(response.message || 'Failed to update profile picture');
+        }
+      } catch (error) {
+        this.showAlert('danger', error.message || 'Failed to update profile picture');
+        console.error('Error updating profile picture:', error);
+      } finally {
+        this.isLoading = false;
+        this.selectedFile = null;
+      }
+    },
+
+    async saveUsername() {
+      if (!this.username.trim()) {
+        this.showAlert('warning', 'Username cannot be empty');
+        return;
+      }
+      
+      try {
+        this.isLoading = true;
+        const response = await userService.updateUsername(this.username);
+        
+        if (response && response.success) {
+          // Refresh global state
+          const authStore = useAuthStore();
+          await authStore.updateUserData();
+          this.showAlert('success', 'Username updated successfully');
+        } else {
+          throw new Error(response.message || 'Failed to update username');
+        }
+      } catch (error) {
+        this.showAlert('danger', error.message || 'Failed to update username');
+        console.error('Error updating username:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
+    async saveEmail() {
+      if (!this.email.trim()) {
+        this.showAlert('warning', 'Email cannot be empty');
+        return;
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(this.email)) {
+        this.showAlert('warning', 'Please enter a valid email address');
+        return;
+      }
+      
+      try {
+        this.isLoading = true;
+        const response = await userService.updateEmail(this.email);
+        
+        if (response && response.success) {
+          // Refresh global state
+          const authStore = useAuthStore();
+          await authStore.updateUserData();
+          this.showAlert('success', 'Email updated successfully');
+        } else {
+          throw new Error(response.message || 'Failed to update email');
+        }
+      } catch (error) {
+        this.showAlert('danger', error.message || 'Failed to update email');
+        console.error('Error updating email:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    
+    async savePassword() {
+      // Validate password fields
+      if (!this.currentPassword) {
+        this.showAlert('warning', 'Current password is required');
+        return;
+      }
+      
+      if (!this.newPassword) {
+        this.showAlert('warning', 'New password is required');
+        return;
+      }
+      
+      if (this.newPassword.length < 6) {
+        this.showAlert('warning', 'New password must be at least 6 characters');
+        return;
+      }
+      
+      if (this.newPassword !== this.confirmPassword) {
+        this.showAlert('warning', 'New password and confirmation do not match');
+        return;
+      }
+      
+      try {
+        this.isLoading = true;
+        const passwordData = {
+          current_password: this.currentPassword,
+          new_password: this.newPassword,
+          confirm_password: this.confirmPassword
+        };
+        
+        const response = await userService.updatePassword(passwordData);
+        
+        if (response && response.success) {
+          this.showAlert('success', response.message || 'Password updated successfully');
+          // Clear password fields after successful update
+          this.currentPassword = '';
+          this.newPassword = '';
+          this.confirmPassword = '';
+        } else {
+          throw new Error(response.error || 'Failed to update password');
+        }
+      } catch (error) {
+        this.showAlert('danger', error.message || 'Failed to update password');
+        console.error('Error updating password:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    }
+  }
 };
 </script>
+
+<style scoped>
+.cursor-pointer {
+  cursor: pointer;
+}
+</style>

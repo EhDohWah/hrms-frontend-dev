@@ -215,7 +215,7 @@
               >
                 <span class="avatar avatar-sm online">
                   <img
-                    :src="profile_picture"
+                    :src="profilePictureUrl"
                     alt="Img"
                     class="img-fluid rounded-circle"
                   />
@@ -226,7 +226,7 @@
                   <div class="card-header">
                     <div class="d-flex align-items-center">
                       <span class="avatar avatar-lg me-2 avatar-rounded">
-                        <img :src="profile_picture" alt="img" />
+                        <img :src="profilePictureUrl" alt="img" />
                       </span>
                       <div>
                         <h5 class="mb-0">{{ username}}</h5>
@@ -288,11 +288,12 @@
       <!-- /Mobile Menu -->
     </div>
   </div>
-  <theme-settings></theme-settings>
+  
 
 </template>
 <script>
-import { authService } from '@/services/auth.service';
+import { computed } from 'vue';
+import { useAuthStore } from '@/stores/authStore';
 import sideBarData from "@/assets/json/sidebar-menuone.json";
 import Swal from 'sweetalert2';
 
@@ -304,41 +305,39 @@ export default {
       openMenuItem: null,
       openSubmenuOneItem: null,
       route_array: [],
-      username: null,
-      email: null,
-      profile_picture: null,
     };
   },
-
+  setup() {
+    const authStore = useAuthStore();
+    
+    // Use computed properties to reactively access user data from the store
+    const username = computed(() => {
+      return authStore.user && authStore.user.name ? authStore.user.name : 'User';
+    });
+    
+    const email = computed(() => {
+      return authStore.user && authStore.user.email ? authStore.user.email : 'user@example.com';
+    });
+    
+    const profilePictureUrl = computed(() => {
+      if (authStore.user && authStore.user.profile_picture) {
+        return `${process.env.VUE_APP_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
+      }
+      return null; // Fallback handled in template
+    });
+    
+    // Make sure the store has loaded the user data
+    if (!authStore.user) {
+      authStore.updateUserData();
+    }
+    
+    return { username, email, profilePictureUrl, authStore };
+  },
   mounted() {
     this.initMouseoverListener();
     this.handleOutsideClick = this.handleOutsideClick.bind(this);
-    this.fetchUserDetails(); // Call fetchUserDetails when component is mounted
   },
   methods: {
-
-    fetchUserDetails() {
-      const userStr = localStorage.getItem('user');
-      if (userStr) {
-        try {
-          const userData = JSON.parse(userStr);
-          this.username = userData.name || 'User';
-          this.email = userData.email || 'user@example.com';
-          this.profile_picture = `${process.env.VUE_APP_PUBLIC_URL}/storage/${userData.profile_picture}`;
-        } catch (e) {
-          this.username = 'User';
-          this.email = 'user@example.com';
-        }
-      } else {
-        this.username = 'User';
-        this.email = 'user@example.com';
-      }
-      return {
-        username: this.username,
-        email: this.email
-      };
-    },
-
     handleClick(event) {
       event.stopPropagation();
 
@@ -471,11 +470,10 @@ export default {
         });
 
         if (result.isConfirmed) {
-          const logoutResult = await authService.logout();
-          if (logoutResult.success) {
-            localStorage.removeItem('intendedRoute');
-            this.$router.push('/login');
-          }
+          const authStore = useAuthStore();
+          await authStore.logout();
+          localStorage.removeItem('intendedRoute');
+          this.$router.push('/login');
         }
       } catch (error) {
         console.error('Logout failed:', error);

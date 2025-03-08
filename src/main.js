@@ -23,6 +23,7 @@ import CKEditor from '@ckeditor/ckeditor5-vue';
 import SimpleLineIcons from "vue-simple-line";
 import CircleProgress from "vue3-circle-progress";
 import "vue3-circle-progress/dist/circle-progress.css";
+import { createPinia } from 'pinia';
 
 /***********Layout Components **********/
 import Layout_Header from '@/views/layouts/layout-header.vue';
@@ -299,6 +300,8 @@ import swal from 'sweetalert2';
 window.Swal = swal;
 
 const app = createApp(App)
+const pinia = createPinia()
+app.use(pinia)
 /*Global Components */
 
 /*************Layout *****************/

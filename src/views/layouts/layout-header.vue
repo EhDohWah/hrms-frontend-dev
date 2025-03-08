@@ -215,7 +215,7 @@
               >
                 <span class="avatar avatar-sm online">
                   <img
-                    src="@/assets/img/profiles/avatar-12.jpg"
+                    :src="profile_picture"
                     alt="Img"
                     class="img-fluid rounded-circle"
                   />
@@ -226,7 +226,7 @@
                   <div class="card-header">
                     <div class="d-flex align-items-center">
                       <span class="avatar avatar-lg me-2 avatar-rounded">
-                        <img src="@/assets/img/profiles/avatar-12.jpg" alt="img" />
+                        <img :src="profile_picture" alt="img" />
                       </span>
                       <div>
                         <h5 class="mb-0">{{ username}}</h5>
@@ -247,13 +247,6 @@
                     >
                       <i class="ti ti-settings me-1"></i>Settings
                     </router-link>
-
-                    
-
-                    
-
-                    
-
                   </div>
                   <div class="card-footer">
                     <a 
@@ -312,7 +305,8 @@ export default {
       openSubmenuOneItem: null,
       route_array: [],
       username: null,
-      email: null
+      email: null,
+      profile_picture: null,
     };
   },
 
@@ -330,6 +324,7 @@ export default {
           const userData = JSON.parse(userStr);
           this.username = userData.name || 'User';
           this.email = userData.email || 'user@example.com';
+          this.profile_picture = `${process.env.VUE_APP_PUBLIC_URL}/storage/${userData.profile_picture}`;
         } catch (e) {
           this.username = 'User';
           this.email = 'user@example.com';
@@ -478,12 +473,14 @@ export default {
         if (result.isConfirmed) {
           const logoutResult = await authService.logout();
           if (logoutResult.success) {
+            localStorage.removeItem('intendedRoute');
             this.$router.push('/login');
           }
         }
       } catch (error) {
         console.error('Logout failed:', error);
         // Still redirect to login page even if API call fails
+        localStorage.removeItem('intendedRoute');
         this.$router.push('/login');
       }
     }

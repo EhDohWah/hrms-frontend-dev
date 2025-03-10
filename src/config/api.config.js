@@ -18,8 +18,7 @@ export const API_ENDPOINTS = {
         FORGOT_PASSWORD: '/forgot-password',
         RESET_PASSWORD: '/reset-password',
         VERIFY_EMAIL: '/verify-email',
-        USER: '/user',
-        
+        USER: '/user'
     },
 
     // User endpoints
@@ -28,11 +27,7 @@ export const API_ENDPOINTS = {
         CREATE: '/users',
         UPDATE: '/users/:id',
         DELETE: '/users/:id',
-        DETAILS: '/users/:id',
-        UPDATE_PROFILE_PICTURE: '/profile-picture',
-        UPDATE_USERNAME: '/username',
-        UPDATE_EMAIL: '/email',
-        UPDATE_PASSWORD: '/password'
+        DETAILS: '/users/:id'
     },
 
     // Employee endpoints

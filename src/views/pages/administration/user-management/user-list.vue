@@ -319,7 +319,7 @@ const columns = [
     },
   },
   {
-    title: "",
+    title: "Action",
     key: "action",
     sorter: true,
   },

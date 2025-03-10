@@ -6,6 +6,7 @@ import UnauthorizedPage from '@/views/pages/authentication/unauthorized.vue';
 import grantIndex from '@/views/pages/grant/grant-index.vue';
 import grantList from '@/views/pages/grant/grant-list.vue';
 import grantDetails from '@/views/pages/grant/grant-details.vue';
+import grantPositionList from '@/views/pages/grant/grant-position-list.vue';
 
 // References components
 import ReferencesList from '@/views/pages/recruitment/references/references-list.vue';
@@ -1056,6 +1057,13 @@ const routes = [
           title: 'Grant Details',
           requiresAuth: true,
           roles: ['admin', 'hr-manager']
+        }
+      }, 
+      {
+        path: 'grant-position',
+        component: grantPositionList,
+        meta: { 
+          title: 'Grant Position',
         }
       }
     ]

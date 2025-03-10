@@ -47,7 +47,8 @@ export const ROLE_MENU_ACCESS = {
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing', 'Overtime'],
             'Recruitment': ['Interviews', 'References'],
             'Employee': ['Employee Lists', 'Employee Details'],
-            'User Management': ['Users', 'Roles & Permissions']
+            'User Management': ['Users', 'Roles & Permissions'],
+            'Grants': ['Grants List', 'Grant Position']
         },
         permissions: [
             'view_all',
@@ -89,7 +90,8 @@ export const ROLE_MENU_ACCESS = {
             'Employee': ['Employee Lists', 'Employee Details'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
             'Training': ['Training List', 'Trainers'],
-            'Reports': ['Expense Report', 'Invoice Report', 'Sales Report', 'Profit & Loss Report', 'Employee Report', 'Client Report', 'Project Report', 'Task Report', 'Ticket Report', 'Holiday Report', 'Attendance Report', 'Performance Report', 'Grant Report', 'Request Report', 'Leave Report', 'Travel Report', 'Asset Report', 'User Report']
+            'Reports': ['Expense Report', 'Invoice Report', 'Sales Report', 'Profit & Loss Report', 'Employee Report', 'Client Report', 'Project Report', 'Task Report', 'Ticket Report', 'Holiday Report', 'Attendance Report', 'Performance Report', 'Grant Report', 'Request Report', 'Leave Report', 'Travel Report', 'Asset Report', 'User Report'],
+            'Grants': ['Grants List', 'Grant Position']
         },
         permissions: [
             'view_hr',
@@ -129,7 +131,8 @@ export const ROLE_MENU_ACCESS = {
             'Employee': ['Employee Lists', 'Employee Details'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
             'Training': ['Training List', 'Trainers'],
-            'Reports': ['Expense Report', 'Invoice Report', 'Sales Report', 'Profit & Loss Report', 'Employee Report', 'Client Report', 'Project Report', 'Task Report', 'Ticket Report', 'Holiday Report', 'Attendance Report', 'Performance Report', 'Grant Report', 'Request Report', 'Leave Report', 'Travel Report', 'Asset Report', 'User Report']
+            'Reports': ['Expense Report', 'Invoice Report', 'Sales Report', 'Profit & Loss Report', 'Employee Report', 'Client Report', 'Project Report', 'Task Report', 'Ticket Report', 'Holiday Report', 'Attendance Report', 'Performance Report', 'Grant Report', 'Request Report', 'Leave Report', 'Travel Report', 'Asset Report', 'User Report'],
+            'Grants': ['Grants List', 'Grant Position']
         },
         permissions: [
             'view_hr',

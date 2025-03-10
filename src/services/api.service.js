@@ -45,16 +45,24 @@ class ApiService {
     // GET request
     async get(endpoint) {
         try {
+            console.log(`Making GET request to: ${this.getFullURL(endpoint)}`);
             const response = await fetch(this.getFullURL(endpoint), {
                 method: 'GET',
                 headers: this.headers,
                 credentials: 'include'
             });
+            
+            if (response.status === 405) {
+                console.error(`Method Not Allowed (405) for GET ${endpoint}. Trying POST instead.`);
+                return this.post(endpoint, {});
+            }
+            
             return this.handleResponse(response);
         } catch (error) {
             if (!error.response) {
                 error.message = 'Network Error';
             }
+            console.error(`Error in GET request to ${endpoint}:`, error);
             return Promise.reject(error);
         }
     }

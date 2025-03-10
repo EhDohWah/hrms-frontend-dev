@@ -27,35 +27,22 @@
                 <div class="row">
                   <div class="col-lg-6 col-md-6 col-sm-12">
                     <div class="project-info">
+                      <label>Grant Code</label>
+                      <p>{{ grant.code }}</p>
+                    </div>
+                    <div class="project-info">
                       <label>Grant Amount</label>
                       <p>{{ grant.amount }}</p>
                     </div>
-                    <div class="project-info">
-                      <label>Start Date</label>
-                      <p>{{ grant.startDate }}</p>
-                    </div>
+
+                    
+                  </div>
+                  <div class="col-lg-6 col-md-6 col-sm-12">
                     <div class="project-info">
                       <label>End Date</label>
                       <p>{{ grant.endDate }}</p>
                     </div>
-                  </div>
-                  <div class="col-lg-6 col-md-6 col-sm-12">
-                    <div class="project-info">
-                      <label>Status</label>
-                      <p>
-                        <span :class="'badge ' + getStatusClass(grant.status)">
-                          {{ grant.status }}
-                        </span>
-                      </p>
-                    </div>
-                    <div class="project-info">
-                      <label>Department</label>
-                      <p>{{ grant.department }}</p>
-                    </div>
-                    <div class="project-info">
-                      <label>Principal Investigator</label>
-                      <p>{{ grant.investigator }}</p>
-                    </div>
+                    
                   </div>
                 </div>
               </div>
@@ -63,6 +50,41 @@
               <div class="project-description">
                 <h5 class="card-title">Description</h5>
                 <p>{{ grant.description }}</p>
+              </div>
+
+              <!-- Grant Items Table -->
+              <div class="mt-4">
+                <h5 class="card-title">Grant Items</h5>
+                <div class="table-responsive">
+                  <table class="table table-sm">
+                    <thead>
+                      <tr>
+                        <th>BG Line</th>
+                        <th>Position</th>
+                        <th>Salary</th>
+                        <th>Benefit</th>
+                        <th>Effort</th>
+                        <th>Position Number</th>
+                        <th>Cost Monthly</th>
+                        <th>Total Cost By Person</th>
+                        <th>Total Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="item in grant.items" :key="item.id">
+                        <td>{{ item.bg_line }}</td>
+                        <td>{{ item.grant_position }}</td>
+                        <td>{{ item.grant_salary }}</td>
+                        <td>{{ item.grant_benefit }}</td>
+                        <td>{{ item.grant_level_of_effort }}</td>
+                        <td>{{ item.grant_position_number }}</td>
+                        <td>{{ item.grant_cost_by_monthly }}</td>
+                        <td>{{ item.grant_total_cost_by_person }}</td>
+                        <td>{{ item.grant_total_amount }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <div class="project-files mt-4">
@@ -110,48 +132,104 @@
 </template>
 
 <script>
+import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
+import { useGrantStore } from '@/stores/grantStore';
+
 export default {
   name: 'GrantDetails',
+  components: {
+    indexBreadcrumb
+  },
   data() {
     return {
       title: 'Grant Details',
-      text: 'Grant',
+      text: 'Grants',
       text1: 'Grant Details',
       grantId: this.$route.params.id,
       grant: {
-        name: 'Research Grant 2024',
-        amount: '$50,000',
-        startDate: '01/01/2024',
-        endDate: '12/31/2024',
-        status: 'Active',
-        department: 'Research & Development',
-        investigator: 'Dr. John Smith',
-        description: 'This grant is focused on advancing research in artificial intelligence and its applications in healthcare.',
-        documents: [
-          { id: 1, name: 'Grant Proposal.pdf', size: '2.5 MB' },
-          { id: 2, name: 'Budget Plan.xlsx', size: '1.8 MB' }
-        ],
-        activities: [
-          { id: 1, date: '01/01/2024', description: 'Grant approved and initiated' },
-          { id: 2, date: '01/15/2024', description: 'First milestone completed' }
-        ]
-      }
+        name: 'Loading...',
+        code: '',
+        amount: '',
+        startDate: '',
+        endDate: '',
+        status: '',
+        department: '',
+        investigator: '',
+        description: 'Loading grant details...',
+        items: [],
+        documents: [],
+        activities: []
+      },
+      grantStore: useGrantStore()
     };
   },
+  mounted() {
+    this.fetchGrantDetails();
+  },
   methods: {
-    getStatusClass(status) {
-      switch (status.toLowerCase()) {
-        case 'active':
-          return 'bg-success';
-        case 'pending':
-          return 'bg-warning';
-        case 'completed':
-          return 'bg-info';
-        case 'cancelled':
-          return 'bg-danger';
-        default:
-          return 'bg-secondary';
+    async fetchGrantDetails() {
+      try {
+        // First ensure we have the grants loaded
+        await this.grantStore.fetchGrants();
+        
+        // Find the grant by ID
+        const grantData = this.grantStore.getGrantById(parseInt(this.grantId) || this.grantId);
+        
+        if (grantData) {
+          this.grant = {
+            id: grantData.id,
+            name: grantData.name,
+            code: grantData.code,
+            amount: grantData.amount || this.calculateTotalAmount(grantData.grant_items),
+            startDate: grantData.startDate || new Date().toLocaleDateString(),
+            endDate: grantData.end_date || grantData.endDate,
+            status: grantData.status || 'Pending',
+            department: grantData.department || 'Not specified',
+            investigator: grantData.investigator || 'Not assigned',
+            description: grantData.description || 'No description available',
+            items: (grantData.grant_items || []).map(item => ({
+              id: item.id,
+              bg_line: item.bg_line,
+              grant_position: item.grant_position,
+              grant_salary: item.grant_salary,
+              grant_benefit: item.grant_benefit,
+              grant_level_of_effort: item.grant_level_of_effort,
+              grant_position_number: item.grant_position_number,
+              grant_cost_by_monthly: item.grant_cost_by_monthly,
+              grant_total_cost_by_person: item.grant_total_cost_by_person,
+              grant_total_amount: item.grant_total_amount,
+              position_id: item.position_id
+            })),
+            documents: [
+              { id: 1, name: 'Grant Proposal.pdf', size: '2.5 MB' },
+              { id: 2, name: 'Budget Plan.xlsx', size: '1.8 MB' }
+            ],
+            activities: [
+              { id: 1, date: new Date().toLocaleDateString(), description: 'Grant details viewed' }
+            ]
+          };
+        } else {
+          console.error('Grant not found with ID:', this.grantId);
+        }
+      } catch (error) {
+        console.error('Error fetching grant details:', error);
       }
+    },
+    
+    calculateTotalAmount(items) {
+      if (!items || !items.length) return '$0.00';
+      const total = items.reduce((sum, item) => sum + Number(item.grant_total_amount || 0), 0);
+      return `$${total.toFixed(2)}`;
+    },
+    
+    getStatusClass(status) {
+      const statusClasses = {
+        'active': 'bg-success',
+        'pending': 'bg-warning',
+        'completed': 'bg-info',
+        'cancelled': 'bg-danger'
+      };
+      return statusClasses[status.toLowerCase()] || 'bg-secondary';
     }
   }
 };

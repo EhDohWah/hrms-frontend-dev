@@ -45,11 +45,22 @@
       {
         "menuValue": "Grants",
         "route": "/grant/list",
-        "active_link": "/grant/list",
-        "hasSubRoute": false,
+        "currentActive": true,
+        "hasSubRoute": true,
         "showSubRoute": false,
         "icon": "award",
-        "subMenus": []
+        "subMenus": [
+          {
+            "menuValue": "Grants List",
+            "route": "/grant/list",
+            "active_link": "/grant/list"
+          },
+          {
+            "menuValue": "Grant Position",
+            "route": "/grant/grant-position",
+            "active_link": "/grant/grant-position"
+          }
+        ]
       }
     ]
   },

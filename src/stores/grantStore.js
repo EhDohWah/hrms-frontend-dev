@@ -1,0 +1,116 @@
+// create a store for the grant
+import { defineStore } from 'pinia';
+import { grantService } from '@/services/grant.service';
+
+export const useGrantStore = defineStore('grant', {
+  state: () => ({
+    grants: [],
+    currentGrant: null,
+    loading: false,
+    error: null
+  }),   
+
+  getters: {
+    getGrantById: (state) => (id) => {
+      return state.grants.find(grant => grant.id === id);
+    }
+  },
+
+  actions: {
+    async fetchGrants() {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.getAllGrants();
+        
+        // Check if response.data exists and is an array; if not, assume response is the array
+        const grantsData = Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response)
+          ? response
+          : [];
+          
+        this.grants = grantsData;
+        return this.grants;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch grants';
+        console.error('Error fetching grants:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async createGrant(grantData) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.createGrant(grantData);
+        // Refresh grants list after creating
+        await this.fetchGrants();
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to create grant';
+        console.error('Error creating grant:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async updateGrant(id, grantData) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.updateGrant(id, grantData);
+        // Refresh grants list after updating
+        await this.fetchGrants();
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to update grant';
+        console.error('Error updating grant:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async deleteGrant(id) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.deleteGrant(id);
+        // Refresh grants list after deleting
+        await this.fetchGrants();
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to delete grant';
+        console.error('Error deleting grant:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async uploadGrantFile(formData) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.uploadGrantFile(formData);
+        // Refresh grants list after upload
+        await this.fetchGrants();
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to upload grant file';
+        console.error('Error uploading grant file:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    setCurrentGrant(grant) {
+      this.currentGrant = grant;
+    }
+  }
+}); 

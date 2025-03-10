@@ -170,6 +170,9 @@ import travelRequestDetails from '@/views/pages/requests/travel/travel-details.v
 import interviewsList from '@/views/pages/recruitment/interviews/interviews-list.vue';
 import interviewsDetails from '@/views/pages/recruitment/interviews/interviews-details.vue';
 
+// Grant components
+import grantPositionModal from '@/components/modal/grant-position-modal.vue';
+
 
 
 /************Modal********************/
@@ -276,6 +279,8 @@ import fileManagerModal from '@/components/modal/file-manager-modal.vue';
 import blogsTagsModal from '@/components/modal/blogs-tags-modal.vue';
 import cronjobScheduleModal from '@/components/modal/cronjob-schedule-modal.vue';
 import userListModal from '@/components/modal/user-list-modal.vue';
+
+import grantPositionList from '@/views/pages/grant/grant-position-list.vue';
 
 
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -446,7 +451,8 @@ app.component("lightbox-two", LightBoxTwo);
 
 app.component('interviews-list', interviewsList)
 app.component('interviews-details', interviewsDetails)
-
+app.component('grant-position-list', grantPositionList)
+app.component('grant-position-modal', grantPositionModal)
 /************Page Filter********************/
 
 

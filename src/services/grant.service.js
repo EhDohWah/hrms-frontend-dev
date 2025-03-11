@@ -27,20 +27,7 @@ class GrantService {
 
   // Upload grant file
   async uploadGrantFile(formData) {
-    // Build the full URL using apiService
-    const url = apiService.getFullURL(API_ENDPOINTS.GRANT.UPLOAD);
-    
-    // Custom fetch for file upload
-    const headers = { ...apiService.headers };
-    delete headers['Content-Type']; // Let the browser set this for form data
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: formData
-    });
-    
-    return apiService.handleResponse(response);
+    return await apiService.postFormData(API_ENDPOINTS.GRANT.UPLOAD, formData);
   }
 }
 

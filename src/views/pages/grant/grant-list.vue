@@ -102,6 +102,10 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- Show message when no grants are available -->
+                <tr v-if="!grants || grants.length === 0">
+                  <td colspan="6" class="text-center py-3">No grant data available</td>
+                </tr>
                 <!-- Loop over each grant -->
                 <template v-for="grant in grants" :key="grant.id">
                   <tr>
@@ -181,7 +185,7 @@
   <!-- Grant Modal -->
   <grant-modal ref="grantModal" @submit="handleGrantSubmit" />
   <!-- Grant Upload Modal -->
-  <grant-upload-modal ref="grantUploadModal" @submit="handleGrantUploadSubmit" />
+  <grant-upload-modal ref="grantUploadModal" @refresh-grant-list="fetchGrants" />
 </template>
 
 <script>

@@ -3,7 +3,6 @@ export const API_CONFIG = {
   HEADERS: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    'Authorization': `Bearer ${localStorage.getItem('token')}`
   }
 };
 
@@ -27,7 +26,12 @@ export const API_ENDPOINTS = {
         CREATE: '/users',
         UPDATE: '/users/:id',
         DELETE: '/users/:id',
-        DETAILS: '/users/:id'
+        DETAILS: '/users/:id',
+        GET_USER: '/user',
+        UPDATE_PROFILE_PICTURE: '/profile-picture',
+        UPDATE_USERNAME: '/username',
+        UPDATE_PASSWORD: '/password',
+        UPDATE_EMAIL: '/email'
     },
 
     // Employee endpoints

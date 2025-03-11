@@ -4,7 +4,28 @@ export const authGuard = (to, from, next) => {
     const isAuthenticated = authService.isAuthenticated();
     const publicPages = ['/login', '/register', '/forgot-password', '/reset-password'];
     const authRequired = !publicPages.includes(to.path);
+    // Retrieve token and expiration from localStorage
+    const token = localStorage.getItem('token');
+    const tokenExpiration = localStorage.getItem('tokenExpiration'); 
+    // e.g. "1741721978" (seconds since epoch)
 
+    // If token and expiration exist, check whether it is expired
+    if (token && tokenExpiration) {
+        // If your tokenExpiration is in seconds, multiply by 1000 to compare with Date.now() (which is in ms)
+        const expiryTimeMs = Number(tokenExpiration) * 1000;
+        if (Date.now() > expiryTimeMs) {
+        // Token is expired. Clear out local storage and redirect to login.
+        localStorage.removeItem('token');
+        localStorage.removeItem('tokenExpiration');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('permissions');
+        return next('/login');
+        }
+    }
+
+    
+    
     // Handle root path redirection based on role
     if (isAuthenticated && to.path === '/') {
         const userRole = localStorage.getItem('userRole')?.toLowerCase();

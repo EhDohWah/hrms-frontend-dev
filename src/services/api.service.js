@@ -4,6 +4,12 @@ class ApiService {
     constructor() {
         this.baseURL = API_CONFIG.BASE_URL;
         this.headers = API_CONFIG.HEADERS;
+
+        // If there's a token in localStorage, set it
+        const token = localStorage.getItem('token');
+        if (token) {
+            this.setAuthToken(token);
+        }
     }
 
     // Set auth token
@@ -170,6 +176,8 @@ class ApiService {
             return Promise.reject(error);
         }
     }
+
+    // create 
 }
 
 export const apiService = new ApiService(); 

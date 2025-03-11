@@ -13,6 +13,9 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
+            <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
+              {{ alertMessage }}
+            </div>
             <form @submit.prevent="handleSubmit">
               <div class="mb-3">
                 <label for="grantFile" class="form-label">Select File</label>
@@ -46,7 +49,6 @@
   
   <script>
   import { grantService } from '@/services/grant.service';
-  import bootstrap from 'bootstrap';
 
   export default {
     name: 'GrantUploadModal',
@@ -55,15 +57,28 @@
         file: null,
         description: '',
         isUploading: false,
+        alertMessage: '',
+        alertClass: '',
       };
     },
     methods: {
       handleFileChange(event) {
         this.file = event.target.files[0];
       },
+      showAlert(message, type = 'danger') {
+        this.alertMessage = message;
+        this.alertClass = `alert-${type}`;
+        
+        // Auto-dismiss success alerts after 3 seconds
+        if (type === 'success') {
+          setTimeout(() => {
+            this.alertMessage = '';
+          }, 3000);
+        }
+      },
       async handleSubmit() {
         if (!this.file) {
-          alert('Please select a file to upload.');
+          this.showAlert('Please select a file to upload.');
           return;
         }
   
@@ -74,21 +89,42 @@
   
         this.isUploading = true;
         try {
-          // Use grantService to perform the file upload
-          const data = await grantService.uploadGrantFile(formData);
-          alert('File uploaded successfully!');
-          this.resetForm();
-          this.$emit('upload-success', data);
-  
-          // Close the modal using Bootstrap's Modal API
-          const modalElement = document.getElementById('grantUploadModal');
-          const modalInstance = bootstrap.Modal.getInstance(modalElement);
-          if (modalInstance) {
-            modalInstance.hide();
+          // Use grantService directly
+          const response = await grantService.uploadGrantFile(formData);
+          
+          // Handle successful response with potential warnings
+          if (response) {
+            if (response.error) {
+              this.showAlert(`Upload completed but with issues: ${response.error}`, 'warning');
+            } else if (response.warnings && response.warnings.length > 0) {
+              // Display warnings as a list if there are any
+              const warningMessage = `Upload completed with warnings:\n${response.warnings.join('\n')}`;
+              this.showAlert(warningMessage, 'warning');
+            } else if (response.skipped_grants && response.skipped_grants.length > 0) {
+              // Show information about skipped grants
+              const skippedMessage = `Upload completed. Skipped grants: ${response.skipped_grants.join(', ')}`;
+              this.showAlert(skippedMessage, 'info');
+            } else {
+              // Success with no issues
+              const successMessage = response.message || 'File uploaded successfully!';
+              this.showAlert(`${successMessage} (${response.processed_grants || 0} grants processed)`, 'success');
+              this.resetForm();
+            }
+          } else {
+            this.showAlert('File uploaded successfully!', 'success');
+            this.resetForm();
           }
+          
+          // Emit event to refresh grant list
+          this.$emit('refresh-grant-list');
+          
         } catch (error) {
           console.error('Error uploading file:', error);
-          alert('An error occurred while uploading the file.');
+          // Show more detailed error message if available
+          const errorMessage = error.response?.data?.message || 
+                              error.message || 
+                              'An error occurred while uploading the file.';
+          this.showAlert(errorMessage);
         } finally {
           this.isUploading = false;
         }
@@ -101,6 +137,11 @@
           fileInput.value = '';
         }
       },
+
+      // refresh the grant list
+      refreshGrantList() {
+        this.$emit('refresh-grant-list');
+      }
     },
   };
   </script>
@@ -110,4 +151,3 @@
     padding: 20px;
   }
   </style>
-  

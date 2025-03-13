@@ -40,7 +40,7 @@ export default {
                 <div class="text-center mb-3">
                   <h2 class="mb-2">Email OTP Verification</h2>
                   <p class="mb-0">
-                    OTP sent to your Email Address ending ******doe@example.com
+                    OTP sent to your Email Address ending ******doe@example.com
                   </p>
                 </div>
                 <div class="text-center otp-input">

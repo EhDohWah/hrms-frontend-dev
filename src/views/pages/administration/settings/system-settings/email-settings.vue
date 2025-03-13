@@ -8,7 +8,7 @@
       <div
         class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
       >
-        <breadcrumb :title="title" :text="text" :text1="text1" />
+        <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="head-icons ms-2">
           <a
             href="javascript:void(0);"
@@ -286,10 +286,6 @@ export default {
     toggleHeader() {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
-    },
-
-    submitForm() {
-      this.$router.push("/system-settings/email-settings");
     },
   },
 };

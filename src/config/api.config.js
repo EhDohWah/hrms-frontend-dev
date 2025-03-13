@@ -41,7 +41,7 @@ export const API_ENDPOINTS = {
         UPDATE: '/employees/:id',
         DELETE: '/employees/:id',
         DETAILS: '/employees/:id',
-        SEARCH: '/employees/search',
+        FILTER: '/employees/filter',
         SITE_RECORDS: '/employees/site-records'
     },
 
@@ -54,6 +54,15 @@ export const API_ENDPOINTS = {
         DETAILS: '/roles/:id',
         GET_PERMISSIONS: '/roles/:id/permissions',
         UPDATE_PERMISSIONS: '/roles/:id/permissions'
+    },
+
+    // Employment endpoints
+    EMPLOYMENT: {
+        LIST: '/employments',
+        CREATE: '/employments',
+        UPDATE: '/employments/:id',
+        DELETE: '/employments/:id',
+        DETAILS: '/employments/:id'
     },
 
     // Permission endpoints

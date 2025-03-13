@@ -5,5 +5,6 @@ export const STORAGE_KEYS = {
     USER_ROLE: 'userRole',
     PERMISSIONS: 'permissions',
     TOKEN_EXPIRATION: 'tokenExpiration',
+    JUST_LOGGED_IN: 'justLoggedIn', // <-- new key
   };
   

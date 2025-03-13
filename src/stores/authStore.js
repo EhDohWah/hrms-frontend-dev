@@ -19,6 +19,7 @@ export const useAuthStore = defineStore('auth', {
     loading: false,
     error: null,
     tokenTimer: null,
+    justLoggedIn: null, // persist flag
   }),
   getters: {
     isAuthenticated: (state) => !!state.token && !!state.user,
@@ -98,35 +99,52 @@ export const useAuthStore = defineStore('auth', {
       }, duration);
     },
 
+     // -------------------------
+    // Authentication Utilities
+    // -------------------------
+    // Returns the primary role (assumes first role is primary)
+    getPrimaryRole(roles) {
+      if (!roles?.length) return null;
+      return roles[0].name.toLowerCase();
+    },
+
     setAuthData(response) {
-      if (!response || !response.user) return;
+      if (!response || !response.user) return false;
       
-      // Set token and user details
-      this.token = response.access_token;
-      this.user = response.user;
+      // Clear any existing authentication data
+      this.clearAuthData();
       
-      // Get role from the roles array
-      this.userRole = 
-        response.roles && response.roles.length
-          ? response.roles[0].name.toLowerCase()
-          : null;
+      // Set token and update API headers
+      if (response.access_token) {
+        this.token = response.access_token;
+        this.setStorageItem(STORAGE_KEYS.TOKEN, response.access_token);
+        // Note: apiService.setAuthToken call is omitted as it's not in the selection scope
+      }
       
-      // Set permissions directly from the response
-      this.permissions = response.permissions || [];
+      // Save user data and role information if available
+      if (response.user) {
+        if (response.user.roles && response.user.roles.length > 0) {
+          this.userRole = this.getPrimaryRole(response.user.roles);
+          this.setStorageItem(STORAGE_KEYS.USER_ROLE, this.userRole);
+        }
+        this.setStorageItem(STORAGE_KEYS.USER, response.user);
+        this.user = response.user;
+        
+        // Save permissions if available
+        if (response.user.permissions) {
+          this.permissions = response.user.permissions;
+          this.setStorageItem(STORAGE_KEYS.PERMISSIONS, this.permissions);
+        }
+      }
       
-      // Calculate token expiration (default to 24 hours if not provided)
-      const expiresIn = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      // Set token expiration using response.expires_in (if provided) or default to 24 hours
+      const expiresIn = response.expires_in ? response.expires_in * 1000 : 24 * 60 * 60 * 1000;
       const expirationTime = Date.now() + expiresIn;
       this.tokenExpiration = expirationTime;
-
-      // Persist data in localStorage
-      this.setStorageItem(STORAGE_KEYS.TOKEN, this.token);
-      this.setStorageItem(STORAGE_KEYS.USER, this.user);
-      this.setStorageItem(STORAGE_KEYS.USER_ROLE, this.userRole);
-      this.setStorageItem(STORAGE_KEYS.PERMISSIONS, this.permissions);
       this.setStorageItem(STORAGE_KEYS.TOKEN_EXPIRATION, expirationTime.toString());
-
       this.setTokenTimer(expiresIn);
+      
+      return true;
     },
 
     checkAuth() {
@@ -151,6 +169,8 @@ export const useAuthStore = defineStore('auth', {
         const response = await authService.login(credentials);
         if (response.access_token) {
           this.setAuthData(response);
+          // Set the justLoggedIn flag in localStorage
+          this.justLoggedIn = true;
           return { success: true, user: this.user };
         }
         throw new Error('Invalid response from server');
@@ -167,8 +187,7 @@ export const useAuthStore = defineStore('auth', {
       let result = { success: true };
       
       try {
-        if (this.token) {
-          // Optionally, set token in headers for the logout API call
+        if (this.token) {       
           await authService.logout();
         }
       } catch (error) {

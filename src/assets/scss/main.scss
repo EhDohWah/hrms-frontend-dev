@@ -9,6 +9,15 @@
   --dark-color: #1F2937;
 }
 
+/****** Ant Design for logout modal ******/
+
+.ant-modal-root,
+.ant-modal-mask,
+.ant-modal-wrap {
+  z-index: 99999 !important;
+}
+
+
 /****** Utils ******/
 @import "utils/variables";
 @import "utils/mixins";

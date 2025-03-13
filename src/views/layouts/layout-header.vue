@@ -295,7 +295,7 @@
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import sideBarData from "@/assets/json/sidebar-menuone.json";
-import Swal from 'sweetalert2';
+import { Modal, notification } from 'ant-design-vue';
 
 export default {
   data() {
@@ -336,6 +336,16 @@ export default {
   mounted() {
     this.initMouseoverListener();
     this.handleOutsideClick = this.handleOutsideClick.bind(this);
+    // Check the persisted flag and show notification if it's true
+    if (this.authStore.justLoggedIn) {
+      notification.success({
+        message: `Welcome back, ${this.username}!`,
+        description: 'Glad to see you again.',
+        placement: 'topRight',
+      });
+      // Reset the flag in both the store and localStorage
+      this.authStore.justLoggedIn = false;
+    }
   },
   methods: {
     handleClick(event) {
@@ -458,23 +468,25 @@ export default {
     },
     async handleLogout() {
       try {
-        const result = await Swal.fire({
-          title: 'Are you sure?',
-          text: "You will be logged out of the system",
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#3085d6',
-          cancelButtonColor: '#d33',
-          confirmButtonText: 'Yes, logout',
-          cancelButtonText: 'Cancel'
+        await new Promise((resolve) => {
+          Modal.confirm({
+            title: 'Are you sure?',
+            content: 'You will be logged out of the system',
+            centered: true,
+            okText: 'Yes, logout',
+            cancelText: 'Cancel',
+            onOk: async () => {
+              const authStore = useAuthStore();
+              await authStore.logout();
+              localStorage.removeItem('intendedRoute');
+              this.$router.push('/login');
+              resolve();
+            },
+            onCancel: () => {
+              resolve();
+            }
+          });
         });
-
-        if (result.isConfirmed) {
-          const authStore = useAuthStore();
-          await authStore.logout();
-          localStorage.removeItem('intendedRoute');
-          this.$router.push('/login');
-        }
       } catch (error) {
         console.error('Logout failed:', error);
         // Still redirect to login page even if API call fails

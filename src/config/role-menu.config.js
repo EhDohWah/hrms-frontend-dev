@@ -46,7 +46,7 @@ export const ROLE_MENU_ACCESS = {
             'Travel': ['Travel (Admin)'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing', 'Overtime'],
             'Recruitment': ['Interviews', 'References'],
-            'Employee': ['Employee Lists', 'Employee Details'],
+            'Employee': ['Employee Lists', 'Employee Details', 'Departments', 'Designations', 'Policies'],
             'User Management': ['Users', 'Roles & Permissions'],
             'Grants': ['Grants List', 'Grant Position']
         },

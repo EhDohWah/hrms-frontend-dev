@@ -9,19 +9,8 @@
         class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
       >
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
+
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="me-2 mb-2">
-            <div class="d-flex align-items-center border bg-white rounded p-1 me-2">
-              <router-link
-                to="/employee/employee-list"
-                class="btn btn-icon btn-sm active bg-primary text-white me-1"
-                ><i class="ti ti-list-tree"></i
-              ></router-link>
-              <router-link to="/employee/employee-grid" class="btn btn-icon btn-sm"
-                ><i class="ti ti-layout-grid"></i
-              ></router-link>
-            </div>
-          </div>
           <div class="me-2 mb-2">
             <div class="dropdown">
               <a
@@ -45,6 +34,7 @@
               </ul>
             </div>
           </div>
+
           <div class="mb-2">
             <a
               href="javascript:void(0);"
@@ -54,6 +44,7 @@
               ><i class="ti ti-circle-plus me-2"></i>Add New Employee</a
             >
           </div>
+
           <div class="head-icons ms-2">
             <a
               href="javascript:void(0);"
@@ -67,6 +58,7 @@
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
+
         </div>
       </div>
       <!-- /Breadcrumb -->
@@ -84,13 +76,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">Total Employee</p>
-                  <h4>1007</h4>
+                  <h4>{{ totalEmployees }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-purple badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  +19.01%
+                  {{ ((activeCount / totalEmployees) * 100).toFixed(1) }}% Active
                 </span>
               </div>
             </div>
@@ -110,13 +102,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">Active</p>
-                  <h4>1007</h4>
+                  <h4>{{ activeCount }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-primary badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  +19.01%
+                  {{ ((activeCount / totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -136,13 +128,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">InActive</p>
-                  <h4>1007</h4>
+                  <h4>{{ inactiveCount }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-dark badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  +19.01%
+                  {{ ((inactiveCount / totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -162,13 +154,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">New Joiners</p>
-                  <h4>67</h4>
+                  <h4>{{ newJoinerCount }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-secondary badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  +19.01%
+                  {{ ((newJoinerCount / totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -181,96 +173,35 @@
         <div
           class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"
         >
-          <h5>Plan List</h5>
-          <div
-            class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3"
-          >
-            <div class="me-3">
-              <div class="input-icon-end position-relative">
-                <input
-                  type="text"
-                  class="form-control date-range bookingrange"
-                  ref="dateRangeInput"
-                  placeholder="dd/mm/yyyy - dd/mm/yyyy"
-                />
-                <span class="input-icon-addon">
-                  <i class="ti ti-chevron-down"></i>
-                </span>
-              </div>
-            </div>
-            <div class="dropdown me-3">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
-                Designation
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Finance</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Developer</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Executive</a
-                  >
-                </li>
-              </ul>
-            </div>
-            <div class="dropdown me-3">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
-                Select Status
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">Active</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Inactive</a
-                  >
-                </li>
-              </ul>
-            </div>
-            <div class="dropdown">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
-                Sort By : Last 7 Days
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Ascending</a
-                  >
-                </li>
-              </ul>
-            </div>
+          <h5>Employee List</h5>
+          
+          <div class="table-operations">
+            <a-button @click="clearFilters">Clear filters</a-button>
+            <a-button @click="clearAll">Clear filters and sorters</a-button>
           </div>
         </div>
+
         <div class="card-body p-0">
           <div class="custom-datatable-filter table-responsive">
+            <div v-if="loading" class="text-center my-3">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Loading employees...</p>
+            </div>
+
             <a-table
+              v-else
               class="table datatable thead-light"
               :columns="columns"
-              :data-source="data"
+              :data-source="employees"
               :row-selection="rowSelection"
+              :pagination="pagination"
+              @change="handleChange"
             >
+              <!-- Name column with highlighting -->
               <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'Name'">
+                <template v-if="column.key === 'fullName'">
                   <div class="d-flex align-items-center file-name-icon">
                     <a href="javascript:void(0);" class="avatar avatar-md">
                       <img
@@ -281,99 +212,51 @@
                     </a>
                     <div class="ms-2">
                       <h6 class="fw-medium">
-                        <a href="javascript:void(0);">{{ record.Name }}</a>
+                        <router-link :to="`/employee/employee-details/${record.id}`">
+                          {{ record.fullName }}
+                        </router-link>
                       </h6>
-                      <span class="d-block mt-1">{{ record.Work }}</span>
+                      <span class="d-block mt-1">{{ record.work }}</span>
                     </div>
                   </div>
                 </template>
-                <template v-if="column.key === 'Designation'">
-                  <div class="dropdown">
-                    <a
-                      href="javascript:void(0);"
-                      class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                      data-bs-toggle="dropdown"
-                    >
-                      <span
-                        class="rounded-circle bg-transparent-success d-flex justify-content-center align-items-center me-2"
-                      ></span>
-                      {{ record.Designation }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end p-3">
-                      <li>
-                        <a
-                          href="javascript:void(0);"
-                          class="dropdown-item rounded-1 d-flex justify-content-start align-items-center"
-                          ><span
-                            class="rounded-circle bg-transparent-success d-flex justify-content-center align-items-center me-2"
-                          ></span
-                          >Finance</a
-                        >
-                      </li>
-                      <li>
-                        <a
-                          href="javascript:void(0);"
-                          class="dropdown-item rounded-1 d-flex justify-content-start align-items-center"
-                          ><span
-                            class="rounded-circle bg-transparent-skyblue d-flex justify-content-center align-items-center me-2"
-                          ></span
-                          >Developer
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="javascript:void(0);"
-                          class="dropdown-item rounded-1 d-flex justify-content-start align-items-center"
-                          ><span
-                            class="rounded-circle bg-transparent-skyblue d-flex justify-content-center align-items-center me-2"
-                          ></span
-                          >Executive
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          href="javascript:void(0);"
-                          class="dropdown-item rounded-1 d-flex justify-content-start align-items-center"
-                          ><span
-                            class="rounded-circle bg-transparent-skyblue d-flex justify-content-center align-items-center me-2"
-                          ></span
-                          >Manager
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                </template>
 
-                <template v-if="column.key === 'Status'">
+                <!-- Status column -->
+                <template v-if="column.key === 'status'">
                   <span
                     :class="[
                       'badge',
-                      record.Status === 'Active'
+                      record.status === 'Local ID'
                         ? 'badge-success'
-                        : record.Status === 'Inactive'
-                        ? 'badge-danger'
+                        : record.status === 'Expat'
+                        ? 'badge-primary'
+                        : record.status === 'Non Local'
+                        ? 'badge-warning'
                         : 'd-inline-flex',
                       'align-items-center',
                       'badge-xs',
                     ]"
                   >
                     <i class="ti ti-point-filled me-1"></i>
-                    {{ record.Status }}
+                    {{ record.status }}
                   </span>
                 </template>
+
+                <!-- Action column -->
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
                     <a
                       href="javascript:void(0);"
                       class="me-2"
                       data-bs-toggle="modal"
-                      data-bs-target="#edit-employee-salary"
+                      data-bs-target="#edit_employee"
                       ><i class="ti ti-edit"></i
                     ></a>
                     <a
                       href="javascript:void(0);"
                       data-bs-toggle="modal"
                       data-bs-target="#delete_modal"
+                      @click="prepareDelete(record.id)"
                       ><i class="ti ti-trash"></i
                     ></a>
                   </div>
@@ -388,7 +271,7 @@
     <div
       class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3"
     >
-      <p class="mb-0">2014 - 2025 &copy; SmartHR.</p>
+      <p class="mb-0">2014 - 2025 &copy; HRMS</p>
       <p>
         Designed &amp; Developed By
         <a href="javascript:void(0);" class="text-primary">Dreams</a>
@@ -398,258 +281,297 @@
   <!-- /Page Wrapper -->
   <employee-list-modal></employee-list-modal>
 </template>
+
 <script>
 import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
-import { ref } from "vue";
-import { onMounted } from "vue";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
+import { employeeService } from '@/services/employee.service';
 
-const columns = [
-  {
-    sorter: false,
-  },
-  {
-    title: "Emp ID",
-    dataIndex: "EmpID",
-    sorter: {
-      compare: (a, b) => {
-        a = a.EmpID.toLowerCase();
-        b = b.EmpID.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Name",
-    dataIndex: "Name",
-    key: "Name",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Name.toLowerCase();
-        b = b.Name.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Email",
-    dataIndex: "Email",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Email.toLowerCase();
-        b = b.Email.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Phone",
-    dataIndex: "Phone",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Phone.toLowerCase();
-        b = b.Phone.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Designation",
-    dataIndex: "Designation",
-    key: "Designation",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Designation.toLowerCase();
-        b = b.Designation.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Joining Date",
-    dataIndex: "JoiningDate",
-    key: "JoiningDate",
-    sorter: {
-      compare: (a, b) => {
-        a = a.JoiningDate.toLowerCase();
-        b = b.JoiningDate.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Status",
-    dataIndex: "Status",
-    key: "Status",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Status.toLowerCase();
-        b = b.Status.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "",
-    key: "action",
-    sorter: false,
-  },
-];
-const data = [
-  {
-    EmpID: "Emp-001",
-    Name: "Anthony Lewis",
-    Work: "Finance",
-    Email: "anthony@example.com",
-    Phone: "(123) 4567 890",
-    Designation: "Finance",
-    JoiningDate: "12 Sep 2024",
-    Salary: "$40000",
-    Status: "Active",
-    Image: "user-32.jpg",
-  },
-  {
-    EmpID: "Emp-002",
-    Name: "Brian Villalobos",
-    Work: "Developer",
-    Email: "brian@example.com",
-    Phone: "(179) 7382 829",
-    Designation: "Developer",
-    JoiningDate: "24 Oct 2024",
-    Salary: "$35000",
-    Status: "Active",
-    Image: "user-09.jpg",
-  },
-  {
-    EmpID: "Emp-003",
-    Name: "Harvey Smith",
-    Work: "Developer",
-    Email: "harvey@example.com",
-    Phone: "(184) 2719 738",
-    Designation: "Executive",
-    JoiningDate: "18 Feb 2024",
-    Salary: "$20000",
-    Status: "Active",
-    Image: "user-01.jpg",
-  },
-  {
-    EmpID: "Emp-004",
-    Name: "Stephan Peralt",
-    Work: "Executive Officer",
-    Email: "peral@example.com",
-    Phone: "(193) 7839 748",
-    Designation: "Executive ",
-    JoiningDate: "17 Oct 2024",
-    Salary: "$$22000",
-    Status: "Active",
-    Image: "user-33.jpg",
-  },
-  {
-    EmpID: "Emp-005",
-    Name: "Doglas Martini",
-    Work: "Manager",
-    Email: "martniwr@example.com",
-    Phone: "(183) 9302 890",
-    Designation: "Manager",
-    JoiningDate: "20 Jun 2024",
-    Salary: "$25000",
-    Status: "Active",
-    Image: "user-34.jpg",
-  },
-  {
-    EmpID: "Emp-006",
-    Name: "Linda Ray",
-    Work: "Finance",
-    Email: "ray456@example.com",
-    Phone: "(120) 3728 039",
-    Designation: "Finance",
-    JoiningDate: "10 Apr 2024",
-    Salary: "$30000",
-    Status: "Active",
-    Image: "user-02.jpg",
-  },
-  {
-    EmpID: "Emp-007",
-    Name: "Elliot Murray",
-    Work: "Developer",
-    Email: "murray@example.com",
-    Phone: "(102) 8480 832",
-    Designation: "Finance",
-    JoiningDate: "29 Aug 2024",
-    Salary: "$35000",
-    Status: "Active",
-    Image: "user-35.jpg",
-  },
-  {
-    EmpID: "Emp-008",
-    Name: "Rebecca Smtih",
-    Work: "Executive",
-    Email: "smtih@example.com",
-    Phone: "(162) 8920 713",
-    Designation: "Executive",
-    JoiningDate: "22 Feb 2024",
-    Salary: "$45000",
-    Status: "Inactive",
-    Image: "user-36.jpg",
-  },
-  {
-    EmpID: "Emp-009",
-    Name: "Connie Waters",
-    Work: "Developer",
-    Email: "connie@example.com",
-    Phone: "(189) 0920 723",
-    Designation: "Developer",
-    JoiningDate: "03 Nov 2024",
-    Salary: "$50000",
-    Status: "Active",
-    Image: "user-37.jpg",
-  },
-  {
-    EmpID: "Emp-010",
-    Name: "Lori Broaddus",
-    Work: "Finance",
-    Email: "broaddus@example.com",
-    Phone: "(168) 8392 823",
-    Designation: "Finance ",
-    JoiningDate: "17 Dec 2024",
-    Salary: "$25000",
-    Status: "Active",
-    Image: "user-38.jpg",
-  },
-];
-const rowSelection = {
-  onChange: () => {},
-  onSelect: () => {},
-  onSelectAll: () => {},
-};
+
 export default {
+  
+  
   data() {
     return {
-      data,
-      columns,
-      rowSelection,
-      title: "Employees",
+      employees: [],
+      title: "Employee",
       text: "Employee",
       text1: "Employee List",
+      sites: [
+        { name: "MKT", id: 1, code: 'MKT'},
+        { name: "WPA", id: 2, code: 'WPA'},
+        { name: "MSL", id: 3, code: 'MSL'},
+        { name: "MRM", id: 4, code: 'MRM'},
+        { name: "MRMTB", id: 5, code: 'MRMTB'},
+        { name: "KKTB", id: 6, code: 'KKTB'},
+      ],
+      departments: [
+        { name: "Admin", id: 1, code: 'Admin'},
+        { name: "HR", id: 2, code: 'HR'},
+        { name: "DataManagement", id: 3, code: 'DataManagement'},
+        { name: "IT", id: 4, code: 'IT'},
+        { name: "Finance", id: 5, code: 'Finance'},
+        { name: "Lab", id: 6, code: 'Lab'},
+      ],
+      selectedSite: null,
+      selectedDepartment: null,
+      siteId: null,
+      departmentId: null,
+      dateRangeInput: null,
+      loading: false,
+      employeeToDelete: null,
+
+      // Statistics
+      totalEmployees: 0,
+      activeCount: 0,
+      inactiveCount: 0,
+      newJoinerCount: 0,
+
+      // Pagination
+      currentPage: 1,
+      pageSize: 10,
+      paginationSettings: {
+        pageSizeOptions: ['5', '10', '20', '50', '100'],
+        showSizeChanger: true,
+        showQuickJumper: false,
+      },
+
+      searchTerm: '',
+      
+      // Column visibility control
+      visibleColumns: ['subsidiary', 'staff_id', 'status', 'fullName', 'mobile_phone', 'location', 'department', 'position', 'action'],
+      
+      // Filter and sort info
+      filteredInfo: {},
+      sortedInfo: {},
+      
+      // Row selection configuration
+      rowSelection: {
+        onChange: (selectedRowKeys, selectedRows) => {
+          console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+        },
+        onSelect: (record, selected, selectedRows) => {
+          console.log(record, selected, selectedRows);
+        },
+        onSelectAll: (selected, selectedRows, changeRows) => {
+          console.log(selected, selectedRows, changeRows);
+        },
+      },
     };
   },
-  setup() {
-    const dateRangeInput = ref(null);
 
-    // Move the function declaration outside of the onMounted callback
-    function booking_range(start, end) {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
+  beforeUnmount() {
+    // Cleanup DateRangePicker when component is destroyed
+    if (this.daterangepicker) {
+      this.daterangepicker.remove();
     }
+  },
 
-    onMounted(() => {
-      if (dateRangeInput.value) {
+  computed: {
+    // Define columns with filters and sorters
+    columns() {
+      const filtered = this.filteredInfo || {};
+      const sorted = this.sortedInfo || {};
+      
+      return [
+        {
+          title: 'Subsidiary',
+          dataIndex: 'subsidiary',
+          key: 'subsidiary',
+          filters: [
+            { text: 'SMRU', value: 'SMRU' },
+            { text: 'BHF', value: 'BHF' },
+          ],
+          filteredValue: filtered.subsidiary || null,
+          onFilter: (value, record) => record.subsidiary === value,
+          sorter: (a, b) => {
+            a = (a.subsidiary || '').toLowerCase();
+            b = (b.subsidiary || '').toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
+        },
+        {
+          title: 'Staff ID',
+          dataIndex: 'staff_id',
+          key: 'staff_id',
+          sorter: (a, b) => {
+            a = a.staff_id.toLowerCase();
+            b = b.staff_id.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'staff_id' && sorted.order,
+        },
+        {
+          title: 'Status',
+          dataIndex: 'status',
+          key: 'status',
+          filters: [
+            { text: 'Active', value: 'active' },
+            { text: 'Inactive', value: 'inactive' },
+            { text: 'Local ID', value: 'Local ID' },
+            { text: 'Expat', value: 'Expat' },
+            { text: 'Non Local', value: 'Non Local' },
+          ],
+          filteredValue: filtered.status || null,
+          onFilter: (value, record) => record.status === value,
+          sorter: (a, b) => {
+            a = a.status.toLowerCase();
+            b = b.status.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'status' && sorted.order,
+        },
+        {
+          title: 'Name',
+          dataIndex: 'fullName',
+          key: 'fullName',
+          sorter: (a, b) => {
+            a = a.fullName.toLowerCase();
+            b = b.fullName.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'fullName' && sorted.order,
+        },
+        {
+          title: 'Phone',
+          dataIndex: 'mobile_phone',
+          key: 'mobile_phone',
+          sorter: (a, b) => {
+            a = a.mobile_phone.toLowerCase();
+            b = b.mobile_phone.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'mobile_phone' && sorted.order,
+        },
+        {
+          title: 'Location',
+          dataIndex: 'location',
+          key: 'location',
+          filters: this.sites.map(site => ({ text: site.name, value: site.name })),
+          filteredValue: filtered.location || null,
+          onFilter: (value, record) => record.location === value,
+          sorter: (a, b) => {
+            a = (a.location || '').toLowerCase();
+            b = (b.location || '').toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'location' && sorted.order,
+        },
+        {
+          title: 'Department',
+          dataIndex: 'department',
+          key: 'department',
+          filters: this.departments.map(dept => ({ text: dept.name, value: dept.name })),
+          filteredValue: filtered.department || null,
+          onFilter: (value, record) => record.department === value,
+          sorter: (a, b) => {
+            a = a.department.toLowerCase();
+            b = b.department.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'department' && sorted.order,
+        },
+        {
+          title: 'Position',
+          dataIndex: 'position',
+          key: 'position',
+          sorter: (a, b) => {
+            a = (a.position || '').toLowerCase();
+            b = (b.position || '').toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'position' && sorted.order,
+        },
+        {
+          title: '',
+          key: 'action',
+          sorter: false,
+        },
+      ].filter(col => this.visibleColumns.includes(col.key));
+    },
+    
+    pagination() {
+      return {
+        ...this.paginationSettings,
+        current: this.currentPage,
+        pageSize: this.pageSize,
+        total: this.totalEmployees,
+        showTotal: (total) => `Total ${total} employees`,
+      };
+    }
+  },
+
+  mounted() {
+    this.$nextTick(() => {
+      this.initializeDateRangePicker();
+    });
+    this.fetchEmployees();
+  },
+  
+  methods: {
+    prepareDelete(id) {
+      this.employeeToDelete = id;
+    },
+    
+    async deleteEmployee() {
+      if (!this.employeeToDelete) return;
+      
+      try {
+        this.loading = true;
+        await employeeService.deleteEmployee(this.employeeToDelete);
+        this.fetchEmployees(); // Refresh the list
+        this.$message.success('Employee deleted successfully');
+      } catch (error) {
+        this.$message.error('Failed to delete employee');
+        console.error("Error deleting employee:", error);
+      } finally {
+        this.loading = false;
+        this.employeeToDelete = null;
+      }
+    },
+
+    // Handle table change (pagination, filters, sorter)
+    handleChange(pagination, filters, sorter) {
+      console.log('Various parameters', pagination, filters, sorter);
+      this.filteredInfo = filters;
+      this.sortedInfo = sorter;
+      this.currentPage = pagination.current;
+      this.pageSize = pagination.pageSize;
+      
+      // If using server-side pagination, call your API here
+      // this.fetchEmployees();
+    },
+    
+    // Clear all filters
+    clearFilters() {
+      this.filteredInfo = {};
+    },
+    
+    // Clear all filters and sorters
+    clearAll() {
+      this.filteredInfo = {};
+      this.sortedInfo = {};
+    },
+
+    toggleHeader() {
+      document.getElementById("collapse-header").classList.toggle("active");
+      document.body.classList.toggle("header-collapse");
+    },
+    
+    booking_range(start, end) {
+      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
+    },
+
+    initializeDateRangePicker() {
+      if (this.dateRangeInput) {
         const start = moment().subtract(6, "days");
         const end = moment();
 
-        new DateRangePicker(
-          dateRangeInput.value,
+        this.daterangepicker = new DateRangePicker(
+          this.dateRangeInput,
           {
             startDate: start,
             endDate: end,
@@ -665,22 +587,104 @@ export default {
               ],
             },
           },
-          booking_range
+          this.booking_range
         );
 
-        booking_range(start, end);
+        this.booking_range(start, end);
       }
-    });
+    },
 
-    return {
-      dateRangeInput,
-    };
-  },
-  methods: {
-    toggleHeader() {
-      document.getElementById("collapse-header").classList.toggle("active");
-      document.body.classList.toggle("header-collapse");
+    mapEmployeeData(data) {
+      return data.map(emp => ({
+        id: emp.id,
+        subsidiary: emp.subsidiary || 'N/A',
+        staff_id: emp.staff_id || 'N/A',
+        fullName: `${emp.first_name} ${emp.middle_name || ''} ${emp.last_name}`.trim(),
+        email: emp.user?.email || emp.email || "N/A",
+        mobile_phone: emp.mobile_phone || "N/A",
+        position: emp.employments && emp.employments.length > 0 ? emp.employments[0].position?.title : "N/A",
+        joiningDate: emp.employments && emp.employments.length > 0 ? moment(emp.employments[0].start_date).format("DD MMM YYYY") : "N/A",
+        status: emp.status || 'inactive',
+        Image: "user-32.jpg", // Default image
+        department: emp.employments && emp.employments.length > 0 ? emp.employments[0].department?.name : "N/A",
+        location: emp.site?.name || "N/A",
+        work: emp.employments && emp.employments.length > 0 ? emp.employments[0].position?.title : "N/A",
+        created_at: moment(emp.created_at).format("DD MMM YYYY"),
+      }));
+    },
+
+    async fetchEmployees() {
+      this.loading = true;
+      
+      try {
+        const response = await employeeService.getEmployees();
+        
+        if (response && response.data) {
+          this.employees = this.mapEmployeeData(response.data);
+          this.totalEmployees = response.meta?.total || this.employees.length;
+          this.updateStatistics();
+          this.$message.success('Employees loaded successfully');
+        }
+      } catch (error) {
+        console.error("Error fetching employees:", error);
+        this.$message.error('Failed to load employees');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Extract statistics update to reusable method
+    updateStatistics() {
+      this.activeCount = this.employees.filter(emp => emp.status === 'active').length;
+      this.inactiveCount = this.employees.filter(emp => emp.status === 'inactive').length;
+      
+      const thirtyDaysAgo = moment().subtract(30, 'days');
+      this.newJoinerCount = this.employees.filter(emp => 
+        moment(emp.created_at, "DD MMM YYYY").isAfter(thirtyDaysAgo)
+      ).length;
+    },
+
+    selectSite(siteName, siteId) {
+      this.selectedSite = siteName;
+      this.siteId = siteId;
+      this.fetchEmployees();
+    },
+
+    selectDepartment(departmentName, departmentId) {
+      this.selectedDepartment = departmentName;
+      this.departmentId = departmentId;
+      this.fetchEmployees();
+    },
+
+    resetSite() {
+      this.selectedSite = null;
+      this.siteId = null;
+      this.fetchEmployees();
+    },
+
+    resetDepartment() {
+      this.selectedDepartment = null;
+      this.departmentId = null;
+      this.fetchEmployees();
     },
   },
 };
 </script>
+
+<style scoped>
+:deep(.ant-select-selector) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  min-width: 80px;
+}
+
+.table-operations {
+  margin-bottom: 16px;
+}
+
+.table-operations > button {
+  margin-right: 8px;
+}
+</style>

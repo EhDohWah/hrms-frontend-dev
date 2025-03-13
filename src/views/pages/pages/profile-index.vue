@@ -9,24 +9,62 @@
         class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
       >
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
-        <div class="head-icons ms-2">
-          <a
-            href="javascript:void(0);"
-            class=""
-            data-bs-toggle="tooltip"
-            data-bs-placement="top"
-            data-bs-original-title="Collapse"
-            id="collapse-header"
-            @click="toggleHeader"
-          >
-            <i class="ti ti-chevrons-up"></i>
-          </a>
+
+        <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
+          <div class="dropdown me-2 mb-2">
+            <a
+              href="javascript:void(0);"
+              class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+              data-bs-toggle="dropdown"
+            >
+              <i class="ti ti-bell me-1"></i>Notifications
+              <span class="badge bg-danger rounded-pill ms-1">3</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end p-3">
+              <li>
+                <a href="javascript:void(0);" class="dropdown-item rounded-1">
+                  <i class="ti ti-user-check me-1"></i>Profile updated successfully
+                </a>
+              </li>
+              <li>
+                <a href="javascript:void(0);" class="dropdown-item rounded-1">
+                  <i class="ti ti-mail me-1"></i>Email verification sent
+                </a>
+              </li>
+              <li>
+                <a href="javascript:void(0);" class="dropdown-item rounded-1">
+                  <i class="ti ti-shield-lock me-1"></i>Password changed successfully
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="head-icons ms-2">
+            <a
+              href="javascript:void(0);"
+              class=""
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              data-bs-original-title="Collapse"
+              id="collapse-header"
+              @click="toggleHeader"
+            >
+              <i class="ti ti-chevrons-up"></i>
+            </a>
+          </div>
         </div>
       </div>
       <!-- /Breadcrumb -->
 
       <div class="card">
         <div class="card-body">
+          <!-- Loading Overlay -->
+          <div v-if="isLoading" class="position-absolute w-100 h-100 top-0 start-0 bg-white bg-opacity-75 d-flex align-items-center justify-content-center" style="z-index: 10; left: 0;">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+
           <!-- Alert Component -->
           <div v-if="alert.show" class="alert alert-dismissible fade show" :class="`alert-${alert.type}`" role="alert">
             {{ alert.message }}

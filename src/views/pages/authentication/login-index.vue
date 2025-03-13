@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useVuelidate } from '@vuelidate/core';
 import { required, email, minLength } from '@vuelidate/validators';
 import { authService } from '@/services/auth.service';
+import { useAuthStore } from '@/stores/authStore';
 
 export default {
   name: 'LoginIndex',
@@ -28,7 +29,7 @@ export default {
       password: { 
         required, 
         minLength: minLength(6),
-        $autoDirty: true 
+        $autoDirty: true,
       }
     };
 
@@ -101,20 +102,15 @@ export default {
         if (!result) return;
 
         isLoading.value = true;
-        const response = await authService.login(formData);
+        const authStore = useAuthStore();
+        const response = await authStore.login(formData);
         
-        if (response.access_token) {
-          // Get the redirect path based on user role
-          const userRole = authService.getCurrentRole();
-          if (userRole) {
-            console.log(userRole);
-            const redirectPath = authService.getRedirectPath(userRole);
-            router.push(redirectPath);
-          } else {
-            error.value = 'User role not found in response';
-          }
+        if (response.success) {
+          // Use the redirect path from the auth store
+          const redirectPath = authStore.getRedirectPath();
+          router.push(redirectPath);
         } else {
-          error.value = 'Login failed. Please try again.';
+          error.value = response.error || 'Login failed. Please try again.';
         }
       } catch (err) {
         console.error('Login error:', err);

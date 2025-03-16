@@ -21,16 +21,6 @@
                 <label for="grantFile" class="form-label">Select File</label>
                 <input type="file" class="form-control" id="grantFile" @change="handleFileChange" required />
               </div>
-              <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <textarea
-                  class="form-control"
-                  id="description"
-                  v-model="description"
-                  rows="3"
-                  required
-                ></textarea>
-              </div>
               <button type="submit" class="btn btn-primary" :disabled="isUploading">
                 <span
                   v-if="isUploading"
@@ -85,7 +75,6 @@
         // Create FormData and append file and description
         const formData = new FormData();
         formData.append('file', this.file);
-        formData.append('description', this.description);
   
         this.isUploading = true;
         try {

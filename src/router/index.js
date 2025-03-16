@@ -809,7 +809,8 @@ const routes = [
       { path: '', redirect: '/employee/employee-list' },
       { path: "employee-list", component: employeesList },
       { path: "employee-grid", component: employeesGrid },
-      { path: "employee-details", component: employeeDetails },
+      // Updated route with dynamic parameter
+      { path: "employee-details/:id", component: employeeDetails },
       { path: "departments", component: employeeDepartment },
       { path: "designations", component: employeeDesignations },
       { path: "policy", component: employeePolicy },

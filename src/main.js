@@ -174,8 +174,12 @@ import interviewsDetails from '@/views/pages/recruitment/interviews/interviews-d
 import grantPositionModal from '@/components/modal/grant-position-modal.vue';
 
 
-
 /************Modal********************/
+
+import GrantModal from '@/components/modal/grant-modal.vue';
+import GrantUploadModal from '@/components/modal/grant-upload-modal.vue';
+import GrantModalUpdate from '@/components/modal/grant-modal-update.vue';     
+import EmployeeUploadModal from '@/components/modal/employee-upload-modal.vue';
 
 import CallHistoryModal from '@/components/modal/call-history-modal.vue';
 import calendarModal from '@/components/modal/calendar-modal.vue';
@@ -555,6 +559,11 @@ app.component('cronjob-schedule-modal', cronjobScheduleModal)
 app.component('user-list-modal', userListModal)
 app.component('interview-modal', InterviewModal)
 app.component('travel-employee-modal', TravelEmployeeModal)
+
+app.component('grant-modal', GrantModal)
+app.component('grant-upload-modal', GrantUploadModal)
+app.component('grant-modal-update', GrantModalUpdate)
+app.component('employee-upload-modal', EmployeeUploadModal)
 
 app.component('vue-select', VueSelect);
 app.component(VueFeather.name, VueFeather)

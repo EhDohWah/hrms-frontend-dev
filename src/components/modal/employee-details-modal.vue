@@ -1547,6 +1547,48 @@ As an award winning designer, I deliver exceptional quality work and bring value
   </div>
   <!-- /Add Statuorty -->
 
+  <!-- Add Grant Position -->
+  <div class="modal fade" id="add_grant_position">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Add Grant Position</h4>
+          <button
+            type="button"
+            class="btn-close custom-btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          >
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form @submit.prevent="submitForm">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Grant Position</label>
+                  <vue-select
+                    :options="grantPositions"
+                    id="grantPosition"
+                    placeholder="Search grant position"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /Add Grant Position -->
+
   <!-- Asset Information -->
   <div class="modal fade" id="asset_info">
     <div class="modal-dialog modal-dialog-centered modal-md">

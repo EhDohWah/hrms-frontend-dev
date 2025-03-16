@@ -83,7 +83,13 @@ export const API_ENDPOINTS = {
         UPDATE: '/grants/:id',
         DELETE: '/grants/:id',
         DETAILS: '/grants/:id',
-        UPLOAD: '/grants/upload'
+        UPLOAD: '/grants/upload',
+        ITEMS: {
+            LIST: '/grants/items',
+            CREATE: '/grants/items',
+            DELETE: '/grants/grant-items/:id'
+        },
+        GRANT_POSITIONS: '/grants/grant-positions'
     },
 
     // Interview endpoints

@@ -42,7 +42,14 @@
       </div>
       <!-- /Breadcrumb -->
 
-      <div class="row">
+      <div v-if="loading" class="text-center my-3">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading employee details...</p>
+      </div>
+
+      <div v-else class="row">
         <div class="col-xl-4 theiaStickySidebar">
           <div class="card card-bg-1">
             <div class="card-body p-0">
@@ -50,61 +57,61 @@
                 class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2"
               >
                 <img
-                  src="@/assets/img/users/user-13.jpg"
+                  :src="employee.profile_picture || require('@/assets/img/users/user-13.jpg')"
                   class="w-auto h-auto"
-                  alt="Img"
+                  alt="Employee Image"
                 />
               </span>
               <div class="text-center px-3 pb-3 border-bottom">
                 <div class="mb-3">
                   <h5 class="d-flex align-items-center justify-content-center mb-1">
-                    Stephan Peralt<i
+                    {{ employee.first_name }} {{ employee.last_name }}<i
                       class="ti ti-discount-check-filled text-success ms-1"
                     ></i>
                   </h5>
                   <span class="badge badge-soft-dark fw-medium me-2">
-                    <i class="ti ti-point-filled me-1"></i>Software Developer
+                    <i class="ti ti-point-filled me-1"></i>{{ employee.employment?.position?.title || 'Position N/A' }}
                   </span>
                   <span class="badge badge-soft-secondary fw-medium"
-                    >10+ years of Experience</span
+                    >{{ calculateExperience(employee.employment?.start_date) }}</span
                   >
                 </div>
                 <div>
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-id me-2"></i>
-                      Client ID
+                      Staff ID
                     </span>
-                    <p class="text-dark">CLT-0024</p>
+                    <p class="text-dark">{{ employee.staff_id || 'N/A' }}</p>
                   </div>
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-star me-2"></i>
-                      Team
+                      Department
                     </span>
-                    <p class="text-dark">UI/UX Design</p>
+                    <p class="text-dark">{{ employee.employment?.department?.name || 'N/A' }}</p>
                   </div>
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-calendar-check me-2"></i>
                       Date Of Join
                     </span>
-                    <p class="text-dark">1st Jan 2023</p>
+                    <p class="text-dark">{{ formatDate(employee.employment?.start_date) }}</p>
                   </div>
                   <div class="d-flex align-items-center justify-content-between">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-calendar-check me-2"></i>
-                      Report Office
+                      Report To
                     </span>
                     <div class="d-flex align-items-center">
                       <span class="avatar avatar-sm avatar-rounded me-2">
                         <img src="@/assets/img/profiles/avatar-12.jpg" alt="Img" />
                       </span>
-                      <p class="text-gray-9 mb-0">Doglas Martini</p>
+                      <p class="text-gray-9 mb-0">{{ employee.employment?.supervisor?.first_name || 'N/A' }}</p>
                     </div>
                   </div>
                   <div class="row gx-2 mt-3">
-                    <div class="col-6">
+                    <div class="col-12">
                       <div>
                         <a
                           href="javascript:void(0);"
@@ -112,13 +119,6 @@
                           data-bs-toggle="modal"
                           data-bs-target="#edit_employee"
                           ><i class="ti ti-edit me-1"></i>Edit Info</a
-                        >
-                      </div>
-                    </div>
-                    <div class="col-6">
-                      <div>
-                        <router-link to="/applications/chat" class="btn btn-primary w-100"
-                          ><i class="ti ti-message-heart me-1"></i>Message</router-link
                         >
                       </div>
                     </div>
@@ -141,7 +141,7 @@
                     <i class="ti ti-phone me-2"></i>
                     Phone
                   </span>
-                  <p class="text-dark">(163) 2459 315</p>
+                  <p class="text-dark">{{ employee.mobile_phone || 'N/A' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
@@ -151,7 +151,7 @@
                   <a
                     href="javascript:void(0);"
                     class="text-info d-inline-flex align-items-center"
-                    >perralt12@example.com<i class="ti ti-copy text-dark ms-2"></i
+                    >{{ employee.email || 'N/A' }}<i class="ti ti-copy text-dark ms-2"></i
                   ></a>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
@@ -159,14 +159,14 @@
                     <i class="ti ti-gender-male me-2"></i>
                     Gender
                   </span>
-                  <p class="text-dark text-end">Male</p>
+                  <p class="text-dark text-end">{{ employee.gender || 'N/A' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-cake me-2"></i>
-                    Birdthday
+                    Birthday
                   </span>
-                  <p class="text-dark text-end">24th July 2000</p>
+                  <p class="text-dark text-end">{{ formatDate(employee.date_of_birth) }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between">
                   <span class="d-inline-flex align-items-center">
@@ -174,8 +174,7 @@
                     Address
                   </span>
                   <p class="text-dark text-end">
-                    1861 Bayonne Ave, <br />
-                    Manchester, NJ, 08759
+                    {{ employee.current_address || employee.permanent_address || 'N/A' }}
                   </p>
                 </div>
               </div>
@@ -195,49 +194,52 @@
                     <i class="ti ti-e-passport me-2"></i>
                     Passport No
                   </span>
-                  <p class="text-dark">QRET4566FGRT</p>
+                  <p class="text-dark">{{ employee.passport_number || 'N/A' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-calendar-x me-2"></i>
-                    Passport Exp Date
+                    Tax Number
                   </span>
-                  <p class="text-dark text-end">15 May 2029</p>
+                  <p class="text-dark text-end">{{ employee.tax_number || 'N/A' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-gender-male me-2"></i>
                     Nationality
                   </span>
-                  <p class="text-dark text-end">Indian</p>
+                  <p class="text-dark text-end">{{ employee.nationality || 'N/A' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-bookmark-plus me-2"></i>
                     Religion
                   </span>
-                  <p class="text-dark text-end">Christianity</p>
+                  <p class="text-dark text-end">{{ employee.religion || 'N/A' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-hotel-service me-2"></i>
                     Marital status
                   </span>
-                  <p class="text-dark text-end">Yes</p>
+                  <p class="text-dark text-end">{{ employee.marital_status || 'N/A' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-briefcase-2 me-2"></i>
                     Employment of spouse
                   </span>
-                  <p class="text-dark text-end">No</p>
+                  <p class="text-dark text-end">{{ employee.spouse_occupation ? 'Yes' : 'No' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-baby-bottle me-2"></i>
-                    No. of children
+                    Parents
                   </span>
-                  <p class="text-dark text-end">2</p>
+                  <p class="text-dark text-end">
+                    {{ employee.father_name ? 'Father: ' + employee.father_name : '' }}
+                    {{ employee.mother_name ? ', Mother: ' + employee.mother_name : '' }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -254,33 +256,23 @@
           </div>
           <div class="card">
             <div class="card-body p-0">
-              <div class="p-3 border-bottom">
-                <div class="d-flex align-items-center justify-content-between">
-                  <div>
-                    <span class="d-inline-flex align-items-center"> Primary </span>
-                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                      Adrian Peralt
-                      <span class="d-inline-flex mx-1"
-                        ><i class="ti ti-point-filled text-danger"></i></span
-                      >Father
-                    </h6>
+              <div v-if="employee.employee_beneficiaries && employee.employee_beneficiaries.length > 0">
+                <div v-for="(beneficiary, index) in employee.employee_beneficiaries" :key="index" class="p-3 border-bottom">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                      <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Primary' : 'Secondary' }}</span>
+                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                        {{ beneficiary.name }}
+                        <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
+                        {{ beneficiary.relationship }}
+                      </h6>
+                    </div>
+                    <p class="text-dark">{{ beneficiary.phone }}</p>
                   </div>
-                  <p class="text-dark">+1 127 2685 598</p>
                 </div>
               </div>
-              <div class="p-3 border-bottom">
-                <div class="d-flex align-items-center justify-content-between">
-                  <div>
-                    <span class="d-inline-flex align-items-center"> Secondry </span>
-                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                      Karen Wills
-                      <span class="d-inline-flex mx-1"
-                        ><i class="ti ti-point-filled text-danger"></i></span
-                      >Mother
-                    </h6>
-                  </div>
-                  <p class="text-dark">+1 989 7774 787</p>
-                </div>
+              <div v-else class="p-3">
+                <p class="text-center">No emergency contacts available</p>
               </div>
             </div>
           </div>
@@ -326,14 +318,11 @@
                       data-bs-parent="#accordionExample"
                     >
                       <div class="accordion-body mt-2">
-                        As an award winning designer, I deliver exceptional quality work
-                        and bring value to your brand! With 10 years of experience and
-                        350+ projects completed worldwide with satisfied customers, I
-                        developed the 360° brand approach, which helped me to create
-                        numerous brands that are relevant, meaningful and loved.
+                        {{ employee.remark || 'No additional information available about this employee.' }}
                       </div>
                     </div>
                   </div>
+
                   <div class="accordion-item">
                     <div class="accordion-header" id="headingTwo">
                       <div class="accordion-button">
@@ -372,7 +361,7 @@
                               Bank Name
                             </span>
                             <h6 class="d-flex align-items-center fw-medium mt-1">
-                              Swiz Intenational Bank
+                              {{ employee.bank_name || 'N/A' }}
                             </h6>
                           </div>
                           <div class="col-md-3">
@@ -380,27 +369,28 @@
                               Bank account no
                             </span>
                             <h6 class="d-flex align-items-center fw-medium mt-1">
-                              159843014641
+                              {{ employee.bank_account_number || 'N/A' }}
                             </h6>
                           </div>
                           <div class="col-md-3">
                             <span class="d-inline-flex align-items-center">
-                              IFSC Code
+                              Account Name
                             </span>
                             <h6 class="d-flex align-items-center fw-medium mt-1">
-                              ICI24504
+                              {{ employee.bank_account_name || 'N/A' }}
                             </h6>
                           </div>
                           <div class="col-md-3">
                             <span class="d-inline-flex align-items-center"> Branch </span>
                             <h6 class="d-flex align-items-center fw-medium mt-1">
-                              Alabama USA
+                              {{ employee.bank_branch || 'N/A' }}
                             </h6>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
+
                   <div class="accordion-item">
                     <div class="accordion-header" id="headingThree">
                       <div class="accordion-button">
@@ -439,31 +429,33 @@
                       <div class="accordion-body">
                         <div class="row">
                           <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center"> Name </span>
+                            <span class="d-inline-flex align-items-center"> Father </span>
                             <h6 class="d-flex align-items-center fw-medium mt-1">
-                              Hendry Peralt
+                              {{ employee.father_name || 'N/A' }}
                             </h6>
                           </div>
                           <div class="col-md-3">
                             <span class="d-inline-flex align-items-center">
-                              Relationship
+                              Father Occupation
                             </span>
                             <h6 class="d-flex align-items-center fw-medium mt-1">
-                              Brother
+                              {{ employee.father_occupation || 'N/A' }}
                             </h6>
                           </div>
                           <div class="col-md-3">
                             <span class="d-inline-flex align-items-center">
-                              Date of birth
+                              Mother
                             </span>
                             <h6 class="d-flex align-items-center fw-medium mt-1">
-                              25 May 2014
+                              {{ employee.mother_name || 'N/A' }}
                             </h6>
                           </div>
                           <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center"> Phone </span>
+                            <span class="d-inline-flex align-items-center">
+                              Mother Occupation
+                            </span>
                             <h6 class="d-flex align-items-center fw-medium mt-1">
-                              +1 265 6956 961
+                              {{ employee.mother_occupation || 'N/A' }}
                             </h6>
                           </div>
                         </div>
@@ -670,6 +662,7 @@
                       </div>
                     </div>
                   </div>
+
                   <div class="card">
                     <div class="card-body">
                       <div class="contact-grids-tab p-0 mb-3">
@@ -684,9 +677,19 @@
                               role="tab"
                               aria-selected="true"
                             >
-                              Projects
+                              Grants
                             </button>
                           </li>
+                          <li class="nav-item ms-auto" role="presentation">
+                            <button
+                              class="btn btn-default btn-sm rounded d-flex align-items-center"
+                              data-bs-toggle="modal"
+                              data-bs-target="#add_grant_position"  
+                            >
+                              <i class="ti ti-circle-plus me-1"></i>Add Grant Position
+                            </button>
+                          </li>
+                          <!-- Assets tab commented out
                           <li class="nav-item" role="presentation">
                             <button
                               class="nav-link"
@@ -700,6 +703,7 @@
                               Assets
                             </button>
                           </li>
+                          -->
                         </ul>
                       </div>
                       <div class="tab-content" id="myTabContent3">
@@ -711,121 +715,69 @@
                           tabindex="0"
                         >
                           <div class="row">
-                            <div class="col-md-6 d-flex">
-                              <div class="card flex-fill mb-4 mb-md-0">
+                            <div class="col-md-12">
+                              <div class="card">
                                 <div class="card-body">
-                                  <div
-                                    class="d-flex align-items-center pb-3 mb-3 border-bottom"
-                                  >
-                                    <router-link
-                                      to="/projects/projects-details"
-                                      class="flex-shrink-0 me-2"
+                                  <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="card-title mb-0">Grant Details</h5>
+                                    <button 
+                                      v-if="employee.employment?.grant_item"
+                                      class="btn btn-danger btn-sm rounded d-inline-flex align-items-center"
+                                      @click="deleteGrantPosition"
                                     >
-                                      <img
-                                        src="@/assets/img/social/project-03.svg"
-                                        alt="Img"
-                                      />
-                                    </router-link>
-                                    <div>
-                                      <h6 class="mb-1">
-                                        <router-link to="/projects/projects-details"
-                                          >World Health</router-link
-                                        >
-                                      </h6>
-                                      <div class="d-flex align-items-center">
-                                        <p class="mb-0 fs-13">8 tasks</p>
-                                        <p class="fs-13">
-                                          <span class="mx-1"
-                                            ><i
-                                              class="ti ti-point-filled text-primary"
-                                            ></i></span
-                                          >15 Completed
-                                        </p>
-                                      </div>
-                                    </div>
+                                      <i class="ti ti-trash me-1"></i>Delete Grant Position
+                                    </button>
                                   </div>
                                   <div class="row">
-                                    <div class="col-md-6">
-                                      <div>
-                                        <span class="mb-1 d-block">Deadline</span>
-                                        <p class="text-dark">31 July 2025</p>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                      <div>
-                                        <span class="mb-1 d-block">Project Lead</span>
-                                        <a
-                                          href="javascript:void(0);"
-                                          class="fw-normal d-flex align-items-center"
-                                        >
-                                          <img
-                                            class="avatar avatar-sm rounded-circle me-2"
-                                            src="@/assets/img/profiles/avatar-01.jpg"
-                                            alt="Img"
-                                          />
-                                          Leona
-                                        </a>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col-md-6 d-flex">
-                              <div class="card flex-fill mb-0">
-                                <div class="card-body">
-                                  <div
-                                    class="d-flex align-items-center pb-3 mb-3 border-bottom"
-                                  >
-                                    <router-link
-                                      to="/projects/projects-details"
-                                      class="flex-shrink-0 me-2"
-                                    >
-                                      <img
-                                        src="@/assets/img/social/project-01.svg"
-                                        alt="Img"
-                                      />
-                                    </router-link>
-                                    <div>
-                                      <h6 class="mb-1 text-truncate">
-                                        <router-link to="/projects/projects-details"
-                                          >Hospital Administration</router-link
-                                        >
+                                    <div class="col-md-4">
+                                      <span class="d-inline-flex align-items-center">
+                                        Grant Code
+                                      </span>
+                                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                                        {{ employee.employment?.grant_item?.grant?.code || 'N/A' }}
                                       </h6>
-                                      <div class="d-flex align-items-center">
-                                        <p class="mb-0 fs-13">8 tasks</p>
-                                        <p class="fs-13">
-                                          <span class="mx-1"
-                                            ><i
-                                              class="ti ti-point-filled text-primary"
-                                            ></i></span
-                                          >15 Completed
-                                        </p>
-                                      </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                      <span class="d-inline-flex align-items-center">
+                                        Grant Name
+                                      </span>
+                                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                                        {{ employee.employment?.grant_item?.grant?.name || 'N/A' }}
+                                      </h6>
+                                    </div>
+                                    <div class="col-md-4">
+                                      <span class="d-inline-flex align-items-center">
+                                        Grant End Date
+                                      </span>
+                                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                                        {{ employee.employment?.grant_item?.grant?.end_date || 'N/A' }}
+                                      </h6>
                                     </div>
                                   </div>
-                                  <div class="row">
-                                    <div class="col-md-6">
-                                      <div>
-                                        <span class="mb-1 d-block">Deadline</span>
-                                        <p class="text-dark">31 July 2025</p>
-                                      </div>
+                                  <div class="row mt-3">
+                                    <div class="col-md-4">
+                                      <span class="d-inline-flex align-items-center">
+                                        Grant Position
+                                      </span>
+                                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                                        {{ employee.employment?.grant_item?.grant_position || 'N/A' }}
+                                      </h6>
                                     </div>
-                                    <div class="col-md-6">
-                                      <div>
-                                        <span class="mb-1 d-block">Project Lead</span>
-                                        <a
-                                          href="javascript:void(0);"
-                                          class="fw-normal d-flex align-items-center"
-                                        >
-                                          <img
-                                            class="avatar avatar-sm rounded-circle me-2"
-                                            src="@/assets/img/profiles/avatar-01.jpg"
-                                            alt="Img"
-                                          />
-                                          Leona
-                                        </a>
-                                      </div>
+                                    <div class="col-md-4">
+                                      <span class="d-inline-flex align-items-center">
+                                        BG Line
+                                      </span>
+                                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                                        {{ employee.employment?.grant_item?.bg_line || 'N/A' }}
+                                      </h6>
+                                    </div>
+                                    <div class="col-md-4">
+                                      <span class="d-inline-flex align-items-center">
+                                        Grant Salary
+                                      </span>
+                                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                                        {{ employee.employment?.grant_item?.grant_salary || 'N/A' }}
+                                      </h6>
                                     </div>
                                   </div>
                                 </div>
@@ -833,7 +785,9 @@
                             </div>
                           </div>
                         </div>
-                        <div
+
+
+                        <!-- <div
                           class="tab-pane fade"
                           id="address2"
                           role="tabpanel"
@@ -1014,10 +968,14 @@
                               </div>
                             </div>
                           </div>
-                        </div>
+                        </div> -->
+
                       </div>
                     </div>
                   </div>
+
+
+                  
                 </div>
               </div>
             </div>
@@ -1036,17 +994,54 @@
   <employee-details-modal></employee-details-modal>
 </template>
 <script>
+import { useEmployeeStore } from '@/stores/employeeStore';
+
 export default {
+  name: 'EmployeeDetails',
   data() {
     return {
-      
-    }
+      employee: null,
+      loading: true,
+    };
+  },
+  created() {
+    this.fetchEmployeeDetails();
   },
   methods: {
-        toggleHeader() {
-            document.getElementById("collapse-header").classList.toggle("active");
-            document.body.classList.toggle("header-collapse");
-        },
+    toggleHeader() {
+      document.getElementById("collapse-header").classList.toggle("active");
+      document.body.classList.toggle("header-collapse");
     },
-}
+    calculateExperience(joiningDate) {
+      // Assuming joiningDate is in a valid date format
+      const start = new Date(joiningDate);
+      const now = new Date();
+      const diffYears = now.getFullYear() - start.getFullYear();
+      return diffYears;
+    },
+
+    formatDate(date) {
+    if (!date) return '';
+      return new Date(date).toLocaleDateString();
+    },
+
+    async fetchEmployeeDetails() {
+      const employeeStore = useEmployeeStore();
+      // Grab the employee ID from the route parameters
+      const id = this.$route.params.id;
+      try {
+        // Call the store action to get employee details
+        this.employee = await employeeStore.getEmployeeDetails(id);
+      } catch (error) {
+        console.error("Error fetching employee details:", error);
+      } finally {
+        this.loading = false;
+      }
+    },
+  },
+};
 </script>
+
+<style scoped>
+/* Add your custom styles here if needed */
+</style>

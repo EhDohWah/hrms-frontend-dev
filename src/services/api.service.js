@@ -3,7 +3,7 @@ import { API_CONFIG } from '../config/api.config';
 class ApiService {
     constructor() {
         this.baseURL = API_CONFIG.BASE_URL;
-        this.headers = API_CONFIG.HEADERS;
+        this.headers = { ...API_CONFIG.HEADERS };
 
         // If there's a token in localStorage, set it
         const token = localStorage.getItem('token');
@@ -23,7 +23,6 @@ class ApiService {
 
     // Get full URL
     getFullURL(endpoint) {
-        // Ensure endpoint is defined and properly formatted
         if (!endpoint) {
             endpoint = '';
         } else if (endpoint && !endpoint.startsWith('/')) {
@@ -33,42 +32,95 @@ class ApiService {
     }
 
     // Handle response
-    async handleResponse(response) {
+    async handleResponse(response, originalRequest) {
+        // Check if response is unauthorized
+        if (response.status === 401) {
+            // Attempt to refresh token
+            const refreshed = await this.attemptRefreshToken();
+            if (refreshed) {
+                // Retry the original request with new token
+                return this.retryRequest(originalRequest);
+            } else {
+                // If refresh fails, clear stored token and reject
+                localStorage.removeItem('token');
+                localStorage.removeItem('tokenExpiration');
+                throw new Error('Unauthenticated.');
+            }
+        }
+
         const data = await response.json();
-        
         if (!response.ok) {
             const error = new Error(data.message || response.statusText);
             error.response = {
                 status: response.status,
                 data: data
             };
-            return Promise.reject(error);
+            throw error;
         }
-        
         return data;
+    }
+
+    async attemptRefreshToken() {
+        try {
+            // Call the refresh endpoint; adjust the URL if needed
+            const refreshResponse = await fetch(this.getFullURL('/refresh-token'), {
+                method: 'POST',
+                headers: this.headers,
+                credentials: 'include'
+            });
+            if (!refreshResponse.ok) {
+                return false;
+            }
+            const refreshData = await refreshResponse.json();
+            const newToken = refreshData.access_token;
+            // Update localStorage and headers
+            localStorage.setItem('token', newToken);
+            // Optionally update token expiration if provided
+            if (refreshData.expires_in) {
+                const expiration = Date.now() + refreshData.expires_in * 1000;
+                localStorage.setItem('tokenExpiration', expiration);
+            }
+            this.setAuthToken(newToken);
+            return true;
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+            return false;
+        }
+    }
+
+    async retryRequest(originalRequest) {
+        // Re-run the original request using its parameters
+        const { endpoint, method, data } = originalRequest;
+        switch (method) {
+            case 'GET':
+                return this.get(endpoint);
+            case 'POST':
+                return this.post(endpoint, data);
+            case 'PUT':
+                return this.put(endpoint, data);
+            case 'DELETE':
+                return this.delete(endpoint);
+            case 'PATCH':
+                return this.patch(endpoint, data);
+            default:
+                throw new Error('Method not supported for retry');
+        }
     }
 
     // GET request
     async get(endpoint) {
+        const fullURL = this.getFullURL(endpoint);
         try {
-            console.log(`Making GET request to: ${this.getFullURL(endpoint)}`);
-            const response = await fetch(this.getFullURL(endpoint), {
+            const response = await fetch(fullURL, {
                 method: 'GET',
                 headers: this.headers,
                 credentials: 'include'
             });
-            
-            if (response.status === 405) {
-                console.error(`Method Not Allowed (405) for GET ${endpoint}. Trying POST instead.`);
-                return this.post(endpoint, {});
-            }
-            
-            return this.handleResponse(response);
+            return this.handleResponse(response, { endpoint, method: 'GET' });
         } catch (error) {
             if (!error.response) {
                 error.message = 'Network Error';
             }
-            console.error(`Error in GET request to ${endpoint}:`, error);
             return Promise.reject(error);
         }
     }
@@ -82,7 +134,7 @@ class ApiService {
                 body: JSON.stringify(data),
                 credentials: 'include'
             });
-            return this.handleResponse(response);
+            return this.handleResponse(response, { endpoint, method: 'POST', data });
         } catch (error) {
             if (!error.response) {
                 error.message = 'Network Error';
@@ -100,7 +152,7 @@ class ApiService {
                 body: JSON.stringify(data),
                 credentials: 'include'
             });
-            return this.handleResponse(response);
+            return this.handleResponse(response, { endpoint, method: 'PUT', data });
         } catch (error) {
             if (!error.response) {
                 error.message = 'Network Error';
@@ -117,7 +169,7 @@ class ApiService {
                 headers: this.headers,
                 credentials: 'include'
             });
-            return this.handleResponse(response);
+            return this.handleResponse(response, { endpoint, method: 'DELETE' });
         } catch (error) {
             if (!error.response) {
                 error.message = 'Network Error';
@@ -135,7 +187,7 @@ class ApiService {
                 body: JSON.stringify(data),
                 credentials: 'include'
             });
-            return this.handleResponse(response);
+            return this.handleResponse(response, { endpoint, method: 'PATCH', data });
         } catch (error) {
             if (!error.response) {
                 error.message = 'Network Error';
@@ -167,7 +219,7 @@ class ApiService {
                 credentials: 'include'
             });
             
-            return this.handleResponse(response);
+            return this.handleResponse(response, { endpoint, method: 'POST', data: formData });
         } catch (error) {
             console.error('Error in postFormData:', error);
             if (!error.response) {
@@ -176,8 +228,6 @@ class ApiService {
             return Promise.reject(error);
         }
     }
-
-    // create 
 }
 
-export const apiService = new ApiService(); 
+export const apiService = new ApiService();

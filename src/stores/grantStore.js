@@ -3,9 +3,11 @@ import { defineStore } from 'pinia';
 import { grantService } from '@/services/grant.service';
 import { toRaw } from 'vue';
 
+
 export const useGrantStore = defineStore('grant', {
   state: () => ({
     grants: [],
+    grantItems: [],
     currentGrant: null,
     loading: false,
     error: null
@@ -14,6 +16,9 @@ export const useGrantStore = defineStore('grant', {
   getters: {
     getGrantById: (state) => (id) => {
       return state.grants.find(grant => grant.id === id);
+    },
+    getGrantItemById: (state) => (id) => {
+      return state.grantItems.find(item => item.id === id);
     }
   },
 
@@ -42,6 +47,30 @@ export const useGrantStore = defineStore('grant', {
       }
     },
     
+    async fetchGrantItems() {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.getAllGrantItems();
+        
+        // Check if response.data exists and is an array; if not, assume response is the array
+        const grantItemsData = Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response)
+          ? response
+          : [];
+          
+        this.grantItems = grantItemsData;
+        return this.grantItems;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch grant items';
+        console.error('Error fetching grant items:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
     async createGrant(grantData) {
       try {
         this.loading = true;
@@ -53,6 +82,23 @@ export const useGrantStore = defineStore('grant', {
       } catch (error) {
         this.error = error.message || 'Failed to create grant';
         console.error('Error creating grant:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async createGrantItem(itemData) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.createGrantItem(itemData);
+        // Refresh grant items list after creating
+        await this.fetchGrantItems();
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to create grant item';
+        console.error('Error creating grant item:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -76,6 +122,23 @@ export const useGrantStore = defineStore('grant', {
       }
     },
     
+    async updateGrantItem(id, itemData) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.updateGrantItem(id, itemData);
+        // Refresh grant items list after updating
+        await this.fetchGrantItems();
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to update grant item';
+        console.error('Error updating grant item:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
     async deleteGrant(id) {
       try {
         this.loading = true;
@@ -87,6 +150,23 @@ export const useGrantStore = defineStore('grant', {
       } catch (error) {
         this.error = error.message || 'Failed to delete grant';
         console.error('Error deleting grant:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async deleteGrantItem(id) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.deleteGrantItem(id);
+        // Refresh grant items list after deleting
+        await this.fetchGrantItems();
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to delete grant item';
+        console.error('Error deleting grant item:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -112,8 +192,40 @@ export const useGrantStore = defineStore('grant', {
       }
     },
     
+    async getGrantDetails(id) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.getGrantDetails(id);
+        this.currentGrant = response.data || response;
+        return this.currentGrant;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch grant details';
+        console.error('Error fetching grant details:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
     setCurrentGrant(grant) {
       this.currentGrant = grant;
+    }, 
+
+    async fetchGrantPositions() {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.getGrantPositions();
+        this.grantPositions = response.data || response;
+        return this.grantPositions;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch grant positions';
+        console.error('Error fetching grant positions:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
     }
   }
 }); 

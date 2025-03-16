@@ -35,13 +35,22 @@
             </div>
           </div>
 
-          <div class="mb-2">
+          <div class="mb-2 me-2">
             <a
               href="javascript:void(0);"
               data-bs-toggle="modal"
               data-bs-target="#add_employee"
               class="btn btn-primary d-flex align-items-center"
               ><i class="ti ti-circle-plus me-2"></i>Add New Employee</a
+            >
+          </div>
+
+          <!-- upload employee excel file -->
+          <div class="mb-2">
+            <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
+              data-bs-toggle="modal"
+              data-bs-target="#employeeUploadModal"
+              ><i class="ti ti-upload me-2"></i>Upload Employee Excel File</a
             >
           </div>
 
@@ -76,13 +85,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">Total Employee</p>
-                  <h4>{{ totalEmployees }}</h4>
+                  <h4>{{ employeeStore.statistics.totalEmployees }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-purple badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((activeCount / totalEmployees) * 100).toFixed(1) }}% Active
+                  {{ ((employeeStore.statistics.activeCount / employeeStore.statistics.totalEmployees) * 100).toFixed(1) }}% Active
                 </span>
               </div>
             </div>
@@ -102,13 +111,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">Active</p>
-                  <h4>{{ activeCount }}</h4>
+                  <h4>{{ employeeStore.statistics.activeCount }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-primary badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((activeCount / totalEmployees) * 100).toFixed(1) }}% of Total
+                  {{ ((employeeStore.statistics.activeCount / employeeStore.statistics.totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -128,13 +137,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">InActive</p>
-                  <h4>{{ inactiveCount }}</h4>
+                  <h4>{{ employeeStore.statistics.inactiveCount }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-dark badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((inactiveCount / totalEmployees) * 100).toFixed(1) }}% of Total
+                  {{ ((employeeStore.statistics.inactiveCount / employeeStore.statistics.totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -154,13 +163,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">New Joiners</p>
-                  <h4>{{ newJoinerCount }}</h4>
+                  <h4>{{ employeeStore.statistics.newJoinerCount }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-secondary badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((newJoinerCount / totalEmployees) * 100).toFixed(1) }}% of Total
+                  {{ ((employeeStore.statistics.newJoinerCount / employeeStore.statistics.totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -183,7 +192,7 @@
 
         <div class="card-body p-0">
           <div class="custom-datatable-filter table-responsive">
-            <div v-if="loading" class="text-center my-3">
+            <div v-if="employeeStore.loading" class="text-center my-3">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
@@ -192,12 +201,13 @@
 
             <a-table
               v-else
-              class="table datatable thead-light"
+              class="table datatable thead-light bordered-table"
               :columns="columns"
               :data-source="employees"
               :row-selection="rowSelection"
               :pagination="pagination"
               @change="handleChange"
+              :bordered="true"
             >
               <!-- Name column with highlighting -->
               <template #bodyCell="{ column, record }">
@@ -223,22 +233,31 @@
 
                 <!-- Status column -->
                 <template v-if="column.key === 'status'">
-                  <span
-                    :class="[
-                      'badge',
+                  <a-badge
+                    :status="
                       record.status === 'Local ID'
-                        ? 'badge-success'
-                        : record.status === 'Expat'
-                        ? 'badge-primary'
-                        : record.status === 'Non Local'
-                        ? 'badge-warning'
-                        : 'd-inline-flex',
-                      'align-items-center',
-                      'badge-xs',
+                        ? 'success'
+                        : record.status === 'Expats'
+                        ? 'processing'
+                        : record.status === 'Local non ID'
+                        ? 'warning'
+                        : 'default'
+                    "
+                    :text="record.status"
+                  />
+                </template>
+
+                <!-- Subsidiary column -->
+                <template v-if="column.key === 'subsidiary'">
+                  <span 
+                    :class="[
+                      'badge badge-sm fw-normal',
+                      record.subsidiary === 'SMRU' ? 'badge-primary' : 
+                      record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' : 
+                      'badge-secondary'
                     ]"
                   >
-                    <i class="ti ti-point-filled me-1"></i>
-                    {{ record.status }}
+                    {{ record.subsidiary }}
                   </span>
                 </template>
 
@@ -280,6 +299,7 @@
   </div>
   <!-- /Page Wrapper -->
   <employee-list-modal></employee-list-modal>
+  <employee-upload-modal></employee-upload-modal>
 </template>
 
 <script>
@@ -287,7 +307,8 @@ import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
-import { employeeService } from '@/services/employee.service';
+import { useEmployeeStore } from '@/stores/employeeStore';
+import { mapStores } from 'pinia';
 
 
 export default {
@@ -306,6 +327,9 @@ export default {
         { name: "MRM", id: 4, code: 'MRM'},
         { name: "MRMTB", id: 5, code: 'MRMTB'},
         { name: "KKTB", id: 6, code: 'KKTB'},
+        { name: "Headquarters", id: 7, code: 'Headquarters'},
+        { name: "Field Office", id: 8, code: 'Field Office'},
+        { name: "Mobile Clinic", id: 9, code: 'Mobile Clinic'},
       ],
       departments: [
         { name: "Admin", id: 1, code: 'Admin'},
@@ -320,14 +344,7 @@ export default {
       siteId: null,
       departmentId: null,
       dateRangeInput: null,
-      loading: false,
       employeeToDelete: null,
-
-      // Statistics
-      totalEmployees: 0,
-      activeCount: 0,
-      inactiveCount: 0,
-      newJoinerCount: 0,
 
       // Pagination
       currentPage: 1,
@@ -362,14 +379,9 @@ export default {
     };
   },
 
-  beforeUnmount() {
-    // Cleanup DateRangePicker when component is destroyed
-    if (this.daterangepicker) {
-      this.daterangepicker.remove();
-    }
-  },
-
   computed: {
+    ...mapStores(useEmployeeStore),
+    
     // Define columns with filters and sorters
     columns() {
       const filtered = this.filteredInfo || {};
@@ -409,11 +421,9 @@ export default {
           dataIndex: 'status',
           key: 'status',
           filters: [
-            { text: 'Active', value: 'active' },
-            { text: 'Inactive', value: 'inactive' },
             { text: 'Local ID', value: 'Local ID' },
-            { text: 'Expat', value: 'Expat' },
-            { text: 'Non Local', value: 'Non Local' },
+            { text: 'Expats', value: 'Expats' },
+            { text: 'Non Local', value: 'Local non ID' },
           ],
           filteredValue: filtered.status || null,
           onFilter: (value, record) => record.status === value,
@@ -498,9 +508,16 @@ export default {
         ...this.paginationSettings,
         current: this.currentPage,
         pageSize: this.pageSize,
-        total: this.totalEmployees,
+        total: this.employeeStore.statistics.totalEmployees,
         showTotal: (total) => `Total ${total} employees`,
       };
+    }
+  },
+
+  beforeUnmount() {
+    // Cleanup DateRangePicker when component is destroyed
+    if (this.daterangepicker) {
+      this.daterangepicker.remove();
     }
   },
 
@@ -520,15 +537,12 @@ export default {
       if (!this.employeeToDelete) return;
       
       try {
-        this.loading = true;
-        await employeeService.deleteEmployee(this.employeeToDelete);
-        this.fetchEmployees(); // Refresh the list
+        await this.employeeStore.deleteEmployee(this.employeeToDelete);
         this.$message.success('Employee deleted successfully');
       } catch (error) {
         this.$message.error('Failed to delete employee');
         console.error("Error deleting employee:", error);
       } finally {
-        this.loading = false;
         this.employeeToDelete = null;
       }
     },
@@ -540,9 +554,6 @@ export default {
       this.sortedInfo = sorter;
       this.currentPage = pagination.current;
       this.pageSize = pagination.pageSize;
-      
-      // If using server-side pagination, call your API here
-      // this.fetchEmployees();
     },
     
     // Clear all filters
@@ -602,46 +613,27 @@ export default {
         fullName: `${emp.first_name} ${emp.middle_name || ''} ${emp.last_name}`.trim(),
         email: emp.user?.email || emp.email || "N/A",
         mobile_phone: emp.mobile_phone || "N/A",
-        position: emp.employments && emp.employments.length > 0 ? emp.employments[0].position?.title : "N/A",
-        joiningDate: emp.employments && emp.employments.length > 0 ? moment(emp.employments[0].start_date).format("DD MMM YYYY") : "N/A",
+        position: emp.employment?.position?.title || "N/A",
+        joiningDate: emp.employment?.start_date ? moment(emp.employment.start_date).format("DD MMM YYYY") : "N/A",
         status: emp.status || 'inactive',
         Image: "user-32.jpg", // Default image
-        department: emp.employments && emp.employments.length > 0 ? emp.employments[0].department?.name : "N/A",
-        location: emp.site?.name || "N/A",
-        work: emp.employments && emp.employments.length > 0 ? emp.employments[0].position?.title : "N/A",
+        department: emp.employment?.department?.name || "N/A",
+        location: emp.employment?.work_location?.name || "N/A",
+        work: emp.employment?.position?.title || "N/A",
         created_at: moment(emp.created_at).format("DD MMM YYYY"),
+        active: emp.employment?.active === 1
       }));
     },
 
     async fetchEmployees() {
-      this.loading = true;
-      
       try {
-        const response = await employeeService.getEmployees();
-        
-        if (response && response.data) {
-          this.employees = this.mapEmployeeData(response.data);
-          this.totalEmployees = response.meta?.total || this.employees.length;
-          this.updateStatistics();
-          this.$message.success('Employees loaded successfully');
-        }
+        await this.employeeStore.fetchEmployees();
+        this.employees = this.mapEmployeeData(this.employeeStore.employees);
+        this.$message.success('Employees loaded successfully');
       } catch (error) {
         console.error("Error fetching employees:", error);
         this.$message.error('Failed to load employees');
-      } finally {
-        this.loading = false;
       }
-    },
-
-    // Extract statistics update to reusable method
-    updateStatistics() {
-      this.activeCount = this.employees.filter(emp => emp.status === 'active').length;
-      this.inactiveCount = this.employees.filter(emp => emp.status === 'inactive').length;
-      
-      const thirtyDaysAgo = moment().subtract(30, 'days');
-      this.newJoinerCount = this.employees.filter(emp => 
-        moment(emp.created_at, "DD MMM YYYY").isAfter(thirtyDaysAgo)
-      ).length;
     },
 
     selectSite(siteName, siteId) {
@@ -686,5 +678,19 @@ export default {
 
 .table-operations > button {
   margin-right: 8px;
+}
+
+.bordered-table {
+  border: 1px solid #e0e0e0;
+}
+
+:deep(.ant-table-bordered .ant-table-thead > tr > th),
+:deep(.ant-table-bordered .ant-table-tbody > tr > td) {
+  border-right: 1px solid #e0e0e0;
+}
+
+:deep(.ant-table-bordered .ant-table-thead > tr > th) {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e0e0e0;
 }
 </style>

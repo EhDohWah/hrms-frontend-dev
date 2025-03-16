@@ -1,4 +1,4 @@
-<template>
+  <template>
   <layout-header></layout-header>
   <layout-sidebar></layout-sidebar>
   <!-- Page Wrapper -->
@@ -39,104 +39,82 @@
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Grant Positions List</h5>
-          <div class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3">
-            <div class="me-3">
-              <div class="input-icon-end position-relative">
-                <input type="text" class="form-control date-range bookingrange" ref="dateRangeInput" placeholder="dd/mm/yyyy - dd/mm/yyyy" />
-                <span class="input-icon-addon">
-                  <i class="ti ti-chevron-down"></i>
-                </span>
-              </div>
-            </div>
-            <div class="dropdown me-3">
-              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                Status
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">Active</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">Pending</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">Completed</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">Cancelled</a>
-                </li>
-              </ul>
-            </div>
-            <div class="dropdown">
-              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                Sort By : Last 7 Days
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">Ascending</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">Descending</a>
-                </li>
-              </ul>
-            </div>
+          <div class="table-operations">
+            <a-button @click="clearFilters">Clear filters</a-button>
+            <a-button @click="clearAll">Clear filters and sorters</a-button>
           </div>
         </div>
         <div class="card-body">
-          <div class="table-responsive" style="overflow: visible;">
-            <table class="table table-striped custom-table mb-0">
-              <thead>
-                <tr>
-                  <th>Code</th>
-                  <th>Grant Name</th>
-                  <th>Budget Line</th>
-                  <th>Grant Position</th>
-                  <th>ManPower</th>
-                  <th>Recruited</th>
-                  <th>Finding</th>
-                  <th class="text-start">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="position in grantPositions" :key="position.id">
-                  <td>{{ position.code }}</td>
-                  <td>{{ position.grantName }}</td>
-                  <td>{{ position.budgetLine }}</td>
-                  <td>{{ position.positionName }}</td>
-                  <td>{{ position.manPower }}</td>
-                  <td>{{ position.recruited }}</td>
-                  <td>{{ position.finding }}</td>
-                  <td class="text-start">
-                    <div class="action-icon d-inline-flex">
-                      <router-link :to="`/grant/position-details/${position.id}`" class="me-2">
-                        <i class="ti ti-eye"></i>
-                      </router-link>
-                      <a href="javascript:void(0);" class="me-2" @click="openEditGrantPositionModal(position)">
-                        <i class="ti ti-edit"></i>
-                      </a>
-                      <a href="javascript:void(0);" @click="deleteGrantPosition(position.id)">
-                        <i class="ti ti-trash"></i>
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div v-if="loading" class="text-center my-3">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading grants...</p>
+          </div>
+          <div v-else>
+            <a-table 
+              :columns="columns" 
+              :data-source="tableData" 
+              :pagination="pagination"
+              :scroll="{ x: 'max-content' }"
+              row-key="id"
+              @change="handleTableChange"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.dataIndex === 'actions'">
+                  <div class="action-icon d-inline-flex">
+                    <router-link :to="`/grant/position-details/${record.id}`" class="me-2">
+                      <i class="ti ti-eye"></i>
+                    </router-link>
+                    <a href="javascript:void(0);" class="me-2" @click="openEditGrantPositionModal(record)">
+                      <i class="ti ti-edit"></i>
+                    </a>
+                    <a href="javascript:void(0);" @click="deleteGrantPosition(record.id)">
+                      <i class="ti ti-trash"></i>
+                    </a>
+                  </div>
+                </template>
+              </template>
+            </a-table>
           </div>
         </div>
       </div>
+    </div>
+    <div
+      class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3"
+    >
+      <p class="mb-0">2014 - 2025 &copy; HRMS</p>
+      <p>
+        Designed &amp; Developed By
+        <a href="javascript:void(0);" class="text-primary">Dreams</a>
+      </p>
     </div>
   </div>
 
   <!-- Grant Position Modal -->
   <grant-position-modal ref="grantPositionModal" @submit="handleGrantPositionSubmit" />
+  
+  <!-- Notification Toast -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header" :class="notificationClass">
+        <strong class="me-auto">{{ notificationTitle }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        {{ notificationMessage }}
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
+import { Toast } from 'bootstrap';
+import { Modal as AntModal } from 'ant-design-vue';
 import GrantPositionModal from '@/components/modal/grant-position-modal.vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useGrantStore } from '@/stores/grantStore';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { onMounted } from 'vue';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
@@ -147,103 +125,14 @@ export default {
     GrantPositionModal,
     indexBreadcrumb
   },
-  data() {
-    return {
-      title: 'Grant Positions',
-      text: 'Grants',
-      text1: 'Grant Positions',
-      grantPositions: [
-        {
-          id: 1,
-          code: 'GP001',
-          grantName: 'Health Initiative Fund',
-          budgetLine: 'BL-2023-001',
-          positionName: 'Project Manager',
-          manPower: 3,
-          recruited: 2,
-          finding: 1,
-          status: 'Active'
-        },
-        {
-          id: 2,
-          code: 'GP002',
-          grantName: 'Education Support Program',
-          budgetLine: 'BL-2023-002',
-          positionName: 'Field Coordinator',
-          manPower: 5,
-          recruited: 3,
-          finding: 2,
-          status: 'Active'
-        },
-        {
-          id: 3,
-          code: 'GP003',
-          grantName: 'Community Development Grant',
-          budgetLine: 'BL-2023-003',
-          positionName: 'Finance Officer',
-          manPower: 2,
-          recruited: 1,
-          finding: 1,
-          status: 'Pending'
-        },
-        {
-          id: 4,
-          code: 'GP004',
-          grantName: 'Agricultural Support Fund',
-          budgetLine: 'BL-2023-004',
-          positionName: 'Technical Advisor',
-          manPower: 4,
-          recruited: 4,
-          finding: 0,
-          status: 'Completed'
-        },
-        {
-          id: 5,
-          code: 'GP005',
-          grantName: 'Water Sanitation Project',
-          budgetLine: 'BL-2023-005',
-          positionName: 'Project Engineer',
-          manPower: 3,
-          recruited: 0,
-          finding: 3,
-          status: 'Pending'
-        },
-        {
-          id: 6,
-          code: 'GP006',
-          grantName: 'Youth Empowerment Initiative',
-          budgetLine: 'BL-2023-006',
-          positionName: 'Program Coordinator',
-          manPower: 2,
-          recruited: 1,
-          finding: 1,
-          status: 'Active'
-        },
-        {
-          id: 7,
-          code: 'GP007',
-          grantName: 'Disaster Relief Fund',
-          budgetLine: 'BL-2023-007',
-          positionName: 'Logistics Manager',
-          manPower: 6,
-          recruited: 3,
-          finding: 3,
-          status: 'Active'
-        }
-      ],
-      currentPage: 1,
-      pageSize: 10,
-      totalPositions: 0,
-      searchTerm: '',
-      grantStore: useGrantStore()
-    };
-  },
   setup() {
     const dateRangeInput = ref(null);
-
-    function booking_range(start, end) {
-      return start.format('M/D/YYYY') + ' - ' + end.format('M/D/YYYY');
-    }
+    const filteredInfo = ref({});
+    const sortedInfo = ref({});
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const total = ref(0);
+    const grantStore = useGrantStore();
 
     onMounted(() => {
       if (dateRangeInput.value) {
@@ -264,33 +153,199 @@ export default {
               moment().subtract(1, 'month').endOf('month')
             ]
           }
-        }, booking_range);
-
-        booking_range(start, end);
+        }, (start, end) => {
+          return start.format('M/D/YYYY') + ' - ' + end.format('M/D/YYYY');
+        });
       }
     });
 
+    const pagination = computed(() => ({
+      total: total.value,
+      current: currentPage.value,
+      pageSize: pageSize.value,
+      showSizeChanger: true,
+      pageSizeOptions: ['10', '20', '50', '100'],
+      showTotal: (total) => `Total ${total} items`
+    }));
+
     return {
-      dateRangeInput
+      dateRangeInput,
+      filteredInfo,
+      sortedInfo,
+      currentPage,
+      pageSize,
+      total,
+      pagination,
+      grantStore
     };
   },
+  data() {
+    return {
+      title: 'Grant Positions',
+      text: 'Grants',
+      text1: 'Grant Positions',
+      grantPositions: [],
+      loading: false,
+      searchTerm: '',
+      notificationTitle: '',
+      notificationMessage: '',
+      notificationClass: ''
+    };
+  },
+  computed: {
+    columns() {
+      const filtered = this.filteredInfo || {};
+      const sorted = this.sortedInfo || {};
+      
+      return [
+        {
+          title: 'Grant Code',
+          dataIndex: 'code',
+          key: 'code',
+          filters: this.getUniqueValues('code'),
+          filteredValue: filtered.code || null,
+          onFilter: (value, record) => record.code.includes(value),
+          sorter: (a, b) => a.code.localeCompare(b.code),
+          sortOrder: sorted.columnKey === 'code' && sorted.order,
+          filterSearch: true,
+        },
+        {
+          title: 'Grant Name',
+          dataIndex: 'grantName',
+          key: 'grantName',
+          sorter: (a, b) => a.grantName.localeCompare(b.grantName),
+          sortOrder: sorted.columnKey === 'grantName' && sorted.order,
+        },
+        {
+          title: 'Budget Line',
+          dataIndex: 'budgetLine',
+          key: 'budgetLine',
+          filters: this.getUniqueValues('budgetLine'),
+          filteredValue: filtered.budgetLine || null,
+          onFilter: (value, record) => record.budgetLine.includes(value),
+          sorter: (a, b) => a.budgetLine.localeCompare(b.budgetLine),
+          sortOrder: sorted.columnKey === 'budgetLine' && sorted.order,
+          filterSearch: true,
+        },
+        {
+          title: 'Grant Position',
+          dataIndex: 'positionName',
+          key: 'positionName',
+          sorter: (a, b) => a.positionName.localeCompare(b.positionName),
+          sortOrder: sorted.columnKey === 'positionName' && sorted.order,
+        },
+        {
+          title: 'ManPower',
+          dataIndex: 'manPower',
+          key: 'manPower',
+          sorter: (a, b) => a.manPower - b.manPower,
+          sortOrder: sorted.columnKey === 'manPower' && sorted.order,
+        },
+        {
+          title: 'Recruited',
+          dataIndex: 'recruited',
+          key: 'recruited',
+          sorter: (a, b) => a.recruited - b.recruited,
+          sortOrder: sorted.columnKey === 'recruited' && sorted.order,
+        },
+        {
+          title: 'Finding',
+          dataIndex: 'finding',
+          key: 'finding',
+          sorter: (a, b) => a.finding - b.finding,
+          sortOrder: sorted.columnKey === 'finding' && sorted.order,
+        },
+        {
+          title: 'Status',
+          dataIndex: 'status',
+          key: 'status',
+          filters: [
+            { text: 'Active', value: 'Active' },
+            { text: 'Pending', value: 'Pending' },
+            { text: 'Completed', value: 'Completed' },
+          ],
+          filteredValue: filtered.status || null,
+          onFilter: (value, record) => record.status === value,
+          sorter: (a, b) => a.status.localeCompare(b.status),
+          sortOrder: sorted.columnKey === 'status' && sorted.order,
+        },
+        {
+          title: 'Actions',
+          dataIndex: 'actions',
+          key: 'actions',
+        },
+      ];
+    },
+    tableData() {
+      return this.grantPositions.map(position => ({
+        ...position,
+        key: position.id
+      }));
+    }
+  },
   mounted() {
-    // Set the total positions from the dummy data
-    this.totalPositions = this.grantPositions.length;
-    
-    // Comment out the API fetch since we're using dummy data
-    // this.fetchGrantPositions();
+    this.fetchGrantPositions();
   },
   methods: {
+    getUniqueValues(field) {
+      const values = [...new Set(this.grantPositions.map(item => item[field]))];
+      return values.map(value => ({ text: value, value }));
+    },
+    
+    handleTableChange(pagination, filters, sorter) {
+      console.log('Various parameters', pagination, filters, sorter);
+      this.currentPage = pagination.current;
+      this.pageSize = pagination.pageSize;
+      this.filteredInfo = filters;
+      this.sortedInfo = sorter;
+    },
+    
+    clearFilters() {
+      this.filteredInfo = null;
+    },
+    
+    clearAll() {
+      this.filteredInfo = null;
+      this.sortedInfo = null;
+    },
+    
     async fetchGrantPositions() {
+      this.loading = true;
+      
       try {
-        // Assuming there's a method in the grant store to fetch positions
         await this.grantStore.fetchGrantPositions();
-        // Uncomment this when using real API data
-        // this.grantPositions = this.grantStore.grantPositions || [];
-        // this.totalPositions = this.grantPositions.length;
+        
+        if (this.grantStore.grantPositions) {
+          // Transform the API response to match our table structure
+          const positions = [];
+          let id = 1;
+          
+          this.grantStore.grantPositions.forEach(grant => {
+            grant.positions.forEach(position => {
+              positions.push({
+                id: id++,
+                code: grant.grant_code,
+                grantName: grant.grant_name,
+                budgetLine: position.budget_line,
+                positionName: position.position,
+                manPower: parseInt(position.manpower),
+                recruited: position.recruited,
+                finding: position.finding,
+                status: 'Active', // Default status since it's not in the API response
+                grant_id: grant.grant_id
+              });
+            });
+          });
+          
+          this.grantPositions = positions;
+          this.total = positions.length;
+          this.$message.success('Grant positions loaded successfully');
+        }
       } catch (error) {
         console.error('Error fetching grant positions:', error);
+        this.$message.error('Failed to load grant positions');
+      } finally {
+        this.loading = false;
       }
     },
 
@@ -303,6 +358,7 @@ export default {
     },
 
     async handleGrantPositionSubmit(formData) {
+      this.loading = true;
       try {
         if (formData.id) {
           // Update existing grant position
@@ -313,6 +369,7 @@ export default {
           if (index !== -1) {
             this.grantPositions[index] = { ...formData };
           }
+          this.$message.success('Grant position updated successfully');
         } else {
           // Add new grant position
           // await this.grantStore.createGrantPosition(formData);
@@ -323,31 +380,88 @@ export default {
             ...formData,
             id: newId
           });
+          this.$message.success('Grant position added successfully');
         }
         // Refresh the grant positions list
-        // await this.fetchGrantPositions();
-        this.totalPositions = this.grantPositions.length;
+        await this.fetchGrantPositions();
       } catch (error) {
         console.error('Error handling grant position submission:', error);
+        this.$message.error('Failed to save grant position');
+      } finally {
+        this.loading = false;
       }
     },
 
     async deleteGrantPosition(id) {
-      if (confirm('Are you sure you want to delete this grant position?')) {
-        try {
-          // await this.grantStore.deleteGrantPosition(id);
-          
-          // For dummy data, remove from the local array
-          this.grantPositions = this.grantPositions.filter(pos => pos.id !== id);
-          this.totalPositions = this.grantPositions.length;
-          
-          // Refresh the grant positions list
-          // await this.fetchGrantPositions();
-        } catch (error) {
-          console.error('Error deleting grant position:', error);
-        }
+      try {
+        await new Promise((resolve) => {
+          AntModal.confirm({
+            title: 'Are you sure?',
+            content: 'You are about to delete this grant position. This action cannot be undone.',
+            centered: true,
+            okText: 'Yes, delete',
+            cancelText: 'Cancel',
+            onOk: async () => {
+              this.loading = true;
+              try {
+                // await this.grantStore.deleteGrantPosition(id);
+                
+                // For dummy data, remove from the local array
+                this.grantPositions = this.grantPositions.filter(pos => pos.id !== id);
+                this.total = this.grantPositions.length;
+                
+                this.$message.success('Grant position deleted successfully');
+                resolve();
+              } catch (error) {
+                console.error('Error deleting grant position:', error);
+                this.$message.error('Failed to delete grant position');
+                resolve();
+              } finally {
+                this.loading = false;
+              }
+            },
+            onCancel: () => {
+              resolve();
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Delete confirmation failed:', error);
       }
+    },
+    
+    showNotification(title, message, className) {
+      this.notificationTitle = title;
+      this.notificationMessage = message;
+      this.notificationClass = className;
+      
+      const toastEl = document.getElementById('notificationToast');
+      const toast = new Toast(toastEl);
+      toast.show();
     }
   }
 };
 </script>
+
+<style scoped>
+.highlight {
+  background-color: rgb(255, 192, 105);
+  padding: 0px;
+}
+
+.table-operations {
+  margin-bottom: 16px;
+}
+
+.table-operations > button {
+  margin-right: 8px;
+}
+
+:deep(.ant-select-selector) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  min-width: 80px;
+}
+</style>

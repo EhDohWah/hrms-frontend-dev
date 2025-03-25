@@ -37,9 +37,9 @@
             <a
               href="javascript:void(0);"
               data-bs-toggle="modal"
-              data-bs-target="#add_users"
+              data-bs-target="#add_department_position"
               class="btn btn-primary d-flex align-items-center"
-              ><i class="ti ti-circle-plus me-2"></i>Add User</a
+              ><i class="ti ti-circle-plus me-2"></i>Add Department Position</a
             >
           </div>
           <div class="head-icons ms-2">
@@ -59,12 +59,12 @@
       </div>
       <!-- /Breadcrumb -->
 
-      <!-- Users List -->
+      <!-- Department Positions List -->
       <div class="card">
         <div
           class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"
         >
-          <h5>Users List</h5>
+          <h5>Department Positions List</h5>
           <div
             class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3"
           >
@@ -80,7 +80,7 @@
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
-              <p class="mt-2">Loading users...</p>
+              <p class="mt-2">Loading department positions...</p>
             </div>
             
             <a-table
@@ -91,77 +91,33 @@
               :row-selection="rowSelection"
               @change="handleChange"
             >
+
               <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'Name'">
-                  <div class="d-flex align-items-center file-name-icon">
-                    <a href="javascript:void(0);" class="avatar avatar-md avatar-rounded">
-                      <img
-                        :src="record.profile_picture ? record.profile_picture : require('@/assets/img/users/user-01.jpg')"
-                        class="img-fluid"
-                        alt="img"
-                      />
-                    </a>
-                    <div class="ms-2">
-                      <h6 class="fw-medium">
-                        <a href="javascript:void(0);">{{ record.name }}</a>
-                      </h6>
-                    </div>
-                  </div>
+                <template v-if="column.key === 'id'">
+                  <span>{{ record.id }}</span>
                 </template>
-                <template v-if="column.key === 'Role'">
-                  <span
-                    :class="[
-                      'badge',
-                      record.roles && record.roles.length > 0 && record.roles[0].name === 'admin'
-                        ? 'badge-danger'
-                        : record.roles && record.roles.length > 0 && record.roles[0].name === 'hr-manager'
-                        ? 'badge-info'
-                        : record.roles && record.roles.length > 0 && record.roles[0].name === 'hr-assistant'
-                        ? 'badge-warning'
-                        : record.roles && record.roles.length > 0 && record.roles[0].name === 'employee'
-                        ? 'badge-success'
-                        : 'badge-secondary',
-                      'p-2 fs-10',
-                    ]"
-                  >
-                    {{ record.roles && record.roles.length > 0 ? record.roles[0].name : 'No Role' }}
-                  </span>
+                <template v-if="column.key === 'Department'">
+                  <span class="badge badge-primary p-2 fs-10">{{ record.department }}</span>
                 </template>
-                <template v-if="column.key === 'Status'">
-                  <span
-                    :class="[
-                      'badge',
-                      record.status === 'active'
-                        ? 'badge-success'
-                        : record.status === 'inactive'
-                        ? 'badge-danger'
-                        : 'd-inline-flex',
-                      'align-items-center',
-                      'badge-xs',
-                    ]"
-                  >
-                    <i class="ti ti-point-filled me-1"></i>
-                    {{ record.status === 'active' ? 'Active' : 'Inactive' }}
-                  </span>
+                <template v-if="column.key === 'Position'">
+                  <span>{{ record.position }}</span>
+                </template>
+                <template v-if="column.key === 'ReportTo'">
+                  <span>{{ record.report_to ? record.report_to : 'None' }}</span>
                 </template>
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
-                    <!-- <a href="javascript:void(0);" class="me-2"
-                      ><i class="ti ti-shield"></i
-                    ></a> -->
                     <a
                       href="javascript:void(0);"
                       class="me-2"
-                      data-bs-toggle="modal"
-                      data-bs-target="#edit_user"
-                      title="Edit User"
-                      @click="editUser(record)"
+                      title="Edit Department Position"
+                      @click="editDepartmentPosition(record)"
                       ><i class="ti ti-edit"></i
                     ></a>
                     <a
                       href="javascript:void(0);"
-                      title="Delete User"
-                      @click="confirmDeleteUser(record.id)"
+                      title="Delete Department Position"
+                      @click="confirmDeleteDepartmentPosition(record.id)"
                       ><i class="ti ti-trash"></i
                     ></a>
                   </div>
@@ -171,7 +127,7 @@
           </div>
         </div>
       </div>
-      <!-- /Users List -->
+      <!-- /Department Positions List -->
     </div>
 
     <div
@@ -185,15 +141,15 @@
     </div>
   </div>
   <!-- /Page Wrapper -->
-  <user-list-modal ref="userListModal" @user-added="fetchUsers" @user-updated="fetchUsers" @user-deleted="fetchUsers"></user-list-modal>
+  <DepartmentPositionModal ref="departmentPositionModal" @position-added="fetchDepartmentPositions" @position-updated="fetchDepartmentPositions" @position-deleted="fetchDepartmentPositions"></DepartmentPositionModal>
 </template>
 <script>
 import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
-import { useAdminStore } from "@/stores/adminStore";
-import UserListModal from "@/components/modal/user-list-modal.vue";
+import { useDepartmentPositionStore } from "@/stores/departmentPositionStore";
+import DepartmentPositionModal from "@/components/modal/department-position-modal.vue";
 
 const rowSelection = {
   onChange: () => {},
@@ -203,19 +159,19 @@ const rowSelection = {
 
 export default {
   components: {
-    UserListModal
+    DepartmentPositionModal
   },
   data() {
     return {
-      title: "Users",
+      title: "Department Positions",
       text: "Administration",
-      text1: "Users",
+      text1: "Department Positions",
       data: [],
       rowSelection,
       filteredInfo: null,
       sortedInfo: null,
       loading: false,
-      adminStore: useAdminStore(),
+      departmentPositionStore: useDepartmentPositionStore(),
     };
   },
   computed: {
@@ -229,33 +185,65 @@ export default {
           sorter: false,
         },
         {
-          title: "Name",
-          dataIndex: "name",
-          key: "Name",
-          filters: this.getNameFilters(),
-          filteredValue: filtered.Name || null,
-          filterSearch: true,
-          onFilter: (value, record) => record.name.toLowerCase().includes(value.toLowerCase()),
-          sorter: {
-            compare: (a, b) => {
-              a = a.name.toLowerCase();
-              b = b.name.toLowerCase();
-              return a > b ? -1 : b > a ? 1 : 0;
-            },
-          },
-          sortOrder: sorted.columnKey === "Name" && sorted.order,
+          title: "ID",
+          dataIndex: "id",
+          key: "id",
+          sorter: false,
         },
         {
-          title: "Email",
-          dataIndex: "email",
+          title: "Department",
+          dataIndex: "department",
+          key: "Department",
+          filters: this.getDepartmentFilters(),
+          filteredValue: filtered.Department || null,
+          filterSearch: true,
+          onFilter: (value, record) => record.department.toLowerCase().includes(value.toLowerCase()),
           sorter: {
             compare: (a, b) => {
-              a = a.email.toLowerCase();
-              b = b.email.toLowerCase();
+              a = a.department.toLowerCase();
+              b = b.department.toLowerCase();
               return a > b ? -1 : b > a ? 1 : 0;
             },
           },
-          sortOrder: sorted.columnKey === "Email" && sorted.order,
+          sortOrder: sorted.columnKey === "Department" && sorted.order,
+        },
+        {
+          title: "Position",
+          dataIndex: "position",
+          key: "Position",
+          filters: this.getPositionFilters(),
+          filteredValue: filtered.Position || null,
+          filterSearch: true,
+          onFilter: (value, record) => record.position.toLowerCase().includes(value.toLowerCase()),
+          sorter: {
+            compare: (a, b) => {
+              a = a.position.toLowerCase();
+              b = b.position.toLowerCase();
+              return a > b ? -1 : b > a ? 1 : 0;
+            },
+          },
+          sortOrder: sorted.columnKey === "Position" && sorted.order,
+        },
+        {
+          title: "Reports To",
+          dataIndex: "report_to",
+          key: "ReportTo",
+          filters: this.getReportToFilters(),
+          filteredValue: filtered.ReportTo || null,
+          onFilter: (value, record) => {
+            if (value === "none") {
+              return !record.report_to;
+            }
+            return record.report_to === value;
+          },
+          sorter: {
+            compare: (a, b) => {
+              const reportToA = a.report_to || '';
+              const reportToB = b.report_to || '';
+              return reportToA > reportToB ? -1 : reportToB > reportToA ? 1 : 0;
+            },
+          },
+          sortOrder: sorted.columnKey === "ReportTo" && sorted.order,
         },
         {
           title: "Created Date",
@@ -271,49 +259,6 @@ export default {
           sortOrder: sorted.columnKey === "CreatedDate" && sorted.order,
         },
         {
-          title: "Role",
-          dataIndex: "roles",
-          key: "Role",
-          filters: [
-            { text: "Admin", value: "admin" },
-            { text: "HR Manager", value: "hr-manager" },
-            { text: "HR Assistant", value: "hr-assistant" },
-            { text: "Employee", value: "employee" },
-          ],
-          filteredValue: filtered.Role || null,
-          onFilter: (value, record) => 
-            record.roles && 
-            record.roles.length > 0 && 
-            record.roles[0].name === value,
-          sorter: {
-            compare: (a, b) => {
-              const roleA = a.roles && a.roles.length > 0 ? a.roles[0].name.toLowerCase() : '';
-              const roleB = b.roles && b.roles.length > 0 ? b.roles[0].name.toLowerCase() : '';
-              return roleA > roleB ? -1 : roleB > roleA ? 1 : 0;
-            },
-          },
-          sortOrder: sorted.columnKey === "Role" && sorted.order,
-        },
-        {
-          title: "Status",
-          dataIndex: "status",
-          key: "Status",
-          filters: [
-            { text: "Active", value: "active" },
-            { text: "Inactive", value: "inactive" },
-          ],
-          filteredValue: filtered.Status || null,
-          onFilter: (value, record) => record.status === value,
-          sorter: {
-            compare: (a, b) => {
-              a = a.status.toLowerCase();
-              b = b.status.toLowerCase();
-              return a > b ? -1 : b > a ? 1 : 0;
-            },
-          },
-          sortOrder: sorted.columnKey === "Status" && sorted.order,
-        },
-        {
           title: "Action",
           key: "action",
           sorter: false,
@@ -322,47 +267,51 @@ export default {
     },
   },
   created() {
-    // Fetch users in created hook instead of mounted
-    this.fetchUsers();
+    this.fetchDepartmentPositions();
   },
   mounted() {
-    // Initialize date range picker in mounted
     this.initDateRangePicker();
   },
   methods: {
-    async fetchUsers() {
+    async fetchDepartmentPositions() {
       this.loading = true;
       try {
-        await this.adminStore.fetchUsers();
-        this.data = this.adminStore.users.map(user => ({
-          key: user.id.toString(),
-          id: user.id,
-          name: user.name || 'Unknown',
-          email: user.email || '',
-          phone: user.phone || '',
-          roles: user.roles || [],
-          status: user.status || 'inactive',
-          created_at: user.created_at ? moment(user.created_at).format('DD/MM/YYYY') : '',
-          updated_at: user.updated_at ? moment(user.updated_at).format('DD/MM/YYYY') : '',
-          profile_picture: user.profile_picture || null,
-          permissions: user.permissions || []
+        await this.departmentPositionStore.fetchDepartmentPositions();
+        this.data = this.departmentPositionStore.departmentPositions.map(position => ({
+          key: position.id.toString(),
+          id: position.id,
+          department: position.department || '',
+          position: position.position || '',
+          report_to: position.report_to || null,
+          created_at: position.created_at ? moment(position.created_at).format('DD/MM/YYYY') : '',
+          updated_at: position.updated_at ? moment(position.updated_at).format('DD/MM/YYYY') : '',
+          created_by: position.created_by || '',
+          updated_by: position.updated_by || ''
         }));
-        this.$message.success('Users loaded successfully');
+        this.$message.success('Department positions loaded successfully');
       } catch (error) {
-        console.error('Error loading users:', error);
-        this.$message.error('Failed to load users');
+        console.error('Error loading department positions:', error);
+        this.$message.error('Failed to load department positions');
       } finally {
         this.loading = false;
       }
     },
-    editUser(record) {
-      // Pass the user data to the modal component
-      this.$refs.userListModal.setEditUser(record);
+    
+    getReportToName(id) {
+      const position = this.data.find(item => item.id.toString() === id.toString());
+      return position ? `${position.department} - ${position.position}` : 'Unknown';
     },
-    confirmDeleteUser(userId) {
-      // Pass the user ID to the modal component's confirmDelete method
-      this.$refs.userListModal.confirmDelete(userId);
+    
+    editDepartmentPosition(record) {
+      // Pass the department position data to the modal component
+      this.$refs.departmentPositionModal.setEditPosition(record);
     },
+    
+    confirmDeleteDepartmentPosition(positionId) {
+      // Pass the department position ID to the modal component's confirmDelete method
+      this.$refs.departmentPositionModal.confirmDeletePosition(positionId);
+    },
+    
     initDateRangePicker() {
       const dateRangeInput = document.getElementById('daterange');
       if (dateRangeInput) {
@@ -392,33 +341,72 @@ export default {
         this.booking_range(start, end);
       }
     },
+    
     booking_range(start, end) {
       return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
     },
+    
     toggleHeader() {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
     },
+    
     handleChange(pagination, filters, sorter) {
       console.log("Various parameters", pagination, filters, sorter);
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
     },
+    
     clearFilters() {
       this.filteredInfo = null;
     },
+    
     clearAll() {
       this.filteredInfo = null;
       this.sortedInfo = null;
     },
-    getNameFilters() {
-      // Generate filters from unique names
-      if (!this.adminStore.users || this.adminStore.users.length === 0) {
+    
+    getDepartmentFilters() {
+      if (!this.data || this.data.length === 0) {
         return [];
       }
-      const names = [...new Set(this.adminStore.users.map(user => user.name))];
-      return names.map(name => ({ text: name, value: name }));
+      const departments = [...new Set(this.data.map(item => item.department))];
+      return departments.map(department => ({ text: department, value: department }));
     },
+    
+    getPositionFilters() {
+      if (!this.data || this.data.length === 0) {
+        return [];
+      }
+      const positions = [...new Set(this.data.map(item => item.position))];
+      return positions.map(position => ({ text: position, value: position }));
+    },
+    
+    getReportToFilters() {
+      if (!this.data || this.data.length === 0) {
+        return [];
+      }
+      
+      const filters = [{ text: 'None', value: 'none' }];
+      
+      // Get unique report_to values that are not null
+      const reportToIds = [...new Set(this.data
+        .filter(item => item.report_to)
+        .map(item => item.report_to))];
+      
+      // Add each report_to position as a filter option
+      reportToIds.forEach(id => {
+        const position = this.data.find(item => item.id.toString() === id.toString());
+        if (position) {
+          filters.push({
+            text: `${position.department} - ${position.position}`,
+            value: id
+          });
+        }
+      });
+      
+      return filters;
+    }
   },
 };
 </script>

@@ -20,44 +20,20 @@ export const ROLE_MENU_ACCESS = {
     'admin': {
         allowedMenus: [
             'Dashboard',
-            'Recruitment',
-            'Clients',
-            'Projects',
-            'Employee',
-            'Tickets',
-            'Holidays',
-            'Attendance',
-            'Performance',
-            'Grants',
-            'Training',
-            'Reports',
-            'Requests',
-            'Leaves',
-            'Travel',
-            'Assets',
             'User Management',
-            'Help & Supports',
-            'Accounting',
-            'Payroll',
+            'Lookups',
+            'Department Positions'
         ],
         allowedSubMenus: {
             'Dashboard': ['Admin Dashboard'],
-            'Leaves': ['Leaves (Admin)', 'Leave Settings'],
-            'Travel': ['Travel (Admin)'],
-            'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing', 'Overtime'],
-            'Recruitment': ['Interviews', 'References'],
-            'Employee': ['Employee Lists', 'Employee Details', 'Departments', 'Designations', 'Policies'],
-            'User Management': ['Users', 'Roles & Permissions'],
-            'Grants': ['Grants List', 'Grant Position']
+            'User Management': ['Users'],
+            'Lookups': ['Lookup List'],
+            'Department Positions': ['Department Position List']
         },
         permissions: [
             'view_all',
             'manage_all', 
             'access_all_dashboards',
-            'manage_grants',
-            'manage_requests',
-            'manage_leave',
-            'manage_recruitment'
         ]
     },
     'hr-manager': {
@@ -87,7 +63,7 @@ export const ROLE_MENU_ACCESS = {
             'Travel': ['Travel (Admin)'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing', 'Overtime'],
             'Recruitment': ['Interviews', 'References'],
-            'Employee': ['Employee Lists', 'Employee Details'],
+            'Employee': ['Employee Lists', 'Site Location', 'Departments', 'Positions', 'Policies'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
             'Training': ['Training List', 'Trainers'],
             'Reports': ['Expense Report', 'Invoice Report', 'Sales Report', 'Profit & Loss Report', 'Employee Report', 'Client Report', 'Project Report', 'Task Report', 'Ticket Report', 'Holiday Report', 'Attendance Report', 'Performance Report', 'Grant Report', 'Request Report', 'Leave Report', 'Travel Report', 'Asset Report', 'User Report'],
@@ -128,7 +104,7 @@ export const ROLE_MENU_ACCESS = {
             'Travel': ['Travel (Admin)', 'Travel (Employee)'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
             'Recruitment': ['Interviews', 'References'],
-            'Employee': ['Employee Lists', 'Employee Details'],
+            'Employee': ['Employee Lists', 'Site Location', 'Departments', 'Positions', 'Policies'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
             'Training': ['Training List', 'Trainers'],
             'Reports': ['Expense Report', 'Invoice Report', 'Sales Report', 'Profit & Loss Report', 'Employee Report', 'Client Report', 'Project Report', 'Task Report', 'Ticket Report', 'Holiday Report', 'Attendance Report', 'Performance Report', 'Grant Report', 'Request Report', 'Leave Report', 'Travel Report', 'Asset Report', 'User Report'],

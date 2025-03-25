@@ -22,7 +22,7 @@
               data-bs-toggle="modal"
               data-bs-target="#add_bank_satutory"
               class="btn btn-primary d-flex align-items-center"
-              ><i class="ti ti-circle-plus me-2"></i>Bank & Statutory</a
+              ><i class="ti ti-circle-plus me-2"></i>Add Bank & Statutory</a
             >
           </div>
           <div class="head-icons ms-2">
@@ -57,7 +57,7 @@
                 class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2"
               >
                 <img
-                  :src="employee.profile_picture || require('@/assets/img/users/user-13.jpg')"
+                  :src="employee?.profile_picture || require('@/assets/img/users/user-13.jpg')"
                   class="w-auto h-auto"
                   alt="Employee Image"
                 />
@@ -70,13 +70,55 @@
                     ></i>
                   </h5>
                   <span class="badge badge-soft-dark fw-medium me-2">
+                    <i class="ti ti-point-filled me-1"></i>{{ employee.status || 'Status N/A' }}
+                  </span>
+                  <span class="badge badge-soft-dark fw-medium me-2">
                     <i class="ti ti-point-filled me-1"></i>{{ employee.employment?.position?.title || 'Position N/A' }}
                   </span>
-                  <span class="badge badge-soft-secondary fw-medium"
-                    >{{ calculateExperience(employee.employment?.start_date) }}</span
+                  <span 
+                    :class="[
+                      'badge badge-sm fw-normal',
+                      employee.subsidiary === 'SMRU' ? 'badge-primary' : 
+                      employee.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' : 
+                      'badge-secondary'
+                    ]"
                   >
+                    {{ employee.subsidiary }}
+                  </span>
+                  
                 </div>
                 <div>
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-user me-2"></i>
+                      First Name
+                    </span>
+                    <p class="text-dark">{{ employee.first_name || 'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-user-circle me-2"></i>
+                      Last Name
+                    </span>
+                    <p class="text-dark">{{ employee.last_name || 'N/A' }}</p>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-language me-2"></i>
+                      First Name - Thai
+                    </span>
+                    <p class="text-dark">{{ employee.first_name_th || 'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-language me-2"></i>
+                      Last Name - Thai
+                    </span>
+                    <p class="text-dark">{{ employee.last_name_th || 'N/A' }}</p>
+                  </div>
+
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-id me-2"></i>
@@ -84,6 +126,7 @@
                     </span>
                     <p class="text-dark">{{ employee.staff_id || 'N/A' }}</p>
                   </div>
+
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-star me-2"></i>
@@ -91,6 +134,7 @@
                     </span>
                     <p class="text-dark">{{ employee.employment?.department?.name || 'N/A' }}</p>
                   </div>
+
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-calendar-check me-2"></i>
@@ -277,52 +321,341 @@
             </div>
           </div>
         </div>
+
+        
         <div class="col-xl-8">
           <div>
+            <div class="card">
+                    <div class="card-body">
+                      <div class="contact-grids-tab p-0 mb-3">
+                        <ul class="nav nav-underline" id="myTab" role="tablist">
+                          <li class="nav-item" role="presentation">
+                            <button
+                              class="nav-link active"
+                              id="info-tab2"
+                              data-bs-toggle="tab"
+                              data-bs-target="#basic-info2"
+                              type="button"
+                              role="tab"
+                              aria-selected="true"
+                            >
+                              Grants
+                            </button>
+                          </li>
+                          <li class="nav-item ms-auto" role="presentation">
+                            <button
+                              class="btn btn-default btn-sm rounded d-flex align-items-center"
+                              data-bs-toggle="modal"
+                              data-bs-target="#add_grant_position"  
+                            >
+                              <i class="ti ti-circle-plus me-1"></i>Add Grant Position
+                            </button>
+                          </li>
+                          <!-- Assets tab commented out
+                          <li class="nav-item" role="presentation">
+                            <button
+                              class="nav-link"
+                              id="address-tab2"
+                              data-bs-toggle="tab"
+                              data-bs-target="#address2"
+                              type="button"
+                              role="tab"
+                              aria-selected="false"
+                            >
+                              Assets
+                            </button>
+                          </li>
+                          -->
+                        </ul>
+                      </div>
+                      <div class="tab-content" id="myTabContent3">
+                        <div
+                          class="tab-pane fade show active"
+                          id="basic-info2"
+                          role="tabpanel"
+                          aria-labelledby="info-tab2"
+                          tabindex="0"
+                        >
+                          <div class="row">
+                            <div class="col-md-12">
+                              <div class="d-flex justify-content-between align-items-center mb-3">
+                                <p class="mb-0">Grant Allocations Details</p>
+                              </div>
+                              
+                              <div v-if="employee.employment?.grant_allocations && employee.employment?.grant_allocations.length > 0">
+                                <div v-for="(allocation, index) in employee.employment.grant_allocations" :key="index" class="card mb-3">
+                                  <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                      <h6 class="mb-0">Grant Allocation #{{ index + 1 }} ({{ allocation.level_of_effort }}% LOE)</h6>
+                                      <button 
+                                        class="btn btn-danger btn-sm rounded d-inline-flex align-items-center"
+                                        @click="deleteGrantAllocation(allocation.id)"
+                                      >
+                                        <i class="ti ti-trash me-1"></i>Delete
+                                      </button>
+                                    </div>
+                                    <div class="row">
+                                      <div class="col-md-4">
+                                        <span class="d-inline-flex align-items-center">
+                                          Grant Code
+                                        </span>
+                                        <h6 class="d-flex align-items-center fw-medium mt-1">
+                                          {{ allocation.grant_item_allocation?.grant?.code || 'N/A' }}
+                                        </h6>
+                                      </div>
+                                      <div class="col-md-4">
+                                        <span class="d-inline-flex align-items-center">
+                                          Grant Name
+                                        </span>
+                                        <h6 class="d-flex align-items-center fw-medium mt-1">
+                                          {{ allocation.grant_item_allocation?.grant?.name || 'N/A' }}
+                                        </h6>
+                                      </div>
+                                      <div class="col-md-4">
+                                        <span class="d-inline-flex align-items-center">
+                                          Grant End Date
+                                        </span>
+                                        <h6 class="d-flex align-items-center fw-medium mt-1">
+                                          {{ allocation.grant_item_allocation?.grant?.end_date || 'N/A' }}
+                                        </h6>
+                                      </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                      <div class="col-md-4">
+                                        <span class="d-inline-flex align-items-center">
+                                          Grant Position
+                                        </span>
+                                        <h6 class="d-flex align-items-center fw-medium mt-1">
+                                          {{ allocation.grant_item_allocation?.grant_position || 'N/A' }}
+                                        </h6>
+                                      </div>
+                                      <div class="col-md-4">
+                                        <span class="d-inline-flex align-items-center">
+                                          BG Line
+                                        </span>
+                                        <h6 class="d-flex align-items-center fw-medium mt-1">
+                                          {{ allocation.grant_item_allocation?.bg_line || 'N/A' }}
+                                        </h6>
+                                      </div>
+                                      <div class="col-md-4">
+                                        <span class="d-inline-flex align-items-center">
+                                          Grant Salary
+                                        </span>
+                                        <h6 class="d-flex align-items-center fw-medium mt-1">
+                                          {{ allocation.grant_item_allocation?.grant_salary || 'N/A' }}
+                                        </h6>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div v-else class="card">
+                                <div class="card-body text-center py-3">
+                                  <p>No grant allocations available for this employee</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+
+                        <!-- <div
+                          class="tab-pane fade"
+                          id="address2"
+                          role="tabpanel"
+                          aria-labelledby="address-tab2"
+                          tabindex="0"
+                        >
+                          <div class="row">
+                            <div class="col-md-12 d-flex">
+                              <div class="card flex-fill">
+                                <div class="card-body">
+                                  <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                      <div class="d-flex align-items-center">
+                                        <router-link
+                                          to="/projects/projects-details"
+                                          class="flex-shrink-0 me-2"
+                                        >
+                                          <img
+                                            src="@/assets/img/products/product-05.jpg"
+                                            class="img-fluid rounded-circle"
+                                            alt="img"
+                                          />
+                                        </router-link>
+                                        <div>
+                                          <h6 class="mb-1">
+                                            <router-link to="/projects/projects-details"
+                                              >Dell Laptop - #343556656</router-link
+                                            >
+                                          </h6>
+                                          <div class="d-flex align-items-center">
+                                            <p>
+                                              <span class="text-primary"
+                                                >AST - 001<i
+                                                  class="ti ti-point-filled text-primary mx-1"
+                                                ></i></span
+                                              >Assigned on 22 Nov, 2022 10:32AM
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                      <div>
+                                        <span class="mb-1 d-block">Assigned by</span>
+                                        <a
+                                          href="javascript:void(0);"
+                                          class="fw-normal d-flex align-items-center"
+                                        >
+                                          <img
+                                            class="avatar avatar-sm rounded-circle me-2"
+                                            src="@/assets/img/profiles/avatar-01.jpg"
+                                            alt="Img"
+                                          />
+                                          Andrew Symon
+                                        </a>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-1">
+                                      <div class="dropdown ms-2">
+                                        <a
+                                          href="javascript:void(0);"
+                                          class="d-inline-flex align-items-center"
+                                          data-bs-toggle="dropdown"
+                                          aria-expanded="false"
+                                        >
+                                          <i class="ti ti-dots-vertical"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end p-3">
+                                          <li>
+                                            <a
+                                              href="javascript:void(0);"
+                                              class="dropdown-item rounded-1"
+                                              data-bs-toggle="modal"
+                                              data-bs-target="#asset_info"
+                                              >View Info</a
+                                            >
+                                          </li>
+                                          <li>
+                                            <a
+                                              href="javascript:void(0);"
+                                              class="dropdown-item rounded-1"
+                                              data-bs-toggle="modal"
+                                              data-bs-target="#refuse_msg"
+                                              >Raise Issue
+                                            </a>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="col-md-12 d-flex">
+                              <div class="card flex-fill mb-0">
+                                <div class="card-body">
+                                  <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                      <div class="d-flex align-items-center">
+                                        <router-link
+                                          to="/projects/projects-details"
+                                          class="flex-shrink-0 me-2"
+                                        >
+                                          <img
+                                            src="@/assets/img/products/product-06.jpg"
+                                            class="img-fluid rounded-circle"
+                                            alt="img"
+                                          />
+                                        </router-link>
+                                        <div>
+                                          <h6 class="mb-1">
+                                            <router-link to="/projects/projects-details"
+                                              >Bluetooth Mouse - #478878</router-link
+                                            >
+                                          </h6>
+                                          <div class="d-flex align-items-center">
+                                            <p>
+                                              <span class="text-primary"
+                                                >AST - 001<i
+                                                  class="ti ti-point-filled text-primary mx-1"
+                                                ></i></span
+                                              >Assigned on 22 Nov, 2022 10:32AM
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                      <div>
+                                        <span class="mb-1 d-block">Assigned by</span>
+                                        <a
+                                          href="javascript:void(0);"
+                                          class="fw-normal d-flex align-items-center"
+                                        >
+                                          <img
+                                            class="avatar avatar-sm rounded-circle me-2"
+                                            src="@/assets/img/profiles/avatar-01.jpg"
+                                            alt="Img"
+                                          />
+                                          Andrew Symon
+                                        </a>
+                                      </div>
+                                    </div>
+                                    <div class="col-md-1">
+                                      <div class="dropdown ms-2">
+                                        <a
+                                          href="javascript:void(0);"
+                                          class="d-inline-flex align-items-center"
+                                          data-bs-toggle="dropdown"
+                                          aria-expanded="false"
+                                        >
+                                          <i class="ti ti-dots-vertical"></i>
+                                        </a>
+                                        <ul class="dropdown-menu dropdown-menu-end p-3">
+                                          <li>
+                                            <a
+                                              href="javascript:void(0);"
+                                              class="dropdown-item rounded-1"
+                                              data-bs-toggle="modal"
+                                              data-bs-target="#asset_info"
+                                              >View Info</a
+                                            >
+                                          </li>
+                                          <li>
+                                            <a
+                                              href="javascript:void(0);"
+                                              class="dropdown-item rounded-1"
+                                              data-bs-toggle="modal"
+                                              data-bs-target="#refuse_msg"
+                                              >Raise Issue
+                                            </a>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div> -->
+
+                      </div>
+                    </div>
+                  </div>
+
             <div class="tab-content custom-accordion-items">
               <div
                 class="tab-pane active show"
                 id="bottom-justified-tab1"
                 role="tabpanel"
               >
-                <div class="accordion accordions-items-seperate" id="accordionExample">
-                  <div class="accordion-item">
-                    <div class="accordion-header" id="headingOne">
-                      <div class="accordion-button">
-                        <div class="d-flex align-items-center flex-fill">
-                          <h5>About Employee</h5>
-                          <a
-                            href="javascript:void(0);"
-                            class="btn btn-sm btn-icon ms-auto"
-                            data-bs-toggle="modal"
-                            data-bs-target="#edit_employee"
-                            ><i class="ti ti-edit"></i
-                          ></a>
-                          <a
-                            href="javascript:void(0);"
-                            class="d-flex align-items-center collapsed collapse-arrow"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#primaryBorderOne"
-                            aria-expanded="false"
-                            aria-controls="primaryBorderOne"
-                          >
-                            <i class="ti ti-chevron-down fs-18"></i>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      id="primaryBorderOne"
-                      class="accordion-collapse collapse show border-top"
-                      aria-labelledby="headingOne"
-                      data-bs-parent="#accordionExample"
-                    >
-                      <div class="accordion-body mt-2">
-                        {{ employee.remark || 'No additional information available about this employee.' }}
-                      </div>
-                    </div>
-                  </div>
 
+
+
+                <div class="accordion accordions-items-seperate" id="accordionExample">
                   <div class="accordion-item">
                     <div class="accordion-header" id="headingTwo">
                       <div class="accordion-button">
@@ -663,317 +996,7 @@
                     </div>
                   </div>
 
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="contact-grids-tab p-0 mb-3">
-                        <ul class="nav nav-underline" id="myTab" role="tablist">
-                          <li class="nav-item" role="presentation">
-                            <button
-                              class="nav-link active"
-                              id="info-tab2"
-                              data-bs-toggle="tab"
-                              data-bs-target="#basic-info2"
-                              type="button"
-                              role="tab"
-                              aria-selected="true"
-                            >
-                              Grants
-                            </button>
-                          </li>
-                          <li class="nav-item ms-auto" role="presentation">
-                            <button
-                              class="btn btn-default btn-sm rounded d-flex align-items-center"
-                              data-bs-toggle="modal"
-                              data-bs-target="#add_grant_position"  
-                            >
-                              <i class="ti ti-circle-plus me-1"></i>Add Grant Position
-                            </button>
-                          </li>
-                          <!-- Assets tab commented out
-                          <li class="nav-item" role="presentation">
-                            <button
-                              class="nav-link"
-                              id="address-tab2"
-                              data-bs-toggle="tab"
-                              data-bs-target="#address2"
-                              type="button"
-                              role="tab"
-                              aria-selected="false"
-                            >
-                              Assets
-                            </button>
-                          </li>
-                          -->
-                        </ul>
-                      </div>
-                      <div class="tab-content" id="myTabContent3">
-                        <div
-                          class="tab-pane fade show active"
-                          id="basic-info2"
-                          role="tabpanel"
-                          aria-labelledby="info-tab2"
-                          tabindex="0"
-                        >
-                          <div class="row">
-                            <div class="col-md-12">
-                              <div class="card">
-                                <div class="card-body">
-                                  <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="card-title mb-0">Grant Details</h5>
-                                    <button 
-                                      v-if="employee.employment?.grant_item"
-                                      class="btn btn-danger btn-sm rounded d-inline-flex align-items-center"
-                                      @click="deleteGrantPosition"
-                                    >
-                                      <i class="ti ti-trash me-1"></i>Delete Grant Position
-                                    </button>
-                                  </div>
-                                  <div class="row">
-                                    <div class="col-md-4">
-                                      <span class="d-inline-flex align-items-center">
-                                        Grant Code
-                                      </span>
-                                      <h6 class="d-flex align-items-center fw-medium mt-1">
-                                        {{ employee.employment?.grant_item?.grant?.code || 'N/A' }}
-                                      </h6>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <span class="d-inline-flex align-items-center">
-                                        Grant Name
-                                      </span>
-                                      <h6 class="d-flex align-items-center fw-medium mt-1">
-                                        {{ employee.employment?.grant_item?.grant?.name || 'N/A' }}
-                                      </h6>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <span class="d-inline-flex align-items-center">
-                                        Grant End Date
-                                      </span>
-                                      <h6 class="d-flex align-items-center fw-medium mt-1">
-                                        {{ employee.employment?.grant_item?.grant?.end_date || 'N/A' }}
-                                      </h6>
-                                    </div>
-                                  </div>
-                                  <div class="row mt-3">
-                                    <div class="col-md-4">
-                                      <span class="d-inline-flex align-items-center">
-                                        Grant Position
-                                      </span>
-                                      <h6 class="d-flex align-items-center fw-medium mt-1">
-                                        {{ employee.employment?.grant_item?.grant_position || 'N/A' }}
-                                      </h6>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <span class="d-inline-flex align-items-center">
-                                        BG Line
-                                      </span>
-                                      <h6 class="d-flex align-items-center fw-medium mt-1">
-                                        {{ employee.employment?.grant_item?.bg_line || 'N/A' }}
-                                      </h6>
-                                    </div>
-                                    <div class="col-md-4">
-                                      <span class="d-inline-flex align-items-center">
-                                        Grant Salary
-                                      </span>
-                                      <h6 class="d-flex align-items-center fw-medium mt-1">
-                                        {{ employee.employment?.grant_item?.grant_salary || 'N/A' }}
-                                      </h6>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-
-                        <!-- <div
-                          class="tab-pane fade"
-                          id="address2"
-                          role="tabpanel"
-                          aria-labelledby="address-tab2"
-                          tabindex="0"
-                        >
-                          <div class="row">
-                            <div class="col-md-12 d-flex">
-                              <div class="card flex-fill">
-                                <div class="card-body">
-                                  <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                      <div class="d-flex align-items-center">
-                                        <router-link
-                                          to="/projects/projects-details"
-                                          class="flex-shrink-0 me-2"
-                                        >
-                                          <img
-                                            src="@/assets/img/products/product-05.jpg"
-                                            class="img-fluid rounded-circle"
-                                            alt="img"
-                                          />
-                                        </router-link>
-                                        <div>
-                                          <h6 class="mb-1">
-                                            <router-link to="/projects/projects-details"
-                                              >Dell Laptop - #343556656</router-link
-                                            >
-                                          </h6>
-                                          <div class="d-flex align-items-center">
-                                            <p>
-                                              <span class="text-primary"
-                                                >AST - 001<i
-                                                  class="ti ti-point-filled text-primary mx-1"
-                                                ></i></span
-                                              >Assigned on 22 Nov, 2022 10:32AM
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                      <div>
-                                        <span class="mb-1 d-block">Assigned by</span>
-                                        <a
-                                          href="javascript:void(0);"
-                                          class="fw-normal d-flex align-items-center"
-                                        >
-                                          <img
-                                            class="avatar avatar-sm rounded-circle me-2"
-                                            src="@/assets/img/profiles/avatar-01.jpg"
-                                            alt="Img"
-                                          />
-                                          Andrew Symon
-                                        </a>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-1">
-                                      <div class="dropdown ms-2">
-                                        <a
-                                          href="javascript:void(0);"
-                                          class="d-inline-flex align-items-center"
-                                          data-bs-toggle="dropdown"
-                                          aria-expanded="false"
-                                        >
-                                          <i class="ti ti-dots-vertical"></i>
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-end p-3">
-                                          <li>
-                                            <a
-                                              href="javascript:void(0);"
-                                              class="dropdown-item rounded-1"
-                                              data-bs-toggle="modal"
-                                              data-bs-target="#asset_info"
-                                              >View Info</a
-                                            >
-                                          </li>
-                                          <li>
-                                            <a
-                                              href="javascript:void(0);"
-                                              class="dropdown-item rounded-1"
-                                              data-bs-toggle="modal"
-                                              data-bs-target="#refuse_msg"
-                                              >Raise Issue
-                                            </a>
-                                          </li>
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="col-md-12 d-flex">
-                              <div class="card flex-fill mb-0">
-                                <div class="card-body">
-                                  <div class="row align-items-center">
-                                    <div class="col-md-8">
-                                      <div class="d-flex align-items-center">
-                                        <router-link
-                                          to="/projects/projects-details"
-                                          class="flex-shrink-0 me-2"
-                                        >
-                                          <img
-                                            src="@/assets/img/products/product-06.jpg"
-                                            class="img-fluid rounded-circle"
-                                            alt="img"
-                                          />
-                                        </router-link>
-                                        <div>
-                                          <h6 class="mb-1">
-                                            <router-link to="/projects/projects-details"
-                                              >Bluetooth Mouse - #478878</router-link
-                                            >
-                                          </h6>
-                                          <div class="d-flex align-items-center">
-                                            <p>
-                                              <span class="text-primary"
-                                                >AST - 001<i
-                                                  class="ti ti-point-filled text-primary mx-1"
-                                                ></i></span
-                                              >Assigned on 22 Nov, 2022 10:32AM
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                      <div>
-                                        <span class="mb-1 d-block">Assigned by</span>
-                                        <a
-                                          href="javascript:void(0);"
-                                          class="fw-normal d-flex align-items-center"
-                                        >
-                                          <img
-                                            class="avatar avatar-sm rounded-circle me-2"
-                                            src="@/assets/img/profiles/avatar-01.jpg"
-                                            alt="Img"
-                                          />
-                                          Andrew Symon
-                                        </a>
-                                      </div>
-                                    </div>
-                                    <div class="col-md-1">
-                                      <div class="dropdown ms-2">
-                                        <a
-                                          href="javascript:void(0);"
-                                          class="d-inline-flex align-items-center"
-                                          data-bs-toggle="dropdown"
-                                          aria-expanded="false"
-                                        >
-                                          <i class="ti ti-dots-vertical"></i>
-                                        </a>
-                                        <ul class="dropdown-menu dropdown-menu-end p-3">
-                                          <li>
-                                            <a
-                                              href="javascript:void(0);"
-                                              class="dropdown-item rounded-1"
-                                              data-bs-toggle="modal"
-                                              data-bs-target="#asset_info"
-                                              >View Info</a
-                                            >
-                                          </li>
-                                          <li>
-                                            <a
-                                              href="javascript:void(0);"
-                                              class="dropdown-item rounded-1"
-                                              data-bs-toggle="modal"
-                                              data-bs-target="#refuse_msg"
-                                              >Raise Issue
-                                            </a>
-                                          </li>
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div> -->
-
-                      </div>
-                    </div>
-                  </div>
-
+                  
 
                   
                 </div>
@@ -1032,6 +1055,7 @@ export default {
       try {
         // Call the store action to get employee details
         this.employee = await employeeStore.getEmployeeDetails(id);
+        
       } catch (error) {
         console.error("Error fetching employee details:", error);
       } finally {

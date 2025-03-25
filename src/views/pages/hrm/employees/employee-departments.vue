@@ -242,53 +242,33 @@ const columns = [
 ];
 const data = [
   {
-    Department: "Finance",
-    NoofEmployees: "20",
-    Status: "Active",
-  },
-  {
-    Department: "Application Development",
-    NoofEmployees: "30",
-    Status: "Active",
-  },
-  {
-    Department: "IT Management",
-    NoofEmployees: "15",
-    Status: "Active",
-  },
-  {
-    Department: "Web Development",
-    NoofEmployees: "20",
-    Status: "Active",
-  },
-  {
-    Department: "Sales",
-    NoofEmployees: "20",
-    Status: "Active",
-  },
-  {
-    Department: "UI / UX",
-    NoofEmployees: "30",
-    Status: "Active",
-  },
-  {
-    Department: "Account Management",
-    NoofEmployees: "15",
-    Status: "Active",
-  },
-  {
-    Department: "Marketing",
-    NoofEmployees: "10",
-    Status: "Inactive",
-  },
-  {
-    Department: "Administration",
+    Department: "Admin",
     NoofEmployees: "5",
     Status: "Active",
   },
   {
-    Department: "Business Development",
-    NoofEmployees: "7",
+    Department: "HR",
+    NoofEmployees: "12",
+    Status: "Active",
+  },
+  {
+    Department: "DATA-MANAGEMENT",
+    NoofEmployees: "18",
+    Status: "Active",
+  },
+  {
+    Department: "IT",
+    NoofEmployees: "25",
+    Status: "Active",
+  },
+  {
+    Department: "FINANCE",
+    NoofEmployees: "15",
+    Status: "Active",
+  },
+  {
+    Department: "LAB",
+    NoofEmployees: "20",
     Status: "Active",
   },
 ];

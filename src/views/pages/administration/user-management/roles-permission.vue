@@ -8,7 +8,7 @@
       <div
         class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
       >
-        <breadcrumb :title="title" :text="text" :text1="text1" />
+        <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="me-2 mb-2">
             <div class="dropdown">
@@ -68,103 +68,31 @@
           <div
             class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3"
           >
-            <div class="me-3">
-              <div class="input-icon-end position-relative">
-                <input
-                  type="text"
-                  class="form-control date-range bookingrange"
-                  ref="dateRangeInput"
-                  placeholder="dd/mm/yyyy - dd/mm/yyyy"
-                />
-                <span class="input-icon-addon">
-                  <i class="ti ti-chevron-down"></i>
-                </span>
-              </div>
-            </div>
-            <div class="dropdown me-3">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
-                Status
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">Active</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Inactive</a
-                  >
-                </li>
-              </ul>
-            </div>
-            <div class="dropdown">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
-                Sort By : Last 7 Days
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Recently Added</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Ascending</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Desending</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Last Month</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Last 7 Days</a
-                  >
-                </li>
-              </ul>
+            <div class="ms-3">
+              <a-button @click="clearFilters">Clear filters</a-button>
+              <a-button @click="clearAll" class="ms-2">Clear filters and sorters</a-button>
             </div>
           </div>
         </div>
         <div class="card-body p-0">
           <div class="custom-datatable-filter table-responsive">
+            <div v-if="loading" class="text-center my-3">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Loading roles...</p>
+            </div>
+            
             <a-table
+              v-else
               class="table datatable thead-light"
               :columns="columns"
               :data-source="data"
               :row-selection="rowSelection"
+              @change="handleChange"
             >
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'Role'">{{ record.Role }}</template>
-                <template v-if="column.key === 'Status'">
-                  <span
-                    :class="[
-                      'badge',
-                      record.Status === 'Active'
-                        ? 'badge-success'
-                        : record.Status === 'Inactive'
-                        ? 'badge-danger'
-                        : 'd-inline-flex',
-                      'align-items-center',
-                      'badge-xs',
-                    ]"
-                  >
-                    <i class="ti ti-point-filled me-1"></i>
-                    {{ record.Status }}
-                  </span>
-                </template>
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
                     <router-link to="/user-management/permission" class="me-2"
@@ -206,123 +134,29 @@
   <roles-modal></roles-modal>
 </template>
 <script>
-const columns = [
-  {
-    sorter: false,
-  },
-  {
-    title: "Role",
-    dataIndex: "Role",
-    key: "Role",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Role.toLowerCase();
-        b = b.Role.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Created Date",
-    dataIndex: "CreatedDate",
-    sorter: {
-      compare: (a, b) => {
-        a = a.CreatedDate.toLowerCase();
-        b = b.CreatedDate.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Status",
-    dataIndex: "Status",
-    key: "Status",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Status.toLowerCase();
-        b = b.Status.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "",
-    key: "action",
-    sorter: true,
-  },
-];
-const data = [
-  {
-    Role: "Admin",
-    CreatedDate: "12 Sep 2024",
-    Status: "Active",
-  },
-  {
-    Role: "HR Manager",
-    CreatedDate: "24 Oct 2024",
-    Status: "Active",
-  },
-  {
-    Role: "Recruitment Manager",
-    CreatedDate: "18 Feb 2024",
-    Status: "Active",
-  },
-  {
-    Role: "Payroll Manager",
-    CreatedDate: "17 Oct 2024",
-    Status: "Active",
-  },
-  {
-    Role: "Leave Manager",
-    CreatedDate: "20 Jul 2024",
-    Status: "Active",
-  },
-  {
-    Role: "Performance Manager",
-    CreatedDate: "10 Apr 2024",
-    Status: "Active",
-  },
-  {
-    Role: "Reports Analyst",
-    CreatedDate: "29 Aug 2024",
-    Status: "Active",
-  },
-  {
-    Role: "Employee",
-    CreatedDate: "22 Feb 2024",
-    Status: "Inactive",
-  },
-  {
-    Role: "Client",
-    CreatedDate: "03 Nov 2024",
-    Status: "Active",
-  },
-  {
-    Role: "Department Head",
-    CreatedDate: "17 Dec 2024",
-    Status: "Active",
-  },
-];
-const rowSelection = {
-  onChange: () => {},
-  onSelect: () => {},
-  onSelectAll: () => {},
-};
 import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
 import { ref } from "vue";
 import { onMounted } from "vue";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
+import { adminService } from "@/services/admin.service";
+
 export default {
   data() {
     return {
-      title: "Users",
+      title: "Roles & Permissions",
       text: "Administration",
-      text1: "Users",
-      data,
-      columns,
-      rowSelection,
+      text1: "Roles",
+      data: [],
+      rowSelection: {
+        onChange: () => {},
+        onSelect: () => {},
+        onSelectAll: () => {},
+      },
+      filteredInfo: null,
+      sortedInfo: null,
+      loading: false,
     };
   },
   setup() {
@@ -366,11 +200,162 @@ export default {
       dateRangeInput,
     };
   },
+  computed: {
+    columns() {
+      const { filteredInfo, sortedInfo } = this;
+      const filtered = filteredInfo || {};
+      const sorted = sortedInfo || {};
+
+      return [
+        {
+          sorter: false,
+        },
+        {
+          title: "Role",
+          dataIndex: "Role",
+          key: "Role",
+          filters: this.getRoleFilters(),
+          filteredValue: filtered.Role || null,
+          filterSearch: true,
+          onFilter: (value, record) => record.Role.toLowerCase().includes(value.toLowerCase()),
+          sorter: {
+            compare: (a, b) => {
+              a = a.Role.toLowerCase();
+              b = b.Role.toLowerCase();
+              return a > b ? -1 : b > a ? 1 : 0;
+            },
+          },
+          sortOrder: sorted.columnKey === "Role" && sorted.order,
+        },
+        {
+          title: "Created Date",
+          dataIndex: "CreatedDate",
+          sorter: {
+            compare: (a, b) => {
+              a = a.CreatedDate.toLowerCase();
+              b = b.CreatedDate.toLowerCase();
+              return a > b ? -1 : b > a ? 1 : 0;
+            },
+          },
+          sortOrder: sorted.columnKey === "CreatedDate" && sorted.order,
+        },
+        {
+          title: "Action",
+          key: "action",
+          sorter: false,
+        },
+      ];
+    }
+  },
+  async mounted() {
+    this.loading = true;
+    try {
+      // Fetch roles from API
+      await this.fetchRoles();
+    } catch (error) {
+      console.error('Error loading roles:', error);
+    } finally {
+      this.loading = false;
+    }
+  },
   methods: {
     toggleHeader() {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
     },
+    handleChange(pagination, filters, sorter) {
+      console.log("Various parameters", pagination, filters, sorter);
+      this.filteredInfo = filters;
+      this.sortedInfo = sorter;
+    },
+    clearFilters() {
+      this.filteredInfo = null;
+    },
+    clearAll() {
+      this.filteredInfo = null;
+      this.sortedInfo = null;
+    },
+    getRoleFilters() {
+      // For now, generate filters from the static data
+      // In a real app, this would come from the API
+      const roles = [
+        "Admin", "HR Manager", "Recruitment Manager", "Payroll Manager",
+        "Leave Manager", "Performance Manager", "Reports Analyst", "Employee",
+        "Client", "Department Head"
+      ];
+      return roles.map(role => ({ text: role, value: role }));
+    },
+    async fetchRoles() {
+      try {
+        // In a real implementation, you would use the adminService
+        const response = await adminService.getAllRoles();
+        this.data = response.data.map(role => ({
+          key: role.id.toString(),
+          Role: role.name,
+          CreatedDate: moment(role.created_at).format('DD MMM YYYY')
+        }));
+        
+        this.$message.success('Roles loaded successfully');
+        
+        // For now, use the static data with keys added
+        // this.data = [
+        //   {
+        //     key: "1",
+        //     Role: "Admin",
+        //     CreatedDate: "12 Sep 2024",
+        //   },
+        //   {
+        //     key: "2",
+        //     Role: "HR Manager",
+        //     CreatedDate: "24 Oct 2024",
+        //   },
+        //   {
+        //     key: "3",
+        //     Role: "Recruitment Manager",
+        //     CreatedDate: "18 Feb 2024",
+        //   },
+        //   {
+        //     key: "4",
+        //     Role: "Payroll Manager",
+        //     CreatedDate: "17 Oct 2024",
+        //   },
+        //   {
+        //     key: "5",
+        //     Role: "Leave Manager",
+        //     CreatedDate: "20 Jul 2024",
+        //   },
+        //   {
+        //     key: "6",
+        //     Role: "Performance Manager",
+        //     CreatedDate: "10 Apr 2024",
+        //   },
+        //   {
+        //     key: "7",
+        //     Role: "Reports Analyst",
+        //     CreatedDate: "29 Aug 2024",
+        //   },
+        //   {
+        //     key: "8",
+        //     Role: "Employee",
+        //     CreatedDate: "22 Feb 2024",
+        //   },
+        //   {
+        //     key: "9",
+        //     Role: "Client",
+        //     CreatedDate: "03 Nov 2024",
+        //   },
+        //   {
+        //     key: "10",
+        //     Role: "Department Head",
+        //     CreatedDate: "17 Dec 2024",
+        //   },
+        // ];
+      } catch (error) {
+        console.error('Error fetching roles:', error);
+        this.$message.error('Failed to load roles');
+        throw error;
+      }
+    }
   },
 };
 </script>

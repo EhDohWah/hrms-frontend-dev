@@ -11,6 +11,14 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="input-block mb-3">
+                    <label class="form-label" for="grant-subsidiary">Subsidiary</label>
+                    <input type="text" id="grant-subsidiary" v-model="formData.subsidiary" class="form-control" placeholder="e.g., SMRU" required>
+                  </div>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="input-block mb-3">
                     <label class="form-label">Grant Name</label>
                     <input type="text" v-model="formData.name" class="form-control" placeholder="e.g., UNICEF-EP" required>
                   </div>
@@ -66,7 +74,8 @@
           name: '',
           code: '',
           description: '',
-          end_date: ''
+          end_date: '',
+          subsidiary: ''
         }
       };
     },
@@ -142,7 +151,8 @@
           name: '',
           code: '',
           description: '',
-          end_date: ''
+          end_date: '',
+          subsidiary: ''
         };
       },
       setEditData(data) {

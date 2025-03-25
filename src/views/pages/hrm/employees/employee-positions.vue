@@ -39,7 +39,7 @@
               data-bs-toggle="modal"
               data-bs-target="#add_designation"
               class="btn btn-primary d-flex align-items-center"
-              ><i class="ti ti-circle-plus me-2"></i>Add Designation</a
+              ><i class="ti ti-circle-plus me-2"></i>Add Position</a
             >
           </div>
           <div class="head-icons ms-2">
@@ -64,7 +64,7 @@
         <div
           class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"
         >
-          <h5>Designation List</h5>
+          <h5>Position List</h5>
           <div
             class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3"
           >
@@ -272,63 +272,63 @@ const columns = [
 ];
 const data = [
   {
+    Designation: "Medic",
+    Department: "Healthcare",
+    NoofEmployees: "12",
+    Status: "Active",
+  },
+  {
+    Designation: "Midwife",
+    Department: "Healthcare",
+    NoofEmployees: "8",
+    Status: "Active",
+  },
+  {
+    Designation: "Healthworker",
+    Department: "Healthcare",
+    NoofEmployees: "15",
+    Status: "Active",
+  },
+  {
+    Designation: "HR-assistant",
+    Department: "Human Resources",
+    NoofEmployees: "3",
+    Status: "Active",
+  },
+  {
+    Designation: "Driver",
+    Department: "Operations",
+    NoofEmployees: "6",
+    Status: "Active",
+  },
+  {
     Designation: "Accountant",
     Department: "Finance",
-    NoofEmployees: "10",
+    NoofEmployees: "4",
     Status: "Active",
   },
   {
     Designation: "App Developer",
-    Department: "Application Development",
-    NoofEmployees: "15",
+    Department: "IT",
+    NoofEmployees: "7",
     Status: "Active",
   },
   {
     Designation: "Technician",
-    Department: "IT Management",
-    NoofEmployees: "8",
-    Status: "Active",
-  },
-  {
-    Designation: "Web Developer",
-    Department: "Web Development",
-    NoofEmployees: "10",
-    Status: "Active",
-  },
-  {
-    Designation: "Sales Executive Officer",
-    Department: "Sales",
-    NoofEmployees: "10",
-    Status: "Active",
-  },
-  {
-    Designation: "Designer",
-    Department: "UI / UX",
-    NoofEmployees: "15",
-    Status: "Active",
-  },
-  {
-    Designation: "Account Manager",
-    Department: "Account Management",
-    NoofEmployees: "8",
-    Status: "Active",
-  },
-  {
-    Designation: "SEO Analyst",
-    Department: "Marketing",
-    NoofEmployees: "10",
+    Department: "IT",
+    NoofEmployees: "5",
     Status: "Inactive",
   },
   {
     Designation: "Admin",
     Department: "Administration",
-    NoofEmployees: "5",
+    NoofEmployees: "2",
     Status: "Active",
   },
   {
-    Designation: "Business Analyst",
-    Department: "Business Development",
-    NoofEmployees: "7",
+    Designation: "Project Manager",
+    Department: "Management",
+    NoofEmployees: "3",
     Status: "Active",
   },
 ];

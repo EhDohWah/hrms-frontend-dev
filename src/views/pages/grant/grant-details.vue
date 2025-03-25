@@ -19,9 +19,16 @@
 
       <!-- Grant Details -->
       <div class="row">
-        <div class="col-lg-8">
+        <div class="col-lg-9">
           <div class="card">
             <div class="card-body">
+              <div class="my-auto mb-4">
+                <h6 class="fw-medium d-inline-flex align-items-center mb-3 mb-sm-0">
+                  <router-link to="/grant/list">
+                    <i class="ti ti-arrow-left me-2"></i>Back to Grant List
+                  </router-link>
+                </h6>
+              </div>
               <div class="project-details">
                 <h5 class="card-title">{{ grant.name }}</h5>
                 <div class="row">
@@ -66,53 +73,57 @@
                         <th>Effort</th>
                         <th>Position Number</th>
                         <th>Cost Monthly</th>
+                        <th>Total Amount Annual</th>
                         <th>Total Cost By Person</th>
-                        <th>Total Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-for="item in grant.items" :key="item.id">
                         <td>{{ item.bg_line }}</td>
                         <td>{{ item.grant_position }}</td>
-                        <td>{{ item.grant_salary }}</td>
-                        <td>{{ item.grant_benefit }}</td>
+                        <td>
+                          {{ parseFloat(item.grant_salary).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }) }}
+                        </td>
+                        <td>
+                          {{ parseFloat(item.grant_benefit).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }) }}
+                        </td>
                         <td>{{ item.grant_level_of_effort }}</td>
-                        <td>{{ item.grant_position_number }}</td>
-                        <td>{{ item.grant_cost_by_monthly }}</td>
-                        <td>{{ item.grant_total_cost_by_person }}</td>
-                        <td>{{ item.grant_total_amount }}</td>
+                        <td class="text-center">{{ item.grant_position_number }}</td>
+                        <td>
+                          {{ parseFloat(item.costMonthly).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }) }}
+                        </td>
+                        <td>
+                          {{ parseFloat(item.totalAmountAnnual).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }) }}
+                        </td>
+                        <td>
+                          {{ parseFloat(item.totalCostByPerson).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          }) }}
+                        </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              <div class="project-files mt-4">
-                <h5 class="card-title">Documents</h5>
-                <div class="row">
-                  <div class="col-lg-6 col-md-6 col-sm-12" v-for="doc in grant.documents" :key="doc.id">
-                    <div class="card file-card">
-                      <div class="card-body">
-                        <div class="d-flex align-items-center">
-                          <i class="ti ti-file-text me-2 fs-20"></i>
-                          <div>
-                            <h6 class="mb-0">{{ doc.name }}</h6>
-                            <small>{{ doc.size }}</small>
-                          </div>
-                          <a href="javascript:void(0);" class="ms-auto">
-                            <i class="ti ti-download"></i>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
 
-        <div class="col-lg-4">
+        <div class="col-lg-3">
           <div class="card">
             <div class="card-body">
               <h5 class="card-title">Timeline</h5>
@@ -127,6 +138,17 @@
         </div>
       </div>
       <!-- /Grant Details -->
+    </div>
+
+
+    <div
+      class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3"
+    >
+      <p class="mb-0">2014 - 2025 &copy; HRMS</p>
+      <p>
+        Designed &amp; Developed By
+        <a href="javascript:void(0);" class="text-primary">Dreams</a>
+      </p>
     </div>
   </div>
 </template>
@@ -187,23 +209,7 @@ export default {
             department: grantData.department || 'Not specified',
             investigator: grantData.investigator || 'Not assigned',
             description: grantData.description || 'No description available',
-            items: (grantData.grant_items || []).map(item => ({
-              id: item.id,
-              bg_line: item.bg_line,
-              grant_position: item.grant_position,
-              grant_salary: item.grant_salary,
-              grant_benefit: item.grant_benefit,
-              grant_level_of_effort: item.grant_level_of_effort,
-              grant_position_number: item.grant_position_number,
-              grant_cost_by_monthly: item.grant_cost_by_monthly,
-              grant_total_cost_by_person: item.grant_total_cost_by_person,
-              grant_total_amount: item.grant_total_amount,
-              position_id: item.position_id
-            })),
-            documents: [
-              { id: 1, name: 'Grant Proposal.pdf', size: '2.5 MB' },
-              { id: 2, name: 'Budget Plan.xlsx', size: '1.8 MB' }
-            ],
+            items: this.processGrantItems(grantData.grant_items || []),
             activities: [
               { id: 1, date: new Date().toLocaleDateString(), description: 'Grant details viewed' }
             ]
@@ -214,6 +220,33 @@ export default {
       } catch (error) {
         console.error('Error fetching grant details:', error);
       }
+    },
+    
+    processGrantItems(items) {
+      return items.map(item => {
+        const salary = parseFloat(item.grant_salary || 0);
+        const benefit = parseFloat(item.grant_benefit || 0);
+        const effort = parseFloat(item.grant_level_of_effort || 0) / 100;
+        
+        const costMonthly = ((salary + benefit) * effort);
+        const totalAmountAnnual = (costMonthly * 12 * item.grant_position_number);
+        const totalCostByPerson = (totalAmountAnnual / 2);
+        
+        
+        return {
+          id: item.id,
+          bg_line: item.bg_line,
+          grant_position: item.grant_position,
+          grant_salary: item.grant_salary,
+          grant_benefit: item.grant_benefit,
+          grant_level_of_effort: item.grant_level_of_effort,
+          grant_position_number: item.grant_position_number,
+          position_id: item.position_id,
+          costMonthly: costMonthly,
+          totalCostByPerson: totalCostByPerson,
+          totalAmountAnnual: totalAmountAnnual
+        };
+      });
     },
     
     calculateTotalAmount(items) {

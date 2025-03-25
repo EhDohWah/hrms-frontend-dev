@@ -69,7 +69,7 @@
             </div>
             <p class="mt-2">Loading grants...</p>
           </div>
-          <div v-else>
+          <div v-else class="resize-observer-fix">
             <a-table 
               :columns="columns" 
               :data-source="tableData" 
@@ -80,8 +80,11 @@
             >
               <!-- Expandable row for grant items -->
               <template #expandedRowRender="{ record }">
-                <div style="margin: 0 16px">
-                  <p style="margin-bottom: 8px; font-weight: bold">Grant Items</p>
+                <div>
+                  <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 8px;">
+                    <p style="margin-bottom: 0; font-weight: bold">Grant Items</p>
+                    <a-button class="editable-add-btn" @click="handleAddItem(record.id)">Add Item</a-button>
+                  </div>
                   <a-table 
                     :columns="innerColumns" 
                     :data-source="record.items || []" 
@@ -90,12 +93,121 @@
                     bordered
                     size="small"
                   >
-                    <template #bodyCell="{ column, text }">
-                      <template v-if="column.dataIndex === 'grant_salary' || column.dataIndex === 'grant_benefit' || column.dataIndex === 'grant_cost_by_monthly' || column.dataIndex === 'grant_total_cost_by_person' || column.dataIndex === 'grant_total_amount'">
+      
+                    <template #bodyCell="{ column, text, record: itemRecord }">
+                      <template v-if="column.dataIndex === 'bg_line'">
+                        <div>
+                          <template v-if="editableData[itemRecord.id]">
+                            <a-input
+                              v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                              style="margin: -5px 0"
+                            />
+                          </template>
+                          <template v-else>
+                            {{ text || ' ' }}
+                          </template>
+                        </div>
+                      </template>
+                      
+                      <template v-else-if="column.dataIndex === 'grant_position'">
+                        <div>
+                          <template v-if="editableData[itemRecord.id]">
+                            <a-input
+                              v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                              style="margin: -5px 0"
+                            />
+                          </template>
+                          <template v-else>
+                            {{ text || ' ' }}
+                          </template>
+                        </div>
+                      </template>
+                      
+                      <template v-else-if="column.dataIndex === 'grant_salary'">
+                        <div>
+                          <template v-if="editableData[itemRecord.id]">
+                            <a-input-number
+                              v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                              style="margin: -5px 0; width: 100%"
+                            />
+                          </template>
+                          <template v-else>
+                            {{ formatCurrency(text) }}
+                          </template>
+                        </div>
+                      </template>
+                      
+                      <template v-else-if="column.dataIndex === 'grant_benefit'">
+                        <div>
+                          <template v-if="editableData[itemRecord.id]">
+                            <a-input-number
+                              v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                              style="margin: -5px 0; width: 100%"
+                            />
+                          </template>
+                          <template v-else>
+                            {{ formatCurrency(text) }}
+                          </template>
+                        </div>
+                      </template>
+                      
+                      <template v-else-if="column.dataIndex === 'grant_level_of_effort'">
+                        <div>
+                          <template v-if="editableData[itemRecord.id]">
+                            <a-input-number
+                              v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                              style="margin: -5px 0; width: 100%"
+                              :min="0"
+                              :max="100"
+                            />
+                          </template>
+                          <template v-else>
+                            {{ text }}%
+                          </template>
+                        </div>
+                      </template>
+                      
+                      <template v-else-if="column.dataIndex === 'grant_position_number'">
+                        <div>
+                          <template v-if="editableData[itemRecord.id]">
+                            <a-input
+                              v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                              style="margin: -5px 0; width: 100%"
+                            />
+                          </template>
+                          <template v-else>
+                            {{ text || ' ' }}
+                          </template>
+                        </div>
+                      </template>
+                      
+                      <template v-else-if="['grant_cost_by_monthly', 'grant_total_amount', 'grant_total_cost_by_person'].includes(column.dataIndex)">
                         {{ formatCurrency(text) }}
                       </template>
-                      <template v-else-if="column.dataIndex === 'grant_level_of_effort'">
-                        {{ text }}%
+                      
+                      <template v-else-if="column.dataIndex === 'actions'">
+                        <div class="editable-row-operations">
+                          <span v-if="editableData[itemRecord.id]">
+                            <a-typography-link @click="save(itemRecord.id)">Save</a-typography-link>
+                            <a-popconfirm title="Sure to cancel?" @confirm="cancel(itemRecord.id) " :destroyTooltipOnHide="true">
+                              <a>Cancel</a>
+                            </a-popconfirm>
+                          </span>
+                          <span v-else>
+                            <a @click="edit(itemRecord.id)">Edit</a>
+                            <a-popconfirm
+                              title="Are you sure you want to delete this item?"
+                              @confirm="deleteItem(itemRecord)"
+                              ok-text="Yes"
+                              cancel-text="No"
+                              :destroyTooltipOnHide="true"
+                            >
+                              <a href="javascript:void(0);" class="text-danger ms-2">
+                                <i class="ti ti-trash"></i>
+                              </a>
+                            </a-popconfirm>
+                          </span>
+                        </div>
                       </template>
                     </template>
                   </a-table>
@@ -112,11 +224,31 @@
                     <a href="javascript:void(0);" class="me-2" @click="openEditGrantModal(record)">
                       <i class="ti ti-edit"></i>
                     </a>
-                    <a href="javascript:void(0);" @click="deleteGrant(record.id)">
-                      <i class="ti ti-trash"></i>
-                    </a>
+                    <a-popconfirm
+                      title="Are you sure you want to delete this grant?"
+                      @confirm="deleteGrant(record.id)"
+                      ok-text="Yes"
+                      cancel-text="No"
+                    >
+                      <a href="javascript:void(0);" class="text-danger">
+                        <i class="ti ti-trash"></i>
+                      </a>
+                    </a-popconfirm>
                   </div>
                 </template>
+                <template v-if="column.dataIndex === 'subsidiary'">
+                  <span 
+                    :class="[
+                      'badge badge-sm fw-normal',
+                      record.subsidiary === 'SMRU' ? 'badge-primary' : 
+                      record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' : 
+                      'badge-secondary'
+                    ]"
+                  >
+                    {{ record.subsidiary }}
+                  </span>
+                </template>
+
               </template>
             </a-table>
           </div>
@@ -161,10 +293,10 @@
 import { Toast, Modal as BootstrapModal } from 'bootstrap';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useGrantStore } from '@/stores/grantStore';
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, reactive } from 'vue';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
-import { Modal as AntModal } from 'ant-design-vue';
+import { cloneDeep } from 'lodash-es';
 
 
 
@@ -172,6 +304,7 @@ export default {
   name: 'GrantList',
   components: {
     indexBreadcrumb,
+   
   },
   setup() {
     const dateRangeInput = ref(null);
@@ -181,6 +314,7 @@ export default {
     const pageSize = ref(10);
     const total = ref(0);
     const grantStore = useGrantStore();
+    const editableData = reactive({});
 
     onMounted(() => {
       if (dateRangeInput.value) {
@@ -224,7 +358,8 @@ export default {
       pageSize,
       total,
       pagination,
-      grantStore
+      grantStore,
+      editableData
     };
   },
   data() {
@@ -246,7 +381,7 @@ export default {
           title: 'BG Line',
           dataIndex: 'bg_line',
           key: 'bg_line',
-          width: 120
+          width: 100
         },
         {
           title: 'Position',
@@ -276,12 +411,18 @@ export default {
           title: 'Position Number',
           dataIndex: 'grant_position_number',
           key: 'grant_position_number',
-          width: 150
+          width: 100
         },
         {
           title: 'Cost Monthly',
           dataIndex: 'grant_cost_by_monthly',
           key: 'grant_cost_by_monthly',
+          width: 150
+        },
+        {
+          title: 'Total Amount (Year)',
+          dataIndex: 'grant_total_amount',
+          key: 'grant_total_amount',
           width: 150
         },
         {
@@ -291,10 +432,10 @@ export default {
           width: 180
         },
         {
-          title: 'Total Amount',
-          dataIndex: 'grant_total_amount',
-          key: 'grant_total_amount',
-          width: 150
+          title: 'Actions',
+          dataIndex: 'actions',
+          key: 'actions',
+          width: 80
         }
       ]
     };
@@ -305,6 +446,19 @@ export default {
       const sorted = this.sortedInfo || {};
       
       return [
+      {
+          title: 'Subsidiary',
+          dataIndex: 'subsidiary',
+          key: 'subsidiary',
+          width: 150,
+          filters: this.getUniqueFilters('subsidiary'),
+          filteredValue: filtered.subsidiary || null,
+          onFilter: (value, record) => record.subsidiary.toString().toLowerCase().includes(value.toLowerCase()),
+          sorter: (a, b) => a.subsidiary.localeCompare(b.subsidiary),
+          sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
+          filterSearch: true
+        },
+
         {
           title: 'Grant Code',
           dataIndex: 'code',
@@ -329,6 +483,7 @@ export default {
           sortOrder: sorted.columnKey === 'name' && sorted.order,
           filterSearch: true
         },
+
         {
           title: 'End Date',
           dataIndex: 'endDate',
@@ -349,18 +504,21 @@ export default {
           title: 'Actions',
           dataIndex: 'actions',
           key: 'actions',
-          width: 120,
-          fixed: 'right'
+          width: 120
         }
       ];
     },
     tableData() {
-      return this.grants.map(grant => ({
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      return this.grants.slice(startIndex, endIndex).map(grant => ({
         ...grant,
         key: grant.id,
         description: grant.description || 'No description'
       }));
     }
+
+
   },
   mounted() {
     // Initialize modal instances once
@@ -375,6 +533,147 @@ export default {
     this.fetchGrants();
   },
   methods: {
+    // Add grant item
+    handleAddItem(grantId) {
+      // Create a new grant item with default values
+      console.log('grantId', grantId);
+      const newItem = {
+        id: Date.now(), // Temporary ID for the new item
+        grant_id: grantId,
+        bg_line: '',
+        grant_position: '',
+        grant_salary: 0, 
+        grant_benefit: 0,
+        grant_level_of_effort: 0,
+        grant_position_number: 0,
+        grant_cost_by_monthly: 0,
+        grant_total_amount: 0,
+        grant_total_cost_by_person: 0,
+        __isNew: true // <-- mark this as a new item
+      };
+      
+      // Find the grant in the tableData and add the new item to its items array
+      const grant = this.tableData.find(g => g.id === grantId);
+      if (grant) {
+        if (!grant.items) {
+          grant.items = [];
+        }
+        grant.items.push(newItem);
+        
+        // Set the item in edit mode
+        this.editableData[newItem.id] = { ...newItem };
+      }
+    },
+
+    // Edit row
+    edit(id) {
+      const item = this.tableData.flatMap(grant => grant.items || []).find(item => item.id === id);
+      if (item) {
+        this.editableData[id] = cloneDeep(item);
+      }
+    },
+
+    // Save changes
+    async save(id) {
+      if (!this.editableData[id]) return;
+
+      const itemData = this.editableData[id];
+
+      // Basic validation
+      if (
+        // budget line
+        !itemData.bg_line ||
+        // position
+        !itemData.grant_position ||
+        // salary
+        itemData.grant_salary == null ||
+        // benefit
+        itemData.grant_benefit == null ||
+        // level of effort
+        itemData.grant_level_of_effort == null ||
+        // position number
+        itemData.grant_position_number == null
+      ) {
+        this.$message.error('Please fill in all fields');
+        return;
+      }
+
+      try {
+        let updatedItem;
+
+        if (itemData.__isNew) {
+          // Creating a new item
+          updatedItem = await this.grantStore.createGrantItem(itemData);
+        } else {
+          // Updating an existing item
+          await this.grantStore.updateGrantItem(id, itemData);
+          updatedItem = itemData;
+        }
+
+        // Find the grant and update or insert the item
+        for (const grant of this.tableData) {
+          if (grant.items) {
+            const index = grant.items.findIndex(item => item.id === id);
+
+            if (index !== -1) {
+              // Update existing item
+              grant.items[index] = { ...grant.items[index], ...updatedItem };
+            } else if (itemData.__isNew && grant.id === itemData.grant_id) {
+              // Add newly created item (replace temp ID with real one if needed)
+              grant.items.push({ ...updatedItem });
+            }
+          }
+        }
+
+        delete this.editableData[id];
+
+        this.$message.success(itemData.__isNew ? 'Grant item created' : 'Grant item updated');
+
+        // Reload from API to get fresh data (optional)
+        this.fetchGrants();
+      } catch (error) {
+        console.error('Error saving grant item:', error);
+        this.$message.error('Failed to save grant item');
+      }
+    },
+
+
+    cancel(id) {
+      // Find the grant and the item
+      for (const grant of this.tableData) {
+        const itemIndex = grant.items?.findIndex(item => item.id === id);
+        if (itemIndex !== -1) {
+          const item = grant.items[itemIndex];
+          if (item.__isNew) {
+            // Remove new item from the list
+            grant.items.splice(itemIndex, 1);
+          }
+          break;
+        }
+      }
+
+      // Remove from editable data
+      delete this.editableData[id];
+    },
+
+    // Delete grant item
+    async deleteItem(record) {
+      try {
+        // Delete the grant item through the store
+        await this.grantStore.deleteGrantItem(record.id);
+
+        // Refresh the grants list to get latest state
+        this.fetchGrants();
+
+        // Show success message
+        this.$message.success('Grant item deleted successfully');
+
+      } catch (error) {
+        console.error('Error deleting grant item:', error);
+        this.$message.error('Failed to delete grant item');
+      }
+    },
+
     getUniqueFilters(field) {
       if (!this.grants || !this.grants.length) return [];
       
@@ -405,6 +704,36 @@ export default {
       this.sortedInfo = {};
     },
     
+    mapGrantItems(items) {
+      if (!items || !items.length) return [];
+      
+      return items.map(item => {
+        // Calculate cost by monthly
+        const salary = parseFloat(item.grant_salary || 0);
+        const benefit = parseFloat(item.grant_benefit || 0);
+        const effort = parseFloat(item.grant_level_of_effort || 0) / 100;
+        
+        const costByMonthly = (salary + benefit) * effort;
+        const totalAmountYear = costByMonthly * 12 * item.grant_position_number;
+        const totalCostByPerson = totalAmountYear / item.grant_position_number; // Assuming 12 months
+        
+        return {
+          id: item.id || `item-${Math.random().toString(36).substr(2, 9)}`,
+          bg_line: item.bg_line,
+          grant_position: item.grant_position, 
+          grant_salary: item.grant_salary,
+          grant_benefit: item.grant_benefit,
+          grant_level_of_effort: item.grant_level_of_effort,
+          grant_position_number: item.grant_position_number,
+          grant_cost_by_monthly: costByMonthly,
+          grant_total_cost_by_person: totalCostByPerson,
+          grant_total_amount: totalAmountYear,
+          position_id: item.position_id,
+          grant_id: item.grant_id
+        };
+      });
+    },
+    
     async fetchGrants() {
       this.loading = true;
       try {
@@ -419,25 +748,14 @@ export default {
             id: grant.id,
             code: grant.code,
             name: grant.name,
+            subsidiary: grant.subsidiary,
             description: grant.description,
             startDate: grant.startDate || moment(new Date()).format('DD/MM/YYYY'),
             // Format the end date for display as dd/mm/yyyy
             endDate: moment(isoEndDate).format('DD/MM/YYYY'),
             // Keep the original ISO date for sorting purposes
             isoEndDate,
-            items: (grant.grant_items || []).map(item => ({
-              id: item.id || `item-${Math.random().toString(36).substr(2, 9)}`,
-              bg_line: item.bg_line,
-              grant_position: item.grant_position,
-              grant_salary: item.grant_salary,
-              grant_benefit: item.grant_benefit,
-              grant_level_of_effort: item.grant_level_of_effort,
-              grant_position_number: item.grant_position_number,
-              grant_cost_by_monthly: item.grant_cost_by_monthly,
-              grant_total_cost_by_person: item.grant_total_cost_by_person,
-              grant_total_amount: item.grant_total_amount,
-              position_id: item.position_id
-            }))
+            items: this.mapGrantItems(grant.grant_items)
           };
         });
 
@@ -479,19 +797,7 @@ export default {
             new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString(),
           status: grant.status || 'Pending',
           description: grant.description,
-          items: (grant.grant_items || []).map(item => ({
-            id: item.id || `item-${Math.random().toString(36).substr(2, 9)}`,
-            bg_line: item.bg_line,
-            grant_position: item.grant_position,
-            grant_salary: item.grant_salary,
-            grant_benefit: item.grant_benefit,
-            grant_level_of_effort: item.grant_level_of_effort,
-            grant_position_number: item.grant_position_number,
-            grant_cost_by_monthly: item.grant_cost_by_monthly,
-            grant_total_cost_by_person: item.grant_total_cost_by_person,
-            grant_total_amount: item.grant_total_amount,
-            position_id: item.position_id
-          }))
+          items: this.mapGrantItems(grant.grant_items)
         }));
         
         this.total = this.grants.length;
@@ -595,37 +901,17 @@ export default {
     },
 
     async deleteGrant(id) {
+      this.loading = true;
       try {
-        await new Promise((resolve) => {
-          AntModal.confirm({
-            title: 'Are you sure?',
-            content: 'You are about to delete this grant. This action cannot be undone.',
-            centered: true,
-            okText: 'Yes, delete',
-            cancelText: 'Cancel',
-            onOk: async () => {
-              this.loading = true;
-              try {
-                await this.grantStore.deleteGrant(id);
-                this.$message.success('Grant deleted successfully');
-                // Refresh the grants list
-                this.fetchGrants();
-                resolve();
-              } catch (error) {
-                console.error('Error deleting grant:', error);
-                this.$message.error('Failed to delete grant');
-                resolve();
-              } finally {
-                this.loading = false;
-              }
-            },
-            onCancel: () => {
-              resolve();
-            }
-          });
-        });
+        await this.grantStore.deleteGrant(id);
+        this.$message.success('Grant deleted successfully');
+        // Refresh the grants list
+        this.fetchGrants();
       } catch (error) {
-        console.error('Delete confirmation failed:', error);
+        console.error('Error deleting grant:', error);
+        this.$message.error('Failed to delete grant');
+      } finally {
+        this.loading = false;
       }
     },
 
@@ -661,11 +947,16 @@ export default {
   margin-right: 8px;
 }
 
+
 :deep(.ant-select-selector) {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   min-width: 80px;
+}
+
+.editable-row-operations a {
+  margin-right: 8px;
 }
 </style>

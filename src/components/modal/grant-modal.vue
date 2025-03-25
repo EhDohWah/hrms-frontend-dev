@@ -11,6 +11,34 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
+                  <label class="form-label" for="grant-subsidiary">Subsidiary</label>
+                  <select
+                    id="grant-subsidiary"
+                    v-model="formData.subsidiary"
+                    class="form-control"
+                    required
+                  >
+                    <option value="" disabled selected>Select a subsidiary</option>
+                    <option
+                      v-for="subsidiary in subsidiaries"
+                      :key="subsidiary.id"
+                      :value="subsidiary.value"
+                      :class="[
+                        subsidiary.value === 'SMRU' ? 'text-primary' :
+                        subsidiary.value === 'BHF' ? 'text-primary' :
+                        'text-secondary'
+                      ]"
+                    >
+                      {{ subsidiary.value }}
+                    </option>
+                  </select>
+
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="input-block mb-3">
                   <label class="form-label" for="grant-name">Grant Name</label>
                   <input type="text" id="grant-name" v-model="formData.name" class="form-control" placeholder="e.g., UNICEF-EP" required>
                 </div>
@@ -54,18 +82,26 @@
 </template>
 
 <script>
+import { useLookupStore } from '@/stores/lookupStore';
+
 export default {
   name: 'GrantModal',
   data() {
     return {
       isSubmitting: false,
+      subsidiaries: [],
       formData: {
         name: '',
         code: '',
         description: '',
-        end_date: ''
+        end_date: '',
+        subsidiary: ''
       }
     };
+  },
+  async created() {
+    // Load subsidiaries when component is created
+    await this.initSubsidiaries();
   },
   mounted() {
     // Fix accessibility issue with modal and aria-hidden
@@ -87,13 +123,36 @@ export default {
     }
   },
   methods: {
+    // Get subsidiary data from lookups
+    async fetchSubsidiaries() {
+      try {
+        // Use the lookup store to get subsidiaries
+        const lookupStore = useLookupStore();
+        const subsidiaries = lookupStore.getLookupsByType('subsidiary');
+        return subsidiaries || [];
+      } catch (error) {
+        console.error('Error fetching subsidiaries:', error);
+        return [];
+      }
+    },
+    
+    // Initialize subsidiary data when component is created
+    async initSubsidiaries() {
+      const lookupStore = useLookupStore();
+      // If lookups aren't loaded yet, fetch them first
+      // Only fetch if not already loaded
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
+    },
+
     handleSubmit() {
       // Prevent duplicate submissions
       if (this.isSubmitting) return;
       this.isSubmitting = true;
 
       console.log(this.formData);
-
 
       // Emit the form data to parent component
       this.$emit('add-grant', { ...this.formData });
@@ -103,13 +162,17 @@ export default {
       
       // Close modal
       document.querySelector('#grant_modal [data-bs-dismiss="modal"]').click();
+      
+      // Reset submission state
+      this.isSubmitting = false;
     },
     resetForm() {
       this.formData = {
         name: '',
         code: '',
         description: '',
-        end_date: ''
+        end_date: '',
+        subsidiary: ''
       };
     }
   }

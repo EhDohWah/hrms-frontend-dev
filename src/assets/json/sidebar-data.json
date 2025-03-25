@@ -125,6 +125,11 @@
             "active_link": "/employee/employee-list"
           },
           {
+            "menuValue": "Site Location",
+            "route": "/employee/site",
+            "active_link": "/employee/site"
+          },
+          {
             "menuValue": "Employee Details",
             "route": "/employee/employee-details",
             "active_link": "/employee/employee-details"
@@ -135,9 +140,9 @@
             "active_link": "/employee/departments"
           },
           {
-            "menuValue": "Designations",
-            "route": "/employee/designations",
-            "active_link": "/employee/designations"
+            "menuValue": "Positions",
+            "route": "/employee/positions",
+            "active_link": "/employee/positions"
           },
           {
             "menuValue": "Policies",
@@ -463,7 +468,39 @@
             "active_link": "/crm/activity"
           }
         ]
+      }, 
+      {
+        "menuValue": "Lookups",
+        "route": "/lookups/lookup-list",
+        "active_link": "/lookups/lookup-list",
+        "hasSubRoute": true,
+        "showSubRoute": false,
+        "icon": "user-star",
+        "subMenus": [
+          {
+            "menuValue": "Lookup List",
+            "route": "/lookups/lookup-list",
+            "active_link": "/lookups/lookup-list"
+          }
+        ]
       },
+
+      {
+        "menuValue": "Department Positions",
+        "route": "/department-positions/department-position-list",
+        "active_link": "/department-positions/department-position-list",
+        "hasSubRoute": true,
+        "showSubRoute": false,
+        "icon": "briefcase",
+        "subMenus": [
+          {
+            "menuValue": "Department Position List",
+            "route": "/department-positions/department-position-list",
+            "active_link": "/department-positions/department-position-list"
+          }
+        ]
+      },
+
       {
         "menuValue": "User Management",
         "active_link": "user-management",

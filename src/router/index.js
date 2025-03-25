@@ -8,6 +8,7 @@ import grantList from '@/views/pages/grant/grant-list.vue';
 import grantDetails from '@/views/pages/grant/grant-details.vue';
 import grantPositionList from '@/views/pages/grant/grant-position-list.vue';
 
+
 // References components
 import ReferencesList from '@/views/pages/recruitment/references/references-list.vue';
 
@@ -59,8 +60,8 @@ import employeesIndex from '@/views/pages/hrm/employees/employees-index.vue';
 import employeesList from '@/views/pages/hrm/employees/employees-list.vue';
 import employeesGrid from '@/views/pages/hrm/employees/employees-grid.vue';
 import employeeDetails from '@/views/pages/hrm/employees/employee-details.vue';
-import employeeDepartment from '@/views/pages/hrm/employees/employee-department.vue';
-import employeeDesignations from '@/views/pages/hrm/employees/employee-designations.vue';
+import employeeDepartment from '@/views/pages/hrm/employees/employee-departments.vue';
+import employeePositions from '@/views/pages/hrm/employees/employee-positions.vue';
 import employeePolicy from '@/views/pages/hrm/employees/employee-policy.vue';
 import ticketList from '@/views/pages/hrm/tickets/tickets-list.vue';
 import ticketsIndex from '@/views/pages/hrm/tickets/tickets-index.vue';
@@ -337,6 +338,9 @@ import LeaveReport from '@/views/pages/administration/reports/leave-report.vue';
 import DailyReport from '@/views/pages/administration/reports/daily-report.vue';
 import InterviewsList from '@/views/pages/recruitment/interviews/interviews-list.vue';
 import InterviewsDetails from '@/views/pages/recruitment/interviews/interviews-details.vue';
+import employeeSite from '@/views/pages/hrm/employees/employee-sites.vue';
+import lookupList from '@/views/pages/administration/lookups/lookup-list.vue';  
+import departmentPositionList from '@/views/pages/administration/department-position/department-position-list.vue';
 
 const routes = [
   // Public routes
@@ -531,6 +535,35 @@ const routes = [
       { path: "connected-apps", component: connectedApps },
     ]
   },
+
+  {
+    path: '/lookups',
+    component: lookupList,
+    beforeEnter: roleGuard(['admin']),
+    meta: {
+      requiresAuth: true,
+      title: 'Lookups'
+    },
+    children: [
+      { path: '', redirect: '/lookups/lookup-list' },
+      { path: "lookup-list", component: lookupList }
+    ]
+  },
+
+  {
+    path: '/department-positions',
+    component: departmentPositionList,
+    beforeEnter: roleGuard(['admin']),
+    meta: {
+      requiresAuth: true,
+      title: 'Department Positions'
+    },
+    children: [
+      { path: '', redirect: '/department-positions/department-position-list' },
+      { path: "department-position-list", component: departmentPositionList }
+    ]
+  }, 
+  
   {
     path: '/user-management',
     component: userManagement,
@@ -812,8 +845,9 @@ const routes = [
       // Updated route with dynamic parameter
       { path: "employee-details/:id", component: employeeDetails },
       { path: "departments", component: employeeDepartment },
-      { path: "designations", component: employeeDesignations },
+      { path: "positions", component: employeePositions },
       { path: "policy", component: employeePolicy },
+      { path: "site", component: employeeSite },
     ]
   },
   {

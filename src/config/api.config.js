@@ -20,6 +20,23 @@ export const API_ENDPOINTS = {
         USER: '/user'
     },
 
+    // Admin endpoints
+    ADMIN: {
+        USERS: {
+            LIST: '/admin/users',
+            CREATE: '/admin/users',
+            UPDATE: '/admin/users/:id',
+            DELETE: '/admin/users/:id',
+            DETAILS: '/admin/users/:id'
+        },
+        ROLES: {
+            LIST: '/admin/roles'
+        },
+        PERMISSIONS: {
+            LIST: '/admin/permissions'
+        }
+    },
+
     // User endpoints
     USER: {
         LIST: '/users',
@@ -28,10 +45,10 @@ export const API_ENDPOINTS = {
         DELETE: '/users/:id',
         DETAILS: '/users/:id',
         GET_USER: '/user',
-        UPDATE_PROFILE_PICTURE: '/profile-picture',
-        UPDATE_USERNAME: '/username',
-        UPDATE_PASSWORD: '/password',
-        UPDATE_EMAIL: '/email'
+        UPDATE_PROFILE_PICTURE: '/user/profile-picture',
+        UPDATE_USERNAME: '/user/username',
+        UPDATE_PASSWORD: '/user/password',
+        UPDATE_EMAIL: '/user/email'
     },
 
     // Employee endpoints
@@ -87,7 +104,8 @@ export const API_ENDPOINTS = {
         ITEMS: {
             LIST: '/grants/items',
             CREATE: '/grants/items',
-            DELETE: '/grants/grant-items/:id'
+            DELETE: '/grants/items/:id',
+            UPDATE: '/grants/items/:id'
         },
         GRANT_POSITIONS: '/grants/grant-positions'
     },
@@ -101,5 +119,23 @@ export const API_ENDPOINTS = {
         DETAILS: '/interviews/:id',
         UPDATE_STATUS: '/interviews/:id/status',
         FEEDBACK: '/interviews/:id/feedback'
-    }
+    },
+
+    // Lookup endpoints
+    LOOKUP: {
+        LIST: '/lookups',
+        CREATE: '/lookups',
+        UPDATE: '/lookups/:id',
+        DELETE: '/lookups/:id',
+        DETAILS: '/lookups/:id'
+    },
+
+    // Department Position endpoints
+    DEPARTMENT_POSITION: {
+        LIST: '/department-positions',
+        CREATE: '/department-positions',
+        UPDATE: '/department-positions/:id',
+        DELETE: '/department-positions/:id',
+        DETAILS: '/department-positions/:id'
+    },
 };

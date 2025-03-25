@@ -162,6 +162,12 @@ import SubscriptionTable from '@/views/pages/superadmin/subscription-table.vue';
 import ProjectsTable from '@/views/pages/projects/project/projects-table.vue';
 import clientTable from '@/views/pages/projects/clients/client-table.vue';
 
+// Admin lookups
+import lookupList from '@/views/pages/administration/lookups/lookup-list.vue';
+
+// Admin department position
+import departmentPositionList from '@/views/pages/administration/department-position/department-position-list.vue'; 
+
 // Request Components
 import travelRequestList from '@/views/pages/requests/travel/travel-list.vue';
 import travelRequestDetails from '@/views/pages/requests/travel/travel-details.vue';
@@ -286,9 +292,10 @@ import userListModal from '@/components/modal/user-list-modal.vue';
 
 import grantPositionList from '@/views/pages/grant/grant-position-list.vue';
 
+import employeeSite from '@/views/pages/hrm/employees/employee-sites.vue';
+
 
 import 'bootstrap/dist/css/bootstrap.min.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
 import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'ionicons-npm/css/ionicons.css';
@@ -432,6 +439,7 @@ app.component('projects-image', ProjectsImage)
 app.component('subscription-table', SubscriptionTable)
 app.component('projects-table', ProjectsTable)
 app.component('client-table', clientTable)
+app.component('department-position-list', departmentPositionList)
 
 app.component('hr-manager-dashboard', hrManagerDashboard)
 app.component('hr-assistant-dashboard', hrAssistantDashboard)
@@ -457,6 +465,8 @@ app.component('interviews-list', interviewsList)
 app.component('interviews-details', interviewsDetails)
 app.component('grant-position-list', grantPositionList)
 app.component('grant-position-modal', grantPositionModal)
+app.component('employee-site', employeeSite)
+app.component('lookup-list', lookupList)
 /************Page Filter********************/
 
 

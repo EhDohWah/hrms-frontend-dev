@@ -195,17 +195,9 @@
                           </span>
                           <span v-else>
                             <a @click="edit(itemRecord.id)">Edit</a>
-                            <a-popconfirm
-                              title="Are you sure you want to delete this item?"
-                              @confirm="deleteItem(itemRecord)"
-                              ok-text="Yes"
-                              cancel-text="No"
-                              :destroyTooltipOnHide="true"
-                            >
-                              <a href="javascript:void(0);" class="text-danger ms-2">
-                                <i class="ti ti-trash"></i>
-                              </a>
-                            </a-popconfirm>
+                            <a href="javascript:void(0);" class="text-danger ms-2" @click="confirmDeleteItem(itemRecord)">
+                              <i class="ti ti-trash"></i>
+                            </a>
                           </span>
                         </div>
                       </template>
@@ -224,16 +216,9 @@
                     <a href="javascript:void(0);" class="me-2" @click="openEditGrantModal(record)">
                       <i class="ti ti-edit"></i>
                     </a>
-                    <a-popconfirm
-                      title="Are you sure you want to delete this grant?"
-                      @confirm="deleteGrant(record.id)"
-                      ok-text="Yes"
-                      cancel-text="No"
-                    >
-                      <a href="javascript:void(0);" class="text-danger">
-                        <i class="ti ti-trash"></i>
-                      </a>
-                    </a-popconfirm>
+                    <a href="javascript:void(0);" class="text-danger" @click="confirmDeleteGrant(record.id)">
+                      <i class="ti ti-trash"></i>
+                    </a>
                   </div>
                 </template>
                 <template v-if="column.dataIndex === 'subsidiary'">
@@ -255,15 +240,7 @@
         </div>
       </div>
     </div>
-    <div
-      class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3"
-    >
-      <p class="mb-0">2014 - 2025 &copy; HRMS</p>
-      <p>
-        Designed &amp; Developed By
-        <a href="javascript:void(0);" class="text-primary">Dreams</a>
-      </p>
-    </div>
+    <layout-footer></layout-footer>
   </div>
 
   <!-- Grant Modal -->
@@ -297,6 +274,7 @@ import { ref, onMounted, computed, reactive } from 'vue';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
 import { cloneDeep } from 'lodash-es';
+import { Modal } from 'ant-design-vue';
 
 
 
@@ -656,6 +634,20 @@ export default {
       delete this.editableData[id];
     },
 
+    // Confirm delete grant item
+    confirmDeleteItem(record) {
+      Modal.confirm({
+        title: 'Are you sure you want to delete this grant item?',
+        content: 'This action cannot be undone.',
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: () => {
+          this.deleteItem(record);
+        }
+      });
+    },
+
     // Delete grant item
     async deleteItem(record) {
       try {
@@ -672,6 +664,21 @@ export default {
         console.error('Error deleting grant item:', error);
         this.$message.error('Failed to delete grant item');
       }
+    },
+
+    // Confirm delete grant
+    confirmDeleteGrant(id) {
+      Modal.confirm({
+        title: 'Are you sure you want to delete this grant?',
+        content: 'This will delete the grant and all associated items. This action cannot be undone.',
+        centered: true,
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: () => {
+          this.deleteGrant(id);
+        }
+      });
     },
 
     getUniqueFilters(field) {
@@ -853,6 +860,7 @@ export default {
     openEditGrantModal(grant) {
       const grantData = {
         id: grant.id,
+        subsidiary: grant.subsidiary,
         code: grant.code,
         name: grant.name,
         description: grant.description,

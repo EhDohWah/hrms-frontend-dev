@@ -34,6 +34,7 @@ import Stacked_Sidebar from '@/views/layouts/stacked-sidebar.vue';
 import Theme_Settings from '@/views/layouts/theme-settings.vue';
 import SidebarMenu from '@/views/layouts/sidebar-menu.vue';
 import themeColor from '@/views/layouts/theme-color.vue';
+import LayoutFooter from '@/views/layouts/layout-footer.vue';
 
 /************Breadcrumb********************/
 
@@ -42,6 +43,8 @@ import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 
 /************Page Components********************/
 
+import reportList from '@/views/pages/administration/reports/report-list.vue';
+import employmentList from '@/views/pages/hrm/employment/employment-list.vue';
 import employeeStatus from '@/views/pages/dashboard/admin-dashboard/employee-status.vue';
 import jobApplicants from '@/views/pages/dashboard/admin-dashboard/job-applicants.vue';
 import projectTable from '@/views/pages/dashboard/admin-dashboard/project-table.vue';
@@ -329,12 +332,14 @@ app.component('stacked-sidebar',Stacked_Sidebar)
 app.component('theme-settings',Theme_Settings)
 app.component('sidebar-menu', SidebarMenu)
 app.component('theme-color', themeColor)
-
+app.component('layout-footer', LayoutFooter)
 
 /*************Breadcrumb *****************/
 app.component('index-breadcrumb', indexBreadcrumb)
 
 /************Page Components********************/
+app.component('report-list', reportList)
+app.component('employment-list', employmentList)
 app.component('employee-top',employeeTop)
 app.component('attendence-employee',attendenceEmployee)
 app.component('employee-task',employeeTask)

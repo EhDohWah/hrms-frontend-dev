@@ -6,6 +6,7 @@ import { toRaw } from 'vue';
 export const useEmployeeStore = defineStore('employee', {
   state: () => ({
     employees: [],
+    employments: [],
     currentEmployee: null,
     loading: false,
     error: null,
@@ -38,6 +39,22 @@ export const useEmployeeStore = defineStore('employee', {
     },
     getEmployeesByStatus: (state) => (status) => {
       return state.employees.filter(employee => employee.status === status);
+    },
+    getEmploymentById: (state) => (id) => {
+      return state.employments.find(employment => employment.id === id);
+    },
+    getEmploymentsByDepartment: (state) => (department) => {
+      return state.employments.filter(employment => 
+        employment.department_position && employment.department_position.department === department
+      );
+    },
+    getEmploymentsByLocation: (state) => (locationId) => {
+      return state.employments.filter(employment => 
+        employment.work_location_id === locationId
+      );
+    },
+    getActiveEmployments: (state) => {
+      return state.employments.filter(employment => employment.active === "1");
     }
   },
 
@@ -64,6 +81,26 @@ export const useEmployeeStore = defineStore('employee', {
       } catch (error) {
         this.error = error.message || 'Failed to fetch employees';
         console.error('Error fetching employees:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async fetchEmployments() {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await employeeService.getEmployments();
+        
+        // Check if response.data exists and is an array; if not, assume response is the array
+        const employmentsData = response.data || [];
+        this.employments = employmentsData;
+        
+        return this.employments;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch employments';
+        console.error('Error fetching employments:', error);
         throw error;
       } finally {
         this.loading = false;

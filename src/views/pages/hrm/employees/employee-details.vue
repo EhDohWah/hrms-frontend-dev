@@ -16,7 +16,7 @@
           </h6>
         </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="mb-2">
+          <!-- <div class="mb-2">
             <a
               href="javascript:void(0);"
               data-bs-toggle="modal"
@@ -24,7 +24,7 @@
               class="btn btn-primary d-flex align-items-center"
               ><i class="ti ti-circle-plus me-2"></i>Add Bank & Statutory</a
             >
-          </div>
+          </div> -->
           <div class="head-icons ms-2">
             <a
               href="javascript:void(0);"
@@ -57,7 +57,7 @@
                 class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2"
               >
                 <img
-                  :src="employee?.profile_picture || require('@/assets/img/users/user-13.jpg')"
+                  :src="employee.profile_picture || require('@/assets/img/users/user-13.jpg')"
                   class="w-auto h-auto"
                   alt="Employee Image"
                 />
@@ -65,7 +65,7 @@
               <div class="text-center px-3 pb-3 border-bottom">
                 <div class="mb-3">
                   <h5 class="d-flex align-items-center justify-content-center mb-1">
-                    {{ employee.first_name }} {{ employee.last_name }}<i
+                    {{ employee.first_name_en }} {{ employee.last_name_en }}<i
                       class="ti ti-discount-check-filled text-success ms-1"
                     ></i>
                   </h5>
@@ -88,12 +88,21 @@
                   
                 </div>
                 <div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-id me-2"></i>
+                      Staff ID
+                    </span>
+                    <p class="text-dark">{{ employee.staff_id || 'N/A' }}</p>
+                  </div>
+
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-user me-2"></i>
                       First Name
                     </span>
-                    <p class="text-dark">{{ employee.first_name || 'N/A' }}</p>
+                    <p class="text-dark">{{ employee.first_name_en || 'N/A' }}</p>
                   </div>
 
                   <div class="d-flex align-items-center justify-content-between mb-2">
@@ -101,7 +110,7 @@
                       <i class="ti ti-user-circle me-2"></i>
                       Last Name
                     </span>
-                    <p class="text-dark">{{ employee.last_name || 'N/A' }}</p>
+                    <p class="text-dark">{{ employee.last_name_en || 'N/A' }}</p>
                   </div>
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
@@ -117,14 +126,6 @@
                       Last Name - Thai
                     </span>
                     <p class="text-dark">{{ employee.last_name_th || 'N/A' }}</p>
-                  </div>
-
-                  <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-id me-2"></i>
-                      Staff ID
-                    </span>
-                    <p class="text-dark">{{ employee.staff_id || 'N/A' }}</p>
                   </div>
 
                   <div class="d-flex align-items-center justify-content-between mb-2">
@@ -189,17 +190,6 @@
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
-                    <i class="ti ti-mail-check me-2"></i>
-                    Email
-                  </span>
-                  <a
-                    href="javascript:void(0);"
-                    class="text-info d-inline-flex align-items-center"
-                    >{{ employee.email || 'N/A' }}<i class="ti ti-copy text-dark ms-2"></i
-                  ></a>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <span class="d-inline-flex align-items-center">
                     <i class="ti ti-gender-male me-2"></i>
                     Gender
                   </span>
@@ -212,14 +202,29 @@
                   </span>
                   <p class="text-dark text-end">{{ formatDate(employee.date_of_birth) }}</p>
                 </div>
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <span class="d-inline-flex align-items-center">
+                    <i class="ti ti-calendar me-2"></i>
+                    Birthday (Thai)
+                  </span>
+                  <p class="text-dark text-end">{{ employee.date_of_birth ? formatThaiDate(employee.date_of_birth) : 'N/A' }}</p>
+                </div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-map-pin-check me-2"></i>
-                    Address
+                    Current Address
                   </span>
                   <p class="text-dark text-end">
-                    {{ employee.current_address || employee.permanent_address || 'N/A' }}
+                    {{ employee.current_address }}
                   </p>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <span class="d-inline-flex align-items-center">
+                    <i class="ti ti-map-pin-check me-2"></i>
+                    Permanent Address
+                  </span>
+                  <p class="text-dark text-end">{{ employee.permanent_address || 'N/A' }}</p>
                 </div>
               </div>
               <div class="p-3 border-bottom">
@@ -236,10 +241,19 @@
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-e-passport me-2"></i>
-                    Passport No
+                    ID type
                   </span>
-                  <p class="text-dark">{{ employee.passport_number || 'N/A' }}</p>
+                  <p class="text-dark">{{ employee.employee_identification.id_type || 'N/A' }}</p>
                 </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <span class="d-inline-flex align-items-center">
+                    <i class="ti ti-id-badge me-2"></i>
+                    ID Number
+                  </span>
+                  <p class="text-dark">{{ employee.employee_identification.document_number || 'N/A' }}</p>
+                </div>
+
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-calendar-x me-2"></i>
@@ -289,7 +303,7 @@
             </div>
           </div>
           <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6>Emergency Contact Number</h6>
+            <h6>Beneficiary Information</h6>
             <a
               href="javascript:void(0);"
               class="btn btn-icon btn-sm"
@@ -304,19 +318,19 @@
                 <div v-for="(beneficiary, index) in employee.employee_beneficiaries" :key="index" class="p-3 border-bottom">
                   <div class="d-flex align-items-center justify-content-between">
                     <div>
-                      <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Primary' : 'Secondary' }}</span>
+                      <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
                       <h6 class="d-flex align-items-center fw-medium mt-1">
-                        {{ beneficiary.name }}
+                        {{ beneficiary.beneficiary_name }}
                         <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
-                        {{ beneficiary.relationship }}
+                        {{ beneficiary.beneficiary_relationship }}
                       </h6>
                     </div>
-                    <p class="text-dark">{{ beneficiary.phone }}</p>
+                    <p class="text-dark">{{ beneficiary.phone_number }}</p>
                   </div>
                 </div>
               </div>
               <div v-else class="p-3">
-                <p class="text-center">No emergency contacts available</p>
+                <p class="text-center">No beneficiary information available</p>
               </div>
             </div>
           </div>
@@ -383,70 +397,100 @@
                               </div>
                               
                               <div v-if="employee.employment?.grant_allocations && employee.employment?.grant_allocations.length > 0">
+                                
                                 <div v-for="(allocation, index) in employee.employment.grant_allocations" :key="index" class="card mb-3">
-                                  <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                      <h6 class="mb-0">Grant Allocation #{{ index + 1 }} ({{ allocation.level_of_effort }}% LOE)</h6>
-                                      <button 
-                                        class="btn btn-danger btn-sm rounded d-inline-flex align-items-center"
-                                        @click="deleteGrantAllocation(allocation.id)"
-                                      >
-                                        <i class="ti ti-trash me-1"></i>Delete
-                                      </button>
-                                    </div>
-                                    <div class="row">
-                                      <div class="col-md-4">
-                                        <span class="d-inline-flex align-items-center">
-                                          Grant Code
-                                        </span>
-                                        <h6 class="d-flex align-items-center fw-medium mt-1">
-                                          {{ allocation.grant_item_allocation?.grant?.code || 'N/A' }}
-                                        </h6>
-                                      </div>
-                                      <div class="col-md-4">
-                                        <span class="d-inline-flex align-items-center">
-                                          Grant Name
-                                        </span>
-                                        <h6 class="d-flex align-items-center fw-medium mt-1">
-                                          {{ allocation.grant_item_allocation?.grant?.name || 'N/A' }}
-                                        </h6>
-                                      </div>
-                                      <div class="col-md-4">
-                                        <span class="d-inline-flex align-items-center">
-                                          Grant End Date
-                                        </span>
-                                        <h6 class="d-flex align-items-center fw-medium mt-1">
-                                          {{ allocation.grant_item_allocation?.grant?.end_date || 'N/A' }}
-                                        </h6>
-                                      </div>
-                                    </div>
-                                    <div class="row mt-3">
-                                      <div class="col-md-4">
-                                        <span class="d-inline-flex align-items-center">
-                                          Grant Position
-                                        </span>
-                                        <h6 class="d-flex align-items-center fw-medium mt-1">
-                                          {{ allocation.grant_item_allocation?.grant_position || 'N/A' }}
-                                        </h6>
-                                      </div>
-                                      <div class="col-md-4">
-                                        <span class="d-inline-flex align-items-center">
-                                          BG Line
-                                        </span>
-                                        <h6 class="d-flex align-items-center fw-medium mt-1">
-                                          {{ allocation.grant_item_allocation?.bg_line || 'N/A' }}
-                                        </h6>
-                                      </div>
-                                      <div class="col-md-4">
-                                        <span class="d-inline-flex align-items-center">
-                                          Grant Salary
-                                        </span>
-                                        <h6 class="d-flex align-items-center fw-medium mt-1">
-                                          {{ allocation.grant_item_allocation?.grant_salary || 'N/A' }}
-                                        </h6>
-                                      </div>
-                                    </div>
-                                  </div>
+                                  
+                                  <div class="card mb-3 position-relative" :class="{'border-danger': isGrantExpired(allocation.grant_item_allocation?.grant?.end_date)}">
+                                        
+                                    <!-- EXPIRED badge (only shown if the date is expired) -->
+                                        <div
+                                          v-if="isGrantExpired(allocation.grant_item_allocation?.grant?.end_date)"
+                                          class="position-absolute top-0 start-50 translate-middle badge bg-danger"
+                                          style="z-index: 1;"
+                                        >
+                                          EXPIRED
+                                        </div>
+
+                                        <!-- Grant allocation details start -->
+                                        <div class="card-body">
+                                          <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h6 class="mb-0">Grant Allocation #{{ index + 1 }} ({{ allocation.level_of_effort }}% LOE)</h6>
+                                            <button 
+                                              class="btn btn-danger btn-sm rounded d-inline-flex align-items-center"
+                                              @click="$confirm({
+                                                title: 'Are you sure you want to delete this grant allocation?',
+                                                content: 'This action cannot be undone.',
+                                                okText: 'Yes, Delete',
+                                                centered: true,
+                                                okType: 'danger',
+                                                cancelText: 'Cancel',
+                                                async onOk() {
+                                                  await deleteGrantAllocation(allocation.id);
+                                                },
+                                                onCancel() {
+                                                  // Do nothing when canceled
+                                                },
+                                              })"
+                                            >
+                                              <i class="ti ti-trash me-1"></i>Delete
+                                            </button>
+                                          </div>
+                                          <div class="row">
+                                            <div class="col-md-4">
+                                              <span class="d-inline-flex align-items-center">
+                                                Grant Code
+                                              </span>
+                                              <h6 class="d-flex align-items-center fw-medium mt-1">
+                                                {{ allocation.grant_item_allocation?.grant?.code || 'N/A' }}
+                                              </h6>
+                                            </div>
+                                            <div class="col-md-4">
+                                              <span class="d-inline-flex align-items-center">
+                                                Grant Name
+                                              </span>
+                                              <h6 class="d-flex align-items-center fw-medium mt-1">
+                                                {{ allocation.grant_item_allocation?.grant?.name || 'N/A' }}
+                                              </h6>
+                                            </div>
+                                            <div class="col-md-4">
+                                              <span class="d-inline-flex align-items-center">
+                                                Grant End Date
+                                              </span>
+                                              <h6 class="d-flex align-items-center fw-medium mt-1">
+                                                {{ allocation.grant_item_allocation?.grant?.end_date || 'N/A' }}
+                                              </h6>
+                                            </div>
+                                          </div>
+                                          <div class="row mt-3">
+                                            <div class="col-md-4">
+                                              <span class="d-inline-flex align-items-center">
+                                                Grant Position
+                                              </span>
+                                              <h6 class="d-flex align-items-center fw-medium mt-1">
+                                                {{ allocation.grant_item_allocation?.grant_position || 'N/A' }}
+                                              </h6>
+                                            </div>
+                                            <div class="col-md-4">
+                                              <span class="d-inline-flex align-items-center">
+                                                BG Line
+                                              </span>
+                                              <h6 class="d-flex align-items-center fw-medium mt-1">
+                                                {{ allocation.grant_item_allocation?.bg_line || 'N/A' }}
+                                              </h6>
+                                            </div>
+                                            <div class="col-md-4">
+                                              <span class="d-inline-flex align-items-center">
+                                                Grant Salary
+                                              </span>
+                                              <h6 class="d-flex align-items-center fw-medium mt-1">
+                                                {{ allocation.grant_item_allocation?.grant_salary || 'N/A' }}
+                                              </h6>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <!-- Grant allocation details end -->
+                                   </div>
+
                                 </div>
                               </div>
                               <div v-else class="card">
@@ -1006,35 +1050,45 @@
         </div>
       </div>
     </div>
-    <div
-      class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3"
-    >
-      <p class="mb-0">2014 - 2025 &copy; SmartHR.</p>
-      <p>Designed &amp; Developed By <a href="javascript:void(0);" class="text-primary">Dreams</a></p>
-    </div>
+    <layout-footer></layout-footer>
   </div>
   <!-- /Page Wrapper -->
-  <employee-details-modal></employee-details-modal>
+  <employee-details-modal 
+  :employee="employee" 
+  @employee-updated="fetchEmployeeDetails" 
+  @grantPositionAdded="fetchEmployeeDetails" 
+/>
 </template>
 <script>
 import { useEmployeeStore } from '@/stores/employeeStore';
+import { employmentService } from '@/services/employment.service';
+
 
 export default {
   name: 'EmployeeDetails',
   data() {
     return {
       employee: null,
-      loading: true,
+      loading: true,  
     };
   },
   created() {
     this.fetchEmployeeDetails();
   },
   methods: {
+
+    isGrantExpired(endDate) {
+      if (!endDate) return false;
+      // Convert endDate to a Date object & compare with now
+      const today = new Date();
+      return new Date(endDate) < today;
+    },
+
     toggleHeader() {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
     },
+    
     calculateExperience(joiningDate) {
       // Assuming joiningDate is in a valid date format
       const start = new Date(joiningDate);
@@ -1048,6 +1102,12 @@ export default {
       return new Date(date).toLocaleDateString();
     },
 
+    formatThaiDate(date) {
+      if (!date) return '';
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      return new Date(date).toLocaleDateString('th-TH', options);
+    },
+
     async fetchEmployeeDetails() {
       const employeeStore = useEmployeeStore();
       // Grab the employee ID from the route parameters
@@ -1055,11 +1115,29 @@ export default {
       try {
         // Call the store action to get employee details
         this.employee = await employeeStore.getEmployeeDetails(id);
-        
+        // Show success message using ant-design message
+        this.$message.success('Employee details loaded successfully');
       } catch (error) {
         console.error("Error fetching employee details:", error);
+        // Show error message using ant-design message
+        this.$message.error('Failed to load employee details: ' + (error.message || 'Unknown error'));
       } finally {
         this.loading = false;
+      }
+    },
+
+    async deleteGrantAllocation(grantAllocationId) {
+      try {
+        const response = await employmentService.deleteGrantAllocation(grantAllocationId);
+        if (response.success === true) {
+          this.fetchEmployeeDetails();
+          this.$message.success(response.message || 'Grant allocation deleted successfully');
+        } else {
+          this.$message.error('Failed to delete grant allocation: ' + (response.message || 'Unknown error'));
+        }
+      } catch (error) {
+        console.error("Error deleting grant allocation:", error);
+        this.$message.error('Failed to delete grant allocation: ' + (error.message || 'Unknown error'));
       }
     },
   },

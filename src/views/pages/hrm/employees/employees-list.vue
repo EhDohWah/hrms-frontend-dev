@@ -46,13 +46,23 @@
           </div>
 
           <!-- upload employee excel file -->
-          <div class="mb-2">
+          <div class="mb-2 me-2">
             <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
               data-bs-toggle="modal"
               data-bs-target="#employeeUploadModal"
               ><i class="ti ti-upload me-2"></i>Upload Employee Excel File</a
             >
           </div>
+
+          <!-- upload employment excel file -->
+          <!-- <div class="mb-2">
+            <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
+              data-bs-toggle="modal"
+              data-bs-target="#employmentUploadModal"
+              ><i class="ti ti-upload me-2"></i>Upload Employment Excel File</a
+            >
+          </div> -->
+          
 
           <div class="head-icons ms-2">
             <a
@@ -203,6 +213,7 @@
               v-else
               class="table datatable thead-light bordered-table"
               :columns="columns"
+              :scroll="{ x: 'max-content' }"
               :data-source="employees"
               :row-selection="rowSelection"
               :pagination="pagination"
@@ -223,11 +234,14 @@
                     <div class="ms-2">
                       <h6 class="fw-medium">
                         <router-link :to="`/employee/employee-details/${record.id}`">
-                          {{ record.fullName }}
+                          {{ record.fullName }} 
                         </router-link>
                       </h6>
-                      <span class="d-block mt-1">{{ record.work }}</span>
+                      <router-link :to="`/employee/employee-details/${record.id}`"> 
+                        <span class="d-block mt-1">{{ record.position }}</span>
+                      </router-link>
                     </div>
+                
                   </div>
                 </template>
 
@@ -273,9 +287,7 @@
                     ></a>
                     <a
                       href="javascript:void(0);"
-                      data-bs-toggle="modal"
-                      data-bs-target="#delete_modal"
-                      @click="prepareDelete(record.id)"
+                      @click="confirmDeleteEmployee(record.id)"
                       ><i class="ti ti-trash"></i
                     ></a>
                   </div>
@@ -287,19 +299,11 @@
       </div>
     </div>
 
-    <div
-      class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3"
-    >
-      <p class="mb-0">2014 - 2025 &copy; HRMS</p>
-      <p>
-        Designed &amp; Developed By
-        <a href="javascript:void(0);" class="text-primary">Dreams</a>
-      </p>
-    </div>
+    <layout-footer></layout-footer>
   </div>
   <!-- /Page Wrapper -->
   <employee-list-modal></employee-list-modal>
-  <employee-upload-modal></employee-upload-modal>
+  <employee-upload-modal @refresh-employee-list="fetchEmployees"></employee-upload-modal>
 </template>
 
 <script>
@@ -309,7 +313,9 @@ import moment from "moment";
 import DateRangePicker from "daterangepicker";
 import { useEmployeeStore } from '@/stores/employeeStore';
 import { mapStores } from 'pinia';
-
+import { departmentPositionService } from '@/services/department-position.service';
+import { workLocationService } from '@/services/worklocation.service';
+import { Modal } from 'ant-design-vue';
 
 export default {
   
@@ -320,29 +326,15 @@ export default {
       title: "Employee",
       text: "Employee",
       text1: "Employee List",
-      sites: [
-        { name: "MKT", id: 1, code: 'MKT'},
-        { name: "WPA", id: 2, code: 'WPA'},
-        { name: "MSL", id: 3, code: 'MSL'},
-        { name: "MRM", id: 4, code: 'MRM'},
-        { name: "MRMTB", id: 5, code: 'MRMTB'},
-        { name: "KKTB", id: 6, code: 'KKTB'},
-        { name: "Headquarters", id: 7, code: 'Headquarters'},
-        { name: "Field Office", id: 8, code: 'Field Office'},
-        { name: "Mobile Clinic", id: 9, code: 'Mobile Clinic'},
-      ],
-      departments: [
-        { name: "Admin", id: 1, code: 'Admin'},
-        { name: "HR", id: 2, code: 'HR'},
-        { name: "DataManagement", id: 3, code: 'DataManagement'},
-        { name: "IT", id: 4, code: 'IT'},
-        { name: "Finance", id: 5, code: 'Finance'},
-        { name: "Lab", id: 6, code: 'Lab'},
-      ],
+      sites: [],
+      departments: [],
+      positions: [],
       selectedSite: null,
       selectedDepartment: null,
+      selectedPosition: null,
       siteId: null,
       departmentId: null,
+      positionId: null,
       dateRangeInput: null,
       employeeToDelete: null,
 
@@ -392,10 +384,7 @@ export default {
           title: 'Subsidiary',
           dataIndex: 'subsidiary',
           key: 'subsidiary',
-          filters: [
-            { text: 'SMRU', value: 'SMRU' },
-            { text: 'BHF', value: 'BHF' },
-          ],
+          filters: this.getUniqueValues('subsidiary'),
           filteredValue: filtered.subsidiary || null,
           onFilter: (value, record) => record.subsidiary === value,
           sorter: (a, b) => {
@@ -420,11 +409,7 @@ export default {
           title: 'Status',
           dataIndex: 'status',
           key: 'status',
-          filters: [
-            { text: 'Local ID', value: 'Local ID' },
-            { text: 'Expats', value: 'Expats' },
-            { text: 'Non Local', value: 'Local non ID' },
-          ],
+          filters: this.getUniqueValues('status'),
           filteredValue: filtered.status || null,
           onFilter: (value, record) => record.status === value,
           sorter: (a, b) => {
@@ -488,6 +473,9 @@ export default {
           title: 'Position',
           dataIndex: 'position',
           key: 'position',
+          filters: this.getUniqueValues('position'),
+          filteredValue: filtered.position || null,
+          onFilter: (value, record) => record.position === value,
           sorter: (a, b) => {
             a = (a.position || '').toLowerCase();
             b = (b.position || '').toLowerCase();
@@ -496,7 +484,7 @@ export default {
           sortOrder: sorted.columnKey === 'position' && sorted.order,
         },
         {
-          title: '',
+          title: 'Actions',
           key: 'action',
           sorter: false,
         },
@@ -526,19 +514,42 @@ export default {
       this.initializeDateRangePicker();
     });
     this.fetchEmployees();
+    this.fetchSites();
+    this.fetchDepartments();
+    this.fetchPositions();
   },
   
   methods: {
-    prepareDelete(id) {
-      this.employeeToDelete = id;
+    // Get unique values for filter dropdowns
+    getUniqueValues(field) {
+      if (!this.employees || this.employees.length === 0) return [];
+      
+      const uniqueValues = [...new Set(this.employees.map(item => item[field]))].filter(Boolean);
+      return uniqueValues.map(value => ({ text: value, value }));
+    },
+
+      // Confirm delete grant
+    confirmDeleteEmployee(id) {
+      Modal.confirm({
+        title: 'Are you sure you want to delete this employee?',
+        content: 'This will delete the employee and all associated items. This action cannot be undone.',
+        centered: true,
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: () => {
+          this.deleteEmployee(id);
+        }
+      });
     },
     
-    async deleteEmployee() {
-      if (!this.employeeToDelete) return;
+    async deleteEmployee(id) {
+      if (!id) return;
       
       try {
-        await this.employeeStore.deleteEmployee(this.employeeToDelete);
+        await this.employeeStore.deleteEmployee(id);
         this.$message.success('Employee deleted successfully');
+        this.fetchEmployees();
       } catch (error) {
         this.$message.error('Failed to delete employee');
         console.error("Error deleting employee:", error);
@@ -610,14 +621,14 @@ export default {
         id: emp.id,
         subsidiary: emp.subsidiary || 'N/A',
         staff_id: emp.staff_id || 'N/A',
-        fullName: `${emp.first_name} ${emp.middle_name || ''} ${emp.last_name}`.trim(),
+        fullName: `${emp.first_name_en} ${emp.last_name_en}`.trim(),
         email: emp.user?.email || emp.email || "N/A",
         mobile_phone: emp.mobile_phone || "N/A",
-        position: emp.employment?.position?.title || "N/A",
+        position: emp.employment?.department_position?.position || "N/A",
+        department: emp.employment?.department_position?.department || "N/A",
         joiningDate: emp.employment?.start_date ? moment(emp.employment.start_date).format("DD MMM YYYY") : "N/A",
         status: emp.status || 'inactive',
         Image: "user-32.jpg", // Default image
-        department: emp.employment?.department?.name || "N/A",
         location: emp.employment?.work_location?.name || "N/A",
         work: emp.employment?.position?.title || "N/A",
         created_at: moment(emp.created_at).format("DD MMM YYYY"),
@@ -636,6 +647,61 @@ export default {
       }
     },
 
+    async fetchSites() {
+      try {
+        const response = await workLocationService.getAllWorkLocations();
+        this.sites = response.data.map(site => ({
+          id: site.id,
+          name: site.name,
+          type: site.type
+        }));
+      } catch (error) {
+        console.error("Error fetching sites:", error);
+        this.$message.error('Failed to load sites');
+      }
+    },
+
+    async fetchDepartments() {
+      try {
+        const response = await departmentPositionService.getAllDepartmentPositions();
+        // Extract unique departments from the response
+        const uniqueDepartments = [...new Set(response.data.map(item => item.department))];
+        this.departments = uniqueDepartments.map(dept => ({
+          name: dept,
+          id: dept // Using department name as ID for simplicity
+        }));
+      } catch (error) {
+        console.error("Error fetching departments:", error);
+        this.$message.error('Failed to load departments');
+      }
+    },
+    
+    async fetchPositions() {
+      try {
+        const response = await departmentPositionService.getAllDepartmentPositions();
+        // If department is selected, filter positions by department
+        if (this.selectedDepartment) {
+          this.positions = response.data
+            .filter(item => item.department === this.selectedDepartment)
+            .map(item => ({
+              id: item.id,
+              name: item.position,
+              department: item.department
+            }));
+        } else {
+          // Otherwise, get all positions
+          this.positions = response.data.map(item => ({
+            id: item.id,
+            name: item.position,
+            department: item.department
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching positions:", error);
+        this.$message.error('Failed to load positions');
+      }
+    },
+
     selectSite(siteName, siteId) {
       this.selectedSite = siteName;
       this.siteId = siteId;
@@ -645,6 +711,12 @@ export default {
     selectDepartment(departmentName, departmentId) {
       this.selectedDepartment = departmentName;
       this.departmentId = departmentId;
+      this.fetchEmployees();
+    },
+    
+    selectPosition(positionName, positionId) {
+      this.selectedPosition = positionName;
+      this.positionId = positionId;
       this.fetchEmployees();
     },
 
@@ -657,6 +729,12 @@ export default {
     resetDepartment() {
       this.selectedDepartment = null;
       this.departmentId = null;
+      this.fetchEmployees();
+    },
+    
+    resetPosition() {
+      this.selectedPosition = null;
+      this.positionId = null;
       this.fetchEmployees();
     },
   },
@@ -692,5 +770,32 @@ export default {
 :deep(.ant-table-bordered .ant-table-thead > tr > th) {
   background-color: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
+}
+
+/* Persistent hover effect - keeps the background color until cursor leaves the row */
+:deep(.ant-table-tbody > tr:hover) > td {
+  background-color: #f0f7ff !important;
+  transition: background-color 0.1s ease;
+}
+
+/* Make scrollbar bigger and more visible */
+:deep(.ant-table-body)::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 7px;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 7px;
+  border: 3px solid #f1f1f1;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 </style>

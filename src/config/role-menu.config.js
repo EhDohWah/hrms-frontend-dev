@@ -61,12 +61,12 @@ export const ROLE_MENU_ACCESS = {
             'Dashboard': ['HR Manager Dashboard'],
             'Leaves': ['Leaves (Admin)', 'Leave Settings'],
             'Travel': ['Travel (Admin)'],
-            'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing', 'Overtime'],
+            'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
             'Recruitment': ['Interviews', 'References'],
-            'Employee': ['Employee Lists', 'Site Location', 'Departments', 'Positions', 'Policies'],
+            'Employee': ['Employee Lists', 'Employment List', 'Site Location'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
-            'Training': ['Training List', 'Trainers'],
-            'Reports': ['Expense Report', 'Invoice Report', 'Sales Report', 'Profit & Loss Report', 'Employee Report', 'Client Report', 'Project Report', 'Task Report', 'Ticket Report', 'Holiday Report', 'Attendance Report', 'Performance Report', 'Grant Report', 'Request Report', 'Leave Report', 'Travel Report', 'Asset Report', 'User Report'],
+            'Training': ['Training List', 'Training Type', 'Trainers'],
+            'Reports': ['Report List'],
             'Grants': ['Grants List', 'Grant Position']
         },
         permissions: [
@@ -104,10 +104,10 @@ export const ROLE_MENU_ACCESS = {
             'Travel': ['Travel (Admin)', 'Travel (Employee)'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
             'Recruitment': ['Interviews', 'References'],
-            'Employee': ['Employee Lists', 'Site Location', 'Departments', 'Positions', 'Policies'],
+            'Employee': ['Employee Lists', 'Employment List', 'Site Location'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
-            'Training': ['Training List', 'Trainers'],
-            'Reports': ['Expense Report', 'Invoice Report', 'Sales Report', 'Profit & Loss Report', 'Employee Report', 'Client Report', 'Project Report', 'Task Report', 'Ticket Report', 'Holiday Report', 'Attendance Report', 'Performance Report', 'Grant Report', 'Request Report', 'Leave Report', 'Travel Report', 'Asset Report', 'User Report'],
+            'Training': ['Training List', 'Training Type', 'Trainers'],
+            'Reports': ['Report List'],
             'Grants': ['Grants List', 'Grant Position']
         },
         permissions: [

@@ -27,187 +27,366 @@
               </ul>
             </div>
           </div>
-        <div class="mb-2">
-            <!-- Use data attributes for the modal -->
-            <a
-              href="javascript:void(0);"
-              data-bs-toggle="modal"
-              data-bs-target="#add_interview"
-              class="btn btn-primary d-flex align-items-center"
-            >
+          <div class="mb-2 me-2">
+            <button class="btn btn-primary d-flex align-items-center" @click="openAddInterviewModal">
               <i class="ti ti-circle-plus me-2"></i>Add Interview
-            </a>
-        </div>
+            </button>
+          </div>
         </div>
       </div>
       <!-- /Breadcrumb -->
 
-      <!-- Interviews List Table -->
       <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+          <h5>Interviews List</h5>
+          <div class="table-operations">
+            <a-button @click="clearFilters">Clear filters</a-button>
+            <a-button @click="clearAll">Clear filters and sorters</a-button>
+          </div>
+        </div>
         <div class="card-body">
-          <div class="row">
-            <div class="col-md-12">
-              <div class="table-responsive">
-                <table class="table table-striped custom-table mb-0 datatable">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Job Position</th>
-                      <th>Interview Date</th>
-                      <th>Time</th>
-                      <th>Interviewer</th>
-                      <th>Mode</th>
-                      <th>Status</th>
-                      <th>Score</th>
-                      <th class="text-end">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="interview in interviews" :key="interview.id">
-                      <td>{{ interview.id }}</td>
-                      <td>{{ interview.position }}</td>
-                      <td>{{ formatDate(interview.interviewDate) }}</td>
-                      <td>{{ interview.interviewTime }}</td>
-                      <td>{{ interview.candidateName }}</td>
-                      <td>{{ interview.interviewType }}</td>
-                      <td>
-                        <span :class="'badge ' + getStatusClass(interview.status)">
-                          {{ interview.status }}
-                        </span>
-                      </td>
-                      <td>{{ interview.score || 'N/A' }}</td>
-                      <td class="text-end">
-                        <div class="dropdown dropdown-action">
-                          <a href="javascript:void(0);" class="action-icon dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="ti ti-dots-vertical"></i>
-                          </a>
-                          <div class="dropdown-menu dropdown-menu-end">
-                            <a href="javascript:void(0);" class="dropdown-item" @click="viewInterviewDetails(interview.id)">
-                              <i class="ti ti-eye me-2"></i>View Details
-                            </a>
-                            <a href="javascript:void(0);" class="dropdown-item" @click="editInterviewDetails(interview.id)">
-                              <i class="ti ti-pencil me-2"></i>Edit
-                            </a>
-                            <a href="javascript:void(0);" class="dropdown-item" @click="addFeedback(interview.id)">
-                              <i class="ti ti-message me-2"></i>Add Feedback
-                            </a>
-                            <a href="javascript:void(0);" class="dropdown-item" @click="deleteInterviewRecord(interview.id)">
-                              <i class="ti ti-trash me-2"></i>Delete
-                            </a>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+          <div v-if="loading" class="text-center my-3">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
             </div>
+            <p class="mt-2">Loading interviews...</p>
+          </div>
+          <div v-else>
+            <a-table 
+              :columns="columns" 
+              :data-source="tableData" 
+              :pagination="pagination"
+              :scroll="{ x: 'max-content' }"
+              row-key="id"
+              @change="handleTableChange"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.dataIndex === 'actions'">
+                  <div class="action-icon d-inline-flex">
+                    <!-- <router-link :to="`/recruitment/interviews/details/${record.id}`" class="me-2">
+                      <i class="ti ti-eye"></i>
+                    </router-link> -->
+                    <a href="javascript:void(0);" class="me-2" @click="openEditInterviewModal(record)">
+                      <i class="ti ti-edit"></i>
+                    </a>
+                    <a href="javascript:void(0);" @click="deleteInterview(record.id)">
+                      <i class="ti ti-trash"></i>
+                    </a>
+                  </div>
+                </template>
+              </template>
+            </a-table>
           </div>
         </div>
       </div>
-      <!-- /Interviews List Table -->
     </div>
-
-    <div
-      class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3"
-    >
-      <p class="mb-0">2014 - 2025 &copy; HRMS.</p>
-      <p>
-        Designed &amp; Developed By
-        <a href="javascript:void(0);" class="text-primary">Dreams</a>
-      </p>
-    </div>
+    <layout-footer></layout-footer> 
   </div>
 
   <!-- Interview Modal -->
-  <interview-modal ref="interviewModal" @interview-added="onInterviewAdded"/>
+  <interview-modal ref="interviewModal" @interview-added="fetchInterviews" @interview-updated="fetchInterviews" />
+  
+  <!-- Notification Toast -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header" :class="notificationClass">
+        <strong class="me-auto">{{ notificationTitle }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        {{ notificationMessage }}
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
+import { Toast } from 'bootstrap';
+import { Modal as AntModal } from 'ant-design-vue';
+import InterviewModal from '@/components/modal/interview-modal.vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-import { interviewService } from '@/services/interview.service';
+import { useInterviewStore } from '@/stores/interviewStore';
+import { ref, computed } from 'vue';
+import moment from 'moment';
 
 export default {
   name: 'InterviewsList',
   components: {
-    indexBreadcrumb,
-   
+    InterviewModal,
+    indexBreadcrumb
+  },
+  setup() {
+    const filteredInfo = ref({});
+    const sortedInfo = ref({});
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const total = ref(0);
+    const interviewStore = useInterviewStore();
+
+    const pagination = computed(() => ({
+      total: total.value,
+      current: currentPage.value,
+      pageSize: pageSize.value,
+      showSizeChanger: true,
+      pageSizeOptions: ['10', '20', '50', '100'],
+      showTotal: (total) => `Total ${total} items`
+    }));
+
+    return {
+      filteredInfo,
+      sortedInfo,
+      currentPage,
+      pageSize,
+      total,
+      pagination,
+      interviewStore
+    };
   },
   data() {
     return {
       title: 'Interviews',
       text: 'Recruitment',
-      text1: 'Interviews List',
+      text1: 'Interviews',
       interviews: [],
-      currentPage: 1,
-      pageSize: 10,
-      totalInterviews: 0,
-      searchTerm: ''
+      loading: false,
+      searchTerm: '',
+      notificationTitle: '',
+      notificationMessage: '',
+      notificationClass: ''
     };
   },
-  methods: {
-    async fetchInterviews() {
-      try {
-        const response = await interviewService.getAllInterviews();
-        this.interviews = response.data.map(interview => ({
-          id: interview.id,
-          candidateName: interview.candidateName,
-          position: interview.job_position,
-          interviewDate: interview.interview_date,
-          interviewTime: interview.start_time,
-          interviewType: interview.interview_mode,
-          status: interview.interview_status,
-          feedback: interview.feedback,
-          score: interview.score
-        }));
-      } catch (error) {
-        console.error('Error fetching interviews:', error);
-      }
+  computed: {
+    columns() {
+      const filtered = this.filteredInfo || {};
+      const sorted = this.sortedInfo || {};
+      
+      return [
+        {
+          title: 'Candidate Name',
+          dataIndex: 'candidate_name',
+          key: 'candidate_name',
+          filters: this.getUniqueValues('candidate_name'),
+          filteredValue: filtered.candidate_name || null,
+          onFilter: (value, record) => record.candidate_name.includes(value),
+          sorter: (a, b) => a.candidate_name.localeCompare(b.candidate_name),
+          sortOrder: sorted.columnKey === 'candidate_name' && sorted.order,
+          filterSearch: true,
+        },
+        {
+          title: 'Phone',
+          dataIndex: 'phone',
+          key: 'phone',
+          sorter: (a, b) => a.phone.localeCompare(b.phone),
+          sortOrder: sorted.columnKey === 'phone' && sorted.order,
+        },
+        {
+          title: 'Job Position',
+          dataIndex: 'job_position',
+          key: 'job_position',
+          filters: this.getUniqueValues('job_position'),
+          filteredValue: filtered.job_position || null,
+          onFilter: (value, record) => record.job_position.includes(value),
+          sorter: (a, b) => a.job_position.localeCompare(b.job_position),
+          sortOrder: sorted.columnKey === 'job_position' && sorted.order,
+          filterSearch: true,
+        },
+        {
+          title: 'Interviewer',
+          dataIndex: 'interviewer_name',
+          key: 'interviewer_name',
+          filters: this.getUniqueValues('interviewer_name'),
+          filteredValue: filtered.interviewer_name || null,
+          onFilter: (value, record) => record.interviewer_name.includes(value),
+          sorter: (a, b) => a.interviewer_name.localeCompare(b.interviewer_name),
+          sortOrder: sorted.columnKey === 'interviewer_name' && sorted.order,
+          filterSearch: true,
+        },
+        {
+          title: 'Date',
+          dataIndex: 'interview_date',
+          key: 'interview_date',
+          sorter: (a, b) => moment(a.interview_date).unix() - moment(b.interview_date).unix(),
+          sortOrder: sorted.columnKey === 'interview_date' && sorted.order,
+        },
+        {
+          title: 'Mode',
+          dataIndex: 'interview_mode',
+          key: 'interview_mode',
+          filters: [
+            { text: 'In-person', value: 'In-person' },
+            { text: 'Virtual', value: 'Virtual' },
+            { text: 'Phone', value: 'Phone' },
+          ],
+          filteredValue: filtered.interview_mode || null,
+          onFilter: (value, record) => record.interview_mode === value,
+          sorter: (a, b) => a.interview_mode.localeCompare(b.interview_mode),
+          sortOrder: sorted.columnKey === 'interview_mode' && sorted.order,
+        },
+        {
+          title: 'Status',
+          dataIndex: 'interview_status',
+          key: 'interview_status',
+          filters: [
+            { text: 'Scheduled', value: 'Scheduled' },
+            { text: 'Completed', value: 'Completed' },
+            { text: 'Cancelled', value: 'Cancelled' },
+            { text: 'In Progress', value: 'In Progress' },
+          ],
+          filteredValue: filtered.interview_status || null,
+          onFilter: (value, record) => record.interview_status === value,
+          sorter: (a, b) => a.interview_status.localeCompare(b.interview_status),
+          sortOrder: sorted.columnKey === 'interview_status' && sorted.order,
+        },
+        {
+          title: 'Score',
+          dataIndex: 'score',
+          key: 'score',
+          sorter: (a, b) => a.score - b.score,
+          sortOrder: sorted.columnKey === 'score' && sorted.order,
+        },
+        {
+          title: 'Actions',
+          dataIndex: 'actions',
+          key: 'actions',
+        },
+      ];
     },
-    
-    onInterviewAdded(interview) {
-      this.interviews.push({
-        id: this.interviews.length + 1,
-        ...interview
-      });
-    },
-    
-    getStatusClass(status) {
-      const statusClasses = {
-        'Scheduled': 'bg-warning-light',
-        'Completed': 'bg-success-light',
-        'Cancelled': 'bg-danger-light',
-        'In Progress': 'bg-info-light'
-      };
-      return statusClasses[status] || 'bg-secondary-light';
-    },
-    formatDate(date) {
-      if (!date) return '';
-      return new Date(date).toLocaleDateString();
-    },
-    viewInterviewDetails(interviewId) {
-      this.$router.push(`/interviews/details/${interviewId}`);
-    },
-    editInterviewDetails(interviewId) {
-      this.$router.push(`/interviews/edit/${interviewId}`);
-    },
-    addFeedback(interviewId) {
-      this.$router.push(`/interviews/feedback/${interviewId}`);
-    },
-    async deleteInterviewRecord(interviewId) {
-      if (confirm('Are you sure you want to delete this interview record?')) {
-        try {
-          await interviewService.deleteInterview(interviewId);
-          this.interviews = this.interviews.filter(interview => interview.id !== interviewId);
-        } catch (error) {
-          console.error('Error deleting interview:', error);
-        }
-      }
-    },
+    tableData() {
+      return this.interviews.map(interview => ({
+        ...interview,
+        key: interview.id
+      }));
+    }
   },
-  
   mounted() {
     this.fetchInterviews();
+  },
+  methods: {
+    getUniqueValues(field) {
+      const values = [...new Set(this.interviews.map(item => item[field]))].filter(Boolean);
+      return values.map(value => ({ text: value, value }));
+    },
+    
+    handleTableChange(pagination, filters, sorter) {
+      console.log('Various parameters', pagination, filters, sorter);
+      this.currentPage = pagination.current;
+      this.pageSize = pagination.pageSize;
+      this.filteredInfo = filters;
+      this.sortedInfo = sorter;
+    },
+    
+    clearFilters() {
+      this.filteredInfo = null;
+    },
+    
+    clearAll() {
+      this.filteredInfo = null;
+      this.sortedInfo = null;
+    },
+    
+    async fetchInterviews() {
+      this.loading = true;
+      
+      try {
+        await this.interviewStore.fetchInterviews();
+        
+        if (this.interviewStore.interviews) {
+          this.interviews = this.interviewStore.interviews.map(interview => ({
+            ...interview,
+            interview_date: interview.interview_date ? moment(interview.interview_date).format('YYYY-MM-DD') : '',
+          }));
+          this.total = this.interviews.length;
+          this.$message.success('Interviews loaded successfully');
+        }
+      } catch (error) {
+        console.error('Error fetching interviews:', error);
+        this.$message.error('Failed to load interviews');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    openAddInterviewModal() {
+      if (this.$refs.interviewModal) {
+        this.$refs.interviewModal.editMode = false;
+        this.$refs.interviewModal.interviewData = null;
+        this.$refs.interviewModal.openModal();
+      }
+    },
+
+    openEditInterviewModal(interview) {
+      this.$refs.interviewModal.interviewData = interview;
+      this.$refs.interviewModal.editMode = true;
+      this.$refs.interviewModal.openModal();
+    },
+
+    async deleteInterview(id) {
+      try {
+        await new Promise((resolve) => {
+          AntModal.confirm({
+            title: 'Are you sure?',
+            content: 'You are about to delete this interview. This action cannot be undone.',
+            centered: true,
+            okText: 'Yes, delete',
+            cancelText: 'Cancel',
+            onOk: async () => {
+              this.loading = true;
+              try {
+                await this.interviewStore.deleteInterview(id);
+                this.interviews = this.interviews.filter(interview => interview.id !== id);
+                this.total = this.interviews.length;
+                this.$message.success('Interview deleted successfully');
+                resolve();
+              } catch (error) {
+                console.error('Error deleting interview:', error);
+                this.$message.error('Failed to delete interview');
+                resolve();
+              } finally {
+                this.loading = false;
+              }
+            },
+            onCancel: () => {
+              resolve();
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Delete confirmation failed:', error);
+      }
+    },
+    
+    showNotification(title, message, className) {
+      this.notificationTitle = title;
+      this.notificationMessage = message;
+      this.notificationClass = className;
+      
+      const toastEl = document.getElementById('notificationToast');
+      const toast = new Toast(toastEl);
+      toast.show();
+    }
   }
 };
 </script>
+
+<style scoped>
+.highlight {
+  background-color: rgb(255, 192, 105);
+  padding: 0px;
+}
+
+.table-operations {
+  margin-bottom: 16px;
+}
+
+.table-operations > button {
+  margin-right: 8px;
+}
+
+:deep(.ant-select-selector) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  min-width: 80px;
+}
+</style>

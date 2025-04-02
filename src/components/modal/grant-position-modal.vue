@@ -101,6 +101,9 @@ export default {
     openModal(position = null) {
       if (position) {
         this.isEditing = true;
+        // This creates a copy of the position object and assigns it to formData
+        // It uses the spread operator (...) to create a new object with all properties from position
+        // This ensures we're working with a copy rather than the original object reference
         this.formData = { ...position };
         // Set default status if not present in existing data
         if (!this.formData.status) {

@@ -69,6 +69,7 @@
       </div>
       <!-- /Travel List Table -->
     </div>
+    <layout-footer></layout-footer>
   </div>
 
   <!-- Travel Modal -->

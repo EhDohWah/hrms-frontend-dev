@@ -10,5 +10,15 @@ module.exports = defineConfig({
       title: 'HR Management System',
     },
   },
+  devServer: {
+    client: {
+      overlay: {
+        warnings: false,
+        errors: false,
+      },
+      // Or disable the overlay entirely:
+      // overlay: false,
+    },
+  },
 });
 

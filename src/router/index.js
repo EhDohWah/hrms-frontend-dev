@@ -251,7 +251,7 @@ import UI_Iconflag from "@/views/pages/uiinterface/icons/icon-flag.vue";
 import LoginIndex from '@/views/pages/authentication/login-index.vue';
 import forgotPassword from '@/views/pages/authentication/forgot-password.vue';
 import resetPassword from '@/views/pages/authentication/reset-password.vue';
-
+import employmentList from '@/views/pages/hrm/employment/employment-list.vue';
 import FormLayouts from '@/views/pages/uiinterface/forms/layouts/form-layouts.vue';
 
 import packagesList from '@/views/pages/superadmin/packages/packages-list.vue';
@@ -341,6 +341,7 @@ import InterviewsDetails from '@/views/pages/recruitment/interviews/interviews-d
 import employeeSite from '@/views/pages/hrm/employees/employee-sites.vue';
 import lookupList from '@/views/pages/administration/lookups/lookup-list.vue';  
 import departmentPositionList from '@/views/pages/administration/department-position/department-position-list.vue';
+import reportList from '@/views/pages/administration/reports/report-list.vue';
 
 const routes = [
   // Public routes
@@ -643,7 +644,13 @@ const routes = [
     component: payrollIndex,
     children: [
       { path: '', redirect: '/payroll/employee-salary' },
-      { path: "employee-salary", component: employeeSalary },
+      { 
+        path: "employee-salary", 
+        component: employeeSalary,
+        meta: {
+          title: 'Employee Salary'
+        }
+      },
       { path: "payslip", component: payslipIndex },
       { path: "payroll", component: payrollAdditions },
       { path: "payroll-overtime", component: payrollOvertime },
@@ -687,6 +694,7 @@ const routes = [
       { path: "attendance-report", component: AttendanceReport },
       { path: "leave-report", component: LeaveReport },
       { path: "daily-report", component: DailyReport },
+      { path: "report-list", component: reportList },
     ]
   },
   {
@@ -743,7 +751,13 @@ const routes = [
       { path: "candidates-kanban", component: CandidatesKanban },
       { path: "refferals", component: RefferalsList },
       { path: "references", component: ReferencesList },
-      { path: "interviews-list", component: InterviewsList },
+      { 
+        path: "interviews-list", 
+        component: InterviewsList,
+        meta: {
+          title: 'Interviews List '
+        }
+      },
       { path: "interviews-details", component: InterviewsDetails },
     ]
   },
@@ -763,7 +777,13 @@ const routes = [
     component: TrainingIndex,
     children: [
       { path: '', redirect: '/training/training-list' },
-      { path: "training-list", component: TrainingList },
+      { 
+        path: "training-list", 
+        component: TrainingList,
+        meta: {
+          title: 'Training List'
+        }
+      },
       { path: "trainers", component: TrainersList },
       { path: "training-type", component: TrainingType },
     ]
@@ -784,8 +804,21 @@ const routes = [
     path: '/attendance',
     component: AttendanceIndex,
     children: [
-      { path: '', redirect: '/attendance/attendance-admin' },
-      { path: "attendance-admin", component: AttendanceAdmin },
+      { 
+        path: '', 
+        meta: {
+          title: 'Attendance Admin'
+        },
+        redirect: '/attendance/attendance-admin' 
+        
+      },
+      { 
+        path: "attendance-admin", 
+        component: AttendanceAdmin,
+        meta: {
+          title: 'Attendance Admin'
+        }
+      },
       { path: "attendance-employee", component: AttendanceEmployee },
       { path: "timesheets", component: TimesheetsList },
       { path: "schedule-timing", component: ScheduleTiming },
@@ -798,7 +831,7 @@ const routes = [
     beforeEnter: roleGuard(['hr-assistant', 'hr-manager', 'admin']),
     meta: {
       requiresAuth: true,
-      title: 'Leave Management'
+      title: 'Leave Admin' 
     },
     children: [
       { path: '', redirect: '/leave/admin/leaves-admin' },
@@ -844,6 +877,7 @@ const routes = [
       { path: "employee-grid", component: employeesGrid },
       // Updated route with dynamic parameter
       { path: "employee-details/:id", component: employeeDetails },
+      { path: "employment-list", component: employmentList },
       { path: "departments", component: employeeDepartment },
       { path: "positions", component: employeePositions },
       { path: "policy", component: employeePolicy },
@@ -1109,14 +1143,14 @@ const routes = [
     beforeEnter: roleGuard(['admin', 'hr-manager', 'hr-assistant']),
     meta: {
       requiresAuth: true,
-      title: 'Travel Requests Admin'
+      title: 'Travel Request Management'
     },
     children: [
       { 
         path: '', 
         component: () => import('@/views/pages/requests/travel/travel-admin.vue'),
         meta: {
-          title: 'Travel Requests Admin'
+          title: 'Travel Request Admin'
         }
       },
       { path: ':id', component: travelRequestDetails }
@@ -1128,7 +1162,7 @@ const routes = [
     beforeEnter: roleGuard(['employee', 'hr-manager', 'hr-assistant']),
     meta: {
       requiresAuth: true,
-      title: 'Travel Requests'
+      title: 'Travel Request Employee'
     },
 
     children: [

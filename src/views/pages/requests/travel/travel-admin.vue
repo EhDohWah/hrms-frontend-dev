@@ -182,6 +182,7 @@
         </div>
       </div>
     </div>
+    <layout-footer></layout-footer>
   </div>
 
   <!-- View Details Modal -->

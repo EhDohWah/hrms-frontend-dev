@@ -60,6 +60,7 @@
       </div>
       <!-- /Reference Details -->
     </div>
+    <layout-footer></layout-footer>
   </div>
 </template>
 

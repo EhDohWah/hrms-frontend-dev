@@ -105,6 +105,7 @@
       </div>
       <!-- /Interview Details -->
     </div>
+    <layout-footer></layout-footer>
   </div>
 </template>
 

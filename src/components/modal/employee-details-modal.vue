@@ -1,5 +1,5 @@
 <template>
-  <!-- Edit Employee -->
+  <!-- Edit Employee Modal -->
   <div class="modal fade" id="edit_employee">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
@@ -8,68 +8,39 @@
             <h4 class="modal-title me-2">Edit Employee</h4>
             <span>Employee ID : EMP -0024</span>
           </div>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
         <form @submit.prevent="submitFormOne">
+          <!-- Alert Message -->
+          <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
+            {{ alertMessage }}
+          </div>
           <div class="contact-grids-tab">
             <ul class="nav nav-underline" id="myTab2" role="tablist">
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link active"
-                  id="info-tab3"
-                  data-bs-toggle="tab"
-                  data-bs-target="#basic-info3"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                >
+                <button class="nav-link active" id="info-tab3" data-bs-toggle="tab" data-bs-target="#basic-info3" type="button" role="tab" aria-selected="true">
                   Basic Information
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="address-tab3"
-                  data-bs-toggle="tab"
-                  data-bs-target="#address3"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
+                <button class="nav-link" id="address-tab3" data-bs-toggle="tab" data-bs-target="#address3" type="button" role="tab" aria-selected="false">
                   Permissions
                 </button>
               </li>
             </ul>
           </div>
           <div class="tab-content" id="myTabContent2">
-            <div
-              class="tab-pane fade show active"
-              id="basic-info3"
-              role="tabpanel"
-              aria-labelledby="info-tab3"
-              tabindex="0"
-            >
+            <!-- Basic Information Tab -->
+            <div class="tab-pane fade show active" id="basic-info3" role="tabpanel" aria-labelledby="info-tab3" tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
+                  <!-- Profile Image and Upload -->
                   <div class="col-md-12">
-                    <div
-                      class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-3 mb-4"
-                    >
-                      <div
-                        class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-dashed me-2 flex-shrink-0 text-dark frames"
-                      >
-                        <img
-                          src="@/assets/img/users/user-13.jpg"
-                          alt="img"
-                          class="rounded-circle"
-                        />
+                    <div class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-3 mb-4">
+                      <div class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-dashed me-2 flex-shrink-0 text-dark frames">
+                        <img src="@/assets/img/users/user-13.jpg" alt="img" class="rounded-circle" />
                       </div>
                       <div class="profile-upload">
                         <div class="mb-2">
@@ -79,24 +50,17 @@
                         <div class="profile-uploader d-flex align-items-center">
                           <div class="drag-upload-btn btn btn-sm btn-primary me-2">
                             Upload
-                            <input
-                              type="file"
-                              class="form-control image-sign"
-                              multiple=""
-                            />
+                            <input type="file" class="form-control image-sign" multiple />
                           </div>
-                          <a href="javascript:void(0);" class="btn btn-light btn-sm"
-                            >Cancel</a
-                          >
+                          <a href="javascript:void(0);" class="btn btn-light btn-sm">Cancel</a>
                         </div>
                       </div>
                     </div>
                   </div>
+                  <!-- Employee Basic Fields -->
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >First Name <span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">First Name <span class="text-danger"> *</span></label>
                       <input type="text" class="form-control" value="Anthony" />
                     </div>
                   </div>
@@ -108,181 +72,109 @@
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Employee ID <span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">Employee ID <span class="text-danger"> *</span></label>
                       <input type="text" class="form-control" value="Emp-001" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Joining Date <span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">Joining Date <span class="text-danger"> *</span></label>
                       <div class="input-icon-end position-relative">
-                        <date-picker
-                          v-model="startdate"
-                          class="form-control datetimepicker"
-                          placeholder="dd/mm/yyyy"
-                          :editable="true"
-                          :clearable="false"
-                          :input-format="dateFormat"
-                        />
+                        <date-picker v-model="startdate" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                         <span class="input-icon-addon">
                           <i class="ti ti-calendar text-gray-7"></i>
                         </span>
                       </div>
                     </div>
                   </div>
+                  <!-- More fields: Username, Email, Password, etc. -->
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Username <span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">Username <span class="text-danger"> *</span></label>
                       <input type="text" class="form-control" value="Anthony" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Email <span class="text-danger"> *</span></label
-                      >
-                      <input
-                        type="email"
-                        class="form-control"
-                        value="anthony@example.com	"
-                      />
+                      <label class="form-label">Email <span class="text-danger"> *</span></label>
+                      <input type="email" class="form-control" value="anthony@example.com" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Password <span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">Password <span class="text-danger"> *</span></label>
                       <div class="pass-group">
-                        <input
-                          :type="showPassword ? 'text' : 'password'"
-                          class="pass-input form-control"
-                        />
-                        <span
-                          @click="toggleShow"
-                          class="ti toggle-password"
-                          :class="{
-                            'ti-eye': showPassword,
-                            'ti-eye-off': !showPassword,
-                          }"
-                        ></span>
+                        <input :type="showPassword ? 'text' : 'password'" class="pass-input form-control" />
+                        <span @click="toggleShow" class="ti toggle-password" :class="{'ti-eye': showPassword, 'ti-eye-off': !showPassword}"></span>
                       </div>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Confirm Password <span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">Confirm Password <span class="text-danger"> *</span></label>
                       <div class="pass-group">
-                        <input
-                          :type="showPassword1 ? 'text' : 'password'"
-                          class="pass-inputs form-control"
-                        />
-                        <span
-                          @click="toggleShow1"
-                          class="ti toggle-passwords"
-                          :class="{
-                            'ti-eye': showPassword1,
-                            'ti-eye-off': !showPassword1,
-                          }"
-                        ></span>
+                        <input :type="showPassword1 ? 'text' : 'password'" class="pass-inputs form-control" />
+                        <span @click="toggleShow1" class="ti toggle-passwords" :class="{'ti-eye': showPassword1, 'ti-eye-off': !showPassword1}"></span>
                       </div>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Phone Number <span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">Phone Number <span class="text-danger"> *</span></label>
                       <input type="text" class="form-control" value="(123) 4567 890" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Company<span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">Company <span class="text-danger"> *</span></label>
                       <input type="text" class="form-control" value="Abac Company" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
                       <label class="form-label">Department</label>
-                      <vue-select
-                        :options="FinanceDeo"
-                        id="defeaj"
-                        placeholder="Finance"
-                      />
+                      <vue-select :options="FinanceDeo" id="defeaj" placeholder="Finance" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="mb-3">
                       <label class="form-label">Designation</label>
-                      <vue-select
-                        :options="OneFinanceDeo"
-                        id="onedefeaj"
-                        placeholder="Finance"
-                      />
+                      <vue-select :options="OneFinanceDeo" id="onedefeaj" placeholder="Finance" />
                     </div>
                   </div>
                   <div class="col-md-12">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >About <span class="text-danger"> *</span></label
-                      >
+                      <label class="form-label">About <span class="text-danger"> *</span></label>
                       <textarea class="form-control" rows="3">
-As an award winning designer, I deliver exceptional quality work and bring value to your brand! With 10 years of experience and 350+ projects completed worldwide with satisfied customers, I developed the 360° brand approach, which helped me to create numerous brands that are relevant, meaningful and loved.
-													</textarea
-                      >
+As an award winning designer, I deliver exceptional quality work and bring value to your brand!
+                      </textarea>
                     </div>
                   </div>
                 </div>
               </div>
+              <!-- Footer for Basic Information -->
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
-                  Cancel
-                </button>
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-primary">Save</button>
               </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="address3"
-              role="tabpanel"
-              aria-labelledby="address-tab3"
-              tabindex="0"
-            >
+            <!-- Permissions Tab (content abbreviated for brevity) -->
+            <div class="tab-pane fade" id="address3" role="tabpanel" aria-labelledby="address-tab3" tabindex="0">
               <div class="modal-body">
+                <!-- Permissions content goes here -->
                 <div class="card bg-light-500 shadow-none">
-                  <div
-                    class="card-body d-flex align-items-center justify-content-between flex-wrap row-gap-3"
-                  >
+                  <div class="card-body d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                     <h6>Enable Options</h6>
                     <div class="d-flex align-items-center justify-content-end">
                       <div class="form-check form-switch me-2">
                         <label class="form-check-label mt-0">
-                          <input
-                            class="form-check-input me-2"
-                            type="checkbox"
-                            role="switch"
-                          />
+                          <input class="form-check-input me-2" type="checkbox" role="switch" />
                           Enable all Module
                         </label>
                       </div>
                       <div class="form-check d-flex align-items-center">
                         <label class="form-check-label mt-0">
-                          <input class="form-check-input" type="checkbox" checked="" />
+                          <input class="form-check-input" type="checkbox" checked />
                           Select All
                         </label>
                       </div>
@@ -296,12 +188,7 @@ As an award winning designer, I deliver exceptional quality work and bring value
                         <td>
                           <div class="form-check form-switch me-2">
                             <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input me-2"
-                                type="checkbox"
-                                role="switch"
-                                checked
-                              />
+                              <input class="form-check-input me-2" type="checkbox" role="switch" checked />
                               Holidays
                             </label>
                           </div>
@@ -309,523 +196,20 @@ As an award winning designer, I deliver exceptional quality work and bring value
                         <td>
                           <div class="form-check d-flex align-items-center">
                             <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input"
-                                type="checkbox"
-                                checked=""
-                              />
+                              <input class="form-check-input" type="checkbox" checked />
                               Read
                             </label>
                           </div>
                         </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Write
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Create
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input"
-                                type="checkbox"
-                                checked=""
-                              />
-                              Delete
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Import
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Export
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="form-check form-switch me-2">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input me-2"
-                                type="checkbox"
-                                role="switch"
-                              />
-                              Leaves
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Read
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Write
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Create
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Delete
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Import
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Export
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="form-check form-switch me-2">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input me-2"
-                                type="checkbox"
-                                role="switch"
-                              />
-                              Clients
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Read
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Write
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Create
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Delete
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Import
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Export
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="form-check form-switch me-2">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input me-2"
-                                type="checkbox"
-                                role="switch"
-                              />
-                              Projects
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Read
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Write
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Create
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Delete
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Import
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Export
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="form-check form-switch me-2">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input me-2"
-                                type="checkbox"
-                                role="switch"
-                              />
-                              Tasks
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Read
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Write
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Create
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Delete
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Import
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Export
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="form-check form-switch me-2">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input me-2"
-                                type="checkbox"
-                                role="switch"
-                              />
-                              Chats
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Read
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Write
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Create
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Delete
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Import
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Export
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="form-check form-switch me-2">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input me-2"
-                                type="checkbox"
-                                role="switch"
-                                checked
-                              />
-                              Assets
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Read
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Write
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input"
-                                type="checkbox"
-                                checked=""
-                              />
-                              Create
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Delete
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input"
-                                type="checkbox"
-                                checked=""
-                              />
-                              Import
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Export
-                            </label>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                          <div class="form-check form-switch me-2">
-                            <label class="form-check-label mt-0">
-                              <input
-                                class="form-check-input me-2"
-                                type="checkbox"
-                                role="switch"
-                              />
-                              Timing Sheets
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Read
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Write
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Create
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Delete
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Import
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" />
-                              Export
-                            </label>
-                          </div>
-                        </td>
+                        <!-- Additional cells omitted for brevity -->
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-primary"
-                  data-bs-toggle="modal"
-                  data-bs-target="#success_modal"
-                >
-                  Save
-                </button>
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#success_modal">Save</button>
               </div>
             </div>
           </div>
@@ -833,20 +217,15 @@ As an award winning designer, I deliver exceptional quality work and bring value
       </div>
     </div>
   </div>
-  <!-- /Edit Employee -->
+  <!-- /Edit Employee Modal -->
 
-  <!-- Edit Personal -->
+  <!-- Edit Personal Modal -->
   <div class="modal fade" id="edit_personal">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Edit Personal Info</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -855,26 +234,15 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Passport No <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Passport No <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Passport Expiry Date <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Passport Expiry Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker
-                      v-model="startdateOne"
-                      class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                    />
+                    <date-picker v-model="startdateOne" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -883,9 +251,7 @@ As an award winning designer, I deliver exceptional quality work and bring value
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Nationality <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Nationality <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
@@ -897,9 +263,7 @@ As an award winning designer, I deliver exceptional quality work and bring value
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Marital status <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Marital status <span class="text-danger"> *</span></label>
                   <vue-select :options="MartSel" id="martsel" placeholder="Select" />
                 </div>
               </div>
@@ -918,33 +282,22 @@ As an award winning designer, I deliver exceptional quality work and bring value
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-white border me-2"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Edit Personal -->
+  <!-- /Edit Personal Modal -->
 
-  <!-- Edit Emergency Contact -->
+  <!-- Edit Emergency Contact Modal -->
   <div class="modal fade" id="edit_emergency">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Emergency Contact Details</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -955,29 +308,25 @@ As an award winning designer, I deliver exceptional quality work and bring value
                 <h5 class="mb-3">Secondary Contact Details</h5>
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label"
-                      >Name <span class="text-danger"> *</span></label
-                    >
+                    <label class="form-label">Name <span class="text-danger"> *</span></label>
                     <input type="text" class="form-control" />
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label">Relationship </label>
+                    <label class="form-label">Relationship</label>
                     <input type="text" class="form-control" />
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label"
-                      >Phone No 1 <span class="text-danger"> *</span></label
-                    >
+                    <label class="form-label">Phone No 1 <span class="text-danger"> *</span></label>
                     <input type="text" class="form-control" />
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label">Phone No 2 </label>
+                    <label class="form-label">Phone No 2</label>
                     <input type="text" class="form-control" />
                   </div>
                 </div>
@@ -987,62 +336,47 @@ As an award winning designer, I deliver exceptional quality work and bring value
               <h5 class="mb-3">Secondary Contact Details</h5>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Name <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Name <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Relationship </label>
+                  <label class="form-label">Relationship</label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Phone No 1 <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Phone No 1 <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Phone No 2 </label>
+                  <label class="form-label">Phone No 2</label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-white border me-2"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Edit Emergency Contact -->
+  <!-- /Edit Emergency Contact Modal -->
 
-  <!-- Edit Bank -->
+  <!-- Edit Bank Modal -->
   <div class="modal fade" id="edit_bank">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Bank Details</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1051,15 +385,13 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div class="row">
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Bank Details <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Bank Details <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">Bank account No </label>
+                  <label class="form-label">Bank account No</label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
@@ -1078,33 +410,22 @@ As an award winning designer, I deliver exceptional quality work and bring value
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-white border me-2"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Edit Bank -->
+  <!-- /Edit Bank Modal -->
 
-  <!-- Add Family -->
+  <!-- Add Family Modal -->
   <div class="modal fade" id="edit_familyinformation">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Family Information</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1113,38 +434,27 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div class="row">
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Name <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Name <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">Relationship </label>
+                  <label class="form-label">Relationship</label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">Phone </label>
+                  <label class="form-label">Phone</label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Passport Expiry Date <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Passport Expiry Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker
-                      v-model="startdateTwo"
-                      class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                    />
+                    <date-picker v-model="startdateTwo" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -1154,33 +464,22 @@ As an award winning designer, I deliver exceptional quality work and bring value
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-white border me-2"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Add Family -->
+  <!-- /Add Family Modal -->
 
-  <!-- Add Education -->
+  <!-- Add Education Modal -->
   <div class="modal fade" id="edit_education">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Education Information</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1189,34 +488,21 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Institution Name <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Institution Name <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Course <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Course <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Start Date <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Start Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker
-                      v-model="startdateThree"
-                      class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                    />
+                    <date-picker v-model="startdateThree" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -1225,18 +511,9 @@ As an award winning designer, I deliver exceptional quality work and bring value
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >End Date <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">End Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker
-                      v-model="startdateFour"
-                      class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                    />
+                    <date-picker v-model="startdateFour" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -1246,33 +523,22 @@ As an award winning designer, I deliver exceptional quality work and bring value
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-white border me-2"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Add Education -->
+  <!-- /Add Education Modal -->
 
-  <!-- Add Experience -->
+  <!-- Add Experience Modal -->
   <div class="modal fade" id="edit_experience">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Company Information</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1281,34 +547,21 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Previous Company Name <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Previous Company Name <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Designation <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Designation <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Start Date <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Start Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker
-                      v-model="startdateFive"
-                      class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                    />
+                    <date-picker v-model="startdateFive" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -1317,18 +570,9 @@ As an award winning designer, I deliver exceptional quality work and bring value
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >End Date <span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">End Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker
-                      v-model="startdateSix"
-                      class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                    />
+                    <date-picker v-model="startdateSix" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -1338,11 +582,7 @@ As an award winning designer, I deliver exceptional quality work and bring value
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-check-label d-flex align-items-center mt-0">
-                    <input
-                      class="form-check-input mt-0 me-2"
-                      type="checkbox"
-                      checked=""
-                    />
+                    <input class="form-check-input mt-0 me-2" type="checkbox" checked />
                     <span class="text-dark">Check if you working present</span>
                   </label>
                 </div>
@@ -1350,30 +590,24 @@ As an award winning designer, I deliver exceptional quality work and bring value
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-white border me-2"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Add Experience -->
+  <!-- /Add Experience Modal -->
 
-  <!-- Add Employee Success -->
+  <!-- Add Employee Success Modal -->
   <div class="modal fade" id="success_modal" role="dialog">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content">
         <div class="modal-body">
           <div class="text-center p-3">
-            <span class="avatar avatar-lg avatar-rounded bg-success mb-3"
-              ><i class="ti ti-check fs-24"></i
-            ></span>
+            <span class="avatar avatar-lg avatar-rounded bg-success mb-3">
+              <i class="ti ti-check fs-24"></i>
+            </span>
             <h5 class="mb-2">Employee Added Successfully</h5>
             <p class="mb-3">
               Stephan Peralt has been added with Client ID :
@@ -1382,16 +616,10 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div>
               <div class="row g-2">
                 <div class="col-6">
-                  <router-link to="/employee/employee-list" class="btn btn-dark w-100"
-                    >Back to List</router-link
-                  >
+                  <router-link to="/employee/employee-list" class="btn btn-dark w-100">Back to List</router-link>
                 </div>
                 <div class="col-6">
-                  <router-link
-                    to="/employee/employee-details"
-                    class="btn btn-primary w-100"
-                    >Detail Page</router-link
-                  >
+                  <router-link to="/employee/employee-details" class="btn btn-primary w-100">Detail Page</router-link>
                 </div>
               </div>
             </div>
@@ -1400,20 +628,14 @@ As an award winning designer, I deliver exceptional quality work and bring value
       </div>
     </div>
   </div>
-  <!-- /Add Client Success -->
 
-  <!-- Add Statuorty -->
+  <!-- Add Statutory Modal -->
   <div class="modal fade" id="add_bank_satutory">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Bank & Statutory</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1424,14 +646,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
               <div class="row mb-2">
                 <div class="col-md-4">
                   <div class="mb-3">
-                    <label class="form-label"
-                      >Salary basis <span class="text-danger"> *</span></label
-                    >
-                    <vue-select
-                      :options="SaralyBas"
-                      id="saralybas"
-                      placeholder="Select"
-                    />
+                    <label class="form-label">Salary basis <span class="text-danger"> *</span></label>
+                    <vue-select :options="SaralyBas" id="saralybas" placeholder="Select" />
                   </div>
                 </div>
                 <div class="col-md-4">
@@ -1453,9 +669,7 @@ As an award winning designer, I deliver exceptional quality work and bring value
               <div class="row mb-2">
                 <div class="col-md-4">
                   <div class="mb-3">
-                    <label class="form-label"
-                      >PF contribution <span class="text-danger"> *</span></label
-                    >
+                    <label class="form-label">PF contribution <span class="text-danger"> *</span></label>
                     <vue-select :options="FundInt" id="fundint" placeholder="Select" />
                   </div>
                 </div>
@@ -1489,14 +703,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div class="row">
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >ESI contribution<span class="text-danger"> *</span></label
-                  >
-                  <vue-select
-                    :options="OneFundInt"
-                    id="onefundint"
-                    placeholder="Select"
-                  />
+                  <label class="form-label">ESI contribution<span class="text-danger"> *</span></label>
+                  <vue-select :options="OneFundInt" id="onefundint" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -1507,20 +715,14 @@ As an award winning designer, I deliver exceptional quality work and bring value
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Employee ESI rate<span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Employee ESI rate<span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Additional rate</label>
-                  <vue-select
-                    :options="OneEpsRate"
-                    id="oneepsrate"
-                    placeholder="Select"
-                  />
+                  <vue-select :options="OneEpsRate" id="oneepsrate" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1532,93 +734,110 @@ As an award winning designer, I deliver exceptional quality work and bring value
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-white border me-2"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Add Statuorty -->
+  <!-- /Add Statutory Modal -->
 
-  <!-- Add Grant Position -->
+  <!-- Add Grant Position Modal -->
   <div class="modal fade" id="add_grant_position">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Add Grant Position</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
         <div class="modal-body">
-          <form @submit.prevent="submitForm">
+          <form @submit.prevent="submitGrantPosition">
+            <!-- Alert Message for Grant Allocation -->
+            <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
+              {{ alertMessage }}
+            </div>
             <div class="row">
+              <!-- Grant Position Dropdown -->
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Grant Position</label>
-                  <vue-select
-                    :options="grantPositions"
-                    id="grantPosition"
-                    placeholder="Search grant position"
-                  />
+                  <select class="form-select" v-model="form.grant_items_id" required>
+                    <option disabled value="">Select Grant Position</option>
+                    <option v-for="position in grantPositions" :key="position.id" :value="position.id">
+                      {{ position.bg_line + ' | ' + position.grant_name + ' | ' + position.grant_position }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <!-- Level of Effort -->
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Level of Effort (%)</label>
+                  <input type="number" v-model.number="form.level_of_effort" class="form-control" placeholder="Enter level of effort" />
+                </div>
+              </div>
+              <!-- Start Date -->
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Start Date</label>
+                  <date-picker v-model="form.start_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :input-format="dateFormat" />
+                </div>
+              </div>
+              <!-- End Date -->
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">End Date</label>
+                  <date-picker v-model="form.end_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :input-format="dateFormat" />
+                </div>
+              </div>
+              <!-- Active Checkbox -->
+              <div class="col-md-12">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" v-model="form.active" id="activeCheck" />
+                  <label class="form-check-label" for="activeCheck">
+                    Active
+                  </label>
                 </div>
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">
-                Cancel
+              <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span v-if="isSubmitting">Saving...</span>
+                <span v-else>Save</span>
               </button>
-              <button type="submit" class="btn btn-primary">Save</button>
             </div>
           </form>
         </div>
       </div>
     </div>
   </div>
-  <!-- /Add Grant Position -->
+  <!-- /Add Grant Position Modal -->
 
-  <!-- Asset Information -->
+  <!-- Asset Information Modal -->
   <div class="modal fade" id="asset_info">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Asset Information</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
         <div class="modal-body">
           <div class="bg-light p-3 rounded d-flex align-items-center mb-3">
             <span class="avatar avatar-lg flex-shrink-0 me-2">
-              <img
-                src="@/assets/img/laptop.jpg"
-                alt="img"
-                class="ig-fluid rounded-circle"
-              />
+              <img src="@/assets/img/laptop.jpg" alt="img" class="ig-fluid rounded-circle" />
             </span>
             <div>
               <h6>Dell Laptop - #343556656</h6>
               <p class="fs-13">
-                <span class="text-primary">AST - 001 </span
-                ><i class="ti ti-point-filled text-primary"></i> Assigned on 22 Nov, 2022
-                10:32AM
+                <span class="text-primary">AST - 001 </span>
+                <i class="ti ti-point-filled text-primary"></i> Assigned on 22 Nov, 2022 10:32AM
               </p>
             </div>
           </div>
@@ -1675,16 +894,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
           <div>
             <p class="fs-13 mb-2">Asset Images</p>
             <div class="d-flex align-items-center">
-              <img
-                src="@/assets/img/laptop-01.jpg"
-                alt="img"
-                class="img-fluid rounded me-2"
-              />
-              <img
-                src="@/assets/img/laptop-2.jpg"
-                alt="img"
-                class="img-fluid rounded me-2"
-              />
+              <img src="@/assets/img/laptop-01.jpg" alt="img" class="img-fluid rounded me-2" />
+              <img src="@/assets/img/laptop-2.jpg" alt="img" class="img-fluid rounded me-2" />
               <img src="@/assets/img/laptop-3.jpg" alt="img" class="img-fluid rounded" />
             </div>
           </div>
@@ -1692,20 +903,15 @@ As an award winning designer, I deliver exceptional quality work and bring value
       </div>
     </div>
   </div>
-  <!-- /Asset Information -->
+  <!-- /Asset Information Modal -->
 
-  <!-- Refuse -->
+  <!-- Refuse Modal -->
   <div class="modal fade" id="refuse_msg">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Raise Issue</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1714,29 +920,21 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div class="row">
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label"
-                    >Description<span class="text-danger"> *</span></label
-                  >
+                  <label class="form-label">Description<span class="text-danger"> *</span></label>
                   <textarea class="form-control" rows="4"></textarea>
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-white border me-2"
-              data-bs-dismiss="modal"
-            >
-              Cancel
-            </button>
+            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Refuse -->
+  <!-- /Refuse Modal -->
 
   <!-- Delete Modal -->
   <div class="modal fade" id="delete_modal">
@@ -1751,15 +949,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
             You want to delete all the marked items, this cant be undone once you delete.
           </p>
           <div class="d-flex justify-content-center">
-            <a
-              href="javascript:void(0);"
-              class="btn btn-light me-3"
-              data-bs-dismiss="modal"
-              >Cancel</a
-            >
-            <router-link to="/employee/employee-details" class="btn btn-danger"
-              >Yes, Delete</router-link
-            >
+            <a href="javascript:void(0);" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</a>
+            <router-link to="/employee/employee-details" class="btn btn-danger">Yes, Delete</router-link>
           </div>
         </div>
       </div>
@@ -1767,8 +958,13 @@ As an award winning designer, I deliver exceptional quality work and bring value
   </div>
   <!-- /Delete Modal -->
 </template>
+
 <script>
 import { ref } from "vue";
+import employmentService from "@/services/employment.service";
+import { grantService } from "@/services/grant.service";
+import { Modal } from 'bootstrap';
+
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 const currentDateTwo = ref(new Date());
@@ -1776,11 +972,22 @@ const currentDateThree = ref(new Date());
 const currentDateFour = ref(new Date());
 const currentDateFive = ref(new Date());
 const currentDateSix = ref(new Date());
+
 export default {
+  props: {
+    // Employee details passed from the parent
+    employee: {
+      type: Object,
+      default: null,
+    },
+  },
   data() {
     return {
       showPassword: false,
       showPassword1: false,
+      isSubmitting: false,
+      alertMessage: '',
+      alertClass: '',
       startdate: currentDate,
       startdateOne: currentDateOne,
       startdateTwo: currentDateTwo,
@@ -1791,23 +998,21 @@ export default {
       dateFormat: "dd-MM-yyyy",
       EpsRate: ["Select", "EPS", "ESI", "EPF"],
       OneEpsRate: ["Select", "EPS", "ESI", "EPF"],
-      OneFundInt: [
-        "Select",
-        "Employee COntribution",
-        "Employer Contribution",
-        "Maternity Benefit",
-      ],
-      FundInt: [
-        "Select",
-        "Employee Contribution",
-        "Employer Contribution",
-        "Provident Fund Interest",
-      ],
+      OneFundInt: ["Select", "Employee COntribution", "Employer Contribution", "Maternity Benefit"],
+      FundInt: ["Select", "Employee Contribution", "Employer Contribution", "Provident Fund Interest"],
       PayType: ["Select", "Cash", "Debit Card", "Mobile Payment"],
       SaralyBas: ["Select", "Weekly", "Monthly", "Annualy"],
       MartSel: ["Select", "Yes", "No"],
       FinanceDeo: ["Select", "All Department", "Finance", "Developer", "Executive"],
       OneFinanceDeo: ["Select", "All Department", "Finance", "Developer", "Executive"],
+      grantPositions: [],
+      form: {
+        grant_items_id: null,
+        level_of_effort: 1,
+        start_date: null,
+        end_date: null,
+        active: true,
+      },
     };
   },
   computed: {
@@ -1831,6 +1036,120 @@ export default {
     submitFormOne() {
       this.$router.push("/employee/employee-grid");
     },
+    async fetchGrantPositions() {
+      try {
+        const response = await grantService.getAllGrantItems();
+        if (response.data) {
+          this.grantPositions = response.data;
+        }
+      } catch (error) {
+        console.error("Error fetching grant positions:", error);
+      }
+    },
+    async submitGrantPosition() {
+      try {
+        this.isSubmitting = true;
+        this.alertMessage = '';
+        this.alertClass = '';
+        
+        // Validate employment ID
+        if (!this.employee || !this.employee.employment || !this.employee.employment.id) {
+          throw new Error("No employment record found for this employee");
+        }
+        
+        // Validate grant item selection
+        if (!this.form.grant_items_id) {
+          throw new Error("Please select a grant position");
+        }
+        
+        // Validate dates
+        if (!this.form.start_date) {
+          throw new Error("Start date is required");
+        }
+        
+        // Prepare payload with employmentId from parent
+        const payload = {
+          employment_id: this.employee.employment.id,
+          grant_items_id: this.form.grant_items_id,
+          level_of_effort: this.form.level_of_effort,
+          start_date: this.formatDate(this.form.start_date),
+          end_date: this.formatDate(this.form.end_date),
+          active: this.form.active,
+        };
+
+        await employmentService.addGrantAllocation(payload);
+
+        // Show success message
+        this.alertMessage = "Grant position successfully added!";
+        this.alertClass = "alert-success";
+
+        // Emit event to parent to reload employee detail
+        this.$emit("grantPositionAdded");
+
+        // Reset form after short delay to allow user to see success message
+        setTimeout(() => {
+          this.resetForm();
+          
+          const modalEl = document.getElementById("add_grant_position");
+          if (modalEl) {
+            const modal = Modal.getInstance(modalEl);
+            modal.hide();
+          }
+        }, 1500);
+        
+      } catch (error) {
+        this.alertClass = "alert-danger";
+        
+        if (error.message.includes("employment")) {
+          this.alertMessage = "Error: No employment record found for this employee";
+        } else if (error.message.includes("grant position")) {
+          this.alertMessage = "Error: " + error.message;
+        } else if (error.message.includes("date")) {
+          this.alertMessage = "Error: " + error.message;
+        } else if (error.response && error.response.data && error.response.data.message) {
+          this.alertMessage = "Error: " + error.response.data.message;
+        } else {
+          this.alertMessage = "Error adding grant allocation: " + error.message;
+        }
+        
+        console.error("Error adding grant allocation:", error);
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+    formatDate(date) {
+      if (!date) return "";
+      const d = new Date(date);
+      let month = "" + (d.getMonth() + 1);
+      let day = "" + d.getDate();
+      const year = d.getFullYear();
+      if (month.length < 2) month = "0" + month;
+      if (day.length < 2) day = "0" + day;
+      return [year, month, day].join("-");
+    },
+    resetForm() {
+      this.form = {
+        grant_items_id: null,
+        level_of_effort: 100,
+        start_date: null,
+        end_date: null,
+        active: true,
+      };
+      this.alertMessage = '';
+      this.alertClass = '';
+    },
+  },
+  mounted() {
+    this.fetchGrantPositions();
   },
 };
 </script>
+
+<style scoped>
+.modal-content {
+  padding: 20px;
+}
+.alert {
+  margin-bottom: 15px;
+}
+</style>

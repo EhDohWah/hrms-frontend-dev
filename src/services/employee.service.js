@@ -102,6 +102,16 @@ class EmployeeService {
             email: data.email
         };
     }
+
+    // Upload employee file
+    async uploadEmployeeFile(formData) {
+        try {
+            return await apiService.postFormData(API_ENDPOINTS.EMPLOYEE.UPLOAD_FILE, formData);
+        } catch (error) {
+            console.error('Error uploading employee file:', error);
+            throw error;
+        }
+    }
 }
 
 export const employeeService = new EmployeeService();

@@ -125,6 +125,11 @@
             "active_link": "/employee/employee-list"
           },
           {
+            "menuValue": "Employment List",
+            "route": "/employee/employment-list",
+            "active_link": "/employee/employment-list"
+          },
+          {
             "menuValue": "Site Location",
             "route": "/employee/site",
             "active_link": "/employee/site"
@@ -527,6 +532,11 @@
         "showSubRoute": false,
         "icon": "user-star",
         "subMenus": [
+          {
+            "menuValue": "Report List",
+            "route": "/reports/report-list",
+            "active_link": "/reports/report-list"
+          },
           {
             "menuValue": "Expense Report",
             "route": "/reports/expenses-report",

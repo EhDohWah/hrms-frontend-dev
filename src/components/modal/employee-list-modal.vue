@@ -6,7 +6,6 @@
         <div class="modal-header">
           <div class="d-flex align-items-center">
             <h4 class="modal-title me-2">Add New Employee</h4>
-            <span>Employee ID : EMP -0024</span>
           </div>
           <button
             type="button"
@@ -33,19 +32,7 @@
                   Basic Information
                 </button>
               </li>
-              <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="address-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#address"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
-                  Permissions
-                </button>
-              </li>
+              
             </ul>
           </div>
           <div class="tab-content" id="myTabContent">

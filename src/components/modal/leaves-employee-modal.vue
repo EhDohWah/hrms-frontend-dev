@@ -296,61 +296,104 @@
                 <!-- Signatures -->
                 <div class="row mt-4">
                   <div class="col-md-6">
-                    <p class="mb-1"><strong>Requested by / ผู้ขอลา:</strong></p>
+                    <p class="mb-1"><strong>Requested by / ยื่นคำร้องโดย:</strong></p>
                     <div class="signature-line mb-2">
                       <span>Signature (Requester)</span>
-                    </div>
-                    <p>
-                      Date:
                       <input
-                        type="date"
-                        class="form-control d-inline-block w-auto ms-2"
-                        v-model="form.requestedByDate"
+                        type="text"
+                        class="form-control d-inline-block w-100 mt-2"
+                        placeholder="Signature"
+                        v-model="form.requesterSignature"
+                      />
+                    </div>
+
+                    <div class="row mb-2">
+                      <div class="col-6">
+                        <p class="mb-0">Date:</p>
+                        <input
+                          type="date"
+                          class="form-control"
+                          v-model="form.requestedByDate"
+                        />
+                      </div>
+                    </div>
+
+                    <p class="mb-1">
+                      <strong>Full Name / ชื่อ-นามสกุล:</strong>
+                      <input
+                        type="text"
+                        class="form-control d-inline-block w-100 mt-2"
+                        placeholder="Full Name"
+                        v-model="form.requesterFullName"
                       />
                     </p>
                   </div>
+
                   <div class="col-md-6">
-                    <p class="mb-1"><strong>Approved by / ผู้อนุมัติ:</strong></p>
+                    <p class="mb-1"><strong>Supervisor Approval / อนุมัติโดยหัวหน้างาน:</strong></p>
+                    
                     <div class="signature-line mb-2">
                       <span>Signature (Supervisor/Manager)</span>
-                    </div>
-                    <p>
-                      Date:
                       <input
-                        type="date"
-                        class="form-control d-inline-block w-auto ms-2"
-                        v-model="form.approvedByDate"
+                        type="text"
+                        class="form-control d-inline-block w-100 mt-2"
+                        placeholder="Signature"
+                        v-model="form.supervisorSignature"
                       />
+                    </div>
+
+                    <div class="row mb-2">
+                      <div class="col-6">
+                        <p class="mb-0">Date:</p>
+                        <input
+                          type="date"
+                          class="form-control"
+                          v-model="form.approvedByDate"
+                        />
+                      </div>
+                    </div>
+
+                    <p class="mb-1">
+                        <strong>Full Name / ชื่อ-นามสกุล:</strong>
+                        <input
+                          type="text"
+                          class="form-control d-inline-block w-100 mt-2"
+                          placeholder="Full Name"
+                          v-model="form.supervisorFullName"
+                        />
                     </p>
                   </div>
                 </div>
 
                 <div class="row mt-4">
                   <div class="col-md-6">
-                    <p class="mb-1"><strong>Noted by / ผู้รับทราบ:</strong></p>
-                    <div class="signature-line mb-2">
-                      <span>Signature (Supervisor / Next-level Manager)</span>
-                    </div>
-                    <p>
-                      Date:
-                      <input
-                        type="date"
-                        class="form-control d-inline-block w-auto ms-2"
-                        v-model="form.notedByDate"
-                      />
-                    </p>
-                  </div>
-                  <div class="col-md-6">
-                    <p class="mb-1"><strong>Approved by HR / ผู้อนุมัติฝ่ายบุคคล:</strong></p>
+                    <p class="mb-1"><strong>Site Administrator/HR Approval / อนุมัติโดยผู้บริหารระดับพื้นที่ / ฝ่ายบุคคล:</strong></p>
                     <div class="signature-line mb-2">
                       <span>Signature (HR)</span>
-                    </div>
-                    <p>
-                      Date:
                       <input
-                        type="date"
-                        class="form-control d-inline-block w-auto ms-2"
-                        v-model="form.approvedHRDate"
+                        type="text"
+                        class="form-control d-inline-block w-100 mt-2"
+                        placeholder="Signature"
+                        v-model="form.hrSignature"
+                      />
+                    </div>
+                    <div class="row mb-2">
+                      <div class="col-6">
+                        <p class="mb-0">Date:</p>
+                        <input
+                          type="date"
+                          class="form-control"
+                          v-model="form.approvedHRDate"
+                        />
+                      </div>
+                    </div>
+                    <p class="mb-1">
+                      <strong>Full Name / ชื่อ-นามสกุล:</strong>
+                      <input
+                        type="text"
+                        class="form-control d-inline-block w-100 mt-2"
+                        placeholder="Full Name"
+                        v-model="form.hrFullName"
                       />
                     </p>
                   </div>

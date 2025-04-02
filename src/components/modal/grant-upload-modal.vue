@@ -96,7 +96,8 @@
             } else {
               // Success with no issues
               const successMessage = response.message || 'File uploaded successfully!';
-              this.showAlert(`${successMessage} (${response.processed_grants || 0} grants processed)`, 'success');
+              const processedCount = response.data?.processed_grants || 0;
+              this.showAlert(`${successMessage} (${processedCount} grants processed)`, 'success');
               this.resetForm();
             }
           } else {

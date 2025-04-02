@@ -29,21 +29,6 @@ class InterviewService {
     const endpoint = API_ENDPOINTS.INTERVIEW.DELETE.replace(':id', id);
     return await apiService.delete(endpoint);
   }
-
-  // Update interview status
-  async updateInterviewStatus(id, status) {
-    const endpoint = API_ENDPOINTS.INTERVIEW.UPDATE_STATUS.replace(':id', id);
-    return await apiService.patch(endpoint, { status });
-  }
-
-  // Submit interview feedback
-  async submitFeedback(id, feedback, score) {
-    const endpoint = API_ENDPOINTS.INTERVIEW.FEEDBACK.replace(':id', id);
-    return await apiService.post(endpoint, {
-      feedback,
-      score
-    });
-  }
 }
 
 export const interviewService = new InterviewService();

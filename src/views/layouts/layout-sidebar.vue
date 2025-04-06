@@ -3,45 +3,45 @@ import { PerfectScrollbar } from "vue3-perfect-scrollbar";
 import "vue3-perfect-scrollbar/dist/vue3-perfect-scrollbar.css";
 
 export default {
-    components: {
-        PerfectScrollbar,
-    },
-    data() {
-        return {
-            settings: {
-                suppressScrollX: true,
-            },
-            activeClass: "active",
-        };
-    },
-    methods: {
-        scrollHanle() {},
-    },
-    computed: {
-        currentPath() {
-            return this.$route.name;
-        },
-        dashboardRoute() {
-            const userRole = localStorage.getItem('userRole')?.toLowerCase();
-            switch (userRole) {
-                case 'admin':
-                    return '/dashboard/admin-dashboard';
-                case 'hr-manager':
-                    return '/dashboard/hr-manager-dashboard';
-                case 'hr-assistant':
-                    return '/dashboard/hr-assistant-dashboard';
-                case 'manager':
-                case 'employee':
-                default:
-                    return '/dashboard/employee-dashboard';
-            }
-        }
-    },
+	components: {
+		PerfectScrollbar,
+	},
+	data() {
+		return {
+			settings: {
+				suppressScrollX: true,
+			},
+			activeClass: "active",
+		};
+	},
+	methods: {
+		scrollHanle() { },
+	},
+	computed: {
+		currentPath() {
+			return this.$route.name;
+		},
+		dashboardRoute() {
+			const userRole = localStorage.getItem('userRole')?.toLowerCase();
+			switch (userRole) {
+				case 'admin':
+					return '/dashboard/admin-dashboard';
+				case 'hr-manager':
+					return '/dashboard/hr-manager-dashboard';
+				case 'hr-assistant':
+					return '/dashboard/hr-assistant-dashboard';
+				case 'manager':
+				case 'employee':
+				default:
+					return '/dashboard/employee-dashboard';
+			}
+		}
+	},
 };
 </script>
 
 <template>
-    <!-- Sidebar -->
+	<!-- Sidebar -->
 	<div class="sidebar" id="sidebar">
 		<!-- Logo -->
 		<div class="sidebar-logo">
@@ -54,15 +54,15 @@ export default {
 
 			<router-link :to="dashboardRoute" class="logo logo-small">
 				<div class="logo-container">
-					<h1 class="logo-title">HRMS</h1>
-					<span class="logo-tagline">SMRU / BHF</span>
+					<h1 class="logo-title">HR</h1>
 				</div>
 			</router-link>
 
 
 			<router-link :to="dashboardRoute" class="dark-logo">
 				<span class="logo-text">HRMS </span>
-				<span style="background: linear-gradient(to right, #00008B, #4169E1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 10px; font-weight: bold;">@SMRU/BHF</span>
+				<span
+					style="background: linear-gradient(to right, #00008B, #4169E1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 10px; font-weight: bold;">@SMRU/BHF</span>
 			</router-link>
 		</div>
 
@@ -76,18 +76,13 @@ export default {
 				<p class="fs-10">System Admin</p>
 			</div>
 			<div class="sidebar-nav mb-3">
-				<ul class="nav nav-tabs nav-tabs-solid nav-tabs-rounded nav-justified bg-transparent"
-					role="tablist">
+				<ul class="nav nav-tabs nav-tabs-solid nav-tabs-rounded nav-justified bg-transparent" role="tablist">
 					<li class="nav-item"><a class="nav-link active border-0" href="javascript:void(0);">Menu</a></li>
 					<li class="nav-item">
-					<router-link class="nav-link border-0" to="/applications/chat"
-						>Chats</router-link
-					>
+						<router-link class="nav-link border-0" to="/applications/chat">Chats</router-link>
 					</li>
 					<li class="nav-item">
-					<router-link class="nav-link border-0" to="/applications/email"
-						>Inbox</router-link
-					>
+						<router-link class="nav-link border-0" to="/applications/email">Inbox</router-link>
 					</li>
 				</ul>
 			</div>

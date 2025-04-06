@@ -1,39 +1,24 @@
 <template>
   <div class="sidebar-contact">
-    <div class="toggle-theme" data-bs-toggle="offcanvas" data-bs-target="#theme-setting">
+    <!-- <div class="toggle-theme" data-bs-toggle="offcanvas" data-bs-target="#theme-setting">
       <i class="fa fa-cog fa-w-16 fa-spin"></i>
-    </div>
+    </div> -->
   </div>
   <div class="sidebar-themesettings offcanvas offcanvas-end" id="theme-setting">
-    <div
-      class="offcanvas-header d-flex align-items-center justify-content-between bg-dark"
-    >
+    <div class="offcanvas-header d-flex align-items-center justify-content-between bg-dark">
       <div>
         <h3 class="mb-1 text-white">Theme Customizer</h3>
         <p class="text-light">Choose your themes & layouts etc.</p>
       </div>
-      <a
-        href="javascript:void(0);"
-        class="custom-btn-close d-flex align-items-center justify-content-center text-white"
-        data-bs-dismiss="offcanvas"
-        ><i class="ti ti-x"></i
-      ></a>
+      <a href="javascript:void(0);" class="custom-btn-close d-flex align-items-center justify-content-center text-white"
+        data-bs-dismiss="offcanvas"><i class="ti ti-x"></i></a>
     </div>
     <div class="themesettings-inner offcanvas-body">
-      <div
-        class="accordion accordion-customicon1 accordions-items-seperate"
-        id="settingtheme"
-      >
+      <div class="accordion accordion-customicon1 accordions-items-seperate" id="settingtheme">
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#layoutsetting"
-              aria-expanded="true"
-              aria-controls="collapsecustomicon1One"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#layoutsetting" aria-expanded="true" aria-controls="collapsecustomicon1One">
               Select Layouts
             </button>
           </h2>
@@ -42,13 +27,7 @@
               <div class="row gx-3">
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="defaultLayout"
-                      value="default"
-                      checked
-                    />
+                    <input type="radio" name="LayoutTheme" id="defaultLayout" value="default" checked />
                     <label for="defaultLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/default.svg" alt="img" />
@@ -70,12 +49,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="horizontalLayout"
-                      value="horizontal"
-                    />
+                    <input type="radio" name="LayoutTheme" id="horizontalLayout" value="horizontal" />
                     <label for="horizontalLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/horizontal.svg" alt="img" />
@@ -86,12 +60,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="horizontal-singleLayout"
-                      value="horizontal-single"
-                    />
+                    <input type="radio" name="LayoutTheme" id="horizontal-singleLayout" value="horizontal-single" />
                     <label for="horizontal-singleLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/horizontal-single.svg" alt="img" />
@@ -102,12 +71,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="detachedLayout"
-                      value="detached"
-                    />
+                    <input type="radio" name="LayoutTheme" id="detachedLayout" value="detached" />
                     <label for="detachedLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/horizontal-single.svg" alt="img" />
@@ -118,12 +82,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="twocolumnLayout"
-                      value="twocolumn"
-                    />
+                    <input type="radio" name="LayoutTheme" id="twocolumnLayout" value="twocolumn" />
                     <label for="twocolumnLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/two-column.svg" alt="img" />
@@ -134,12 +93,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="without-headerLayout"
-                      value="without-header"
-                    />
+                    <input type="radio" name="LayoutTheme" id="without-headerLayout" value="without-header" />
                     <label for="without-headerLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/without-header.svg" alt="img" />
@@ -150,12 +104,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="horizontal-overlayLayout"
-                      value="horizontal-overlay"
-                    />
+                    <input type="radio" name="LayoutTheme" id="horizontal-overlayLayout" value="horizontal-overlay" />
                     <label for="horizontal-overlayLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/overlay.svg" alt="img" />
@@ -166,12 +115,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="horizontal-sidemenuLayout"
-                      value="horizontal-sidemenu"
-                    />
+                    <input type="radio" name="LayoutTheme" id="horizontal-sidemenuLayout" value="horizontal-sidemenu" />
                     <label for="horizontal-sidemenuLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/menu-aside.svg" alt="img" />
@@ -182,12 +126,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="stackedLayout"
-                      value="stacked"
-                    />
+                    <input type="radio" name="LayoutTheme" id="stackedLayout" value="stacked" />
                     <label for="stackedLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/stacked.svg" alt="img" />
@@ -198,12 +137,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="modernLayout"
-                      value="modern"
-                    />
+                    <input type="radio" name="LayoutTheme" id="modernLayout" value="modern" />
                     <label for="modernLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/modern.svg" alt="img" />
@@ -214,12 +148,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="LayoutTheme"
-                      id="transparentLayout"
-                      value="transparent"
-                    />
+                    <input type="radio" name="LayoutTheme" id="transparentLayout" value="transparent" />
                     <label for="transparentLayout">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/transparent.svg" alt="img" />
@@ -242,13 +171,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#sidebarsetting"
-              aria-expanded="true"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#sidebarsetting" aria-expanded="true">
               Layout Width
             </button>
           </h2>
@@ -256,21 +180,13 @@
             <div class="accordion-body">
               <div class="d-flex align-items-center">
                 <div class="theme-width m-1 me-2">
-                  <input
-                    type="radio"
-                    name="width"
-                    id="fluidWidth"
-                    value="fluid"
-                    checked
-                  />
-                  <label for="fluidWidth" class="d-block rounded fs-12"
-                    >Fluid Layout
+                  <input type="radio" name="width" id="fluidWidth" value="fluid" checked />
+                  <label for="fluidWidth" class="d-block rounded fs-12">Fluid Layout
                   </label>
                 </div>
                 <div class="theme-width m-1">
                   <input type="radio" name="width" id="boxWidth" value="box" />
-                  <label for="boxWidth" class="d-block rounded fs-12"
-                    >Boxed Layout
+                  <label for="boxWidth" class="d-block rounded fs-12">Boxed Layout
                   </label>
                 </div>
               </div>
@@ -279,14 +195,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#cardsetting"
-              aria-expanded="true"
-              aria-controls="collapsecustomicon1One"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#cardsetting" aria-expanded="true" aria-controls="collapsecustomicon1One">
               Card Layout
             </button>
           </h2>
@@ -295,13 +205,7 @@
               <div class="row gx-3">
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="card"
-                      id="borderedCard"
-                      value="bordered"
-                      checked
-                    />
+                    <input type="radio" name="card" id="borderedCard" value="bordered" checked />
                     <label for="borderedCard">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/bordered.svg" alt="img" />
@@ -312,12 +216,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="card"
-                      id="borderlessCard"
-                      value="borderless"
-                    />
+                    <input type="radio" name="card" id="borderlessCard" value="borderless" />
                     <label for="borderlessCard">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/borderless.svg" alt="img" />
@@ -343,13 +242,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#sidebarsetting"
-              aria-expanded="true"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#sidebarsetting" aria-expanded="true">
               Sidebar Color
             </button>
           </h2>
@@ -357,52 +251,26 @@
             <div class="accordion-body">
               <div class="d-flex align-items-center">
                 <div class="theme-colorselect m-1 me-2">
-                  <input
-                    type="radio"
-                    name="sidebar"
-                    id="lightSidebar"
-                    value="light"
-                    checked
-                  />
+                  <input type="radio" name="sidebar" id="lightSidebar" value="light" checked />
                   <label for="lightSidebar" class="d-block rounded mb-2"> </label>
                 </div>
                 <div class="theme-colorselect m-1 me-2">
-                  <input
-                    type="radio"
-                    name="sidebar"
-                    id="darkgreenSidebar"
-                    value="darkgreen"
-                  />
+                  <input type="radio" name="sidebar" id="darkgreenSidebar" value="darkgreen" />
                   <label for="darkgreenSidebar" class="d-block rounded bg-darkgreen mb-2">
                   </label>
                 </div>
                 <div class="theme-colorselect m-1 me-2">
-                  <input
-                    type="radio"
-                    name="sidebar"
-                    id="nightblueSidebar"
-                    value="nightblue"
-                  />
+                  <input type="radio" name="sidebar" id="nightblueSidebar" value="nightblue" />
                   <label for="nightblueSidebar" class="d-block rounded bg-nightblue mb-2">
                   </label>
                 </div>
                 <div class="theme-colorselect m-1 me-2">
-                  <input
-                    type="radio"
-                    name="sidebar"
-                    id="darkgraySidebar"
-                    value="darkgray"
-                  />
+                  <input type="radio" name="sidebar" id="darkgraySidebar" value="darkgray" />
                   <label for="darkgraySidebar" class="d-block rounded bg-darkgray mb-2">
                   </label>
                 </div>
                 <div class="theme-colorselect m-1 me-2">
-                  <input
-                    type="radio"
-                    name="sidebar"
-                    id="royalblueSidebar"
-                    value="royalblue"
-                  />
+                  <input type="radio" name="sidebar" id="royalblueSidebar" value="royalblue" />
                   <label for="royalblueSidebar" class="d-block rounded bg-royalblue mb-2">
                   </label>
                 </div>
@@ -421,13 +289,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#modesetting"
-              aria-expanded="true"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#modesetting" aria-expanded="true">
               Color Mode
             </button>
           </h2>
@@ -436,17 +299,10 @@
               <div class="row gx-3">
                 <div class="col-6">
                   <div class="theme-mode">
-                    <input
-                      type="radio"
-                      name="theme"
-                      id="lightTheme"
-                      value="light"
-                      checked
-                    />
+                    <input type="radio" name="theme" id="lightTheme" value="light" checked />
                     <label for="lightTheme" class="p-2 rounded fw-medium w-100">
-                      <span class="avatar avatar-md d-inline-flex rounded me-2"
-                        ><i class="ti ti-sun-filled"></i></span
-                      >Light Mode
+                      <span class="avatar avatar-md d-inline-flex rounded me-2"><i
+                          class="ti ti-sun-filled"></i></span>Light Mode
                     </label>
                   </div>
                 </div>
@@ -454,9 +310,8 @@
                   <div class="theme-mode">
                     <input type="radio" name="theme" id="darkTheme" value="dark" />
                     <label for="darkTheme" class="p-2 rounded fw-medium w-100">
-                      <span class="avatar avatar-md d-inline-flex rounded me-2"
-                        ><i class="ti ti-moon-filled"></i></span
-                      >Dark Mode
+                      <span class="avatar avatar-md d-inline-flex rounded me-2"><i
+                          class="ti ti-moon-filled"></i></span>Dark Mode
                     </label>
                   </div>
                 </div>
@@ -466,14 +321,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#sizesetting"
-              aria-expanded="true"
-              aria-controls="collapsecustomicon1One"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#sizesetting" aria-expanded="true" aria-controls="collapsecustomicon1One">
               Sidebar Size
             </button>
           </h2>
@@ -482,13 +331,7 @@
               <div class="row gx-3">
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="size"
-                      id="defaultSize"
-                      value="default"
-                      checked
-                    />
+                    <input type="radio" name="size" id="defaultSize" value="default" checked />
                     <label for="defaultSize">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/default.svg" alt="img" />
@@ -510,12 +353,7 @@
                 </div>
                 <div class="col-4">
                   <div class="theme-layout mb-3">
-                    <input
-                      type="radio"
-                      name="size"
-                      id="hoverviewSize"
-                      value="hoverview"
-                    />
+                    <input type="radio" name="size" id="hoverviewSize" value="hoverview" />
                     <label for="hoverviewSize">
                       <span class="d-block mb-2 layout-img">
                         <img src="@/assets/img/theme/hoverview.svg" alt="img" />
@@ -530,13 +368,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#colorsetting"
-              aria-expanded="true"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#colorsetting" aria-expanded="true">
               Top Bar Color
             </button>
           </h2>
@@ -544,95 +377,40 @@
             <div class="accordion-body pb-1">
               <div class="d-flex align-items-center flex-wrap">
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="whiteTopbar"
-                    value="white"
-                    checked
-                  />
+                  <input type="radio" name="topbar" id="whiteTopbar" value="white" checked />
                   <label for="whiteTopbar" class="white-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="darkaquaTopbar"
-                    value="darkaqua"
-                  />
+                  <input type="radio" name="topbar" id="darkaquaTopbar" value="darkaqua" />
                   <label for="darkaquaTopbar" class="darkaqua-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="whiterockTopbar"
-                    value="whiterock"
-                  />
+                  <input type="radio" name="topbar" id="whiterockTopbar" value="whiterock" />
                   <label for="whiterockTopbar" class="whiterock-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="rockblueTopbar"
-                    value="rockblue"
-                  />
+                  <input type="radio" name="topbar" id="rockblueTopbar" value="rockblue" />
                   <label for="rockblueTopbar" class="rockblue-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="bluehazeTopbar"
-                    value="bluehaze"
-                  />
+                  <input type="radio" name="topbar" id="bluehazeTopbar" value="bluehaze" />
                   <label for="bluehazeTopbar" class="bluehaze-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="orangeGradientTopbar"
-                    value="orangegradient"
-                  />
-                  <label
-                    for="orangeGradientTopbar"
-                    class="orange-gradient-topbar"
-                  ></label>
+                  <input type="radio" name="topbar" id="orangeGradientTopbar" value="orangegradient" />
+                  <label for="orangeGradientTopbar" class="orange-gradient-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="purpleGradientTopbar"
-                    value="purplegradient"
-                  />
-                  <label
-                    for="purpleGradientTopbar"
-                    class="purple-gradient-topbar"
-                  ></label>
+                  <input type="radio" name="topbar" id="purpleGradientTopbar" value="purplegradient" />
+                  <label for="purpleGradientTopbar" class="purple-gradient-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="blueGradientTopbar"
-                    value="bluegradient"
-                  />
+                  <input type="radio" name="topbar" id="blueGradientTopbar" value="bluegradient" />
                   <label for="blueGradientTopbar" class="blue-gradient-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 me-3">
-                  <input
-                    type="radio"
-                    name="topbar"
-                    id="maroonGradientTopbar"
-                    value="maroongradient"
-                  />
-                  <label
-                    for="maroonGradientTopbar"
-                    class="maroon-gradient-topbar"
-                  ></label>
+                  <input type="radio" name="topbar" id="maroonGradientTopbar" value="maroongradient" />
+                  <label for="maroonGradientTopbar" class="maroon-gradient-topbar"></label>
                 </div>
                 <div class="theme-colorselect mb-3 mt-0">
                   <div class="theme-topbar"></div>
@@ -644,13 +422,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#topcolorsetting"
-              aria-expanded="true"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#topcolorsetting" aria-expanded="true">
               Top Bar Background
             </button>
           </h2>
@@ -659,97 +432,48 @@
               <h6 class="mb-1 fw-medium">Pattern</h6>
               <div class="d-flex align-items-center">
                 <div class="theme-topbarbg me-3 mb-2">
-                  <input
-                    type="radio"
-                    name="topbarbg"
-                    id="pattern1"
-                    value="pattern1"
-                    checked
-                  />
+                  <input type="radio" name="topbarbg" id="pattern1" value="pattern1" checked />
                   <label for="pattern1" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/pattern-01.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/pattern-01.svg" alt="img" class="rounded" />
                   </label>
                 </div>
                 <div class="theme-topbarbg me-3 mb-2">
                   <input type="radio" name="topbarbg" id="pattern2" value="pattern2" />
                   <label for="pattern2" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/pattern-02.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/pattern-02.svg" alt="img" class="rounded" />
                   </label>
                 </div>
                 <div class="theme-topbarbg me-3 mb-2">
                   <input type="radio" name="topbarbg" id="pattern3" value="pattern3" />
                   <label for="pattern3" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/pattern-03.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/pattern-03.svg" alt="img" class="rounded" />
                   </label>
                 </div>
               </div>
               <h6 class="mb-1 fw-medium">Colors</h6>
               <div class="d-flex align-items-center">
                 <div class="theme-colorselect m-1 me-3">
-                  <input
-                    type="radio"
-                    name="topbarcolor"
-                    id="whiteTopbarcolor"
-                    value="white"
-                    checked
-                  />
+                  <input type="radio" name="topbarcolor" id="whiteTopbarcolor" value="white" checked />
                   <label for="whiteTopbarcolor" class="white-topbar"></label>
                 </div>
                 <div class="theme-colorselect m-1 me-3">
-                  <input
-                    type="radio"
-                    name="topbarcolor"
-                    id="primaryTopbarcolor"
-                    value="primary"
-                  />
+                  <input type="radio" name="topbarcolor" id="primaryTopbarcolor" value="primary" />
                   <label for="primaryTopbarcolor" class="primary-topbar"></label>
                 </div>
                 <div class="theme-colorselect m-1 me-3">
-                  <input
-                    type="radio"
-                    name="topbarcolor"
-                    id="blackpearlTopbarcolor"
-                    value="blackpearl"
-                  />
+                  <input type="radio" name="topbarcolor" id="blackpearlTopbarcolor" value="blackpearl" />
                   <label for="blackpearlTopbarcolor" class="blackpearl-topbar"></label>
                 </div>
                 <div class="theme-colorselect m-1 me-3">
-                  <input
-                    type="radio"
-                    name="topbarcolor"
-                    id="maroonTopbarcolor"
-                    value="maroon"
-                  />
+                  <input type="radio" name="topbarcolor" id="maroonTopbarcolor" value="maroon" />
                   <label for="maroonTopbarcolor" class="maroon-topbar"></label>
                 </div>
                 <div class="theme-colorselect m-1 me-3">
-                  <input
-                    type="radio"
-                    name="topbarcolor"
-                    id="bluegemTopbarcolor"
-                    value="bluegem"
-                  />
+                  <input type="radio" name="topbarcolor" id="bluegemTopbarcolor" value="bluegem" />
                   <label for="bluegemTopbarcolor" class="bluegem-topbar"></label>
                 </div>
                 <div class="theme-colorselect m-1 me-3">
-                  <input
-                    type="radio"
-                    name="topbarcolor"
-                    id="fireflyTopbarcolor"
-                    value="firefly"
-                  />
+                  <input type="radio" name="topbarcolor" id="fireflyTopbarcolor" value="firefly" />
                   <label for="fireflyTopbarcolor" class="firefly-topbar"></label>
                 </div>
                 <div class="theme-colorselect m-1 mt-0">
@@ -762,13 +486,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#sidebarbgsetting"
-              aria-expanded="true"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#sidebarbgsetting" aria-expanded="true">
               Sidebar Background
             </button>
           </h2>
@@ -776,93 +495,39 @@
             <div class="accordion-body pb-1">
               <div class="d-flex align-items-center flex-wrap">
                 <div class="theme-sidebarbg me-3 mb-3">
-                  <input
-                    type="radio"
-                    name="sidebarbg"
-                    id="sidebarBg1"
-                    value="sidebarbg1"
-                  />
+                  <input type="radio" name="sidebarbg" id="sidebarBg1" value="sidebarbg1" />
                   <label for="sidebarBg1" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/sidebar-bg-01.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/sidebar-bg-01.svg" alt="img" class="rounded" />
                   </label>
                 </div>
                 <div class="theme-sidebarbg me-3 mb-3">
-                  <input
-                    type="radio"
-                    name="sidebarbg"
-                    id="sidebarBg2"
-                    value="sidebarbg2"
-                  />
+                  <input type="radio" name="sidebarbg" id="sidebarBg2" value="sidebarbg2" />
                   <label for="sidebarBg2" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/sidebar-bg-02.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/sidebar-bg-02.svg" alt="img" class="rounded" />
                   </label>
                 </div>
                 <div class="theme-sidebarbg me-3 mb-3">
-                  <input
-                    type="radio"
-                    name="sidebarbg"
-                    id="sidebarBg3"
-                    value="sidebarbg3"
-                  />
+                  <input type="radio" name="sidebarbg" id="sidebarBg3" value="sidebarbg3" />
                   <label for="sidebarBg3" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/sidebar-bg-03.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/sidebar-bg-03.svg" alt="img" class="rounded" />
                   </label>
                 </div>
                 <div class="theme-sidebarbg me-3 mb-3">
-                  <input
-                    type="radio"
-                    name="sidebarbg"
-                    id="sidebarBg4"
-                    value="sidebarbg4"
-                  />
+                  <input type="radio" name="sidebarbg" id="sidebarBg4" value="sidebarbg4" />
                   <label for="sidebarBg4" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/sidebar-bg-04.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/sidebar-bg-04.svg" alt="img" class="rounded" />
                   </label>
                 </div>
                 <div class="theme-sidebarbg me-3 mb-3">
-                  <input
-                    type="radio"
-                    name="sidebarbg"
-                    id="sidebarBg5"
-                    value="sidebarbg5"
-                  />
+                  <input type="radio" name="sidebarbg" id="sidebarBg5" value="sidebarbg5" />
                   <label for="sidebarBg5" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/sidebar-bg-05.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/sidebar-bg-05.svg" alt="img" class="rounded" />
                   </label>
                 </div>
                 <div class="theme-sidebarbg me-3 mb-3">
-                  <input
-                    type="radio"
-                    name="sidebarbg"
-                    id="sidebarBg6"
-                    value="sidebarbg6"
-                  />
+                  <input type="radio" name="sidebarbg" id="sidebarBg6" value="sidebarbg6" />
                   <label for="sidebarBg6" class="d-block rounded">
-                    <img
-                      src="@/assets/img/theme/sidebar-bg-06.svg"
-                      alt="img"
-                      class="rounded"
-                    />
+                    <img src="@/assets/img/theme/sidebar-bg-06.svg" alt="img" class="rounded" />
                   </label>
                 </div>
               </div>
@@ -871,13 +536,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#sidebarcolor"
-              aria-expanded="true"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#sidebarcolor" aria-expanded="true">
               Theme Colors
             </button>
           </h2>
@@ -885,31 +545,15 @@
             <div class="accordion-body pb-2">
               <div class="d-flex align-items-center flex-wrap">
                 <div class="theme-colorsset me-2 mb-2">
-                  <input
-                    type="radio"
-                    name="color"
-                    id="primaryColor"
-                    value="primary"
-                    checked
-                  />
+                  <input type="radio" name="color" id="primaryColor" value="primary" checked />
                   <label for="primaryColor" class="primary-clr"></label>
                 </div>
                 <div class="theme-colorsset me-2 mb-2">
-                  <input
-                    type="radio"
-                    name="color"
-                    id="brightblueColor"
-                    value="brightblue"
-                  />
+                  <input type="radio" name="color" id="brightblueColor" value="brightblue" />
                   <label for="brightblueColor" class="brightblue-clr"></label>
                 </div>
                 <div class="theme-colorsset me-2 mb-2">
-                  <input
-                    type="radio"
-                    name="color"
-                    id="lunargreenColor"
-                    value="lunargreen"
-                  />
+                  <input type="radio" name="color" id="lunargreenColor" value="lunargreen" />
                   <label for="lunargreenColor" class="lunargreen-clr"></label>
                 </div>
                 <div class="theme-colorsset me-2 mb-2">
@@ -921,12 +565,7 @@
                   <label for="magentaColor" class="magenta-clr"></label>
                 </div>
                 <div class="theme-colorsset me-2 mb-2">
-                  <input
-                    type="radio"
-                    name="color"
-                    id="chromeyellowColor"
-                    value="chromeyellow"
-                  />
+                  <input type="radio" name="color" id="chromeyellowColor" value="chromeyellow" />
                   <label for="chromeyellowColor" class="chromeyellow-clr"></label>
                 </div>
                 <div class="theme-colorsset me-2 mb-2">
@@ -934,10 +573,7 @@
                   <label for="lavaredColor" class="lavared-clr"></label>
                 </div>
                 <div class="theme-colorsset mb-2">
-                  <div
-                    class="pickr-container-primary"
-                    onchange="updateChartColor(this.value)"
-                  ></div>
+                  <div class="pickr-container-primary" onchange="updateChartColor(this.value)"></div>
                   <div class="theme-container-primary"></div>
                 </div>
               </div>
@@ -946,13 +582,8 @@
         </div>
         <div class="accordion-item">
           <h2 class="accordion-header">
-            <button
-              class="accordion-button text-dark fs-16"
-              type="button"
-              data-bs-toggle="collapse"
-              data-bs-target="#loadersetting"
-              aria-expanded="true"
-            >
+            <button class="accordion-button text-dark fs-16" type="button" data-bs-toggle="collapse"
+              data-bs-target="#loadersetting" aria-expanded="true">
               Preloader
             </button>
           </h2>
@@ -960,21 +591,13 @@
             <div class="accordion-body">
               <div class="d-flex align-items-center">
                 <div class="theme-width me-2">
-                  <input
-                    type="radio"
-                    name="loader"
-                    id="enableLoader"
-                    value="enable"
-                    checked
-                  />
-                  <label for="enableLoader" class="d-block rounded fs-12"
-                    >With Preloader
+                  <input type="radio" name="loader" id="enableLoader" value="enable" checked />
+                  <label for="enableLoader" class="d-block rounded fs-12">With Preloader
                   </label>
                 </div>
                 <div class="theme-width">
                   <input type="radio" name="loader" id="disableLoader" value="disable" />
-                  <label for="disableLoader" class="d-block rounded fs-12"
-                    >Without Preloader
+                  <label for="disableLoader" class="d-block rounded fs-12">Without Preloader
                   </label>
                 </div>
               </div>
@@ -986,14 +609,12 @@
     <div class="p-3 pt-0">
       <div class="row gx-3">
         <div class="col-6">
-          <a href="javascript:void(0);" id="resetbutton" class="btn btn-light close-theme w-100"
-            ><i class="ti ti-restore me-1"></i>Reset</a
-          >
+          <a href="javascript:void(0);" id="resetbutton" class="btn btn-light close-theme w-100"><i
+              class="ti ti-restore me-1"></i>Reset</a>
         </div>
         <div class="col-6">
-          <a href="javascript:void(0);" class="btn btn-primary w-100" data-bs-dismiss="offcanvas"
-            ><i class="ti ti-shopping-cart-plus me-1"></i>Buy Product</a
-          >
+          <a href="javascript:void(0);" class="btn btn-primary w-100" data-bs-dismiss="offcanvas"><i
+              class="ti ti-shopping-cart-plus me-1"></i>Buy Product</a>
         </div>
       </div>
     </div>

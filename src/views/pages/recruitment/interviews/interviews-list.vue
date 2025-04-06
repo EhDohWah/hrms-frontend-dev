@@ -10,7 +10,8 @@
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="me-2 mb-2">
             <div class="dropdown">
-              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
+              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                data-bs-toggle="dropdown">
                 <i class="ti ti-file-export me-1"></i>Export
               </a>
               <ul class="dropdown-menu dropdown-menu-end p-3">
@@ -32,6 +33,13 @@
               <i class="ti ti-circle-plus me-2"></i>Add Interview
             </button>
           </div>
+
+          <div class="ms-2 head-icons">
+            <a href="javascript:void(0);" :class="{ active: isCollapsed }" @click="toggleCollapse"
+              data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Collapse" id="collapse-header">
+              <i class="ti ti-chevrons-up"></i>
+            </a>
+          </div>
         </div>
       </div>
       <!-- /Breadcrumb -->
@@ -52,20 +60,14 @@
             <p class="mt-2">Loading interviews...</p>
           </div>
           <div v-else>
-            <a-table 
-              :columns="columns" 
-              :data-source="tableData" 
-              :pagination="pagination"
-              :scroll="{ x: 'max-content' }"
-              row-key="id"
-              @change="handleTableChange"
-            >
+            <a-table :columns="columns" :data-source="tableData" :pagination="pagination" :scroll="{ x: 'max-content' }"
+              row-key="id" @change="handleTableChange">
               <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === 'actions'">
                   <div class="action-icon d-inline-flex">
-                    <!-- <router-link :to="`/recruitment/interviews/details/${record.id}`" class="me-2">
+                    <router-link :to="`/recruitment/interviews-details/${record.id}`" class="me-2">
                       <i class="ti ti-eye"></i>
-                    </router-link> -->
+                    </router-link>
                     <a href="javascript:void(0);" class="me-2" @click="openEditInterviewModal(record)">
                       <i class="ti ti-edit"></i>
                     </a>
@@ -80,12 +82,12 @@
         </div>
       </div>
     </div>
-    <layout-footer></layout-footer> 
+    <layout-footer></layout-footer>
   </div>
 
   <!-- Interview Modal -->
   <interview-modal ref="interviewModal" @interview-added="fetchInterviews" @interview-updated="fetchInterviews" />
-  
+
   <!-- Notification Toast -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
     <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -159,7 +161,7 @@ export default {
     columns() {
       const filtered = this.filteredInfo || {};
       const sorted = this.sortedInfo || {};
-      
+
       return [
         {
           title: 'Candidate Name',
@@ -208,20 +210,20 @@ export default {
           sorter: (a, b) => moment(a.interview_date).unix() - moment(b.interview_date).unix(),
           sortOrder: sorted.columnKey === 'interview_date' && sorted.order,
         },
-        {
-          title: 'Mode',
-          dataIndex: 'interview_mode',
-          key: 'interview_mode',
-          filters: [
-            { text: 'In-person', value: 'In-person' },
-            { text: 'Virtual', value: 'Virtual' },
-            { text: 'Phone', value: 'Phone' },
-          ],
-          filteredValue: filtered.interview_mode || null,
-          onFilter: (value, record) => record.interview_mode === value,
-          sorter: (a, b) => a.interview_mode.localeCompare(b.interview_mode),
-          sortOrder: sorted.columnKey === 'interview_mode' && sorted.order,
-        },
+        // {
+        //   title: 'Mode',
+        //   dataIndex: 'interview_mode',
+        //   key: 'interview_mode',
+        //   filters: [
+        //     { text: 'In-person', value: 'In-person' },
+        //     { text: 'Virtual', value: 'Virtual' },
+        //     { text: 'Phone', value: 'Phone' },
+        //   ],
+        //   filteredValue: filtered.interview_mode || null,
+        //   onFilter: (value, record) => record.interview_mode === value,
+        //   sorter: (a, b) => a.interview_mode.localeCompare(b.interview_mode),
+        //   sortOrder: sorted.columnKey === 'interview_mode' && sorted.order,
+        // },
         {
           title: 'Status',
           dataIndex: 'interview_status',
@@ -237,13 +239,13 @@ export default {
           sorter: (a, b) => a.interview_status.localeCompare(b.interview_status),
           sortOrder: sorted.columnKey === 'interview_status' && sorted.order,
         },
-        {
-          title: 'Score',
-          dataIndex: 'score',
-          key: 'score',
-          sorter: (a, b) => a.score - b.score,
-          sortOrder: sorted.columnKey === 'score' && sorted.order,
-        },
+        // {
+        //   title: 'Score',
+        //   dataIndex: 'score',
+        //   key: 'score',
+        //   sorter: (a, b) => a.score - b.score,
+        //   sortOrder: sorted.columnKey === 'score' && sorted.order,
+        // },
         {
           title: 'Actions',
           dataIndex: 'actions',
@@ -262,11 +264,21 @@ export default {
     this.fetchInterviews();
   },
   methods: {
+
+
+    toggleCollapse() {
+      this.isCollapsed = !this.isCollapsed;
+      if (this.isCollapsed) {
+        document.body.classList.add("header-collapse");
+      } else {
+        document.body.classList.remove("header-collapse");
+      }
+    },
     getUniqueValues(field) {
       const values = [...new Set(this.interviews.map(item => item[field]))].filter(Boolean);
       return values.map(value => ({ text: value, value }));
     },
-    
+
     handleTableChange(pagination, filters, sorter) {
       console.log('Various parameters', pagination, filters, sorter);
       this.currentPage = pagination.current;
@@ -274,22 +286,22 @@ export default {
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
     },
-    
+
     clearFilters() {
       this.filteredInfo = null;
     },
-    
+
     clearAll() {
       this.filteredInfo = null;
       this.sortedInfo = null;
     },
-    
+
     async fetchInterviews() {
       this.loading = true;
-      
+
       try {
         await this.interviewStore.fetchInterviews();
-        
+
         if (this.interviewStore.interviews) {
           this.interviews = this.interviewStore.interviews.map(interview => ({
             ...interview,
@@ -354,12 +366,12 @@ export default {
         console.error('Delete confirmation failed:', error);
       }
     },
-    
+
     showNotification(title, message, className) {
       this.notificationTitle = title;
       this.notificationMessage = message;
       this.notificationClass = className;
-      
+
       const toastEl = document.getElementById('notificationToast');
       const toast = new Toast(toastEl);
       toast.show();
@@ -378,7 +390,7 @@ export default {
   margin-bottom: 16px;
 }
 
-.table-operations > button {
+.table-operations>button {
   margin-right: 8px;
 }
 

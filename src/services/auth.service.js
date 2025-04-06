@@ -131,7 +131,13 @@ class AuthService {
   // -------------------------
   // Log in the user using provided credentials
   async login(credentials) {
-    await this.initializeCSRF();
+    try {
+      await this.initializeCSRF();
+    } catch (error) {
+      console.error('Failed to initialize CSRF protection:', error);
+      // Continue with login attempt even if CSRF initialization fails
+      // Some APIs might not require CSRF tokens
+    }
     try {
       const response = await apiService.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
       if (response.access_token) {
@@ -142,7 +148,7 @@ class AuthService {
       }
       throw new Error('Login failed: No access token received');
     } catch (error) {
-      console.error('Login error:', error);
+      console.log('error', error);
       this.clearAuthData();
       throw error;
     }

@@ -661,25 +661,18 @@ export default {
       }
     },
 
-    async fetchDepartments() {
+    async fetchDepartmentsAndPositions() {
       try {
         const response = await departmentPositionService.getAllDepartmentPositions();
+        
         // Extract unique departments from the response
         const uniqueDepartments = [...new Set(response.data.map(item => item.department))];
         this.departments = uniqueDepartments.map(dept => ({
           name: dept,
           id: dept // Using department name as ID for simplicity
         }));
-      } catch (error) {
-        console.error("Error fetching departments:", error);
-        this.$message.error('Failed to load departments');
-      }
-    },
-    
-    async fetchPositions() {
-      try {
-        const response = await departmentPositionService.getAllDepartmentPositions();
-        // If department is selected, filter positions by department
+        
+        // Process positions based on department selection
         if (this.selectedDepartment) {
           this.positions = response.data
             .filter(item => item.department === this.selectedDepartment)
@@ -696,10 +689,20 @@ export default {
             department: item.department
           }));
         }
+        
       } catch (error) {
-        console.error("Error fetching positions:", error);
-        this.$message.error('Failed to load positions');
+        console.error("Error fetching departments and positions:", error);
+        this.$message.error('Failed to load departments and positions');
       }
+    },
+    
+    // Keeping these methods for backward compatibility
+    async fetchDepartments() {
+      await this.fetchDepartmentsAndPositions();
+    },
+    
+    async fetchPositions() {
+      await this.fetchDepartmentsAndPositions();
     },
 
     selectSite(siteName, siteId) {

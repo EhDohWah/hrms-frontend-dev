@@ -28,12 +28,7 @@
       <div class="header-user">
         <div class="nav user-menu nav-list">
           <div class="me-auto d-flex align-items-center" id="header-search">
-            <a
-              id="toggle_btn"
-              href="javascript:void(0);"
-              @click="toggleSidebar"
-              class="btn btn-menubar me-1"
-            >
+            <a id="toggle_btn" href="javascript:void(0);" @click="toggleSidebar" class="btn btn-menubar me-1">
               <i class="ti ti-arrow-bar-to-left"></i>
             </a>
             <!-- Search -->
@@ -47,45 +42,29 @@
               </span>
             </div>
             <!-- /Search -->
-            
-          </div>          
+
+          </div>
 
           <div class="d-flex align-items-center">
             <div class="me-1">
-              <a
-                href="javascript:void(0);"
-                class="btn btn-menubar btnFullscreen"
-                @click="initFullScreen"
-              >
+              <a href="javascript:void(0);" class="btn btn-menubar btnFullscreen" @click="initFullScreen">
                 <i class="ti ti-maximize"></i>
               </a>
             </div>
-            
+
             <div class="me-1 notification_item">
-              <a
-                href="javascript:void(0);"
-                class="btn btn-menubar position-relative me-1"
-                id="notification_popup"
-                data-bs-toggle="dropdown"
-              >
+              <a href="javascript:void(0);" class="btn btn-menubar position-relative me-1" id="notification_popup"
+                data-bs-toggle="dropdown">
                 <i class="ti ti-bell"></i>
                 <span class="notification-status-dot"></span>
               </a>
               <div class="dropdown-menu dropdown-menu-end notification-dropdown p-4">
-                <div
-                  class="d-flex align-items-center justify-content-between border-bottom p-0 pb-3 mb-3"
-                >
+                <div class="d-flex align-items-center justify-content-between border-bottom p-0 pb-3 mb-3">
                   <h4 class="notification-title">Notifications (2)</h4>
                   <div class="d-flex align-items-center">
-                    <a href="javascript:void(0);" class="text-primary fs-15 me-3 lh-1"
-                      >Mark all as read</a
-                    >
+                    <a href="javascript:void(0);" class="text-primary fs-15 me-3 lh-1">Mark all as read</a>
                     <div class="dropdown">
-                      <a
-                        href="javascript:void(0);"
-                        class="bg-white dropdown-toggle"
-                        data-bs-toggle="dropdown"
-                      >
+                      <a href="javascript:void(0);" class="bg-white dropdown-toggle" data-bs-toggle="dropdown">
                         <i class="ti ti-calendar-due me-1"></i>Today
                       </a>
                       <ul class="dropdown-menu mt-2 p-3">
@@ -114,10 +93,7 @@
                       <router-link to="/crm/activity">
                         <div class="d-flex">
                           <span class="avatar avatar-lg me-2 flex-shrink-0">
-                            <img
-                              src="@/assets/img/profiles/avatar-27.jpg"
-                              alt="Profile"
-                            />
+                            <img src="@/assets/img/profiles/avatar-27.jpg" alt="Profile" />
                           </span>
                           <div class="flex-grow-1">
                             <p class="mb-1">
@@ -133,10 +109,7 @@
                       <router-link to="/crm/activity" class="pb-0">
                         <div class="d-flex">
                           <span class="avatar avatar-lg me-2 flex-shrink-0">
-                            <img
-                              src="@/assets/img/profiles/avatar-23.jpg"
-                              alt="Profile"
-                            />
+                            <img src="@/assets/img/profiles/avatar-23.jpg" alt="Profile" />
                           </span>
                           <div class="flex-grow-1">
                             <p class="mb-1">
@@ -144,9 +117,7 @@
                               appointment on 02:00 PM
                             </p>
                             <span>10 mins ago</span>
-                            <div
-                              class="d-flex justify-content-start align-items-center mt-1"
-                            >
+                            <div class="d-flex justify-content-start align-items-center mt-1">
                               <span class="btn btn-light btn-sm me-2">Deny</span>
                               <span class="btn btn-primary btn-sm">Approve</span>
                             </div>
@@ -158,10 +129,7 @@
                       <router-link to="/crm/activity">
                         <div class="d-flex">
                           <span class="avatar avatar-lg me-2 flex-shrink-0">
-                            <img
-                              src="@/assets/img/profiles/avatar-25.jpg"
-                              alt="Profile"
-                            />
+                            <img src="@/assets/img/profiles/avatar-25.jpg" alt="Profile" />
                           </span>
                           <div class="flex-grow-1">
                             <p class="mb-1">
@@ -179,10 +147,7 @@
                       <router-link to="/crm/activity">
                         <div class="d-flex">
                           <span class="avatar avatar-lg me-2 flex-shrink-0">
-                            <img
-                              src="@/assets/img/profiles/avatar-01.jpg"
-                              alt="Profile"
-                            />
+                            <img src="@/assets/img/profiles/avatar-01.jpg" alt="Profile" />
                           </span>
                           <div class="flex-grow-1">
                             <p class="mb-1">
@@ -197,28 +162,16 @@
                   </div>
                 </div>
                 <div class="d-flex p-0">
-                  <a href="javascript:void(0);" class="btn btn-light w-100 me-2"
-                    >Cancel</a
-                  >
-                  <router-link to="/crm/activity" class="btn btn-primary w-100"
-                    >View All</router-link
-                  >
+                  <a href="javascript:void(0);" class="btn btn-light w-100 me-2">Cancel</a>
+                  <router-link to="/crm/activity" class="btn btn-primary w-100">View All</router-link>
                 </div>
               </div>
             </div>
 
             <div class="dropdown profile-dropdown">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle d-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
+              <a href="javascript:void(0);" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
                 <span class="avatar avatar-sm online">
-                  <img
-                    :src="profilePictureUrl"
-                    alt="Img"
-                    class="img-fluid rounded-circle"
-                  />
+                  <img :src="profilePictureUrl" alt="Img" class="img-fluid rounded-circle" />
                 </span>
               </a>
               <div class="dropdown-menu shadow-none">
@@ -229,31 +182,23 @@
                         <img :src="profilePictureUrl" alt="img" />
                       </span>
                       <div>
-                        <h5 class="mb-0">{{ username}}</h5>
-                        <p class="fs-12 fw-medium mb-0">{{ email}}</p>
+                        <h5 class="mb-0">{{ username }}</h5>
+                        <p class="fs-12 fw-medium mb-0">{{ email }}</p>
                       </div>
                     </div>
                   </div>
                   <div class="card-body">
-                    <router-link
-                      class="dropdown-item d-inline-flex align-items-center p-0 py-2"
-                      to="/pages/profile"
-                    >
+                    <router-link class="dropdown-item d-inline-flex align-items-center p-0 py-2" to="/pages/profile">
                       <i class="ti ti-user-circle me-1"></i>My Profile
                     </router-link>
-                    <router-link
-                      class="dropdown-item d-inline-flex align-items-center p-0 py-2"
-                      to="/general-settings/profile-settings"
-                    >
+                    <router-link class="dropdown-item d-inline-flex align-items-center p-0 py-2"
+                      to="/general-settings/profile-settings">
                       <i class="ti ti-settings me-1"></i>Settings
                     </router-link>
                   </div>
                   <div class="card-footer">
-                    <a 
-                      class="dropdown-item d-inline-flex align-items-center p-0 py-2" 
-                      href="#" 
-                      @click.prevent="handleLogout"
-                    >
+                    <a class="dropdown-item d-inline-flex align-items-center p-0 py-2" href="#"
+                      @click.prevent="handleLogout">
                       <i class="ti ti-login me-2"></i>Logout
                     </a>
                   </div>
@@ -266,29 +211,18 @@
 
       <!-- Mobile Menu -->
       <div class="dropdown mobile-user-menu">
-        <a
-          href="javascript:void(0);"
-          class="nav-link dropdown-toggle"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
-          ><i class="fa fa-ellipsis-v"></i
-        ></a>
+        <a href="javascript:void(0);" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
+          aria-expanded="false"><i class="fa fa-ellipsis-v"></i></a>
         <div class="dropdown-menu dropdown-menu-end">
           <router-link class="dropdown-item" to="/pages/profile">My Profile</router-link>
-          <router-link class="dropdown-item" to="/general-settings/profile-settings"
-            >Settings</router-link
-          >
-          <a 
-            class="dropdown-item" 
-            href="#" 
-            @click.prevent="handleLogout"
-          >Logout</a>
+          <router-link class="dropdown-item" to="/general-settings/profile-settings">Settings</router-link>
+          <a class="dropdown-item" href="#" @click.prevent="handleLogout">Logout</a>
         </div>
       </div>
       <!-- /Mobile Menu -->
     </div>
   </div>
-  
+  <theme-settings></theme-settings>
 
 </template>
 <script>
@@ -309,28 +243,28 @@ export default {
   },
   setup() {
     const authStore = useAuthStore();
-    
+
     // Use computed properties to reactively access user data from the store
     const username = computed(() => {
       return authStore.user && authStore.user.name ? authStore.user.name : 'User';
     });
-    
+
     const email = computed(() => {
       return authStore.user && authStore.user.email ? authStore.user.email : 'user@example.com';
     });
-    
+
     const profilePictureUrl = computed(() => {
       if (authStore.user && authStore.user.profile_picture) {
         return `${process.env.VUE_APP_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
       }
       return null; // Fallback handled in template
     });
-    
+
     // Make sure the store has loaded the user data
     if (!authStore.user) {
       authStore.updateUserData();
     }
-    
+
     return { username, email, profilePictureUrl, authStore };
   },
   mounted() {

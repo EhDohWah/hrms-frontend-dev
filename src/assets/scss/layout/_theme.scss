@@ -4441,7 +4441,7 @@ body.data-layout-transparent {
     }
 }
 [data-color="primary"]{
-    $primary: #4A90E2; // Change to your desired primary color;
+    $primary: $primary; // Change to your desired primary color;
     .sidebar {
         .sidebar-menu > ul {
             &  > li {

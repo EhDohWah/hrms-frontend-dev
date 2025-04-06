@@ -84,6 +84,11 @@
             "active_link": "/recruitment/interviews-list"
           },
           {
+            "menuValue": "Job Offers",
+            "route": "/recruitment/job-offers-list",
+            "active_link": "/recruitment/job-offers-list"
+          },
+          {
             "menuValue": "Jobs",
             "route": "/recruitment/job-list",
             "active_link": "/recruitment/job-list"
@@ -285,6 +290,11 @@
         "showSubRoute": false,
         "icon": "edit",
         "subMenus": [
+          {
+            "menuValue": "Employee Training",
+            "route": "/training/employee-training-list",
+            "active_link": "/training/employee-training-list"
+          },
           {
             "menuValue": "Training List",
             "route": "/training/training-list",
@@ -665,11 +675,6 @@
                 "menuValue": "Prefixes",
                 "route": "/website-settings/prefixes",
                 "active_link": "/website-settings/prefixes"
-              },
-              {
-                "menuValue": "Preferences",
-                "route": "/website-settings/preferences",
-                "active_link": "/website-settings/preferences"
               },
               {
                 "menuValue": "Appearance",

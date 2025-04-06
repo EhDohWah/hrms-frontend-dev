@@ -18,7 +18,7 @@ $font-family-primary: "Roboto", sans-serif;
 $font-awesome: "Fontawesome";
 	
 // Theme Colors Variables
-$primary: #0D3E5F;
+$primary: #011b44;
 $primary-hover: darken($primary, 10%);
 $secondary: #3B7080;
 $secondary-hover: darken($secondary, 10%);
@@ -65,15 +65,15 @@ $green: green;
 $red: red;
 
 // Primary
-$primary-100: #FEF0E9;
-$primary-200: #FCE0D3;
-$primary-300: #FBD1BD;
-$primary-400: #FAC1A7;
-$primary-500: #F9B291;
-$primary-600: #F7A37A;
-$primary-700: #F69364;
-$primary-800: #F5844E;
-$primary-900: #F37438;
+$primary-100: #E6E9EE;
+$primary-200: #CCD3DD;
+$primary-300: #B3BDCC;
+$primary-400: #99A7BB;
+$primary-500: #8091AA;
+$primary-600: #667B99;
+$primary-700: #4D6588;
+$primary-800: #334F77;
+$primary-900: #1A3966;
 
 // Secondary
 $secondary-100: #DCE5E8;
@@ -282,7 +282,7 @@ $dark-transparent: #E8E9EA;
 $teal-transparent: #E6F9FF;
 $purple-transparent: #F7EEF9;
 $skyblue-transparent: #E9FAFE;
-$primary-gradient: linear-gradient(90deg, #FF6F28 0%, #FF5325 100%);
+$primary-gradient: linear-gradient(90deg, $primary 0%, darken($primary, 10%) 100%);
 $secondary-gradient: linear-gradient(180deg, #3B7080 0%, #3D90A9 100%);
 $success-gradient: linear-gradient(180deg, #2DCB73 0%, #0DA952 100%);
 $warning-gradient: linear-gradient(180deg, #FFC107 0%, #FFE8A5 100%);

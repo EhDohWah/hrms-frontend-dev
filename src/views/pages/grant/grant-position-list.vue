@@ -1,104 +1,108 @@
   <template>
-  <layout-header></layout-header>
-  <layout-sidebar></layout-sidebar>
-  <!-- Page Wrapper -->
-  <div class="page-wrapper">
-    <div class="content">
-      <!-- Breadcrumb -->
-      <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
-        <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="me-2 mb-2">
-            <div class="dropdown">
-              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
-                <i class="ti ti-file-export me-1"></i>Export
+    <layout-header></layout-header>
+    <layout-sidebar></layout-sidebar>
+    <!-- Page Wrapper -->
+    <div class="page-wrapper">
+      <div class="content">
+        <!-- Breadcrumb -->
+        <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
+            <div class="me-2 mb-2">
+              <div class="dropdown">
+                <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                  data-bs-toggle="dropdown">
+                  <i class="ti ti-file-export me-1"></i>Export
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end p-3">
+                  <li>
+                    <a href="javascript:void(0);" class="dropdown-item rounded-1">
+                      <i class="ti ti-file-type-pdf me-1"></i>Export as PDF
+                    </a>
+                  </li>
+                  <li>
+                    <a href="javascript:void(0);" class="dropdown-item rounded-1">
+                      <i class="ti ti-file-type-xls me-1"></i>Export as Excel
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="mb-2 me-2">
+              <button class="btn btn-primary d-flex align-items-center" @click="openAddGrantPositionModal">
+                <i class="ti ti-circle-plus me-2"></i>Add Grant Position
+              </button>
+            </div>
+
+            <div class="ms-2 head-icons">
+              <a href="javascript:void(0);" :class="{ active: isCollapsed }" @click="toggleCollapse"
+                data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Collapse" id="collapse-header">
+                <i class="ti ti-chevrons-up"></i>
               </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                    <i class="ti ti-file-type-pdf me-1"></i>Export as PDF
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                    <i class="ti ti-file-type-xls me-1"></i>Export as Excel
-                  </a>
-                </li>
-              </ul>
             </div>
           </div>
-          <div class="mb-2 me-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="openAddGrantPositionModal">
-              <i class="ti ti-circle-plus me-2"></i>Add Grant Position
-            </button>
-          </div>
         </div>
-      </div>
-      <!-- /Breadcrumb -->
+        <!-- /Breadcrumb -->
 
-      <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-          <h5>Grant Positions List</h5>
-          <div class="table-operations">
-            <a-button @click="clearFilters">Clear filters</a-button>
-            <a-button @click="clearAll">Clear filters and sorters</a-button>
-          </div>
-        </div>
-        <div class="card-body">
-          <div v-if="loading" class="text-center my-3">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+            <h5>Grant Positions List</h5>
+            <!-- Table Operations -->
+            <div class="table-operations">
+              <a-button @click="clearFilters">Clear filters</a-button>
+              <a-button @click="clearAll">Clear filters and sorters</a-button>
             </div>
-            <p class="mt-2">Loading grants...</p>
+            <!-- /Table Operations -->
           </div>
-          <div v-else>
-            <a-table 
-              :columns="columns" 
-              :data-source="tableData" 
-              :pagination="pagination"
-              :scroll="{ x: 'max-content' }"
-              row-key="id"
-              @change="handleTableChange"
-            >
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.dataIndex === 'actions'">
-                  <div class="action-icon d-inline-flex">
-                    <router-link :to="`/grant/position-details/${record.id}`" class="me-2">
-                      <i class="ti ti-eye"></i>
-                    </router-link>
-                    <a href="javascript:void(0);" class="me-2" @click="openEditGrantPositionModal(record)">
-                      <i class="ti ti-edit"></i>
-                    </a>
-                    <a href="javascript:void(0);" @click="deleteGrantPosition(record.id)">
-                      <i class="ti ti-trash"></i>
-                    </a>
-                  </div>
+          <div class="card-body">
+            <div v-if="loading" class="text-center my-3">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Loading grants...</p>
+            </div>
+            <div v-else>
+              <a-table :columns="columns" :data-source="tableData" :pagination="pagination"
+                :scroll="{ x: 'max-content' }" row-key="id" @change="handleTableChange">
+                <template #bodyCell="{ column, record }">
+                  <template v-if="column.dataIndex === 'actions'">
+                    <div class="action-icon d-inline-flex">
+                      <router-link :to="`/grant/position-details/${record.id}`" class="me-2">
+                        <i class="ti ti-eye"></i>
+                      </router-link>
+                      <a href="javascript:void(0);" class="me-2" @click="openEditGrantPositionModal(record)">
+                        <i class="ti ti-edit"></i>
+                      </a>
+                      <a href="javascript:void(0);" @click="deleteGrantPosition(record.id)">
+                        <i class="ti ti-trash"></i>
+                      </a>
+                    </div>
+                  </template>
                 </template>
-              </template>
-            </a-table>
+              </a-table>
+            </div>
           </div>
         </div>
       </div>
+      <layout-footer></layout-footer>
     </div>
-    <layout-footer></layout-footer>
-  </div>
 
-  <!-- Grant Position Modal -->
-  <grant-position-modal ref="grantPositionModal" @submit="handleGrantPositionSubmit" />
-  
-  <!-- Notification Toast -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-header" :class="notificationClass">
-        <strong class="me-auto">{{ notificationTitle }}</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-      </div>
-      <div class="toast-body">
-        {{ notificationMessage }}
+    <!-- Grant Position Modal -->
+    <grant-position-modal ref="grantPositionModal" @submit="handleGrantPositionSubmit" />
+
+    <!-- Notification Toast -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+      <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header" :class="notificationClass">
+          <strong class="me-auto">{{ notificationTitle }}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          {{ notificationMessage }}
+        </div>
       </div>
     </div>
-  </div>
-</template>
+  </template>
 
 <script>
 import { Toast } from 'bootstrap';
@@ -188,7 +192,7 @@ export default {
     columns() {
       const filtered = this.filteredInfo || {};
       const sorted = this.sortedInfo || {};
-      
+
       return [
         {
           title: 'Grant Code',
@@ -279,11 +283,21 @@ export default {
     this.fetchGrantPositions();
   },
   methods: {
+
+
+    toggleCollapse() {
+      this.isCollapsed = !this.isCollapsed;
+      if (this.isCollapsed) {
+        document.body.classList.add("header-collapse");
+      } else {
+        document.body.classList.remove("header-collapse");
+      }
+    },
     getUniqueValues(field) {
       const values = [...new Set(this.grantPositions.map(item => item[field]))];
       return values.map(value => ({ text: value, value }));
     },
-    
+
     handleTableChange(pagination, filters, sorter) {
       console.log('Various parameters', pagination, filters, sorter);
       this.currentPage = pagination.current;
@@ -291,27 +305,27 @@ export default {
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
     },
-    
+
     clearFilters() {
       this.filteredInfo = null;
     },
-    
+
     clearAll() {
       this.filteredInfo = null;
       this.sortedInfo = null;
     },
-    
+
     async fetchGrantPositions() {
       this.loading = true;
-      
+
       try {
         await this.grantStore.fetchGrantPositions();
-        
+
         if (this.grantStore.grantPositions) {
           // Transform the API response to match our table structure
           const positions = [];
           let id = 1;
-          
+
           this.grantStore.grantPositions.forEach(grant => {
             grant.positions.forEach(position => {
               positions.push({
@@ -328,7 +342,7 @@ export default {
               });
             });
           });
-          
+
           this.grantPositions = positions;
           this.total = positions.length;
           this.$message.success('Grant positions loaded successfully');
@@ -355,7 +369,7 @@ export default {
         if (formData.id) {
           // Update existing grant position
           // await this.grantStore.updateGrantPosition(formData.id, formData);
-          
+
           // For dummy data, update the local array
           const index = this.grantPositions.findIndex(pos => pos.id === formData.id);
           if (index !== -1) {
@@ -365,7 +379,7 @@ export default {
         } else {
           // Add new grant position
           // await this.grantStore.createGrantPosition(formData);
-          
+
           // For dummy data, add to the local array
           const newId = Math.max(...this.grantPositions.map(pos => pos.id)) + 1;
           this.grantPositions.push({
@@ -397,11 +411,11 @@ export default {
               this.loading = true;
               try {
                 // await this.grantStore.deleteGrantPosition(id);
-                
+
                 // For dummy data, remove from the local array
                 this.grantPositions = this.grantPositions.filter(pos => pos.id !== id);
                 this.total = this.grantPositions.length;
-                
+
                 this.$message.success('Grant position deleted successfully');
                 resolve();
               } catch (error) {
@@ -421,12 +435,12 @@ export default {
         console.error('Delete confirmation failed:', error);
       }
     },
-    
+
     showNotification(title, message, className) {
       this.notificationTitle = title;
       this.notificationMessage = message;
       this.notificationClass = className;
-      
+
       const toastEl = document.getElementById('notificationToast');
       const toast = new Toast(toastEl);
       toast.show();
@@ -445,7 +459,7 @@ export default {
   margin-bottom: 16px;
 }
 
-.table-operations > button {
+.table-operations>button {
   margin-right: 8px;
 }
 

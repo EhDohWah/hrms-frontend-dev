@@ -12,7 +12,7 @@ export default {
     const router = useRouter();
     const showPassword = ref(false);
     const isLoading = ref(false);
-    const error = ref(null);
+    const loginError = ref(null);
 
     const formData = reactive({
       email: '',
@@ -97,7 +97,7 @@ export default {
 
     const handleLogin = async () => {
       try {
-        error.value = null;
+        loginError.value = null;
         const result = await v$.value.$validate();
         if (!result) return;
 
@@ -109,25 +109,27 @@ export default {
           // Use the redirect path from the auth store
           const redirectPath = authStore.getRedirectPath();
           router.push(redirectPath);
+        } else if (response.error && response.error.includes('Unauthenticated.')) {
+          loginError.value = 'Invalid email or password';
         } else {
-          error.value = response.error || 'Login failed. Please try again.';
-        }
-      } catch (err) {
-        console.error('Login error:', err);
+          loginError.value = response.error; 
+        } 
+      } catch (error) {
+        console.error('Login error:', error);
         
         // Handle error based on type
-        if (err.type === 'AUTH_ERROR') {
-          error.value = 'Invalid email or password';
-        } else if (err.type === 'VALIDATION_ERROR' && err.errors) {
-          error.value = Object.values(err.errors).flat().join(', ');
-        } else if (err.type === 'NETWORK_ERROR') {
-          error.value = 'Unable to connect to the server. Please check your connection.';
-        } else if (err.type === 'RATE_LIMIT_ERROR') {
-          error.value = 'Too many login attempts. Please try again later.';
-        } else if (err.response?.data?.message) {
-          error.value = err.response.data.message;
+        if (error.type === 'AUTH_ERROR') {
+          loginError.value = 'Invalid email or password';
+        } else if (error.type === 'VALIDATION_ERROR' && error.errors) {
+          loginError.value = Object.values(error.errors).flat().join(', ');
+        } else if (error.type === 'NETWORK_ERROR') {
+          loginError.value = 'Unable to connect to the server. Please check your connection.';
+        } else if (error.type === 'RATE_LIMIT_ERROR') {
+          loginError.value = 'Too many login attempts. Please try again later.';
+        } else if (error.response?.data?.message) {
+          loginError.value = error.response.data.message;
         } else {
-          error.value = err.message || 'An unexpected error occurred';
+          loginError.value = error.message || 'An unexpected error occurred';
         }
       } finally {
         isLoading.value = false;
@@ -138,7 +140,7 @@ export default {
       formData,
       showPassword,
       isLoading,
-      error,
+      loginError,
       v$,
       handleLogin,
       togglePassword
@@ -182,9 +184,9 @@ export default {
                     </div>
 
                     <!-- Error Alert -->
-                    <div v-if="error" class="alert alert-danger alert-dismissible fade show" role="alert">
-                      {{ error }}
-                      <button type="button" class="btn-close" @click="error = null"></button>
+                    <div v-if="loginError" class="alert alert-danger alert-dismissible fade show" role="alert">
+                      {{ loginError }}
+                      <button type="button" class="btn-close" @click="loginError = null"></button>
                     </div>
 
                     <!-- Email Input -->

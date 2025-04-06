@@ -119,7 +119,7 @@ class ApiService {
             return this.handleResponse(response, { endpoint, method: 'GET' });
         } catch (error) {
             if (!error.response) {
-                error.message = 'Network Error';
+                error.message = 'Network Error: Server is not responding';
             }
             return Promise.reject(error);
         }
@@ -137,7 +137,7 @@ class ApiService {
             return this.handleResponse(response, { endpoint, method: 'POST', data });
         } catch (error) {
             if (!error.response) {
-                error.message = 'Network Error';
+                error.message = 'Network Error: Server is not responding';
             }
             return Promise.reject(error);
         }
@@ -155,7 +155,7 @@ class ApiService {
             return this.handleResponse(response, { endpoint, method: 'PUT', data });
         } catch (error) {
             if (!error.response) {
-                error.message = 'Network Error';
+                error.message = 'Network Error: Server is not responding';
             }
             return Promise.reject(error);
         }
@@ -172,7 +172,7 @@ class ApiService {
             return this.handleResponse(response, { endpoint, method: 'DELETE' });
         } catch (error) {
             if (!error.response) {
-                error.message = 'Network Error';
+                error.message = 'Network Error: Server is not responding';
             }
             return Promise.reject(error);
         }
@@ -190,7 +190,7 @@ class ApiService {
             return this.handleResponse(response, { endpoint, method: 'PATCH', data });
         } catch (error) {
             if (!error.response) {
-                error.message = 'Network Error';
+                error.message = 'Network Error: Server is not responding';
             }
             return Promise.reject(error);
         }
@@ -223,7 +223,7 @@ class ApiService {
         } catch (error) {
             console.error('Error in postFormData:', error);
             if (!error.response) {
-                error.message = 'Network Error';
+                error.message = 'Network Error: Server is not responding';
             }
             return Promise.reject(error);
         }

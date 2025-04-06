@@ -9,9 +9,9 @@
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="mb-2">
-            <a href="javascript:void(0);" @click="$router.push('/interviews')" class="btn btn-secondary d-flex align-items-center">
-              <i class="ti ti-arrow-left me-2"></i>Back to List
-            </a>
+            <button class="btn btn-primary d-flex align-items-center" @click="$router.push('/recruitment/interviews-list')">
+              <i class="ti ti-arrow-left me-2"></i>Back to Interview List
+            </button>
           </div>
         </div>
       </div>
@@ -101,22 +101,37 @@
               </div>
             </div>
           </div>
+          <div class="row mt-4">
+            <div class="col-md-12">
+              <h4 class="mb-4">Reference Information</h4>
+              <div class="feedback-section">
+                <div v-if="interview.reference_info" class="card">
+                  <div class="card-body">
+                    <p>{{ interview.reference_info }}</p>
+                  </div>
+                </div>
+                <div v-else class="text-center">
+                  <p>No reference information available</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <!-- /Interview Details -->
     </div>
+
+    
     <layout-footer></layout-footer>
   </div>
 </template>
 
 <script>
-import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
+import { useInterviewStore } from '@/stores/interviewStore';
 
 export default {
   name: 'InterviewsDetails',
-  components: {
-    indexBreadcrumb
-  },
+  
   data() {
     return {
       title: 'Interview Details',
@@ -135,8 +150,11 @@ export default {
         candidate_name: '',
         candidate_email: '',
         candidate_phone: '',
-        feedback: ''
-      }
+        feedback: '',
+        reference_info: ''
+      },
+      loading: false,
+      error: null
     };
   },
   methods: {
@@ -157,13 +175,21 @@ export default {
     },
     async fetchInterviewDetails() {
       try {
+        this.loading = true;
         const interviewId = this.$route.params.id;
         console.log(interviewId);
-        // Implement API call to fetch interview details
-        // const response = await interviewService.getInterviewDetails(interviewId);
-        // this.interview = response.data;
+        
+        const interviewStore = useInterviewStore();
+        const interviewData = await interviewStore.fetchInterviewById(interviewId);
+        
+        if (interviewData) {
+          this.interview = interviewStore.currentInterview;
+        }
       } catch (error) {
+        this.error = error.message || 'Failed to fetch interview details';
         console.error('Error fetching interview details:', error);
+      } finally {
+        this.loading = false;
       }
     }
   },

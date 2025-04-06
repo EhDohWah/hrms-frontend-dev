@@ -6,7 +6,7 @@
     aria-labelledby="interviewModalLabel"
     aria-hidden="true"
   >
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="interviewModalLabel">{{ editMode ? 'Edit' : 'Add' }} Interview</h5>
@@ -17,68 +17,94 @@
             <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
               {{ alertMessage }}
             </div>
-            <div class="mb-3">
-              <label for="candidateName" class="form-label">Candidate Name</label>
-              <input type="text" class="form-control" id="candidateName" v-model="formData.candidate_name" required />
+            
+            <div class="row">
+              <!-- Left Column -->
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="candidateName" class="form-label">Candidate Name</label>
+                  <input type="text" class="form-control" id="candidateName" v-model="formData.candidate_name" required />
+                </div>
+                <div class="mb-3">
+                  <label for="jobPosition" class="form-label">Job Position</label>
+                  <input type="text" class="form-control" id="jobPosition" v-model="formData.job_position" required />
+                </div>
+                <div class="mb-3">
+                  <label for="startTime" class="form-label">Start Time</label>
+                  <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required step="1" />
+                </div>
+              
+                <div class="mb-3">
+                  <label for="interviewDate" class="form-label">Interview Date</label>
+                  <input type="date" class="form-control" id="interviewDate" v-model="formData.interview_date" required />
+                </div>
+                <div class="mb-3">
+                  <label for="interviewMode" class="form-label">Interview Mode</label>
+                  <select class="form-select" id="interviewMode" v-model="formData.interview_mode" required>
+                    <option value="In-person">In-person</option>
+                    <option value="Virtual">Virtual</option>
+                    <option value="Phone">Phone</option>
+                  </select>
+                </div>
+              </div>
+              
+              <!-- Right Column -->
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="phone" class="form-label">Phone</label>
+                  <input type="text" class="form-control" id="phone" v-model="formData.phone" required />
+                </div>
+
+                <div class="mb-3">
+                  <label for="interviewerName" class="form-label">Interviewer Name</label>
+                  <input type="text" class="form-control" id="interviewerName" v-model="formData.interviewer_name" required />
+                </div>
+               
+                <div class="mb-3">
+                  <label for="endTime" class="form-label">End Time</label>
+                  <input type="time" class="form-control" id="endTime" v-model="formData.end_time" step="1" />
+                </div>
+                <div class="mb-3">
+                  <label for="interviewStatus" class="form-label">Status</label>
+                  <select class="form-select" id="interviewStatus" v-model="formData.interview_status" required>
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="In Progress">In Progress</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="score" class="form-label">Score</label>
+                  <input type="number" class="form-control" id="score" v-model="formData.score" min="0" max="100" />
+                </div>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="phone" class="form-label">Phone</label>
-              <input type="text" class="form-control" id="phone" v-model="formData.phone" required />
+            
+            <!-- Full Width Fields -->
+            <div class="row">
+              <div class="col-12">
+                <div class="mb-3">
+                  <label for="feedback" class="form-label">Feedback</label>
+                  <textarea class="form-control" id="feedback" v-model="formData.feedback" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                  <label for="referenceInfo" class="form-label">Reference Information</label>
+                  <textarea class="form-control" id="referenceInfo" v-model="formData.reference_info" rows="3"></textarea>
+                </div>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="jobPosition" class="form-label">Job Position</label>
-              <input type="text" class="form-control" id="jobPosition" v-model="formData.job_position" required />
+            
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                <span
+                  v-if="isSubmitting"
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                {{ editMode ? 'Update' : 'Save' }}
+              </button>
             </div>
-            <div class="mb-3">
-              <label for="interviewerName" class="form-label">Interviewer Name</label>
-              <input type="text" class="form-control" id="interviewerName" v-model="formData.interviewer_name" required />
-            </div>
-            <div class="mb-3">
-              <label for="interviewDate" class="form-label">Interview Date</label>
-              <input type="date" class="form-control" id="interviewDate" v-model="formData.interview_date" required />
-            </div>
-            <div class="mb-3">
-              <label for="startTime" class="form-label">Start Time</label>
-              <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required step="1" />
-            </div>
-            <div class="mb-3">
-              <label for="endTime" class="form-label">End Time</label>
-              <input type="time" class="form-control" id="endTime" v-model="formData.end_time" step="1" />
-            </div>
-            <div class="mb-3">
-              <label for="interviewMode" class="form-label">Interview Mode</label>
-              <select class="form-select" id="interviewMode" v-model="formData.interview_mode" required>
-                <option value="In-person">In-person</option>
-                <option value="Virtual">Virtual</option>
-                <option value="Phone">Phone</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="interviewStatus" class="form-label">Status</label>
-              <select class="form-select" id="interviewStatus" v-model="formData.interview_status" required>
-                <option value="Scheduled">Scheduled</option>
-                <option value="Completed">Completed</option>
-                <option value="Cancelled">Cancelled</option>
-                <option value="In Progress">In Progress</option>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label for="score" class="form-label">Score</label>
-              <input type="number" class="form-control" id="score" v-model="formData.score" min="0" max="100" />
-            </div>
-            <div class="mb-3">
-              <label for="feedback" class="form-label">Feedback</label>
-              <textarea class="form-control" id="feedback" v-model="formData.feedback" rows="3"></textarea>
-            </div>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span
-                v-if="isSubmitting"
-                class="spinner-border spinner-border-sm"
-                role="status"
-                aria-hidden="true"
-              ></span>
-              {{ editMode ? 'Update' : 'Save' }}
-            </button>
           </form>
         </div>
       </div>

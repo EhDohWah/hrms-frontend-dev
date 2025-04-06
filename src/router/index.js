@@ -8,9 +8,8 @@ import grantList from '@/views/pages/grant/grant-list.vue';
 import grantDetails from '@/views/pages/grant/grant-details.vue';
 import grantPositionList from '@/views/pages/grant/grant-position-list.vue';
 
-
-// References components
-import ReferencesList from '@/views/pages/recruitment/references/references-list.vue';
+// Employee Training components
+import EmployeeTrainingList from '@/views/pages/hrm/attendance/training/employee-training-list.vue';    
 
 // Request components
 import travelRequestIndex from '@/views/pages/requests/travel/travel-index.vue';
@@ -342,6 +341,8 @@ import employeeSite from '@/views/pages/hrm/employees/employee-sites.vue';
 import lookupList from '@/views/pages/administration/lookups/lookup-list.vue';  
 import departmentPositionList from '@/views/pages/administration/department-position/department-position-list.vue';
 import reportList from '@/views/pages/administration/reports/report-list.vue';
+import jobOffersList from '@/views/pages/recruitment/job-offers/job-offers-list.vue';
+
 
 const routes = [
   // Public routes
@@ -735,7 +736,7 @@ const routes = [
     ]
   },
   {
-    path: '/recruitment',
+    path: '/recruitment', 
     component: RecruitmentIndex,
     beforeEnter: roleGuard(['hr-assistant', 'hr-manager', 'admin']),
     meta: {
@@ -750,7 +751,6 @@ const routes = [
       { path: "candidates-list", component: CandidatesList },
       { path: "candidates-kanban", component: CandidatesKanban },
       { path: "refferals", component: RefferalsList },
-      { path: "references", component: ReferencesList },
       { 
         path: "interviews-list", 
         component: InterviewsList,
@@ -758,7 +758,8 @@ const routes = [
           title: 'Interviews List '
         }
       },
-      { path: "interviews-details", component: InterviewsDetails },
+      { path: "job-offers-list", component: jobOffersList },
+      { path: "interviews-details/:id", component: InterviewsDetails },
     ]
   },
   {    
@@ -776,6 +777,7 @@ const routes = [
     path: '/training',
     component: TrainingIndex,
     children: [
+      { path: 'employee-training-list', component: EmployeeTrainingList },
       { path: '', redirect: '/training/training-list' },
       { 
         path: "training-list", 

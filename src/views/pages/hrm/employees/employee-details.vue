@@ -302,6 +302,8 @@
               </div>
             </div>
           </div>
+
+          <!-- Beneficiary Information -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <h6>Beneficiary Information</h6>
             <a
@@ -312,28 +314,66 @@
               ><i class="ti ti-edit"></i
             ></a>
           </div>
-          <div class="card">
-            <div class="card-body p-0">
-              <div v-if="employee.employee_beneficiaries && employee.employee_beneficiaries.length > 0">
-                <div v-for="(beneficiary, index) in employee.employee_beneficiaries" :key="index" class="p-3 border-bottom">
-                  <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                      <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
-                      <h6 class="d-flex align-items-center fw-medium mt-1">
-                        {{ beneficiary.beneficiary_name }}
-                        <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
-                        {{ beneficiary.beneficiary_relationship }}
-                      </h6>
+            <div class="card">
+              <div class="card-body p-0">
+                <div v-if="employee.employee_beneficiaries && employee.employee_beneficiaries.length > 0">
+                  <div v-for="(beneficiary, index) in employee.employee_beneficiaries" :key="index" class="p-3 border-bottom">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
+                        <h6 class="d-flex align-items-center fw-medium mt-1">
+                          {{ beneficiary.beneficiary_name }}
+                          <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
+                          {{ beneficiary.beneficiary_relationship }}
+                        </h6>
+                      </div>
+                      <p class="text-dark">{{ beneficiary.phone_number }}</p>
                     </div>
-                    <p class="text-dark">{{ beneficiary.phone_number }}</p>
                   </div>
                 </div>
-              </div>
-              <div v-else class="p-3">
-                <p class="text-center">No beneficiary information available</p>
+                <div v-else class="p-3">
+                  <p class="text-center">No beneficiary information available</p>
+                </div>
               </div>
             </div>
+            <!-- End of Beneficiary Information -->
+            
+            <!--Employee Children Information -->
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h6>Employee Children Information</h6>
+            <a
+              href="javascript:void(0);"
+              class="btn btn-icon btn-sm"
+              data-bs-toggle="modal"
+              data-bs-target="#edit_emergency"
+              ><i class="ti ti-edit"></i
+            ></a>
           </div>
+            <div class="card">
+              <div class="card-body p-0">
+                <div v-if="employee.employee_children && employee.employee_children.length > 0">
+                  <div v-for="(child, index) in employee.employee_children" :key="index" class="p-3 border-bottom">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
+                        <h6 class="d-flex align-items-center fw-medium mt-1">
+                          {{ child.child_name }}
+                          <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
+                          {{ child.child_relationship }}
+                        </h6>
+                      </div>
+                      <p class="text-dark">{{ child.child_phone_number }}</p>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="p-3">
+                  <p class="text-center">No employee children information available</p>
+                </div>
+              </div>
+            </div>
+            <!-- End of Employee Children Information -->
+
+            
         </div>
 
         

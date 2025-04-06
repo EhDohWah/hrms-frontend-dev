@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import { router } from './router';
 import App from "./App.vue";
+import 'bootstrap-vue/dist/bootstrap-vue.css'
 import {BootstrapVue3, BToastPlugin} from 'bootstrap-vue-3'
 import Antd from 'ant-design-vue';
 import 'ant-design-vue/dist/reset.css';
@@ -34,15 +35,16 @@ import Stacked_Sidebar from '@/views/layouts/stacked-sidebar.vue';
 import Theme_Settings from '@/views/layouts/theme-settings.vue';
 import SidebarMenu from '@/views/layouts/sidebar-menu.vue';
 import themeColor from '@/views/layouts/theme-color.vue';
-import LayoutFooter from '@/views/layouts/layout-footer.vue';
+import layoutFooter from '@/views/layouts/layout-footer.vue';
 
 /************Breadcrumb********************/
 
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-
+  
 
 /************Page Components********************/
 
+import jobOffersList from '@/views/pages/recruitment/job-offers/job-offers-list.vue';
 import reportList from '@/views/pages/administration/reports/report-list.vue';
 import employmentList from '@/views/pages/hrm/employment/employment-list.vue';
 import employeeStatus from '@/views/pages/dashboard/admin-dashboard/employee-status.vue';
@@ -131,7 +133,6 @@ import JobTable from '@/views/pages/recruitment/jobs/job-table.vue';
 import CandidatesTable from '@/views/pages/recruitment/candidates/candidates-table.vue';
 import CandidatesBoard from '@/views/pages/recruitment/candidates/candidates-board.vue';
 import RefferalsTable from '@/views/pages/recruitment/refferals/refferals-table.vue';
-import ReferencesTable from '@/views/pages/recruitment/references/references-list.vue';
 import EstimatesTable from '@/views/pages/finance-accounts/sales/estimates-table.vue';
 import InvoicesTable from '@/views/pages/finance-accounts/sales/invoices-table.vue';
 import PaymentsTable from '@/views/pages/finance-accounts/sales/payments-table.vue';
@@ -182,9 +183,13 @@ import interviewsDetails from '@/views/pages/recruitment/interviews/interviews-d
 // Grant components
 import grantPositionModal from '@/components/modal/grant-position-modal.vue';
 
+// Employee Training components
+import employeeTrainingList from '@/views/pages/hrm/attendance/training/employee-training-list.vue';
+
 
 /************Modal********************/
-
+import jobOffersModal from '@/components/modal/job-offers-modal.vue';
+import employeeTrainingModal from '@/components/modal/employee-training-modal.vue';
 import GrantModal from '@/components/modal/grant-modal.vue';
 import GrantUploadModal from '@/components/modal/grant-upload-modal.vue';
 import GrantModalUpdate from '@/components/modal/grant-modal-update.vue';     
@@ -332,12 +337,15 @@ app.component('stacked-sidebar',Stacked_Sidebar)
 app.component('theme-settings',Theme_Settings)
 app.component('sidebar-menu', SidebarMenu)
 app.component('theme-color', themeColor)
-app.component('layout-footer', LayoutFooter)
-
+app.component('layout-footer', layoutFooter)
+app.component('employee-training-list', employeeTrainingList)
+app.component('employee-training-modal', employeeTrainingModal)
 /*************Breadcrumb *****************/
 app.component('index-breadcrumb', indexBreadcrumb)
 
 /************Page Components********************/
+
+app.component('job-offers-list', jobOffersList)
 app.component('report-list', reportList)
 app.component('employment-list', employmentList)
 app.component('employee-top',employeeTop)
@@ -411,7 +419,6 @@ app.component('job-table', JobTable)
 app.component('candidates-table', CandidatesTable)
 app.component('candidates-board', CandidatesBoard)
 app.component('refferals-table', RefferalsTable)
-app.component('references-table', ReferencesTable)
 app.component('estimates-table', EstimatesTable)
 app.component('invoices-table', InvoicesTable)
 app.component('payments-table', PaymentsTable)
@@ -476,6 +483,7 @@ app.component('lookup-list', lookupList)
 
 
 /************Modal********************/
+app.component('job-offers-modal',jobOffersModal)
 app.component('call-history-modal',CallHistoryModal)
 app.component('calendar-modal',calendarModal)
 app.component('companies-modal',companiesModal)

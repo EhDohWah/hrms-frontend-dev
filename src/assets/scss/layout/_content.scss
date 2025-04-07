@@ -77,3 +77,10 @@
         }
     }
 }
+/* Ensure Ant Design TreeSelect/Select dropdown is on top */
+.ant-select-dropdown,
+.ant-tree-select-dropdown {
+  z-index: 9999 !important; /* or higher if needed */
+}
+
+

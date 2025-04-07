@@ -182,6 +182,7 @@ import interviewsDetails from '@/views/pages/recruitment/interviews/interviews-d
 
 // Grant components
 import grantPositionModal from '@/components/modal/grant-position-modal.vue';
+import grantAllocateEmployeeModal from '@/components/modal/grant-allocate-employee-modal.vue';
 
 // Employee Training components
 import employeeTrainingList from '@/views/pages/hrm/attendance/training/employee-training-list.vue';
@@ -483,6 +484,8 @@ app.component('lookup-list', lookupList)
 
 
 /************Modal********************/
+
+app.component('grant-allocate-employee-modal', grantAllocateEmployeeModal)
 app.component('job-offers-modal',jobOffersModal)
 app.component('call-history-modal',CallHistoryModal)
 app.component('calendar-modal',calendarModal)

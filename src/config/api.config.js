@@ -82,8 +82,6 @@ export const API_ENDPOINTS = {
         UPDATE: '/employments/:id',
         DELETE: '/employments/:id',
         DETAILS: '/employments/:id',
-        DELETE_GRANT_ALLOCATION: '/employments/employment-grant-allocations/:id',
-        ADD_GRANT_ALLOCATION: '/employments/employment-grant-allocations'
     },
 
     // Permission endpoints
@@ -108,6 +106,7 @@ export const API_ENDPOINTS = {
         ITEMS: {
             LIST: '/grants/items',
             CREATE: '/grants/items',
+            DETAILS: '/grants/items/:id',
             DELETE: '/grants/items/:id',
             UPDATE: '/grants/items/:id'
         },
@@ -234,5 +233,14 @@ export const API_ENDPOINTS = {
         DELETE: '/payrolls/:id',
         DETAILS: '/payrolls/:id',
     },
+
+    // Employee grant allocation endpoints
+    EMPLOYEE_GRANT_ALLOCATION: {
+        LIST: '/employee-grant-allocations',
+        CREATE: '/employee-grant-allocations',
+        DETAILS: '/employee-grant-allocations/:id',
+        UPDATE: '/employee-grant-allocations/:id',
+        DELETE: '/employee-grant-allocations/:id'
+    }
 
 };

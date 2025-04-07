@@ -8,26 +8,6 @@
         <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
           <index-breadcrumb :title="title" :text="text" :text1="text1" />
           <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div class="me-2 mb-2">
-              <div class="dropdown">
-                <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                  data-bs-toggle="dropdown">
-                  <i class="ti ti-file-export me-1"></i>Export
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end p-3">
-                  <li>
-                    <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                      <i class="ti ti-file-type-pdf me-1"></i>Export as PDF
-                    </a>
-                  </li>
-                  <li>
-                    <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                      <i class="ti ti-file-type-xls me-1"></i>Export as Excel
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
             <div class="mb-2 me-2">
               <button class="btn btn-primary d-flex align-items-center" @click="openAddGrantPositionModal">
                 <i class="ti ti-circle-plus me-2"></i>Add Grant Position
@@ -67,15 +47,15 @@
                 <template #bodyCell="{ column, record }">
                   <template v-if="column.dataIndex === 'actions'">
                     <div class="action-icon d-inline-flex">
-                      <router-link :to="`/grant/position-details/${record.id}`" class="me-2">
+                      <router-link :to="`/grant/grant-position-details/${record.id}`" class="me-2">
                         <i class="ti ti-eye"></i>
                       </router-link>
-                      <a href="javascript:void(0);" class="me-2" @click="openEditGrantPositionModal(record)">
+                      <!-- <a href="javascript:void(0);" class="me-2" @click="openEditGrantPositionModal(record)">
                         <i class="ti ti-edit"></i>
                       </a>
                       <a href="javascript:void(0);" @click="deleteGrantPosition(record.id)">
                         <i class="ti ti-trash"></i>
-                      </a>
+                      </a> -->
                     </div>
                   </template>
                 </template>
@@ -88,7 +68,7 @@
     </div>
 
     <!-- Grant Position Modal -->
-    <grant-position-modal ref="grantPositionModal" @submit="handleGrantPositionSubmit" />
+    <grant-position-modal ref="grantPositionModal" @childSubmit="handleGrantPositionSubmit" />
 
     <!-- Notification Toast -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
@@ -363,40 +343,35 @@ export default {
       this.$refs.grantPositionModal.openModal(position);
     },
 
-    async handleGrantPositionSubmit(formData) {
+    async handleGrantPositionSubmit(response) {
       this.loading = true;
       try {
-        if (formData.id) {
-          // Update existing grant position
-          // await this.grantStore.updateGrantPosition(formData.id, formData);
+        // Check if the submission was successful
+        if (response.success) {
 
-          // For dummy data, update the local array
-          const index = this.grantPositions.findIndex(pos => pos.id === formData.id);
-          if (index !== -1) {
-            this.grantPositions[index] = { ...formData };
+          // Display success message
+          this.$message.success(response.message || 'Grant position saved successfully');
+
+          // Refresh the grant positions list to show the updated data
+          try {
+            await this.fetchGrantPositions();
+          } catch (fetchError) {
+
+            this.$message.warning('Position saved but could not refresh the list');
           }
-          this.$message.success('Grant position updated successfully');
         } else {
-          // Add new grant position
-          // await this.grantStore.createGrantPosition(formData);
+          // Log the failure and display an error message to the user
+          this.$message.error(response.message || 'Failed to save grant position');
 
-          // For dummy data, add to the local array
-          const newId = Math.max(...this.grantPositions.map(pos => pos.id)) + 1;
-          this.grantPositions.push({
-            ...formData,
-            id: newId
-          });
-          this.$message.success('Grant position added successfully');
         }
-        // Refresh the grant positions list
-        await this.fetchGrantPositions();
       } catch (error) {
-        console.error('Error handling grant position submission:', error);
-        this.$message.error('Failed to save grant position');
+
+        this.$message.error('An unexpected error occurred while processing your request');
       } finally {
         this.loading = false;
       }
     },
+
 
     async deleteGrantPosition(id) {
       try {

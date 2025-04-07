@@ -7,6 +7,8 @@ import grantIndex from '@/views/pages/grant/grant-index.vue';
 import grantList from '@/views/pages/grant/grant-list.vue';
 import grantDetails from '@/views/pages/grant/grant-details.vue';
 import grantPositionList from '@/views/pages/grant/grant-position-list.vue';
+import grantPositionDetails from '@/views/pages/grant/grant-position-details.vue';
+import grantAllocateEmployeeModal from '@/components/modal/grant-allocate-employee-modal.vue';
 
 // Employee Training components
 import EmployeeTrainingList from '@/views/pages/hrm/attendance/training/employee-training-list.vue';    
@@ -1135,6 +1137,20 @@ const routes = [
         component: grantPositionList,
         meta: { 
           title: 'Grant Position',
+        }
+      },
+      {
+        path: 'grant-position-details/:id',
+        component: grantPositionDetails,
+        meta: { 
+          title: 'Grant Position Details',
+        }
+      },
+      {
+        path: 'grant-allocate-employee/:id',
+        component: grantAllocateEmployeeModal,
+        meta: { 
+          title: 'Grant Allocate Employee',
         }
       }
     ]

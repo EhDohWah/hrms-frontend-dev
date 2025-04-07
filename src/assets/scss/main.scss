@@ -17,6 +17,12 @@
   z-index: 99999 !important;
 }
 
+body > .ant-select-dropdown,
+body > .ant-tree-select-dropdown {
+  z-index: 99999 !important;
+}
+
+
 
 /****** Utils ******/
 @import "utils/variables";

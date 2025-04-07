@@ -52,6 +52,12 @@ class GrantService {
     return await apiService.get(endpoint);
   }
 
+  // Get grant item details
+  async getGrantItemDetails(id) {
+    const endpoint = API_ENDPOINTS.GRANT.ITEMS.DETAILS.replace(':id', id);
+    return await apiService.get(endpoint);
+  }
+
   // Update a grant item
   async updateGrantItem(id, itemData) {
     const endpoint = API_ENDPOINTS.GRANT.ITEMS.UPDATE.replace(':id', id);

@@ -65,11 +65,7 @@
                                         <label class="form-label fw-bold">Manpower Required:</label>
                                         <p>{{ positionDetails.manPower }}</p>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Status: </label>
-                                        <span class="badge" :class="getStatusClass(positionDetails.status)">{{
-                                            positionDetails.status }}</span>
-                                    </div>
+
                                 </div>
                             </div>
                         </div>

@@ -39,7 +39,9 @@ class JobOfferService {
    */
   async generateJobOfferPDF(custom_job_offer_id) {
     try {
-      const endpoint = API_ENDPOINTS.JOB_OFFER.GENERATE_PDF.replace(':id', custom_job_offer_id);
+      // Append a cache-busting timestamp query parameter
+      const timestamp = new Date().getTime();
+      const endpoint = API_ENDPOINTS.JOB_OFFER.GENERATE_PDF.replace(':id', custom_job_offer_id) + `?ts=${timestamp}`;
       const pdfBlob = await apiService.getPdf(endpoint);
       return pdfBlob;
     } catch (error) {

@@ -241,6 +241,16 @@ export const API_ENDPOINTS = {
         DETAILS: '/employee-grant-allocations/:id',
         UPDATE: '/employee-grant-allocations/:id',
         DELETE: '/employee-grant-allocations/:id'
+    },
+
+    // JobOffer endpoints 
+    JOB_OFFER: {
+        LIST: '/job-offers',
+        CREATE: '/job-offers',
+        DETAILS: '/job-offers/:id',
+        UPDATE: '/job-offers/:id',
+        DELETE: '/job-offers/:id',
+        GENERATE_PDF: '/job-offers/:id/pdf'
     }
 
 };

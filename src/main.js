@@ -166,6 +166,11 @@ import SubscriptionTable from '@/views/pages/superadmin/subscription-table.vue';
 import ProjectsTable from '@/views/pages/projects/project/projects-table.vue';
 import clientTable from '@/views/pages/projects/clients/client-table.vue';
 
+// Reports components
+import InterviewReport from '@/components/reports/interview-report.vue';
+import JobOfferReport from '@/components/reports/joboffer-report.vue';
+import ReportRow from '@/components/reports/report-row.vue';
+
 // Admin lookups
 import lookupList from '@/views/pages/administration/lookups/lookup-list.vue';
 
@@ -343,6 +348,11 @@ app.component('employee-training-list', employeeTrainingList)
 app.component('employee-training-modal', employeeTrainingModal)
 /*************Breadcrumb *****************/
 app.component('index-breadcrumb', indexBreadcrumb)
+
+/************Reports Components********************/ 
+app.component('interview-report', InterviewReport)
+app.component('job-offer-report', JobOfferReport)
+app.component('report-row', ReportRow) 
 
 /************Page Components********************/
 

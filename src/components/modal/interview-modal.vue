@@ -24,10 +24,10 @@
                   <label for="jobPosition" class="form-label">Job Position</label>
                   <input type="text" class="form-control" id="jobPosition" v-model="formData.job_position" required />
                 </div>
+
                 <div class="mb-3">
-                  <label for="startTime" class="form-label">Start Time</label>
-                  <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required
-                    step="1" />
+                  <label for="endTime" class="form-label">End Time</label>
+                  <input type="time" class="form-control" id="endTime" v-model="formData.end_time" step="1" />
                 </div>
 
                 <div class="mb-3">
@@ -53,11 +53,16 @@
                 </div>
 
                 <div class="mb-3">
-                  <label for="endTime" class="form-label">End Time</label>
-                  <input type="time" class="form-control" id="endTime" v-model="formData.end_time" step="1" />
+                  <label for="startTime" class="form-label">Start Time</label>
+                  <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required
+                    step="1" />
+                  <small v-if="formData.start_time && formData.start_time.includes('.')" class="text-muted">
+                    Note: Time includes milliseconds which will be truncated when displayed.
+                  </small>
                 </div>
+
                 <div class="mb-3">
-                  <label for="interviewStatus" class="form-label">Status</label>
+                  <label for="interviewStatus" class="form-label">Interview Status</label>
                   <select class="form-select" id="interviewStatus" v-model="formData.interview_status" required>
                     <option value="Scheduled">Scheduled</option>
                     <option value="Completed">Completed</option>
@@ -68,6 +73,15 @@
                 <div class="mb-3">
                   <label for="score" class="form-label">Score</label>
                   <input type="number" class="form-control" id="score" v-model="formData.score" min="0" max="100" />
+                </div>
+                <div class="mb-3">
+                  <label for="hiredStatus" class="form-label">Hired Status</label>
+                  <select class="form-select" id="hiredStatus" v-model="formData.hired_status">
+                    <option value="" disabled selected>Select Hired Status</option>
+                    <option value="Hired">Hired</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Pending">Pending</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -140,7 +154,9 @@ export default {
         interview_mode: 'In-person',
         interview_status: 'Scheduled',
         score: '',
-        feedback: ''
+        feedback: '',
+        reference_info: '',
+        hired_status: ''
       },
       isSubmitting: false,
       modalInstance: null
@@ -151,6 +167,16 @@ export default {
       handler(newVal) {
         if (newVal) {
           this.formData = { ...newVal };
+
+          // Format time fields when in edit mode
+          if (this.editMode) {
+            if (this.formData.start_time) {
+              this.formData.start_time = this.formatTimeForInput(this.formData.start_time);
+            }
+            if (this.formData.end_time) {
+              this.formData.end_time = this.formatTimeForInput(this.formData.end_time);
+            }
+          }
         }
       },
       deep: true
@@ -167,6 +193,14 @@ export default {
     openModal() {
       if (this.editMode && this.interviewData) {
         this.formData = { ...this.interviewData };
+
+        // Format time fields for display in the form
+        if (this.formData.start_time) {
+          this.formData.start_time = this.formatTimeForInput(this.formData.start_time);
+        }
+        if (this.formData.end_time) {
+          this.formData.end_time = this.formatTimeForInput(this.formData.end_time);
+        }
       } else {
         this.resetForm();
       }
@@ -202,9 +236,9 @@ export default {
 
         let response;
         if (this.editMode) {
-          response = await interviewStore.updateInterview(this.formData.id, this.formData);
+          response = await interviewStore.updateInterview(this.formData.id, formattedData);
         } else {
-          response = await interviewStore.createInterview(this.formData);
+          response = await interviewStore.createInterview(formattedData);
         }
 
         if (!response.success) {
@@ -239,6 +273,19 @@ export default {
       return `${timeString}:00`;
     },
 
+    formatTimeForInput(timeString) {
+      // Format time for input field (HH:MM format)
+      if (!timeString) return '';
+
+      // If time has seconds or more parts, truncate to HH:MM
+      const timeParts = timeString.split(':');
+      if (timeParts.length >= 2) {
+        return `${timeParts[0]}:${timeParts[1]}`;
+      }
+
+      return timeString;
+    },
+
     resetForm() {
       this.formData = {
         id: null,
@@ -252,7 +299,9 @@ export default {
         interview_mode: 'In-person',
         interview_status: 'Scheduled',
         score: '',
-        feedback: ''
+        feedback: '',
+        reference_info: '',
+        hired_status: ''
       };
       this.alertMessage = ''; // Reset alert message on form reset
       this.alertClass = '';

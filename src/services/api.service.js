@@ -107,6 +107,35 @@ class ApiService {
         }
     }
 
+    // Get Request with pdf
+    async getPdf(endpoint) {
+        const fullURL = this.getFullURL(endpoint);
+        try {
+            const response = await fetch(fullURL, {
+                method: 'GET',
+                headers: {
+                    ...this.headers,
+                    'Accept': 'application/pdf'
+                },
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+            
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
     // GET request
     async get(endpoint) {
         const fullURL = this.getFullURL(endpoint);

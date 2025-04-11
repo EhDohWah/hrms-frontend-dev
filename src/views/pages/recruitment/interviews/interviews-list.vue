@@ -62,7 +62,27 @@
           <div v-else>
             <a-table :columns="columns" :data-source="tableData" :pagination="pagination" :scroll="{ x: 'max-content' }"
               row-key="id" @change="handleTableChange">
+
+
+
               <template #bodyCell="{ column, record }">
+
+                <template v-if="column.dataIndex === 'interview_status'">
+                  <span
+                    :class="`badge ${record.interview_status === 'Scheduled' ? 'bg-primary' : record.interview_status === 'Completed' ? 'bg-success' : 'bg-danger'}`">
+                    {{ record.interview_status }}
+                  </span>
+                </template>
+
+                <template v-if="column.dataIndex === 'hired_status'">
+                  <span
+                    :class="`badge ${record.hired_status === 'Hired' ? 'bg-success' : record.hired_status === 'Rejected' ? 'bg-danger' : 'bg-warning'}`">
+                    {{ record.hired_status }}
+                  </span>
+                </template>
+
+
+
                 <template v-if="column.dataIndex === 'actions'">
                   <div class="action-icon d-inline-flex">
                     <router-link :to="`/recruitment/interviews-details/${record.id}`" class="me-2">
@@ -210,6 +230,22 @@ export default {
           sorter: (a, b) => moment(a.interview_date).unix() - moment(b.interview_date).unix(),
           sortOrder: sorted.columnKey === 'interview_date' && sorted.order,
         },
+        {
+          title: 'Time',
+          dataIndex: 'start_time',
+          key: 'start_time',
+          render: (text, record) => {
+            const startTime = record.start_time ? this.formatTime(record.start_time) : '';
+            const endTime = record.end_time ? this.formatTime(record.end_time) : '';
+            return startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '';
+          },
+          sorter: (a, b) => {
+            const aTime = a.start_time || '';
+            const bTime = b.start_time || '';
+            return aTime.localeCompare(bTime);
+          },
+          sortOrder: sorted.columnKey === 'start_time' && sorted.order,
+        },
         // {
         //   title: 'Mode',
         //   dataIndex: 'interview_mode',
@@ -239,6 +275,21 @@ export default {
           sorter: (a, b) => a.interview_status.localeCompare(b.interview_status),
           sortOrder: sorted.columnKey === 'interview_status' && sorted.order,
         },
+        {
+          title: 'Hired Status',
+          dataIndex: 'hired_status',
+          key: 'hired_status',
+          filters: this.getUniqueValues('hired_status'),
+          filteredValue: filtered.hired_status || null,
+          onFilter: (value, record) => record.hired_status === value,
+          sorter: (a, b) => {
+            if (!a.hired_status && !b.hired_status) return 0;
+            if (!a.hired_status) return 1;
+            if (!b.hired_status) return -1;
+            return a.hired_status.localeCompare(b.hired_status);
+          },
+          sortOrder: sorted.columnKey === 'hired_status' && sorted.order,
+        },
         // {
         //   title: 'Score',
         //   dataIndex: 'score',
@@ -264,7 +315,23 @@ export default {
     this.fetchInterviews();
   },
   methods: {
+    formatTime(timeString) {
+      if (!timeString) return '';
 
+      // Handle time strings with milliseconds
+      const timeParts = timeString.split('.');
+      const baseTime = timeParts[0];
+
+      // Convert to 12-hour format
+      const [hours, minutes] = baseTime.split(':');
+      if (!hours || !minutes) return timeString;
+
+      const hour = parseInt(hours, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+
+      return `${hour12}:${minutes} ${ampm}`;
+    },
 
     toggleCollapse() {
       this.isCollapsed = !this.isCollapsed;

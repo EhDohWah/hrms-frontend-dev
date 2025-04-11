@@ -67,11 +67,19 @@
                         <a-table :columns="columns" :data-source="tableData" :pagination="pagination"
                             :scroll="{ x: 'max-content' }" row-key="id" @change="handleTableChange">
                             <template #bodyCell="{ column, record }">
+                                <template v-if="column.dataIndex === 'acceptance_status'">
+                                    <span
+                                        :class="`badge ${record.acceptance_status === 'accepted' ? 'bg-success' : record.acceptance_status === 'rejected' ? 'bg-danger' : 'bg-warning'}`">
+                                        {{ record.acceptance_status }}
+                                    </span>
+                                </template>
+
                                 <template v-if="column.dataIndex === 'actions'">
                                     <div class="action-icon d-inline-flex">
-                                        <router-link :to="`/recruitment/job-offers/details/${record.id}`" class="me-2">
-                                            <i class="ti ti-eye"></i>
-                                        </router-link>
+                                        <a href="javascript:void(0);" class="me-2"
+                                            @click="downloadJobOfferPDF(record.custom_offer_id)">
+                                            <i class="ti ti-download"></i>
+                                        </a>
                                         <a href="javascript:void(0);" class="me-2"
                                             @click="openEditJobOfferModal(record)">
                                             <i class="ti ti-edit"></i>
@@ -91,97 +99,200 @@
     </div>
 
     <!-- Job Offer Modal -->
-    <job-offers-modal ref="jobOffersModal" />
+    <job-offers-modal ref="jobOffersModal" @job-offer-added="fetchJobOffers" @job-offer-updated="fetchJobOffers" />
 
-
+    <!-- Notification Toast -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header" :class="notificationClass">
+                <strong class="me-auto">{{ notificationTitle }}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                {{ notificationMessage }}
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
+import { Toast } from 'bootstrap';
 import { Modal as AntModal } from 'ant-design-vue';
+import JobOffersModal from '@/components/modal/job-offers-modal.vue';
+import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
+import { useJobOfferStore } from '@/stores/jobOfferStore';
+import { ref, computed } from 'vue';
+import moment from 'moment';
+import { jobOfferService } from '@/services/job-offer.service';
 
 export default {
     name: 'JobOffersList',
+    components: {
+        JobOffersModal,
+        indexBreadcrumb
+    },
+    setup() {
+        const filteredInfo = ref({});
+        const sortedInfo = ref({});
+        const currentPage = ref(1);
+        const pageSize = ref(10);
+        const total = ref(0);
+        const jobOfferStore = useJobOfferStore();
+
+        const pagination = computed(() => ({
+            total: total.value,
+            current: currentPage.value,
+            pageSize: pageSize.value,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50', '100'],
+            showTotal: (total) => `Total ${total} items`
+        }));
+
+        return {
+            filteredInfo,
+            sortedInfo,
+            currentPage,
+            pageSize,
+            total,
+            pagination,
+            jobOfferStore
+        };
+    },
     data() {
         return {
             title: 'Job Offers',
-            text: 'Job Offers List',
-            text1: 'Job Offers List',
+            text: 'Recruitment',
+            text1: 'Job Offers',
             loading: false,
-            filteredInfo: null,
-            sortedInfo: null,
-            currentPage: 1,
-            pageSize: 10,
-            total: 50, // Total number of dummy records
-            columns: [
+            jobOffers: [],
+            isCollapsed: false,
+            notificationTitle: '',
+            notificationMessage: '',
+            notificationClass: ''
+        };
+    },
+    computed: {
+        columns() {
+            const filtered = this.filteredInfo || {};
+            const sorted = this.sortedInfo || {};
+
+            return [
                 {
-                    title: 'Name',
-                    dataIndex: 'name',
-                    key: 'name',
-                    sorter: (a, b) => a.name.localeCompare(b.name),
-                    filteredValue: this.filteredInfo?.name || null,
+                    title: 'Job Offer ID',
+                    dataIndex: 'custom_offer_id',
+                    key: 'custom_offer_id',
+                    filters: this.getUniqueValues('custom_offer_id'),
+                    filteredValue: filtered.custom_offer_id || null,
+                    onFilter: (value, record) => record.custom_offer_id.includes(value),
+                    sorter: (a, b) => a.custom_offer_id.localeCompare(b.custom_offer_id),
+                    sortOrder: sorted.columnKey === 'custom_offer_id' && sorted.order,
+                    filterSearch: true,
                 },
+
                 {
-                    title: 'Email',
-                    dataIndex: 'email',
-                    key: 'email',
-                    sorter: (a, b) => a.email.localeCompare(b.email),
-                },
-                {
-                    title: 'Phone',
-                    dataIndex: 'phone',
-                    key: 'phone',
+                    title: 'Candidate Name',
+                    dataIndex: 'candidate_name',
+                    key: 'candidate_name',
+                    filters: this.getUniqueValues('candidate_name'),
+                    filteredValue: filtered.candidate_name || null,
+                    onFilter: (value, record) => record.candidate_name.includes(value),
+                    sorter: (a, b) => a.candidate_name.localeCompare(b.candidate_name),
+                    sortOrder: sorted.columnKey === 'candidate_name' && sorted.order,
+                    filterSearch: true,
                 },
                 {
                     title: 'Position',
-                    dataIndex: 'position',
-                    key: 'position',
-                    filters: [
-                        { text: 'Developer', value: 'Developer' },
-                        { text: 'Designer', value: 'Designer' },
-                        { text: 'Manager', value: 'Manager' },
-                    ],
-                    filteredValue: this.filteredInfo?.position || null,
-                    onFilter: (value, record) => record.position.includes(value),
+                    dataIndex: 'position_name',
+                    key: 'position_name',
+                    filters: this.getUniqueValues('position_name'),
+                    filteredValue: filtered.position_name || null,
+                    onFilter: (value, record) => record.position_name.includes(value),
+                    sorter: (a, b) => a.position_name.localeCompare(b.position_name),
+                    sortOrder: sorted.columnKey === 'position_name' && sorted.order,
+                    filterSearch: true,
+                },
+                {
+                    title: 'Date',
+                    dataIndex: 'date',
+                    key: 'date',
+                    sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
+                    sortOrder: sorted.columnKey === 'date' && sorted.order,
+                },
+                {
+                    title: 'Deadline',
+                    dataIndex: 'acceptance_deadline',
+                    key: 'acceptance_deadline',
+                    sorter: (a, b) => moment(a.acceptance_deadline).unix() - moment(b.acceptance_deadline).unix(),
+                    sortOrder: sorted.columnKey === 'acceptance_deadline' && sorted.order,
                 },
                 {
                     title: 'Status',
-                    dataIndex: 'status',
-                    key: 'status',
+                    dataIndex: 'acceptance_status',
+                    key: 'acceptance_status',
                     filters: [
-                        { text: 'Pending', value: 'Pending' },
-                        { text: 'Accepted', value: 'Accepted' },
-                        { text: 'Rejected', value: 'Rejected' },
+                        { text: 'Pending', value: 'pending' },
+                        { text: 'Accepted', value: 'accepted' },
+                        { text: 'Rejected', value: 'rejected' },
                     ],
-                    filteredValue: this.filteredInfo?.status || null,
-                    onFilter: (value, record) => record.status.includes(value),
+                    filteredValue: filtered.acceptance_status || null,
+                    onFilter: (value, record) => record.acceptance_status === value,
+                    sorter: (a, b) => a.acceptance_status.localeCompare(b.acceptance_status),
+                    sortOrder: sorted.columnKey === 'acceptance_status' && sorted.order,
                 },
                 {
                     title: 'Actions',
                     dataIndex: 'actions',
                     key: 'actions',
                 }
-            ],
-            // Dummy data for job offers
-            jobOffers: Array.from({ length: 50 }, (_, i) => ({
-                id: i + 1,
-                name: `Candidate ${i + 1}`,
-                email: `candidate${i + 1}@example.com`,
-                phone: `+1 ${Math.floor(100 + Math.random() * 900)}-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}`,
-                position: ['Developer', 'Designer', 'Manager'][Math.floor(Math.random() * 3)],
-                status: ['Pending', 'Accepted', 'Rejected'][Math.floor(Math.random() * 3)],
-            })),
-        };
+            ];
+        },
+        tableData() {
+            return this.jobOffers.map(jobOffer => ({
+                ...jobOffer,
+                key: jobOffer.id,
+                date: jobOffer.date ? moment(jobOffer.date).format('YYYY-MM-DD') : '',
+                acceptance_deadline: jobOffer.acceptance_deadline ? moment(jobOffer.acceptance_deadline).format('YYYY-MM-DD') : ''
+            }));
+        }
     },
     mounted() {
-        // No need to fetch data as we're using dummy data
-        this.loading = true;
-        // Simulate loading delay
-        setTimeout(() => {
-            this.loading = false;
-            this.$message.success('Job offers loaded successfully');
-        }, 100);
+        this.fetchJobOffers();
     },
     methods: {
+
+        async downloadJobOfferPDF(custom_offer_id) {
+            try {
+                const blob = await jobOfferService.generateJobOfferPDF(custom_offer_id);
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `job-offer-${custom_offer_id}.pdf`;
+                a.click();
+                this.$message.success('Job offer PDF downloaded successfully');
+            } catch (error) {
+                console.error('Error downloading job offer PDF:', error);
+                this.$message.error('Failed to download job offer PDF');
+            }
+        },
+
+        formatTime(timeString) {
+            if (!timeString) return '';
+
+            // Handle time strings with milliseconds
+            const timeParts = timeString.split('.');
+            const baseTime = timeParts[0];
+
+            // Convert to 12-hour format
+            const [hours, minutes] = baseTime.split(':');
+            if (!hours || !minutes) return timeString;
+
+            const hour = parseInt(hours, 10);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+
+            return `${hour12}:${minutes} ${ampm}`;
+        },
+
         toggleCollapse() {
             this.isCollapsed = !this.isCollapsed;
             if (this.isCollapsed) {
@@ -190,75 +301,109 @@ export default {
                 document.body.classList.remove("header-collapse");
             }
         },
+
+        getUniqueValues(field) {
+            const values = [...new Set(this.jobOffers.map(item => item[field]))].filter(Boolean);
+            return values.map(value => ({ text: value, value }));
+        },
+
+        handleTableChange(pagination, filters, sorter) {
+            console.log('Various parameters', pagination, filters, sorter);
+            this.currentPage = pagination.current;
+            this.pageSize = pagination.pageSize;
+            this.filteredInfo = filters;
+            this.sortedInfo = sorter;
+        },
+
         clearFilters() {
             this.filteredInfo = null;
         },
+
         clearAll() {
             this.filteredInfo = null;
             this.sortedInfo = null;
         },
-        handleTableChange(pagination, filters, sorter) {
-            this.currentPage = pagination.current;
-            this.filteredInfo = filters;
-            this.sortedInfo = sorter;
-        },
-        editJobOffer(id) {
-            // Implementation for editing job offer
-            console.log('Editing job offer with ID:', id);
-        },
-        deleteJobOffer(id) {
+
+        async fetchJobOffers() {
+            this.loading = true;
+
             try {
-                AntModal.confirm({
-                    title: 'Are you sure?',
-                    content: 'You are about to delete this job offer. This action cannot be undone.',
-                    okText: 'Yes, Delete',
-                    okType: 'danger',
-                    cancelText: 'Cancel',
-                    onOk: async () => {
-                        this.loading = true;
-                        try {
-                            // Simulate deletion
-                            this.jobOffers = this.jobOffers.filter(offer => offer.id !== id);
-                            this.$message.success('Job offer deleted successfully');
-                        } catch (error) {
-                            console.error('Error deleting job offer:', error);
-                            this.$message.error('Failed to delete job offer');
-                        } finally {
-                            this.loading = false;
+                await this.jobOfferStore.fetchJobOffers();
+
+                if (this.jobOfferStore.jobOffers) {
+                    this.jobOffers = this.jobOfferStore.jobOffers.map(jobOffer => ({
+                        ...jobOffer,
+                        date: jobOffer.date ? moment(jobOffer.date).format('YYYY-MM-DD') : '',
+                        acceptance_deadline: jobOffer.acceptance_deadline ? moment(jobOffer.acceptance_deadline).format('YYYY-MM-DD') : ''
+                    }));
+                    this.total = this.jobOffers.length;
+                    this.$message.success('Job offers loaded successfully');
+                }
+            } catch (error) {
+                console.error('Error fetching job offers:', error);
+                this.$message.error('Failed to load job offers');
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        openAddJobOfferModal() {
+            if (this.$refs.jobOffersModal) {
+                this.$refs.jobOffersModal.editMode = false;
+                this.$refs.jobOffersModal.jobOfferData = null;
+                this.$refs.jobOffersModal.openModal();
+            }
+        },
+
+        openEditJobOfferModal(jobOffer) {
+            this.$refs.jobOffersModal.jobOfferData = jobOffer;
+            this.$refs.jobOffersModal.editMode = true;
+            this.$refs.jobOffersModal.openModal();
+        },
+
+        async deleteJobOffer(id) {
+            try {
+                await new Promise((resolve) => {
+                    AntModal.confirm({
+                        title: 'Are you sure?',
+                        content: 'You are about to delete this job offer. This action cannot be undone.',
+                        centered: true,
+                        okText: 'Yes, delete',
+                        cancelText: 'Cancel',
+                        onOk: async () => {
+                            this.loading = true;
+                            try {
+                                await this.jobOfferStore.deleteJobOffer(id);
+                                this.jobOffers = this.jobOffers.filter(jobOffer => jobOffer.id !== id);
+                                this.total = this.jobOffers.length;
+                                this.$message.success('Job offer deleted successfully');
+                                resolve();
+                            } catch (error) {
+                                console.error('Error deleting job offer:', error);
+                                this.$message.error('Failed to delete job offer');
+                                resolve();
+                            } finally {
+                                this.loading = false;
+                            }
+                        },
+                        onCancel: () => {
+                            resolve();
                         }
-                    }
+                    });
                 });
             } catch (error) {
                 console.error('Delete confirmation failed:', error);
             }
         },
-        openAddJobOfferModal() {
-            // Prepare the data to pass to the modal 
-            const jobOfferData = {
-                name: 'Giovanni',
-                email: 'giovanni@gmail.com',
-                phone: '+1 234 567 890',
-                position: 'Developer',
-                status: 'Pending'
-            };
-            // Use the template ref to call the child's method
-            this.$refs.jobOffersModal.setData(jobOfferData);
-            // Open the modal with the data
-            this.$refs.jobOffersModal.open(jobOfferData);
-        }
-    },
-    computed: {
-        tableData() {
-            return this.jobOffers;
-        },
-        pagination() {
-            return {
-                current: this.currentPage,
-                pageSize: this.pageSize,
-                total: this.total,
-                showSizeChanger: true,
-                showQuickJumper: true
-            };
+
+        showNotification(title, message, className) {
+            this.notificationTitle = title;
+            this.notificationMessage = message;
+            this.notificationClass = className;
+
+            const toastEl = document.getElementById('notificationToast');
+            const toast = new Toast(toastEl);
+            toast.show();
         }
     }
 };

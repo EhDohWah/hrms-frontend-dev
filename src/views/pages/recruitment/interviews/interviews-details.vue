@@ -9,7 +9,8 @@
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="mb-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="$router.push('/recruitment/interviews-list')">
+            <button class="btn btn-primary d-flex align-items-center"
+              @click="$router.push('/recruitment/interviews-list')">
               <i class="ti ti-arrow-left me-2"></i>Back to Interview List
             </button>
           </div>
@@ -47,9 +48,9 @@
                       <td>{{ interview.interview_mode }}</td>
                     </tr>
                     <tr>
-                      <td>Status:</td>
+                      <td>Interview Status:</td>
                       <td>
-                        <span :class="'badge ' + getStatusClass(interview.interview_status)">
+                        <span class="badge bg-gray text-dark">
                           {{ interview.interview_status }}
                         </span>
                       </td>
@@ -72,12 +73,17 @@
                       <td>{{ interview.candidate_name }}</td>
                     </tr>
                     <tr>
-                      <td>Email:</td>
-                      <td>{{ interview.candidate_email }}</td>
-                    </tr>
-                    <tr>
                       <td>Phone:</td>
                       <td>{{ interview.candidate_phone }}</td>
+                    </tr>
+
+                    <tr>
+                      <td>Hired Status:</td>
+                      <td>
+                        <span class="badge bg-gray text-dark">
+                          {{ interview.hired_status }}
+                        </span>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -86,7 +92,7 @@
           </div>
 
           <!-- Interview Feedback Section -->
-          <div class="row mt-4">
+          <div class="row mt-4">s
             <div class="col-md-12">
               <h4 class="mb-4">Interview Feedback</h4>
               <div class="feedback-section">
@@ -121,7 +127,7 @@
       <!-- /Interview Details -->
     </div>
 
-    
+
     <layout-footer></layout-footer>
   </div>
 </template>
@@ -131,7 +137,7 @@ import { useInterviewStore } from '@/stores/interviewStore';
 
 export default {
   name: 'InterviewsDetails',
-  
+
   data() {
     return {
       title: 'Interview Details',
@@ -160,12 +166,12 @@ export default {
   methods: {
     getStatusClass(status) {
       const statusClasses = {
-        'Scheduled': 'bg-warning-light',
-        'Completed': 'bg-success-light',
-        'Cancelled': 'bg-danger-light',
-        'In Progress': 'bg-info-light'
+        'Scheduled': 'bg-warning text-dark',
+        'Completed': 'bg-success text-dark',
+        'Cancelled': 'bg-danger text-dark',
+        'In Progress': 'bg-info text-dark'
       };
-      return statusClasses[status] || 'bg-secondary-light';
+      return statusClasses[status] || 'bg-secondary text-dark';
     },
     formatDate(date) {
       return date ? new Date(date).toLocaleDateString() : 'N/A';
@@ -178,10 +184,10 @@ export default {
         this.loading = true;
         const interviewId = this.$route.params.id;
         console.log(interviewId);
-        
+
         const interviewStore = useInterviewStore();
         const interviewData = await interviewStore.fetchInterviewById(interviewId);
-        
+
         if (interviewData) {
           this.interview = interviewStore.currentInterview;
         }

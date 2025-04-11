@@ -760,7 +760,11 @@ const routes = [
           title: 'Interviews List '
         }
       },
-      { path: "job-offers-list", component: jobOffersList },
+      { path: "job-offers-list", component: jobOffersList,
+        meta: { 
+          title: 'Job Offer List '
+        }
+      },
       { path: "interviews-details/:id", component: InterviewsDetails },
     ]
   },

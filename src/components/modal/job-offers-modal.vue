@@ -68,7 +68,8 @@
 
                 <div class="mb-3">
                   <label for="note" class="form-label">Notes</label>
-                  <textarea class="form-control" id="note" v-model="formData.note" rows="3"></textarea>
+                  <textarea class="form-control" id="note" v-model="formData.note" rows="3"
+                    placeholder="Enter notes here" style="height: 100px" required></textarea>
                 </div>
               </div>
             </div>
@@ -92,6 +93,7 @@ import { Modal } from 'bootstrap';
 import { useJobOfferStore } from '@/stores/jobOfferStore';
 import { message } from 'ant-design-vue';
 import { ref } from 'vue';
+import moment from 'moment';
 
 export default {
   name: 'JobOffersModal',
@@ -129,7 +131,19 @@ export default {
     jobOfferData: {
       handler(newVal) {
         if (newVal) {
-          this.formData = { ...newVal };
+          // Clone the job offer data but convert formatted dates back to YYYY-MM-DD
+          const formattedData = { ...newVal };
+
+          // Convert DD/MM/YYYY format back to YYYY-MM-DD for form inputs
+          if (formattedData.date && typeof formattedData.date === 'string' && formattedData.date.includes('/')) {
+            formattedData.date = moment(formattedData.date, 'DD/MM/YYYY').format('YYYY-MM-DD');
+          }
+
+          if (formattedData.acceptance_deadline && typeof formattedData.acceptance_deadline === 'string' && formattedData.acceptance_deadline.includes('/')) {
+            formattedData.acceptance_deadline = moment(formattedData.acceptance_deadline, 'DD/MM/YYYY').format('YYYY-MM-DD');
+          }
+
+          this.formData = formattedData;
         }
       },
       deep: true
@@ -146,7 +160,18 @@ export default {
     openModal() {
       if (this.editMode && this.jobOfferData) {
         // Clone existing data for edit mode
-        this.formData = { ...this.jobOfferData };
+        const formattedData = { ...this.jobOfferData };
+
+        // Convert DD/MM/YYYY format back to YYYY-MM-DD for form inputs
+        if (formattedData.date && typeof formattedData.date === 'string' && formattedData.date.includes('/')) {
+          formattedData.date = moment(formattedData.date, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        }
+
+        if (formattedData.acceptance_deadline && typeof formattedData.acceptance_deadline === 'string' && formattedData.acceptance_deadline.includes('/')) {
+          formattedData.acceptance_deadline = moment(formattedData.acceptance_deadline, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        }
+
+        this.formData = formattedData;
       } else {
         // Set defaults for new entry
         this.formData = {

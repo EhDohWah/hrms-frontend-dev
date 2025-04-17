@@ -92,7 +92,7 @@
           </div>
 
           <!-- Interview Feedback Section -->
-          <div class="row mt-4">s
+          <div class="row mt-4">
             <div class="col-md-12">
               <h4 class="mb-4">Interview Feedback</h4>
               <div class="feedback-section">

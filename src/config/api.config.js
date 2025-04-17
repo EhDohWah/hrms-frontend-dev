@@ -251,6 +251,12 @@ export const API_ENDPOINTS = {
         UPDATE: '/job-offers/:id',
         DELETE: '/job-offers/:id',
         GENERATE_PDF: '/job-offers/:id/pdf'
-    }
+    },
 
+    // Report endpoints
+    REPORT: {
+        INTERVIEW_EXPORT_PDF: '/reports/interview-report/export-pdf',
+        JOB_OFFER_EXPORT_PDF: '/reports/job-offer-report/export-pdf'
+    }
+    
 };

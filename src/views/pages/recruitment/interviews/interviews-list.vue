@@ -8,26 +8,7 @@
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="me-2 mb-2">
-            <div class="dropdown">
-              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown">
-                <i class="ti ti-file-export me-1"></i>Export
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                    <i class="ti ti-file-type-pdf me-1"></i>Export as PDF
-                  </a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                    <i class="ti ti-file-type-xls me-1"></i>Export as Excel
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
+
           <div class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openAddInterviewModal">
               <i class="ti ti-circle-plus me-2"></i>Add Interview
@@ -230,22 +211,22 @@ export default {
           sorter: (a, b) => moment(a.interview_date).unix() - moment(b.interview_date).unix(),
           sortOrder: sorted.columnKey === 'interview_date' && sorted.order,
         },
-        {
-          title: 'Time',
-          dataIndex: 'start_time',
-          key: 'start_time',
-          render: (text, record) => {
-            const startTime = record.start_time ? this.formatTime(record.start_time) : '';
-            const endTime = record.end_time ? this.formatTime(record.end_time) : '';
-            return startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '';
-          },
-          sorter: (a, b) => {
-            const aTime = a.start_time || '';
-            const bTime = b.start_time || '';
-            return aTime.localeCompare(bTime);
-          },
-          sortOrder: sorted.columnKey === 'start_time' && sorted.order,
-        },
+        // {
+        //   title: 'Time',
+        //   dataIndex: 'start_time',
+        //   key: 'start_time',
+        //   render: (text, record) => {
+        //     const startTime = record.start_time ? this.formatTime(record.start_time) : '';
+        //     const endTime = record.end_time ? this.formatTime(record.end_time) : '';
+        //     return startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '';
+        //   },
+        //   sorter: (a, b) => {
+        //     const aTime = a.start_time || '';
+        //     const bTime = b.start_time || '';
+        //     return aTime.localeCompare(bTime);
+        //   },
+        //   sortOrder: sorted.columnKey === 'start_time' && sorted.order,
+        // },
         // {
         //   title: 'Mode',
         //   dataIndex: 'interview_mode',
@@ -372,7 +353,8 @@ export default {
         if (this.interviewStore.interviews) {
           this.interviews = this.interviewStore.interviews.map(interview => ({
             ...interview,
-            interview_date: interview.interview_date ? moment(interview.interview_date).format('YYYY-MM-DD') : '',
+            interview_date: interview.interview_date ? moment(interview.interview_date).format('DD/MM/YYYY') : '',
+
           }));
           this.total = this.interviews.length;
           this.$message.success('Interviews loaded successfully');

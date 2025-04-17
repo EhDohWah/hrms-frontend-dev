@@ -107,6 +107,73 @@ class ApiService {
         }
     }
 
+    // Get Job Offer Report PDF using POST
+    async getJobOfferReportPdf(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }   
+            
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
+    // Get Interview Report PDF using POST
+    async getInterviewReportPdf(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+            
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
+
     // Get Request with pdf
     async getPdf(endpoint) {
         const fullURL = this.getFullURL(endpoint);

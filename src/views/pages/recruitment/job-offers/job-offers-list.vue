@@ -8,27 +8,6 @@
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
                 <index-breadcrumb :title="title" :text="text" :text1="text1" />
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-                    <div class="me-2 mb-2">
-                        <div class="dropdown">
-                            <a href="javascript:void(0);"
-                                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                                data-bs-toggle="dropdown">
-                                <i class="ti ti-file-export me-1"></i>Export
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end p-3">
-                                <li>
-                                    <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                                        <i class="ti ti-file-type-pdf me-1"></i>Export as PDF
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                                        <i class="ti ti-file-type-xls me-1"></i>Export as Excel
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
                     <div class="mb-2 me-2">
                         <button class="btn btn-primary d-flex align-items-center" @click="openAddJobOfferModal">
                             <i class="ti ti-circle-plus me-2"></i>Add Job Offer
@@ -250,8 +229,8 @@ export default {
             return this.jobOffers.map(jobOffer => ({
                 ...jobOffer,
                 key: jobOffer.id,
-                date: jobOffer.date ? moment(jobOffer.date).format('YYYY-MM-DD') : '',
-                acceptance_deadline: jobOffer.acceptance_deadline ? moment(jobOffer.acceptance_deadline).format('YYYY-MM-DD') : ''
+                date: jobOffer.date ? moment(jobOffer.date).format('DD/MM/YYYY') : '',
+                acceptance_deadline: jobOffer.acceptance_deadline ? moment(jobOffer.acceptance_deadline).format('DD/MM/YYYY') : ''
             }));
         }
     },

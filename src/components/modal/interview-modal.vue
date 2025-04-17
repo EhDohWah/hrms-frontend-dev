@@ -27,7 +27,7 @@
 
                 <div class="mb-3">
                   <label for="endTime" class="form-label">End Time</label>
-                  <input type="time" class="form-control" id="endTime" v-model="formData.end_time" step="1" />
+                  <input type="time" class="form-control" id="endTime" v-model="formData.end_time" />
                 </div>
 
                 <div class="mb-3">
@@ -51,14 +51,9 @@
                   <label for="phone" class="form-label">Phone</label>
                   <input type="text" class="form-control" id="phone" v-model="formData.phone" required />
                 </div>
-
                 <div class="mb-3">
                   <label for="startTime" class="form-label">Start Time</label>
-                  <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required
-                    step="1" />
-                  <small v-if="formData.start_time && formData.start_time.includes('.')" class="text-muted">
-                    Note: Time includes milliseconds which will be truncated when displayed.
-                  </small>
+                  <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required />
                 </div>
 
                 <div class="mb-3">

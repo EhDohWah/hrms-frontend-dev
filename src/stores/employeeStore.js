@@ -14,7 +14,11 @@ export const useEmployeeStore = defineStore('employee', {
       totalEmployees: 0,
       activeCount: 0,
       inactiveCount: 0,
-      newJoinerCount: 0
+      newJoinerCount: 0,
+      subsidiaryCount: {
+        SMRU_count: 0,
+        BHF_count: 0
+      }
     }
   }),
 
@@ -43,6 +47,7 @@ export const useEmployeeStore = defineStore('employee', {
     getEmploymentById: (state) => (id) => {
       return state.employments.find(employment => employment.id === id);
     },
+    
     getEmploymentsByDepartment: (state) => (department) => {
       return state.employments.filter(employment => 
         employment.department_position && employment.department_position.department === department
@@ -255,6 +260,24 @@ export const useEmployeeStore = defineStore('employee', {
         const startDate = new Date(employee.employment.start_date);
         return startDate >= threeMonthsAgo && startDate <= now;
       }).length;
+
+      // I want to calculate the employee count for each subsidiary 
+      // Count employees by subsidiary
+      this.statistics.subsidiaryCount = {
+        SMRU_count: 0,
+        BHF_count: 0
+      };
+      
+      // Calculate counts based on employee subsidiary
+      this.employees.forEach(employee => {
+        const subsidiary = employee.subsidiary || (employee.employment?.subsidiary);
+        if (subsidiary === 'SMRU') {
+          this.statistics.subsidiaryCount.SMRU_count++;
+        } else if (subsidiary === 'BHF') {
+          this.statistics.subsidiaryCount.BHF_count++;
+        }
+      });
+      
     }
   }
 });

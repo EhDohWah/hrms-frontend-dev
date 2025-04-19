@@ -47,15 +47,15 @@
 
       <welcome-hr-manager></welcome-hr-manager>
 
-      <employee-status></employee-status>
+      <!-- <employee-status></employee-status> -->
 
-      <job-applicants></job-applicants>
+      <!-- <job-applicants></job-applicants>
 
       <sales-overview></sales-overview>
 
       <project-table></project-table>
 
-      <schedules-index></schedules-index>
+      <schedules-index></schedules-index> -->
     </div>
     <layout-footer></layout-footer>
   </div>

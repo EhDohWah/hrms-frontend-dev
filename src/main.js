@@ -170,6 +170,7 @@ import clientTable from '@/views/pages/projects/clients/client-table.vue';
 import InterviewReport from '@/components/reports/interview-report.vue';
 import JobOfferReport from '@/components/reports/joboffer-report.vue';
 import ReportRow from '@/components/reports/report-row.vue';
+import GrantHeadcountReport from '@/components/reports/grant-headcount-report.vue';
 
 // Admin lookups
 import lookupList from '@/views/pages/administration/lookups/lookup-list.vue';
@@ -353,7 +354,7 @@ app.component('index-breadcrumb', indexBreadcrumb)
 app.component('interview-report', InterviewReport)
 app.component('job-offer-report', JobOfferReport)
 app.component('report-row', ReportRow) 
-
+app.component('grant-headcount-report', GrantHeadcountReport)
 /************Page Components********************/
 
 app.component('job-offers-list', jobOffersList)

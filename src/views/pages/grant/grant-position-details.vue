@@ -27,9 +27,9 @@
             <div class="row">
                 <!-- Grant Position Details Card -->
                 <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Grant Position Details</h5>
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="ti ti-file-description me-2"></i>Grant Position Details</h5>
                         </div>
                         <div class="card-body">
                             <div v-if="loading" class="text-center my-3">
@@ -39,33 +39,53 @@
                                 <p class="mt-2">Loading position details...</p>
                             </div>
                             <div v-else-if="!positionDetails" class="text-center my-3">
-                                <p>No position details found.</p>
-                            </div>
-                            <div v-else class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Grant Code:</label>
-                                        <p>{{ positionDetails.code }}</p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Grant Name:</label>
-                                        <p>{{ positionDetails.grantName }}</p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Budget Line:</label>
-                                        <p>{{ positionDetails.budgetLine }}</p>
-                                    </div>
+                                <div class="alert alert-info">
+                                    <i class="ti ti-info-circle me-2"></i>No position details found.
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Position Name:</label>
-                                        <p>{{ positionDetails.positionName }}</p>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Manpower Required:</label>
-                                        <p>{{ positionDetails.manPower }}</p>
-                                    </div>
+                            </div>
+                            <div v-else>
+                                <div class="row">
+                                    <div class="col-md-4 mb-4">
+                                        <div class="position-stat-card text-center p-4 bg-light rounded">
+                                            <h6 class="text-muted mb-2">MANPOWER REQUIRED</h6>
+                                            <div class="display-3 fw-bold text-primary mb-0">
+                                                {{ positionDetails.manPower }}
+                                            </div>
 
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted small">GRANT CODE</label>
+                                                    <p class="fw-medium">{{ positionDetails.code }}</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted small">BUDGET LINE</label>
+                                                    <p class="fw-medium">{{ positionDetails.budgetLine }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted small">GRANT NAME</label>
+                                                    <p class="fw-medium">{{ positionDetails.grantName }}</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label text-muted small">POSITION NAME</label>
+                                                    <p class="fw-medium">{{ positionDetails.positionName }}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label class="form-label text-muted small">STATUS</label>
+                                            <div>
+                                                <span class="badge" :class="getStatusClass(positionDetails.status)">
+                                                    {{ positionDetails.status }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -103,12 +123,12 @@
                                         </template>
                                         <template v-if="column.dataIndex === 'actions'">
                                             <div class="action-icon d-inline-flex">
-                                                <a href="javascript:void(0);" class="me-2"
+                                                <!-- <a href="javascript:void(0);" class="me-2"
                                                     @click="openEditEmployeeAllocationModal(record)">
                                                     <i class="ti ti-edit"></i>
-                                                </a>
+                                                </a> -->
                                                 <a href="javascript:void(0);"
-                                                    @click="deleteEmployeeAllocation(record.id)">
+                                                    @click="deleteEmployeeAllocation(record.allocationId)">
                                                     <i class="ti ti-trash"></i>
                                                 </a>
                                             </div>
@@ -126,7 +146,8 @@
     </div>
 
     <!-- Grant allocate employee modal -->
-    <grant-allocate-employee-modal ref="grantAllocateEmployeeModal" @submit="handleGrantPositionSubmit" />
+    <grant-allocate-employee-modal ref="grantAllocateEmployeeModal" :grant-position-id="positionDetails?.positionId"
+        :grant-position-name="positionDetails?.positionName" @childSubmit="handleGrantPositionSubmit" />
 </template>
 
 <script>
@@ -137,6 +158,7 @@ import { ref, computed } from 'vue';
 import moment from 'moment';
 import { employeeGrantAllocationService } from '@/services/employee-grant-allocation.service';
 import { grantService } from '@/services/grant.service';
+
 
 export default {
     name: 'GrantPositionDetails',
@@ -299,7 +321,6 @@ export default {
                 // Handle grant item (position) data
                 if (response.data) {
                     this.positionDetails = {
-                        id: response.data.id,
                         positionId: response.data.id,
                         positionName: response.data.grant_position || 'N/A',
                         code: response.data.grant && response.data.grant.code ? response.data.grant.code : 'N/A',
@@ -328,10 +349,12 @@ export default {
                 const response = await employeeGrantAllocationService.getEmployeeGrantAllocationDetails(id);
 
                 if (response.success) {
+
                     // Handle employee allocations
                     if (response.employees && Array.isArray(response.employees)) {
                         this.employeeAllocations = response.employees.map(employee => ({
-                            id: employee.id,
+                            allocationId: response.data.id,
+                            employeeId: employee.id,
                             positionId: response.data.grant_items_id || 'N/A',
                             staffId: employee.staff_id || 'N/A',
                             employeeName: `${employee.first_name_en || 'N/A'} ${employee.last_name_en !== '-' ? employee.last_name_en : ''}`.trim() || 'N/A',
@@ -381,16 +404,23 @@ export default {
                         onOk: async () => {
                             this.loading = true;
                             try {
-                                // In a real application, you would call your API to delete the allocation
-                                // For now, we'll just remove it from the local array
-                                this.employeeAllocations = this.employeeAllocations.filter(allocation => allocation.id !== id);
-                                this.total = this.employeeAllocations.length;
+                                // Call the API to delete the allocation
+                                const response = await employeeGrantAllocationService.deleteEmployeeGrantAllocation(id);
+                                console.log(response);
+                                if (response.success) {
+                                    // Remove the deleted allocation from the local array
+                                    this.employeeAllocations = this.employeeAllocations.filter(allocation => allocation.id !== id);
+                                    this.total = this.employeeAllocations.length;
+                                    message.success(response.message || 'Employee allocation deleted successfully');
+                                    this.fetchEmployeeAllocations();
 
-                                message.success('Employee allocation deleted successfully');
+                                } else {
+                                    throw new Error(response.message || 'Failed to delete employee allocation');
+                                }
                                 resolve();
                             } catch (error) {
                                 console.error('Error deleting employee allocation:', error);
-                                message.error('Failed to delete employee allocation');
+                                message.error(error.message || 'Failed to delete employee allocation');
                                 resolve();
                             } finally {
                                 this.loading = false;
@@ -406,10 +436,29 @@ export default {
             }
         },
 
-        handleGrantPositionSubmit() {
-            // This would be used if you want to update the position details
-            this.$refs.grantAllocateEmployeeModal.openModal();
-            message.success('Grant position updated successfully');
+        async handleGrantPositionSubmit(response) {
+            this.loading = true;
+            try {
+                // Check if the submission was successful
+                if (response.success) {
+                    // Display success message
+                    message.success(response.message || 'Grant position saved successfully');
+
+                    // Refresh the grant positions list to show the updated data
+                    try {
+                        await this.fetchEmployeeAllocations();
+                    } catch (fetchError) {
+                        message.warning('Position saved but could not refresh the list');
+                    }
+                } else {
+                    // Log the failure and display an error message to the user
+                    message.error(response.message || 'Failed to save grant position');
+                }
+            } catch (error) {
+                message.error('An unexpected error occurred while processing your request');
+            } finally {
+                this.loading = false;
+            }
         }
     }
 };

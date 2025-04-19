@@ -5,14 +5,11 @@
   <div class="page-wrapper">
     <div class="content">
       <!-- Breadcrumb -->
-      <div
-        class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
-      >
+      <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <div class="my-auto mb-2">
           <h6 class="fw-medium d-inline-flex align-items-center mb-3 mb-sm-0">
             <router-link to="/employee/employee-list">
-              <i class="ti ti-arrow-left me-2"></i>Employee Details</router-link
-            >
+              <i class="ti ti-arrow-left me-2"></i>Employee Details</router-link>
           </h6>
         </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
@@ -26,15 +23,8 @@
             >
           </div> -->
           <div class="head-icons ms-2">
-            <a
-              href="javascript:void(0);"
-              class=""
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              data-bs-original-title="Collapse"
-              id="collapse-header"
-              @click="toggleHeader"
-            >
+            <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+              data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
@@ -53,45 +43,38 @@
         <div class="col-xl-4 theiaStickySidebar">
           <div class="card card-bg-1">
             <div class="card-body p-0">
-              <span
-                class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2"
-              >
-                <img
-                  :src="employee.profile_picture || require('@/assets/img/users/user-13.jpg')"
-                  class="w-auto h-auto"
-                  alt="Employee Image"
-                />
+              <span class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2">
+                <img :src="employee.profile_picture || require('@/assets/img/users/user-13.jpg')" class="w-auto h-auto"
+                  alt="Employee Image" />
               </span>
               <div class="text-center px-3 pb-3 border-bottom">
                 <div class="mb-3">
                   <h5 class="d-flex align-items-center justify-content-center mb-1">
-                    {{ employee.first_name_en }} {{ employee.last_name_en }}<i
-                      class="ti ti-discount-check-filled text-success ms-1"
-                    ></i>
+                    {{ employee.first_name_en }} {{ employee.last_name_en }}
                   </h5>
-                  <span class="badge badge-soft-dark fw-medium me-2">
-                    <i class="ti ti-point-filled me-1"></i>{{ employee.status || 'Status N/A' }}
-                  </span>
-                  <span class="badge badge-soft-dark fw-medium me-2">
-                    <i class="ti ti-point-filled me-1"></i>{{ employee.employment?.position?.title || 'Position N/A' }}
-                  </span>
-                  <span 
-                    :class="[
-                      'badge badge-sm fw-normal',
-                      employee.subsidiary === 'SMRU' ? 'badge-primary' : 
-                      employee.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' : 
-                      'badge-secondary'
-                    ]"
-                  >
+                  <span :class="[
+                    'badge badge-sm fw-bold',
+                    employee.subsidiary === 'SMRU' ? 'badge-primary' :
+                      employee.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                        'badge-secondary'
+                  ]" class="me-2">
                     {{ employee.subsidiary }}
                   </span>
-                  
+                  <span class="badge badge-soft-dark fw-medium me-2">
+                    <i class="ti ti-point-filled text-dark me-1"></i>{{ employee.status || 'Status N/A' }}
+                  </span>
+                  <span class="badge badge-soft-dark fw-medium me-2">
+                    <i class="ti ti-point-filled text-dark me-1"></i>{{ employee.employment?.position?.title ||
+                      'Position N/A' }}
+                  </span>
+
+
                 </div>
                 <div>
 
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-id me-2"></i>
+                      <i class="ti ti-id text-primary me-2"></i>
                       Staff ID
                     </span>
                     <p class="text-dark">{{ employee.staff_id || 'N/A' }}</p>
@@ -99,7 +82,7 @@
 
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-user me-2"></i>
+                      <i class="ti ti-user text-info me-2"></i>
                       First Name
                     </span>
                     <p class="text-dark">{{ employee.first_name_en || 'N/A' }}</p>
@@ -107,14 +90,14 @@
 
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-user-circle me-2"></i>
+                      <i class="ti ti-user-circle text-info me-2"></i>
                       Last Name
                     </span>
                     <p class="text-dark">{{ employee.last_name_en || 'N/A' }}</p>
                   </div>
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-language me-2"></i>
+                      <i class="ti ti-language text-warning me-2"></i>
                       First Name - Thai
                     </span>
                     <p class="text-dark">{{ employee.first_name_th || 'N/A' }}</p>
@@ -122,7 +105,7 @@
 
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-language me-2"></i>
+                      <i class="ti ti-language text-warning me-2"></i>
                       Last Name - Thai
                     </span>
                     <p class="text-dark">{{ employee.last_name_th || 'N/A' }}</p>
@@ -130,7 +113,7 @@
 
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-star me-2"></i>
+                      <i class="ti ti-star text-success me-2"></i>
                       Department
                     </span>
                     <p class="text-dark">{{ employee.employment?.department?.name || 'N/A' }}</p>
@@ -138,14 +121,14 @@
 
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-calendar-check me-2"></i>
+                      <i class="ti ti-calendar-check text-danger me-2"></i>
                       Date Of Join
                     </span>
                     <p class="text-dark">{{ formatDate(employee.employment?.start_date) }}</p>
                   </div>
                   <div class="d-flex align-items-center justify-content-between">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-calendar-check me-2"></i>
+                      <i class="ti ti-calendar-check text-danger me-2"></i>
                       Report To
                     </span>
                     <div class="d-flex align-items-center">
@@ -158,28 +141,19 @@
                   <div class="row gx-2 mt-3">
                     <div class="col-12">
                       <div>
-                        <a
-                          href="javascript:void(0);"
-                          class="btn btn-dark w-100"
-                          data-bs-toggle="modal"
-                          data-bs-target="#edit_employee"
-                          ><i class="ti ti-edit me-1"></i>Edit Info</a
-                        >
+                        <a href="javascript:void(0);" class="btn btn-dark w-100" data-bs-toggle="modal"
+                          data-bs-target="#edit_employee"><i class="ti ti-edit me-1"></i>Edit Info</a>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
               <div class="p-3 border-bottom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <h6>Basic information</h6>
-                  <a
-                    href="javascript:void(0);"
-                    class="btn btn-icon btn-sm"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit_employee"
-                    ><i class="ti ti-edit"></i
-                  ></a>
+                  <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#edit_employee"><i class="ti ti-edit"></i></a>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
@@ -207,7 +181,8 @@
                     <i class="ti ti-calendar me-2"></i>
                     Birthday (Thai)
                   </span>
-                  <p class="text-dark text-end">{{ employee.date_of_birth ? formatThaiDate(employee.date_of_birth) : 'N/A' }}</p>
+                  <p class="text-dark text-end">{{ employee.date_of_birth ? formatThaiDate(employee.date_of_birth) :
+                    'N/A' }}</p>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
@@ -230,13 +205,8 @@
               <div class="p-3 border-bottom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <h6>Personal Information</h6>
-                  <a
-                    href="javascript:void(0);"
-                    class="btn btn-icon btn-sm"
-                    data-bs-toggle="modal"
-                    data-bs-target="#edit_personal"
-                    ><i class="ti ti-edit"></i
-                  ></a>
+                  <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#edit_personal"><i class="ti ti-edit"></i></a>
                 </div>
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <span class="d-inline-flex align-items-center">
@@ -306,106 +276,89 @@
           <!-- Beneficiary Information -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <h6>Beneficiary Information</h6>
-            <a
-              href="javascript:void(0);"
-              class="btn btn-icon btn-sm"
-              data-bs-toggle="modal"
-              data-bs-target="#edit_emergency"
-              ><i class="ti ti-edit"></i
-            ></a>
+            <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
+              data-bs-target="#edit_emergency"><i class="ti ti-edit"></i></a>
           </div>
-            <div class="card">
-              <div class="card-body p-0">
-                <div v-if="employee.employee_beneficiaries && employee.employee_beneficiaries.length > 0">
-                  <div v-for="(beneficiary, index) in employee.employee_beneficiaries" :key="index" class="p-3 border-bottom">
-                    <div class="d-flex align-items-center justify-content-between">
-                      <div>
-                        <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
-                        <h6 class="d-flex align-items-center fw-medium mt-1">
-                          {{ beneficiary.beneficiary_name }}
-                          <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
-                          {{ beneficiary.beneficiary_relationship }}
-                        </h6>
-                      </div>
-                      <p class="text-dark">{{ beneficiary.phone_number }}</p>
+          <div class="card">
+            <div class="card-body p-0">
+              <div v-if="employee.employee_beneficiaries && employee.employee_beneficiaries.length > 0">
+                <div v-for="(beneficiary, index) in employee.employee_beneficiaries" :key="index"
+                  class="p-3 border-bottom">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                      <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
+                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                        {{ beneficiary.beneficiary_name }}
+                        <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
+                        {{ beneficiary.beneficiary_relationship }}
+                      </h6>
                     </div>
+                    <p class="text-dark">{{ beneficiary.phone_number }}</p>
                   </div>
                 </div>
-                <div v-else class="p-3">
-                  <p class="text-center">No beneficiary information available</p>
-                </div>
+              </div>
+              <div v-else class="p-3">
+                <p class="text-center">No beneficiary information available</p>
               </div>
             </div>
-            <!-- End of Beneficiary Information -->
-            
-            <!--Employee Children Information -->
+          </div>
+          <!-- End of Beneficiary Information -->
+
+          <!--Employee Children Information -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <h6>Employee Children Information</h6>
-            <a
-              href="javascript:void(0);"
-              class="btn btn-icon btn-sm"
-              data-bs-toggle="modal"
-              data-bs-target="#edit_emergency"
-              ><i class="ti ti-edit"></i
-            ></a>
+            <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
+              data-bs-target="#edit_emergency"><i class="ti ti-edit"></i></a>
           </div>
-            <div class="card">
-              <div class="card-body p-0">
-                <div v-if="employee.employee_children && employee.employee_children.length > 0">
-                  <div v-for="(child, index) in employee.employee_children" :key="index" class="p-3 border-bottom">
-                    <div class="d-flex align-items-center justify-content-between">
-                      <div>
-                        <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
-                        <h6 class="d-flex align-items-center fw-medium mt-1">
-                          {{ child.child_name }}
-                          <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
-                          {{ child.child_relationship }}
-                        </h6>
-                      </div>
-                      <p class="text-dark">{{ child.child_phone_number }}</p>
+          <div class="card">
+            <div class="card-body p-0">
+              <div v-if="employee.employee_children && employee.employee_children.length > 0">
+                <div v-for="(child, index) in employee.employee_children" :key="index" class="p-3 border-bottom">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                      <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
+                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                        {{ child.child_name }}
+                        <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
+                        {{ child.child_relationship }}
+                      </h6>
                     </div>
+                    <p class="text-dark">{{ child.child_phone_number }}</p>
                   </div>
                 </div>
-                <div v-else class="p-3">
-                  <p class="text-center">No employee children information available</p>
-                </div>
+              </div>
+              <div v-else class="p-3">
+                <p class="text-center">No employee children information available</p>
               </div>
             </div>
-            <!-- End of Employee Children Information -->
+          </div>
+          <!-- End of Employee Children Information -->
 
-            
+
         </div>
 
-        
+
         <div class="col-xl-8">
           <div>
             <div class="card">
-                    <div class="card-body">
-                      <div class="contact-grids-tab p-0 mb-3">
-                        <ul class="nav nav-underline" id="myTab" role="tablist">
-                          <li class="nav-item" role="presentation">
-                            <button
-                              class="nav-link active"
-                              id="info-tab2"
-                              data-bs-toggle="tab"
-                              data-bs-target="#basic-info2"
-                              type="button"
-                              role="tab"
-                              aria-selected="true"
-                            >
-                              Grants
-                            </button>
-                          </li>
-                          <li class="nav-item ms-auto" role="presentation">
-                            <button
-                              class="btn btn-default btn-sm rounded d-flex align-items-center"
-                              data-bs-toggle="modal"
-                              data-bs-target="#add_grant_position"  
-                            >
-                              <i class="ti ti-circle-plus me-1"></i>Add Grant Position
-                            </button>
-                          </li>
-                          <!-- Assets tab commented out
+              <div class="card-body">
+                <div class="contact-grids-tab p-0 mb-3">
+                  <ul class="nav nav-underline" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link active" id="info-tab2" data-bs-toggle="tab" data-bs-target="#basic-info2"
+                        type="button" role="tab" aria-selected="true">
+                        Grants
+                      </button>
+                    </li>
+                    <!-- <li class="nav-item ms-auto" role="presentation">
+                      <button class="btn btn-default btn-sm rounded d-flex align-items-center" data-bs-toggle="modal"
+                        data-bs-target="#add_grant_position">
+                        <i class="ti ti-circle-plus me-1"></i>Add Grant Position
+                      </button>
+                    </li> -->
+
+
+                    <!-- Assets tab commented out
                           <li class="nav-item" role="presentation">
                             <button
                               class="nav-link"
@@ -420,130 +373,127 @@
                             </button>
                           </li>
                           -->
-                        </ul>
-                      </div>
-                      <div class="tab-content" id="myTabContent3">
-                        <div
-                          class="tab-pane fade show active"
-                          id="basic-info2"
-                          role="tabpanel"
-                          aria-labelledby="info-tab2"
-                          tabindex="0"
-                        >
-                          <div class="row">
-                            <div class="col-md-12">
-                              <div class="d-flex justify-content-between align-items-center mb-3">
-                                <p class="mb-0">Grant Allocations Details</p>
-                              </div>
-                              
-                              <div v-if="employee.employment?.grant_allocations && employee.employment?.grant_allocations.length > 0">
-                                
-                                <div v-for="(allocation, index) in employee.employment.grant_allocations" :key="index" class="card mb-3">
-                                  
-                                  <div class="card mb-3 position-relative" :class="{'border-danger': isGrantExpired(allocation.grant_item_allocation?.grant?.end_date)}">
-                                        
-                                    <!-- EXPIRED badge (only shown if the date is expired) -->
-                                        <div
-                                          v-if="isGrantExpired(allocation.grant_item_allocation?.grant?.end_date)"
-                                          class="position-absolute top-0 start-50 translate-middle badge bg-danger"
-                                          style="z-index: 1;"
-                                        >
-                                          EXPIRED
-                                        </div>
+                  </ul>
+                </div>
 
-                                        <!-- Grant allocation details start -->
-                                        <div class="card-body">
-                                          <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h6 class="mb-0">Grant Allocation #{{ index + 1 }} ({{ allocation.level_of_effort }}% LOE)</h6>
-                                            <button 
-                                              class="btn btn-danger btn-sm rounded d-inline-flex align-items-center"
-                                              @click="$confirm({
-                                                title: 'Are you sure you want to delete this grant allocation?',
-                                                content: 'This action cannot be undone.',
-                                                okText: 'Yes, Delete',
-                                                centered: true,
-                                                okType: 'danger',
-                                                cancelText: 'Cancel',
-                                                async onOk() {
-                                                  await deleteGrantAllocation(allocation.id);
-                                                },
-                                                onCancel() {
-                                                  // Do nothing when canceled
-                                                },
-                                              })"
-                                            >
-                                              <i class="ti ti-trash me-1"></i>Delete
-                                            </button>
-                                          </div>
-                                          <div class="row">
-                                            <div class="col-md-4">
-                                              <span class="d-inline-flex align-items-center">
-                                                Grant Code
-                                              </span>
-                                              <h6 class="d-flex align-items-center fw-medium mt-1">
-                                                {{ allocation.grant_item_allocation?.grant?.code || 'N/A' }}
-                                              </h6>
-                                            </div>
-                                            <div class="col-md-4">
-                                              <span class="d-inline-flex align-items-center">
-                                                Grant Name
-                                              </span>
-                                              <h6 class="d-flex align-items-center fw-medium mt-1">
-                                                {{ allocation.grant_item_allocation?.grant?.name || 'N/A' }}
-                                              </h6>
-                                            </div>
-                                            <div class="col-md-4">
-                                              <span class="d-inline-flex align-items-center">
-                                                Grant End Date
-                                              </span>
-                                              <h6 class="d-flex align-items-center fw-medium mt-1">
-                                                {{ allocation.grant_item_allocation?.grant?.end_date || 'N/A' }}
-                                              </h6>
-                                            </div>
-                                          </div>
-                                          <div class="row mt-3">
-                                            <div class="col-md-4">
-                                              <span class="d-inline-flex align-items-center">
-                                                Grant Position
-                                              </span>
-                                              <h6 class="d-flex align-items-center fw-medium mt-1">
-                                                {{ allocation.grant_item_allocation?.grant_position || 'N/A' }}
-                                              </h6>
-                                            </div>
-                                            <div class="col-md-4">
-                                              <span class="d-inline-flex align-items-center">
-                                                BG Line
-                                              </span>
-                                              <h6 class="d-flex align-items-center fw-medium mt-1">
-                                                {{ allocation.grant_item_allocation?.bg_line || 'N/A' }}
-                                              </h6>
-                                            </div>
-                                            <div class="col-md-4">
-                                              <span class="d-inline-flex align-items-center">
-                                                Grant Salary
-                                              </span>
-                                              <h6 class="d-flex align-items-center fw-medium mt-1">
-                                                {{ allocation.grant_item_allocation?.grant_salary || 'N/A' }}
-                                              </h6>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <!-- Grant allocation details end -->
-                                   </div>
-
-                                </div>
-                              </div>
-                              <div v-else class="card">
-                                <div class="card-body text-center py-3">
-                                  <p>No grant allocations available for this employee</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                <!-- Grants Tab -->
+                <div class="tab-content" id="myTabContent3">
+                  <div class="tab-pane fade show active" id="basic-info2" role="tabpanel" aria-labelledby="info-tab2"
+                    tabindex="0">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                          <p class="mb-0">Grant Allocations Details</p>
                         </div>
 
+                        <div
+                          v-if="employee.employee_grant_allocations && employee.employee_grant_allocations.length > 0">
 
-                        <!-- <div
+                          <div v-for="(allocation, index) in employee.employee_grant_allocations" :key="index"
+                            class="card mb-3">
+
+                            <div class="card mb-3 position-relative"
+                              :class="{ 'border-danger': isGrantExpired(allocation.end_date) }">
+
+                              <!-- EXPIRED badge (only shown if the date is expired) -->
+                              <div v-if="isGrantExpired(allocation.end_date)"
+                                class="position-absolute top-0 start-50 translate-middle badge bg-danger"
+                                style="z-index: 1;">
+                                EXPIRED
+                              </div>
+
+                              <!-- Grant allocation details start -->
+                              <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                  <h6 class="mb-0">Grant Allocation #{{ index + 1 }} ({{ allocation.level_of_effort }}%
+                                    LOE)</h6>
+
+                                  <!-- <button class="btn btn-danger btn-sm rounded d-inline-flex align-items-center" @click="$confirm({
+                                    title: 'Are you sure you want to delete this grant allocation?',
+                                    content: 'This action cannot be undone.',
+                                    okText: 'Yes, Delete',
+                                    centered: true,
+                                    okType: 'danger',
+                                    cancelText: 'Cancel',
+                                    async onOk() {
+                                      await deleteGrantAllocation(allocation.id);
+                                    },
+                                    onCancel() {
+                                      // Do nothing when canceled
+                                    },
+                                  })">
+                                    <i class="ti ti-trash me-1"></i>Delete
+                                  </button> -->
+                                </div>
+                                <div class="row">
+                                  <div class="col-md-4">
+                                    <span class="d-inline-flex align-items-center">
+                                      Grant ID
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.grant_item_allocation?.grant?.code || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <span class="d-inline-flex align-items-center">
+                                      Start Date
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ formatDate(allocation.start_date) || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <span class="d-inline-flex align-items-center">
+                                      End Date
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ formatDate(allocation.end_date) || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                </div>
+                                <div class="row mt-3">
+                                  <div class="col-md-4">
+                                    <span class="d-inline-flex align-items-center">
+                                      Active Status
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.active === '1' ? 'Active' : 'Inactive' }}
+                                    </h6>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <span class="d-inline-flex align-items-center">
+                                      Created At
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ formatDate(allocation.created_at) || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                  <div class="col-md-4">
+                                    <span class="d-inline-flex align-items-center">
+                                      Updated At
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ formatDate(allocation.updated_at) || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                </div>
+                              </div>
+                              <!-- Grant allocation details end -->
+                            </div>
+
+                          </div>
+                        </div>
+                        <div v-else class="card">
+                          <div class="card-body text-center py-3">
+                            <p>No grant allocations available for this employee</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+                  <!-- <div
                           class="tab-pane fade"
                           id="address2"
                           role="tabpanel"
@@ -726,16 +676,12 @@
                           </div>
                         </div> -->
 
-                      </div>
-                    </div>
-                  </div>
+                </div>
+              </div>
+            </div>
 
             <div class="tab-content custom-accordion-items">
-              <div
-                class="tab-pane active show"
-                id="bottom-justified-tab1"
-                role="tabpanel"
-              >
+              <div class="tab-pane active show" id="bottom-justified-tab1" role="tabpanel">
 
 
 
@@ -745,32 +691,18 @@
                       <div class="accordion-button">
                         <div class="d-flex align-items-center flex-fill">
                           <h5>Bank Information</h5>
-                          <a
-                            href="javascript:void(0);"
-                            class="btn btn-sm btn-icon ms-auto"
-                            data-bs-toggle="modal"
-                            data-bs-target="#edit_bank"
-                            ><i class="ti ti-edit"></i
-                          ></a>
-                          <a
-                            href="javascript:void(0);"
-                            class="d-flex align-items-center collapsed collapse-arrow"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#primaryBorderTwo"
-                            aria-expanded="false"
-                            aria-controls="primaryBorderTwo"
-                          >
+                          <a href="javascript:void(0);" class="btn btn-sm btn-icon ms-auto" data-bs-toggle="modal"
+                            data-bs-target="#edit_bank"><i class="ti ti-edit"></i></a>
+                          <a href="javascript:void(0);" class="d-flex align-items-center collapsed collapse-arrow"
+                            data-bs-toggle="collapse" data-bs-target="#primaryBorderTwo" aria-expanded="false"
+                            aria-controls="primaryBorderTwo">
                             <i class="ti ti-chevron-down fs-18"></i>
                           </a>
                         </div>
                       </div>
                     </div>
-                    <div
-                      id="primaryBorderTwo"
-                      class="accordion-collapse collapse border-top"
-                      aria-labelledby="headingTwo"
-                      data-bs-parent="#accordionExample"
-                    >
+                    <div id="primaryBorderTwo" class="accordion-collapse collapse border-top"
+                      aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
                       <div class="accordion-body">
                         <div class="row">
                           <div class="col-md-3">
@@ -811,38 +743,22 @@
                   <div class="accordion-item">
                     <div class="accordion-header" id="headingThree">
                       <div class="accordion-button">
-                        <div
-                          class="d-flex align-items-center justify-content-between flex-fill"
-                        >
+                        <div class="d-flex align-items-center justify-content-between flex-fill">
                           <h5>Family Information</h5>
                           <div class="d-flex">
-                            <a
-                              href="javascript:void(0);"
-                              class="btn btn-icon btn-sm"
-                              data-bs-toggle="modal"
-                              data-bs-target="#edit_familyinformation"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              class="d-flex align-items-center collapsed collapse-arrow"
-                              data-bs-toggle="collapse"
-                              data-bs-target="#primaryBorderThree"
-                              aria-expanded="false"
-                              aria-controls="primaryBorderThree"
-                            >
+                            <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
+                              data-bs-target="#edit_familyinformation"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" class="d-flex align-items-center collapsed collapse-arrow"
+                              data-bs-toggle="collapse" data-bs-target="#primaryBorderThree" aria-expanded="false"
+                              aria-controls="primaryBorderThree">
                               <i class="ti ti-chevron-down fs-18"></i>
                             </a>
                           </div>
                         </div>
                       </div>
                     </div>
-                    <div
-                      id="primaryBorderThree"
-                      class="accordion-collapse collapse border-top"
-                      aria-labelledby="headingThree"
-                      data-bs-parent="#accordionExample"
-                    >
+                    <div id="primaryBorderThree" class="accordion-collapse collapse border-top"
+                      aria-labelledby="headingThree" data-bs-parent="#accordionExample">
                       <div class="accordion-body">
                         <div class="row">
                           <div class="col-md-3">
@@ -885,48 +801,29 @@
                         <div class="row">
                           <div class="accordion-header" id="headingFour">
                             <div class="accordion-button">
-                              <div
-                                class="d-flex align-items-center justify-content-between flex-fill"
-                              >
+                              <div class="d-flex align-items-center justify-content-between flex-fill">
                                 <h5>Education Details</h5>
                                 <div class="d-flex">
-                                  <a
-                                    href="javascript:void(0);"
-                                    class="btn btn-icon btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#edit_education"
-                                    ><i class="ti ti-edit"></i
-                                  ></a>
-                                  <a
-                                    href="javascript:void(0);"
-                                    class="d-flex align-items-center collapsed collapse-arrow"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#primaryBorderFour"
-                                    aria-expanded="false"
-                                    aria-controls="primaryBorderFour"
-                                  >
+                                  <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#edit_education"><i class="ti ti-edit"></i></a>
+                                  <a href="javascript:void(0);"
+                                    class="d-flex align-items-center collapsed collapse-arrow" data-bs-toggle="collapse"
+                                    data-bs-target="#primaryBorderFour" aria-expanded="false"
+                                    aria-controls="primaryBorderFour">
                                     <i class="ti ti-chevron-down fs-18"></i>
                                   </a>
                                 </div>
                               </div>
                             </div>
                           </div>
-                          <div
-                            id="primaryBorderFour"
-                            class="accordion-collapse collapse border-top"
-                            aria-labelledby="headingFour"
-                            data-bs-parent="#accordionExample"
-                          >
+                          <div id="primaryBorderFour" class="accordion-collapse collapse border-top"
+                            aria-labelledby="headingFour" data-bs-parent="#accordionExample">
                             <div class="accordion-body">
                               <div>
                                 <div class="mb-3">
-                                  <div
-                                    class="d-flex align-items-center justify-content-between"
-                                  >
+                                  <div class="d-flex align-items-center justify-content-between">
                                     <div>
-                                      <span
-                                        class="d-inline-flex align-items-center fw-normal"
-                                      >
+                                      <span class="d-inline-flex align-items-center fw-normal">
                                         Oxford University
                                       </span>
                                       <h6 class="d-flex align-items-center mt-1">
@@ -937,13 +834,9 @@
                                   </div>
                                 </div>
                                 <div class="mb-3">
-                                  <div
-                                    class="d-flex align-items-center justify-content-between"
-                                  >
+                                  <div class="d-flex align-items-center justify-content-between">
                                     <div>
-                                      <span
-                                        class="d-inline-flex align-items-center fw-normal"
-                                      >
+                                      <span class="d-inline-flex align-items-center fw-normal">
                                         Cambridge University
                                       </span>
                                       <h6 class="d-flex align-items-center mt-1">
@@ -954,13 +847,9 @@
                                   </div>
                                 </div>
                                 <div>
-                                  <div
-                                    class="d-flex align-items-center justify-content-between"
-                                  >
+                                  <div class="d-flex align-items-center justify-content-between">
                                     <div>
-                                      <span
-                                        class="d-inline-flex align-items-center fw-normal"
-                                      >
+                                      <span class="d-inline-flex align-items-center fw-normal">
                                         Oxford School
                                       </span>
                                       <h6 class="d-flex align-items-center mt-1">
@@ -981,93 +870,60 @@
                         <div class="row">
                           <div class="accordion-header" id="headingFive">
                             <div class="accordion-button collapsed">
-                              <div
-                                class="d-flex align-items-center justify-content-between flex-fill"
-                              >
+                              <div class="d-flex align-items-center justify-content-between flex-fill">
                                 <h5>Experience</h5>
                                 <div class="d-flex">
-                                  <a
-                                    href="javascript:void(0);"
-                                    class="btn btn-icon btn-sm"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#edit_experience"
-                                    ><i class="ti ti-edit"></i
-                                  ></a>
-                                  <a
-                                    href="javascript:void(0);"
-                                    class="d-flex align-items-center collapsed collapse-arrow"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#primaryBorderFive"
-                                    aria-expanded="false"
-                                    aria-controls="primaryBorderFive"
-                                  >
+                                  <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#edit_experience"><i class="ti ti-edit"></i></a>
+                                  <a href="javascript:void(0);"
+                                    class="d-flex align-items-center collapsed collapse-arrow" data-bs-toggle="collapse"
+                                    data-bs-target="#primaryBorderFive" aria-expanded="false"
+                                    aria-controls="primaryBorderFive">
                                     <i class="ti ti-chevron-down fs-18"></i>
                                   </a>
                                 </div>
                               </div>
                             </div>
                           </div>
-                          <div
-                            id="primaryBorderFive"
-                            class="accordion-collapse collapse border-top"
-                            aria-labelledby="headingFive"
-                            data-bs-parent="#accordionExample"
-                          >
+                          <div id="primaryBorderFive" class="accordion-collapse collapse border-top"
+                            aria-labelledby="headingFive" data-bs-parent="#accordionExample">
                             <div class="accordion-body">
                               <div>
                                 <div class="mb-3">
-                                  <div
-                                    class="d-flex align-items-center justify-content-between"
-                                  >
+                                  <div class="d-flex align-items-center justify-content-between">
                                     <div>
-                                      <h6
-                                        class="d-inline-flex align-items-center fw-medium"
-                                      >
+                                      <h6 class="d-inline-flex align-items-center fw-medium">
                                         Google
                                       </h6>
-                                      <span
-                                        class="d-flex align-items-center badge bg-secondary-transparent mt-1"
-                                        ><i class="ti ti-point-filled me-1"></i>UI/UX
-                                        Developer</span
-                                      >
+                                      <span class="d-flex align-items-center badge bg-secondary-transparent mt-1"><i
+                                          class="ti ti-point-filled me-1"></i>UI/UX
+                                        Developer</span>
                                     </div>
                                     <p class="text-dark">Jan 2013 - Present</p>
                                   </div>
                                 </div>
                                 <div class="mb-3">
-                                  <div
-                                    class="d-flex align-items-center justify-content-between"
-                                  >
+                                  <div class="d-flex align-items-center justify-content-between">
                                     <div>
-                                      <h6
-                                        class="d-inline-flex align-items-center fw-medium"
-                                      >
+                                      <h6 class="d-inline-flex align-items-center fw-medium">
                                         Salesforce
                                       </h6>
-                                      <span
-                                        class="d-flex align-items-center badge bg-secondary-transparent mt-1"
-                                        ><i class="ti ti-point-filled me-1"></i>Web
-                                        Developer</span
-                                      >
+                                      <span class="d-flex align-items-center badge bg-secondary-transparent mt-1"><i
+                                          class="ti ti-point-filled me-1"></i>Web
+                                        Developer</span>
                                     </div>
                                     <p class="text-dark">Dec 2012- Jan 2015</p>
                                   </div>
                                 </div>
                                 <div>
-                                  <div
-                                    class="d-flex align-items-center justify-content-between"
-                                  >
+                                  <div class="d-flex align-items-center justify-content-between">
                                     <div>
-                                      <h6
-                                        class="d-inline-flex align-items-center fw-medium"
-                                      >
+                                      <h6 class="d-inline-flex align-items-center fw-medium">
                                         HubSpot
                                       </h6>
-                                      <span
-                                        class="d-flex align-items-center badge bg-secondary-transparent mt-1"
-                                        ><i class="ti ti-point-filled me-1"></i>Software
-                                        Developer</span
-                                      >
+                                      <span class="d-flex align-items-center badge bg-secondary-transparent mt-1"><i
+                                          class="ti ti-point-filled me-1"></i>Software
+                                        Developer</span>
                                     </div>
                                     <p class="text-dark">Dec 2011- Jan 2012</p>
                                   </div>
@@ -1079,25 +935,19 @@
                       </div>
                     </div>
                   </div>
-
-                  
-
-                  
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <!-- /Grants Tab -->
       </div>
     </div>
     <layout-footer></layout-footer>
   </div>
   <!-- /Page Wrapper -->
-  <employee-details-modal 
-  :employee="employee" 
-  @employee-updated="fetchEmployeeDetails" 
-  @grantPositionAdded="fetchEmployeeDetails" 
-/>
+  <employee-details-modal :employee="employee" @employee-updated="fetchEmployeeDetails"
+    @grantPositionAdded="fetchEmployeeDetails" />
 </template>
 <script>
 import { useEmployeeStore } from '@/stores/employeeStore';
@@ -1109,7 +959,7 @@ export default {
   data() {
     return {
       employee: null,
-      loading: true,  
+      loading: true,
     };
   },
   created() {
@@ -1128,7 +978,7 @@ export default {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
     },
-    
+
     calculateExperience(joiningDate) {
       // Assuming joiningDate is in a valid date format
       const start = new Date(joiningDate);
@@ -1138,7 +988,7 @@ export default {
     },
 
     formatDate(date) {
-    if (!date) return '';
+      if (!date) return '';
       return new Date(date).toLocaleDateString();
     },
 

@@ -31,6 +31,7 @@
               <tbody>
                 <InterviewReport />
                 <JobOfferReport />
+                <GrantHeadcountReport />
               </tbody>
             </table>
           </div>
@@ -44,9 +45,10 @@
 <script>
 import InterviewReport from '@/components/reports/interview-report.vue';
 import JobOfferReport from '@/components/reports/joboffer-report.vue';
+import GrantHeadcountReport from '@/components/reports/grant-headcount-report.vue';
 
 export default {
-  components: { InterviewReport, JobOfferReport },
+  components: { InterviewReport, JobOfferReport, GrantHeadcountReport },
   data() {
     return {
       title: "Reports List",

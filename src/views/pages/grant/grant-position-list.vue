@@ -13,7 +13,6 @@
                 <i class="ti ti-circle-plus me-2"></i>Add Grant Position
               </button>
             </div>
-
             <div class="ms-2 head-icons">
               <a href="javascript:void(0);" :class="{ active: isCollapsed }" @click="toggleCollapse"
                 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Collapse" id="collapse-header">
@@ -27,8 +26,23 @@
         <div class="card">
           <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
             <h5>Grant Positions List</h5>
+
             <!-- Table Operations -->
             <div class="table-operations">
+
+              <a-dropdown>
+                <a-button>
+                  View: <strong>{{ viewMode === 'all' ? ' All' : ' Vacant' }}</strong>
+                  <i class="ti ti-chevron-down ms-1"></i>
+                </a-button>
+                <template #overlay>
+                  <a-menu @click="onViewModeChange">
+                    <a-menu-item key="all">All Positions</a-menu-item>
+                    <a-menu-item key="vacant">Vacant Positions</a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
+
               <a-button @click="clearFilters">Clear filters</a-button>
               <a-button @click="clearAll">Clear filters and sorters</a-button>
             </div>
@@ -165,7 +179,9 @@ export default {
       searchTerm: '',
       notificationTitle: '',
       notificationMessage: '',
-      notificationClass: ''
+      notificationClass: '',
+      viewMode: 'all',
+      isCollapsed: false
     };
   },
   computed: {
@@ -252,8 +268,14 @@ export default {
         },
       ];
     },
+    filteredPositions() {
+      if (this.viewMode === 'vacant') {
+        return this.grantPositions.filter(pos => pos.manPower > pos.recruited);
+      }
+      return this.grantPositions;
+    },
     tableData() {
-      return this.grantPositions.map(position => ({
+      return this.filteredPositions.map(position => ({
         ...position,
         key: position.id
       }));
@@ -263,8 +285,6 @@ export default {
     this.fetchGrantPositions();
   },
   methods: {
-
-
     toggleCollapse() {
       this.isCollapsed = !this.isCollapsed;
       if (this.isCollapsed) {
@@ -284,15 +304,53 @@ export default {
       this.pageSize = pagination.pageSize;
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
+
+      // Update total based on filtered data
+      let filteredData = this.grantPositions;
+
+      // Apply view mode filter (all vs vacant)
+      if (this.viewMode === 'vacant') {
+        filteredData = filteredData.filter(pos => pos.manPower > pos.recruited);
+      }
+
+      // Apply column filters
+      Object.keys(filters).forEach(key => {
+        const filterValues = filters[key];
+        if (filterValues && filterValues.length > 0) {
+          if (key === 'status') {
+            filteredData = filteredData.filter(record =>
+              filterValues.includes(record.status)
+            );
+          } else if (key === 'code') {
+            filteredData = filteredData.filter(record =>
+              filterValues.some(value => record.code.includes(value))
+            );
+          } else if (key === 'budgetLine') {
+            filteredData = filteredData.filter(record =>
+              filterValues.some(value => record.budgetLine.includes(value))
+            );
+          }
+        }
+      });
+
+      this.total = filteredData.length;
     },
 
     clearFilters() {
       this.filteredInfo = null;
+      // Reset total to match current view mode
+      this.total = this.viewMode === 'all' ?
+        this.grantPositions.length :
+        this.grantPositions.filter(pos => pos.manPower > pos.recruited).length;
     },
 
     clearAll() {
       this.filteredInfo = null;
       this.sortedInfo = null;
+      // Reset total to match current view mode
+      this.total = this.viewMode === 'all' ?
+        this.grantPositions.length :
+        this.grantPositions.filter(pos => pos.manPower > pos.recruited).length;
     },
 
     async fetchGrantPositions() {
@@ -419,6 +477,21 @@ export default {
       const toastEl = document.getElementById('notificationToast');
       const toast = new Toast(toastEl);
       toast.show();
+    },
+
+    onViewModeChange({ key }) {
+      this.viewMode = key;
+      this.currentPage = 1;
+
+      // Update total based on the new view mode
+      if (key === 'vacant') {
+        this.total = this.grantPositions.filter(pos => pos.manPower > pos.recruited).length;
+      } else {
+        this.total = this.grantPositions.length;
+      }
+
+      // Reset filters when changing view mode
+      this.filteredInfo = {};
     }
   }
 };

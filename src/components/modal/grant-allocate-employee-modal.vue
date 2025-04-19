@@ -71,6 +71,8 @@
 <script>
 // Ensure Bootstrap JS is imported in your project.
 import * as bootstrap from 'bootstrap';
+import { employeeService } from '@/services/employee.service';
+import { employeeGrantAllocationService } from '@/services/employee-grant-allocation.service';
 
 export default {
     name: 'GrantAllocateEmployeeModal',
@@ -95,43 +97,7 @@ export default {
                 endDate: null
             },
             employeesSelection: [],
-            // Dummy tree data for employee selection
-            employeeTreeData: [
-                {
-                    title: 'Subsidiary 1',
-                    value: 'sub_1',
-                    children: [
-                        {
-                            title: 'Department 1',
-                            value: 'dept_1',
-                            children: [
-                                { title: 'Employee 1', value: 'emp_1' },
-                                { title: 'Employee 2', value: 'emp_2' },
-                            ],
-                        },
-                        {
-                            title: 'Department 2',
-                            value: 'dept_2',
-                            children: [
-                                { title: 'Employee 3', value: 'emp_3' },
-                            ],
-                        },
-                    ],
-                },
-                {
-                    title: 'Subsidiary 2',
-                    value: 'sub_2',
-                    children: [
-                        {
-                            title: 'Department 3',
-                            value: 'dept_3',
-                            children: [
-                                { title: 'Employee 4', value: 'emp_4' },
-                            ],
-                        },
-                    ],
-                },
-            ],
+            employeeTreeData: [],
         };
     },
     methods: {
@@ -143,6 +109,7 @@ export default {
         },
         // Open the modal using Bootstrap's JS API.
         openModal() {
+            this.loadEmployees();
             const modalEl = document.getElementById("grantAllocateEmployeeModal");
             if (modalEl) {
                 const bsModal = new bootstrap.Modal(modalEl);
@@ -151,43 +118,124 @@ export default {
                 bsModal.show();
             }
         },
-        // Validate and emit the form data.
-        handleSubmit() {
-            if (this.isSubmitting) return;
 
-            if (this.employeesSelection.length === 0) {
-                this.alertMessage = 'Please select at least one employee';
-                this.alertClass = 'alert-danger';
-                return;
+        async loadEmployees() {
+            try {
+                const response = await employeeService.getEmployees();
+                const employees = response.data || [];
+
+                // Group employees by subsidiary
+                const grouped = employees.reduce((acc, employee) => {
+                    const sub = employee.subsidiary;
+                    if (!acc[sub]) {
+                        acc[sub] = [];
+                    }
+                    acc[sub].push(employee);
+                    return acc;
+                }, {});
+
+                // Map each subsidiary into a parent node with its employees as children.
+                this.employeeTreeData = Object.keys(grouped).map(subsidiary => {
+                    return {
+                        key: `subsidiary-${subsidiary}`,
+                        title: subsidiary,
+                        value: `subsidiary-${subsidiary}`,
+                        children: grouped[subsidiary].map(emp => {
+                            // Use first_name_en and last_name_en for display, or adjust as needed.
+                            const staff_id = emp.staff_id;
+                            const fullName =
+                                emp.first_name_en +
+                                (emp.last_name_en && emp.last_name_en !== '-' ? ' ' + emp.last_name_en : '');
+                            return {
+                                key: `employee-${emp.id}`,
+                                title: staff_id + ' - ' + fullName,
+                                value: `employee-${emp.id}`
+                            };
+                        })
+                    };
+                });
+            } catch (error) {
+                console.error('Error loading employees:', error);
+                this.$message.error('Failed to load employees');
             }
-
-            if (!this.formData.startDate || !this.formData.endDate) {
-                this.alertMessage = 'Please select start and end dates';
-                this.alertClass = 'alert-danger';
-                return;
-            }
-
-            this.isSubmitting = true;
-
-            const submitData = {
-                grantPositionId: this.grantPositionId,
-                grantPositionName: this.grantPositionName,
-                ...this.formData,
-                employees: this.employeesSelection,
-            };
-
-            // Simulate API call
-            setTimeout(() => {
-                this.$emit('submit', submitData);
-                const modalEl = document.getElementById("grantAllocateEmployeeModal");
-                if (modalEl) {
-                    const bsModal = bootstrap.Modal.getInstance(modalEl);
-                    if (bsModal) bsModal.hide();
-                }
-                this.resetForm();
-                this.isSubmitting = false;
-            }, 1000);
         },
+
+        // Validate and emit the form data.
+        async handleSubmit() {
+            try {
+                // Set submission flag immediately
+                this.isSubmitting = true;
+
+                // Validate form data
+                if (this.employeesSelection.length === 0) {
+                    this.alertMessage = 'Please select at least one employee';
+                    this.alertClass = 'alert-danger';
+                    this.isSubmitting = false;
+                    return;
+                }
+
+                if (!this.formData.startDate || !this.formData.endDate) {
+                    this.alertMessage = 'Please select start and end dates';
+                    this.alertClass = 'alert-danger';
+                    this.isSubmitting = false;
+                    return;
+                }
+
+                // Extract employee ID from selection (which has format "employee-{id}")
+                const employeeIds = Array.isArray(this.employeesSelection)
+                    ? this.employeesSelection.map(val =>
+                        typeof val === 'string' ? val.replace('employee-', '') : val
+                    )
+                    : this.employeesSelection ? [this.employeesSelection.toString().replace('employee-', '')] : [];
+
+                const payload = {
+                    grant_items_id: this.grantPositionId,
+                    level_of_effort: this.formData.levelOfEffort / 100,
+                    start_date: this.formData.startDate,
+                    end_date: this.formData.endDate,
+                    active: true,
+                    employee_id: employeeIds.length > 0 ? employeeIds[0] : null
+                };
+
+                console.log(payload);
+
+                // Call the service to create the employee grant allocation
+                const response = await employeeGrantAllocationService.createEmployeeGrantAllocation(payload);
+
+                // If the response is successful, emit the event and reset the form
+                if (response.data && response.success) {
+                    this.alertMessage = response.message || 'Employee allocated successfully';
+                    this.alertClass = 'alert-success';
+
+                    // Emit the event with the response data
+                    this.$emit('childSubmit', {
+                        success: true,
+                        message: this.alertMessage,
+                        data: response.data
+                    });
+
+                    // Close the modal
+                    const modalEl = document.getElementById("grantAllocateEmployeeModal");
+                    if (modalEl) {
+                        const bsModal = bootstrap.Modal.getInstance(modalEl);
+                        if (bsModal) bsModal.hide();
+                    }
+
+                    this.resetForm();
+                } else {
+                    // If success flag is false, display error
+                    this.alertMessage = response.data?.message || 'Failed to allocate employee';
+                    this.alertClass = 'alert-danger';
+                }
+            } catch (error) {
+                console.error('Error allocating employee:', error);
+                this.alertMessage = error.response?.data?.message || 'Failed to allocate employee';
+                this.alertClass = 'alert-danger';
+            } finally {
+                this.isSubmitting = false;
+            }
+        },
+
         // Reset the form.
         resetForm() {
             this.formData = {

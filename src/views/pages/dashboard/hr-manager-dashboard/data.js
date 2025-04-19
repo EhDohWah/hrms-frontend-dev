@@ -36,7 +36,7 @@ const empDepartment = {
             enabled: false
         },
         xaxis: {
-            categories: ['UI/UX', 'Development', 'Management', 'HR', 'Testing', 'Marketing'],
+            categories: ['Admin', 'HR', 'Data-Management', 'IT', 'Finance', 'Lab'],
             labels: {
                 style: {
                     colors: '#111827',
@@ -46,7 +46,7 @@ const empDepartment = {
         },
     },
     series: [{
-        data: [80, 110, 80, 20, 60, 100],
+        data: [10, 20, 30, 19, 20, 10],
         name: 'Employee'
     }],
 

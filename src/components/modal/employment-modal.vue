@@ -1,11 +1,5 @@
 <template>
-  <div
-    class="modal fade"
-    id="employmentModal"
-    tabindex="-1"
-    aria-labelledby="employmentModalLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="employmentModal" tabindex="-1" aria-labelledby="employmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -20,23 +14,13 @@
               {{ alertMessage }}
             </div>
 
-            <!-- Employee Dropdown (Simple Select) -->
+            <!-- Employee TreeSelect -->
             <div class="mb-3">
               <label class="form-label">Employee</label>
-              <select 
-                class="form-select" 
-                v-model="formData.employee_id" 
-                required
-              >
-                <option disabled value="">Select Employee</option>
-                <option 
-                  v-for="employee in employees" 
-                  :key="employee.id" 
-                  :value="employee.id"
-                >
-                  {{ employee.first_name_en + ' ' + employee.last_name_en }}
-                </option>
-              </select>
+              <a-tree-select v-model:value="formData.employee_id" show-search style="width: 100%;"
+                :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }" placeholder="Select Employee" allow-clear
+                tree-default-expand-all :tree-data="employeeTreeData" tree-node-filter-prop="title"
+                :getPopupContainer="getPopupContainer" required />
             </div>
 
             <!-- Employment Type (Plain Bootstrap Select) -->
@@ -55,17 +39,9 @@
             <!-- Department Position Dropdown (Simple Select) -->
             <div class="mb-3">
               <label class="form-label">Department Position</label>
-              <select 
-                class="form-select" 
-                v-model="formData.department_position_id" 
-                required
-              >
+              <select class="form-select" v-model="formData.department_position_id" required>
                 <option disabled value="">Select Department Position</option>
-                <option 
-                  v-for="position in departmentPositions" 
-                  :key="position.id" 
-                  :value="position.id"
-                >
+                <option v-for="position in departmentPositions" :key="position.id" :value="position.id">
                   {{ position.department + ' | ' + position.position }}
                 </option>
               </select>
@@ -85,118 +61,65 @@
             <!-- Start Date -->
             <div class="mb-3">
               <label class="form-label">Start Date</label>
-              <input
-                type="date"
-                class="form-control"
-                v-model="formData.start_date"
-                required
-              />
+              <input type="date" class="form-control" v-model="formData.start_date" required />
             </div>
 
             <!-- End Date -->
             <div class="mb-3">
               <label class="form-label">End Date</label>
-              <input
-                type="date"
-                class="form-control"
-                v-model="formData.end_date"
-              />
+              <input type="date" class="form-control" v-model="formData.end_date" />
             </div>
 
             <!-- Probation End Date -->
             <div class="mb-3">
               <label class="form-label">Probation End Date</label>
-              <input
-                type="date"
-                class="form-control"
-                v-model="formData.probation_end_date"
-              />
+              <input type="date" class="form-control" v-model="formData.probation_end_date" />
             </div>
 
             <!-- Position Salary -->
             <div class="mb-3">
               <label class="form-label">Position Salary</label>
-              <input
-                type="number"
-                class="form-control"
-                v-model="formData.position_salary"
-                required
-              />
+              <input type="number" class="form-control" v-model="formData.position_salary" required />
             </div>
 
             <!-- Probation Salary -->
             <div class="mb-3">
               <label class="form-label">Probation Salary</label>
-              <input
-                type="number"
-                class="form-control"
-                v-model="formData.probation_salary"
-              />
+              <input type="number" class="form-control" v-model="formData.probation_salary" />
             </div>
 
             <!-- Employee Tax -->
             <div class="mb-3">
               <label class="form-label">Employee Tax (%)</label>
-              <input
-                type="number"
-                class="form-control"
-                v-model="formData.employee_tax"
-              />
+              <input type="number" class="form-control" v-model="formData.employee_tax" />
             </div>
 
             <!-- FTE -->
             <div class="mb-3">
               <label class="form-label">FTE (Full-Time Equivalent)</label>
-              <input
-                type="number"
-                step="0.1"
-                min="0"
-                max="1"
-                class="form-control"
-                v-model="formData.fte"
-              />
+              <input type="number" step="0.1" min="0" max="1" class="form-control" v-model="formData.fte" />
             </div>
 
             <!-- Active Checkbox -->
             <div class="mb-3 form-check">
-              <input
-                type="checkbox"
-                class="form-check-input"
-                id="active"
-                v-model="formData.active"
-              />
+              <input type="checkbox" class="form-check-input" id="active" v-model="formData.active" />
               <label class="form-check-label" for="active">Active</label>
             </div>
 
             <!-- Benefit Checkboxes -->
             <div class="mb-3">
               <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="healthWelfare"
-                  v-model="formData.health_welfare"
-                />
+                <input class="form-check-input" type="checkbox" id="healthWelfare" v-model="formData.health_welfare" />
                 <label class="form-check-label" for="healthWelfare">
                   Health & Welfare
                 </label>
               </div>
               <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="pvd"
-                  v-model="formData.pvd"
-                />
+                <input class="form-check-input" type="checkbox" id="pvd" v-model="formData.pvd" />
                 <label class="form-check-label" for="pvd">PVD</label>
               </div>
               <div class="form-check">
-                <input
-                  class="form-check-input"
-                  type="checkbox"
-                  id="savingFund"
-                  v-model="formData.saving_fund"
-                />
+                <input class="form-check-input" type="checkbox" id="savingFund" v-model="formData.saving_fund" />
                 <label class="form-check-label" for="savingFund">
                   Saving Fund
                 </label>
@@ -205,12 +128,8 @@
 
             <!-- Submit Button -->
             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span
-                v-if="isSubmitting"
-                class="spinner-border spinner-border-sm"
-                role="status"
-                aria-hidden="true"
-              ></span>
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
               {{ editMode ? 'Update' : 'Save' }}
             </button>
           </form>
@@ -268,7 +187,8 @@ export default {
       modalInstance: null,
       employees: [],
       departmentPositions: [],
-      workLocations: []
+      workLocations: [],
+      employeeTreeData: []
     };
   },
   watch: {
@@ -282,21 +202,21 @@ export default {
     }
   },
   mounted() {
-     // Initialize the Bootstrap modal
+    // Initialize the Bootstrap modal
     const modalElement = document.getElementById('employmentModal');
     if (modalElement) {
-        this.modalInstance = new Modal(modalElement);
-        // Reset form when modal is hidden
-        modalElement.addEventListener('hidden.bs.modal', () => {
+      this.modalInstance = new Modal(modalElement);
+      // Reset form when modal is hidden
+      modalElement.addEventListener('hidden.bs.modal', () => {
         this.editMode = false;
         this.employmentData = null;
         this.resetForm();
-        });
+      });
     }
-        
+
     // Fetch department positions
     this.fetchDepartmentPositions();
-    
+
     // Fetch employees
     this.fetchEmployees();
 
@@ -400,6 +320,36 @@ export default {
         const response = await employeeService.getEmployees();
         if (response.data) {
           this.employees = response.data;
+
+          // Organize employees by subsidiary for tree select
+          const subsidiaries = {};
+
+          // Group employees by subsidiary
+          response.data.forEach(emp => {
+            const subsidiaryName = emp.subsidiary?.name || 'Other';
+            if (!subsidiaries[subsidiaryName]) {
+              subsidiaries[subsidiaryName] = [];
+            }
+            subsidiaries[subsidiaryName].push(emp);
+          });
+
+          // Convert to tree data format
+          this.employeeTreeData = Object.keys(subsidiaries).map(subsidiary => {
+            return {
+              title: subsidiary,
+              key: `subsidiary-${subsidiary}`,
+              value: `subsidiary-${subsidiary}`,
+              selectable: false,
+              children: subsidiaries[subsidiary].map(emp => {
+                const fullName = `${emp.staff_id || ''} - ${emp.first_name_en || ''} ${emp.last_name_en || ''}`;
+                return {
+                  key: `employee-${emp.id}`,
+                  title: fullName,
+                  value: emp.id
+                };
+              })
+            };
+          });
         }
       } catch (error) {
         console.error('Error fetching employees:', error);
@@ -416,6 +366,12 @@ export default {
         console.error('Error fetching work locations:', error);
         message.error('Failed to load work locations');
       }
+    },
+    // getPopupContainer ensures the dropdown is appended to document.body
+    getPopupContainer(trigger) {
+      return (typeof window !== 'undefined' && window.document && window.document.body)
+        ? window.document.body
+        : trigger.parentNode;
     }
   }
 };
@@ -425,5 +381,22 @@ export default {
 /* Keep Bootstrap's modal layout */
 .modal-content {
   padding: 20px;
+}
+
+/* Fix for Ant Design TreeSelect in Bootstrap modal */
+:deep(.ant-select-dropdown) {
+  z-index: 1056 !important;
+  /* Higher than Bootstrap modal z-index */
+}
+
+:deep(.ant-select) {
+  width: 100%;
+}
+
+:deep(.ant-select-selector) {
+  border-radius: 0.375rem !important;
+  min-height: 38px !important;
+  display: flex;
+  align-items: center;
 }
 </style>

@@ -265,11 +265,13 @@
 <script>
 import { empDepartment } from "./data";
 import { useEmployeeStore } from '@/stores/employeeStore';
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 export default {
+
   setup() {
     const employeeStore = useEmployeeStore();
+    const employees = ref([]);
 
     // Calculate percentages for the progress bars
     const smruPercentage = computed(() => {
@@ -287,7 +289,10 @@ export default {
     // Fetch employees data when component is mounted
     onMounted(async () => {
       try {
-        await employeeStore.fetchEmployees();
+        await employeeStore.fetchEmployees({
+          page: 1,
+          per_page: 10
+        });
       } catch (error) {
         console.error('Error fetching employees:', error);
       }
@@ -295,6 +300,7 @@ export default {
 
     return {
       employeeStore,
+      employees,
       smruPercentage,
       bhfPercentage,
       empDepartment
@@ -303,6 +309,7 @@ export default {
   data() {
     return {
       username: '',
+      error: null
     };
   },
   created() {

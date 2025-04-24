@@ -50,6 +50,13 @@
             >
           </div> -->
 
+          <!-- Delete selected employees button -->
+          <div class="mb-2 me-2">
+            <a href="javascript:void(0);" class="btn btn-danger d-flex align-items-center"
+              @click="confirmDeleteSelectedEmployees" :class="{ 'disabled': selectedRowKeys.length === 0 }">
+              <i class="ti ti-trash me-2"></i>Delete Selected
+            </a>
+          </div>
 
           <div class="head-icons ms-2">
             <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -185,16 +192,16 @@
               <p class="mt-2">Loading employees...</p>
             </div>
 
-            <a-table v-else class="table datatable thead-light bordered-table" :columns="columns"
-              :scroll="{ x: 'max-content' }" :data-source="employees" :row-selection="rowSelection"
-              :pagination="pagination" @change="handleChange" :bordered="true">
+            <a-table v-else class="table datatable thead-light bordered-table" :rowKey="id" :columns="columns"
+              :scroll="{ x: 'max-content', y: 500 }" :data-source="employees" :row-selection="rowSelection"
+              :pagination="pagination" :animate-rows="false" @change="handleChange" :bordered="true">
               <!-- Name column with highlighting -->
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'fullName'">
                   <div class="d-flex align-items-center file-name-icon">
                     <a href="javascript:void(0);" class="avatar avatar-md">
-                      <img :src="require(`@/assets/img/users/${record.Image}`)" class="img-fluid rounded-circle"
-                        alt="img" />
+                      <!-- <img :src="require(`@/assets/img/users/${record.Image}`)" class="img-fluid rounded-circle"
+                        alt="img" /> -->
                     </a>
                     <div class="ms-2">
                       <h6 class="fw-medium">
@@ -237,6 +244,11 @@
                 <!-- Action column -->
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
+                    <!-- View Employee -->
+                    <router-link :to="`/employee/employee-details/${record.id}`" class="me-2">
+                      <i class="ti ti-eye"></i>
+                    </router-link>
+                    <!-- Edit Employee -->
                     <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal" data-bs-target="#edit_employee"><i
                         class="ti ti-edit"></i></a>
                     <a href="javascript:void(0);" @click="confirmDeleteEmployee(record.id)"><i
@@ -250,7 +262,10 @@
       </div>
     </div>
 
-    <layout-footer></layout-footer>
+
+
+
+
   </div>
   <!-- /Page Wrapper -->
   <employee-list-modal></employee-list-modal>
@@ -264,22 +279,15 @@ import moment from "moment";
 import DateRangePicker from "daterangepicker";
 import { useEmployeeStore } from '@/stores/employeeStore';
 import { mapStores } from 'pinia';
-import { departmentPositionService } from '@/services/department-position.service';
-import { workLocationService } from '@/services/worklocation.service';
-import { Modal } from 'ant-design-vue';
+import { Modal, Table } from 'ant-design-vue';
 
 export default {
-
-
   data() {
     return {
       employees: [],
       title: "Employee",
       text: "Employee",
       text1: "Employee List",
-      sites: [],
-      departments: [],
-      positions: [],
       selectedSite: null,
       selectedDepartment: null,
       selectedPosition: null,
@@ -288,37 +296,20 @@ export default {
       positionId: null,
       dateRangeInput: null,
       employeeToDelete: null,
+      selectedRowKeys: [],
 
       // Pagination
-      currentPage: 1,
-      pageSize: 10,
-      paginationSettings: {
-        pageSizeOptions: ['5', '10', '20', '50', '100'],
-        showSizeChanger: true,
-        showQuickJumper: false,
-      },
+      page: 1,
+      perPage: 10,
 
       searchTerm: '',
 
       // Column visibility control
-      visibleColumns: ['subsidiary', 'staff_id', 'status', 'fullName', 'mobile_phone', 'location', 'department', 'position', 'action'],
+      visibleColumns: ['subsidiary', 'staff_id', 'initials', 'first_name_en', 'last_name_en', 'gender', 'date_of_birth', 'age', 'status', 'id_type', 'id_number', 'social_security_number', 'tax_number', 'mobile_phone', 'action'],
 
       // Filter and sort info
       filteredInfo: {},
       sortedInfo: {},
-
-      // Row selection configuration
-      rowSelection: {
-        onChange: (selectedRowKeys, selectedRows) => {
-          console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-        },
-        onSelect: (record, selected, selectedRows) => {
-          console.log(record, selected, selectedRows);
-        },
-        onSelectAll: (selected, selectedRows, changeRows) => {
-          console.log(selected, selectedRows, changeRows);
-        },
-      },
     };
   },
 
@@ -350,6 +341,8 @@ export default {
           title: 'Subsidiary',
           dataIndex: 'subsidiary',
           key: 'subsidiary',
+          width: 150,
+          fixed: 'left',
           filters: this.getUniqueValues('subsidiary'),
           filteredValue: filtered.subsidiary || null,
           onFilter: (value, record) => record.subsidiary === value,
@@ -364,6 +357,7 @@ export default {
           title: 'Staff ID',
           dataIndex: 'staff_id',
           key: 'staff_id',
+          width: 120,
           filters: this.filteredStaffIds,
           filteredValue: filtered.staff_id || null,
           onFilter: (value, record) => record.staff_id === value,
@@ -374,10 +368,103 @@ export default {
           },
           sortOrder: sorted.columnKey === 'staff_id' && sorted.order,
         },
+
+        {
+          title: 'Initials',
+          dataIndex: 'initials',
+          key: 'initials',
+          width: 150,
+          filters: this.getUniqueValues('initials'),
+          filteredValue: filtered.initials || null,
+          onFilter: (value, record) => record.initials === value,
+          sorter: (a, b) => {
+            a = a.initials.toLowerCase();
+            b = b.initials.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'initials' && sorted.order,
+        },
+        {
+          title: 'First Name',
+          dataIndex: 'first_name_en',
+          key: 'first_name_en',
+          width: 150,
+          filters: this.getUniqueValues('first_name_en'),
+          filteredValue: filtered.first_name_en || null,
+          onFilter: (value, record) => record.first_name_en === value,
+          sorter: (a, b) => {
+            a = a.first_name_en.toLowerCase();
+            b = b.first_name_en.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'first_name_en' && sorted.order,
+        },
+
+        {
+          title: 'Last Name',
+          dataIndex: 'last_name_en',
+          key: 'last_name_en',
+          width: 150,
+          filters: this.getUniqueValues('last_name_en'),
+          filteredValue: filtered.last_name_en || null,
+          onFilter: (value, record) => record.last_name_en === value,
+          sorter: (a, b) => {
+            a = a.last_name_en.toLowerCase();
+            b = b.last_name_en.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'last_name_en' && sorted.order,
+        },
+
+        {
+          title: 'Gender',
+          dataIndex: 'gender',
+          key: 'gender',
+          width: 100,
+          filters: this.getUniqueValues('gender'),
+          filteredValue: filtered.gender || null,
+          onFilter: (value, record) => record.gender === value,
+          sorter: (a, b) => {
+            a = a.gender.toLowerCase();
+            b = b.gender.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'gender' && sorted.order,
+        },
+
+        {
+          title: 'Date of Birth',
+          dataIndex: 'date_of_birth',
+          key: 'date_of_birth',
+          width: 120,
+          sorter: (a, b) => {
+            a = a.date_of_birth.toLowerCase();
+            b = b.date_of_birth.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'date_of_birth' && sorted.order,
+        },
+
+        {
+          title: 'Age',
+          dataIndex: 'age',
+          key: 'age',
+          width: 80,
+          filters: this.getUniqueValues('age'),
+          filteredValue: filtered.age || null,
+          onFilter: (value, record) => record.age === value,
+          sorter: (a, b) => {
+            a = a.age.toLowerCase();
+            b = b.age.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'age' && sorted.order,
+        },
         {
           title: 'Status',
           dataIndex: 'status',
           key: 'status',
+          width: 200,
           filters: this.getUniqueValues('status'),
           filteredValue: filtered.status || null,
           onFilter: (value, record) => record.status === value,
@@ -388,21 +475,75 @@ export default {
           },
           sortOrder: sorted.columnKey === 'status' && sorted.order,
         },
+
         {
-          title: 'Name',
-          dataIndex: 'fullName',
-          key: 'fullName',
+          title: 'ID Type',
+          dataIndex: 'id_type',
+          key: 'id_type',
+          width: 200,
+          filters: this.getUniqueValues('id_type'),
+          filteredValue: filtered.id_type || null,
+          onFilter: (value, record) => record.id_type === value,
           sorter: (a, b) => {
-            a = a.fullName.toLowerCase();
-            b = b.fullName.toLowerCase();
+            a = a.id_type.toLowerCase();
+            b = b.id_type.toLowerCase();
             return a.localeCompare(b);
           },
-          sortOrder: sorted.columnKey === 'fullName' && sorted.order,
+          sortOrder: sorted.columnKey === 'id_type' && sorted.order,
         },
+        {
+          title: 'ID Number',
+          dataIndex: 'id_number',
+          key: 'id_number',
+          width: 120,
+          filters: this.getUniqueValues('id_number'),
+          filteredValue: filtered.id_number || null,
+          onFilter: (value, record) => record.id_number === value,
+          sorter: (a, b) => {
+            a = a.id_number.toLowerCase();
+            b = b.id_number.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'id_number' && sorted.order,
+        },
+
+        {
+          title: 'Social Security Number',
+          dataIndex: 'social_security_number',
+          key: 'social_security_number',
+          width: 180,
+          filters: this.getUniqueValues('social_security_number'),
+          filteredValue: filtered.social_security_number || null,
+          onFilter: (value, record) => record.social_security_number === value,
+          sorter: (a, b) => {
+            a = a.social_security_number.toLowerCase();
+            b = b.social_security_number.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'social_security_number' && sorted.order,
+        },
+
+        {
+          title: 'Tax Number',
+          dataIndex: 'tax_number',
+          key: 'tax_number',
+          width: 200,
+          filters: this.getUniqueValues('tax_number'),
+          filteredValue: filtered.tax_number || null,
+          onFilter: (value, record) => record.tax_number === value,
+          sorter: (a, b) => {
+            a = a.tax_number.toLowerCase();
+            b = b.tax_number.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'tax_number' && sorted.order,
+        },
+
         {
           title: 'Phone',
           dataIndex: 'mobile_phone',
           key: 'mobile_phone',
+          width: 120,
           sorter: (a, b) => {
             a = a.mobile_phone.toLowerCase();
             b = b.mobile_phone.toLowerCase();
@@ -411,50 +552,10 @@ export default {
           sortOrder: sorted.columnKey === 'mobile_phone' && sorted.order,
         },
         {
-          title: 'Location',
-          dataIndex: 'location',
-          key: 'location',
-          filters: this.sites.map(site => ({ text: site.name, value: site.name })),
-          filteredValue: filtered.location || null,
-          onFilter: (value, record) => record.location === value,
-          sorter: (a, b) => {
-            a = (a.location || '').toLowerCase();
-            b = (b.location || '').toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'location' && sorted.order,
-        },
-        {
-          title: 'Department',
-          dataIndex: 'department',
-          key: 'department',
-          filters: this.departments.map(dept => ({ text: dept.name, value: dept.name })),
-          filteredValue: filtered.department || null,
-          onFilter: (value, record) => record.department === value,
-          sorter: (a, b) => {
-            a = a.department.toLowerCase();
-            b = b.department.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'department' && sorted.order,
-        },
-        {
-          title: 'Position',
-          dataIndex: 'position',
-          key: 'position',
-          filters: this.getUniqueValues('position'),
-          filteredValue: filtered.position || null,
-          onFilter: (value, record) => record.position === value,
-          sorter: (a, b) => {
-            a = (a.position || '').toLowerCase();
-            b = (b.position || '').toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'position' && sorted.order,
-        },
-        {
           title: 'Actions',
           key: 'action',
+          fixed: 'right',
+          width: 150,
           sorter: false,
         },
       ].filter(col => this.visibleColumns.includes(col.key));
@@ -462,11 +563,65 @@ export default {
 
     pagination() {
       return {
-        ...this.paginationSettings,
-        current: this.currentPage,
-        pageSize: this.pageSize,
-        total: this.employeeStore.statistics.totalEmployees,
-        showTotal: (total) => `Total ${total} employees`,
+        current: this.page,
+        pageSize: this.perPage,
+        total: this.employeeStore.statistics.totalEmployees || 0,
+        showTotal: total => `Total ${total} employees`,
+        showSizeChanger: true,
+        pageSizeOptions: ['5', '10', '20', '50', '100'],
+        onChange: (page, size) => {
+          this.page = page;
+          this.perPage = size;
+          this.fetchEmployees(page, size);
+        },
+        onShowSizeChange: (page, size) => {
+          this.page = page;
+          this.perPage = size;
+          this.fetchEmployees(page, size);
+        }
+      };
+    },
+
+    rowSelection() {
+      return {
+        selectedRowKeys: this.selectedRowKeys,
+        onChange: this.onSelectChange,
+        hideDefaultSelections: false,
+        selections: [
+          Table.SELECTION_ALL,
+          Table.SELECTION_INVERT,
+          Table.SELECTION_NONE,
+          {
+            key: 'smru',
+            text: 'Select SMRU Employees',
+            onSelect: () => {
+              const smruEmployees = this.employees
+                .filter(employee => employee.subsidiary === 'SMRU')
+                .map(employee => employee.id);
+              this.selectedRowKeys = smruEmployees;
+            },
+          },
+          {
+            key: 'bhf',
+            text: 'Select BHF Employees',
+            onSelect: () => {
+              const bhfEmployees = this.employees
+                .filter(employee => employee.subsidiary === 'BHF')
+                .map(employee => employee.id);
+              this.selectedRowKeys = bhfEmployees;
+            },
+          },
+          {
+            key: 'active',
+            text: 'Select Active Employees',
+            onSelect: () => {
+              const activeEmployees = this.employees
+                .filter(employee => employee.active)
+                .map(employee => employee.id);
+              this.selectedRowKeys = activeEmployees;
+            },
+          },
+        ],
       };
     }
   },
@@ -482,13 +637,84 @@ export default {
     this.$nextTick(() => {
       this.initializeDateRangePicker();
     });
-    this.fetchEmployees();
-    this.fetchSites();
-    this.fetchDepartments();
-    this.fetchPositions();
+    this.fetchEmployees(this.page, this.perPage);
+    console.log('employees: ', this.employees);
   },
 
   methods: {
+
+    async fetchEmployees(page = this.page, perPage = this.perPage) {
+      try {
+        const params = {
+          page: page || this.page,
+          per_page: perPage || this.perPage,
+          sort_by: this.sortedInfo?.columnKey,
+          sort_order: this.sortedInfo?.order === 'ascend' ? 'asc' : this.sortedInfo?.order === 'descend' ? 'desc' : ''
+        };
+
+        // Add any active filters
+        if (this.searchTerm) params.staff_id = this.searchTerm;
+        if (this.filteredInfo?.status?.length) params.status = this.filteredInfo.status[0];
+        if (this.filteredInfo?.subsidiary?.length) params.subsidiary = this.filteredInfo.subsidiary[0];
+        if (this.filteredInfo?.gender?.length) params.gender = this.filteredInfo.gender[0];
+
+        await this.employeeStore.fetchEmployees(params);
+        this.employees = this.mapEmployeeData(this.employeeStore.employees);
+        console.log('employees: ', this.employees.length);
+        this.$message.success('Employees loaded successfully');
+      } catch (error) {
+        console.error("Error fetching employees:", error);
+        this.$message.error('Failed to load employees');
+      }
+    },
+
+
+    // Row selection change handler
+    onSelectChange(selectedRowKeys) {
+      this.selectedRowKeys = selectedRowKeys;
+      console.log('selectedRowKeys changed: ', selectedRowKeys);
+    },
+
+    // Confirm delete selected employees
+    confirmDeleteSelectedEmployees() {
+      if (this.selectedRowKeys.length === 0) {
+        this.$message.warning('Please select at least one employee to delete');
+        return;
+      }
+
+      Modal.confirm({
+        title: `Are you sure you want to delete ${this.selectedRowKeys.length} selected employee(s)?`,
+        content: 'This will delete all selected employees and their associated data. This action cannot be undone.',
+        centered: true,
+        okText: 'Yes, Delete All',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: () => {
+          this.deleteSelectedEmployees();
+        }
+      });
+    },
+
+    // Delete selected employees
+    async deleteSelectedEmployees() {
+      try {
+        // Create a promise for each employee deletion
+        const deletePromises = this.selectedRowKeys.map(id =>
+          this.employeeStore.deleteEmployee(id)
+        );
+
+        // Wait for all deletions to complete
+        await Promise.all(deletePromises);
+
+        this.$message.success(`Successfully deleted ${this.selectedRowKeys.length} employee(s)`);
+        this.selectedRowKeys = []; // Clear selection
+        this.fetchEmployees(); // Refresh the list
+      } catch (error) {
+        this.$message.error('Failed to delete some or all employees');
+        console.error("Error deleting employees:", error);
+      }
+    },
+
     // Get unique values for filter dropdowns
     getUniqueValues(field) {
       if (!this.employees || this.employees.length === 0) return [];
@@ -528,23 +754,67 @@ export default {
     },
 
     // Handle table change (pagination, filters, sorter)
-    handleChange(pagination, filters, sorter) {
-      console.log('Various parameters', pagination, filters, sorter);
-      this.filteredInfo = filters;
-      this.sortedInfo = sorter;
-      this.currentPage = pagination.current;
-      this.pageSize = pagination.pageSize;
+    async handleChange(pagination, filters, sorter) {
+      try {
+        // Ensure pagination values are properly set
+        const currentPage = pagination.current || this.page;
+        const pageSize = pagination.pageSize || this.perPage;
+
+        const params = {
+          page: currentPage,
+          per_page: pageSize,
+        };
+
+        // Add filter parameters if they exist
+        if (filters) {
+          if (filters.staff_id && filters.staff_id.length) params.staff_id = filters.staff_id[0];
+          if (filters.status && filters.status.length) params.status = filters.status[0];
+          if (filters.subsidiary && filters.subsidiary.length) params.subsidiary = filters.subsidiary[0];
+          if (filters.gender && filters.gender.length) params.gender = filters.gender[0];
+
+        }
+
+        // Add sort parameters if sorting is applied
+        if (sorter && sorter.order) {
+          params.sort_by = sorter.columnKey;
+          params.sort_order = sorter.order === 'ascend' ? 'asc' : 'desc';
+        }
+
+        // Update local state for filters and sorters
+        this.filteredInfo = filters || {};
+        this.sortedInfo = sorter || {};
+
+        // Fetch employees with the updated parameters
+        await this.employeeStore.fetchEmployees(params);
+
+        // Map the employee data
+        this.employees = this.mapEmployeeData(this.employeeStore.employees);
+
+        // Update pagination info if available
+        if (this.employeeStore.pagination) {
+          this.totalEmployees = this.employeeStore.pagination.total;
+          this.currentPage = currentPage;
+          this.pageSize = pageSize;
+        }
+      } catch (error) {
+        this.$message.error('Failed to fetch employees');
+        console.error("Error fetching employees:", error);
+      }
     },
 
     // Clear all filters
     clearFilters() {
       this.filteredInfo = {};
+      this.page = 1;
+      this.fetchEmployees();
     },
 
     // Clear all filters and sorters
     clearAll() {
       this.filteredInfo = {};
       this.sortedInfo = {};
+      this.page = 1;
+      this.fetchEmployees();
     },
 
     toggleHeader() {
@@ -587,127 +857,26 @@ export default {
 
     mapEmployeeData(data) {
       return data.map(emp => ({
+        key: emp.id,
         id: emp.id,
         subsidiary: emp.subsidiary || 'N/A',
         staff_id: emp.staff_id || 'N/A',
-        fullName: `${emp.first_name_en} ${emp.last_name_en}`.trim(),
-        email: emp.user?.email || emp.email || "N/A",
-        mobile_phone: emp.mobile_phone || "N/A",
-        position: emp.employment?.department_position?.position || "N/A",
-        department: emp.employment?.department_position?.department || "N/A",
+        initials: emp.initials || 'N/A',
+        first_name_en: emp.first_name_en || 'N/A',
+        last_name_en: emp.last_name_en || 'N/A',
+        gender: emp.gender || 'N/A',
+        date_of_birth: emp.date_of_birth ? moment(emp.date_of_birth).format("DD MMM YYYY") : 'N/A',
+        age: emp.age || 'N/A',
+        status: emp.status || 'N/A',
+        id_type: emp.id_type || 'N/A',
+        id_number: emp.id_number || 'N/A',
+        social_security_number: emp.social_security_number || 'N/A',
+        tax_number: emp.tax_number || 'N/A',
+        mobile_phone: emp.mobile_phone || 'N/A',
         joiningDate: emp.employment?.start_date ? moment(emp.employment.start_date).format("DD MMM YYYY") : "N/A",
-        status: emp.status || 'inactive',
-        Image: "user-32.jpg", // Default image
-        location: emp.employment?.work_location?.name || "N/A",
-        work: emp.employment?.position?.title || "N/A",
         created_at: moment(emp.created_at).format("DD MMM YYYY"),
         active: emp.employment?.active === 1
       }));
-    },
-
-    async fetchEmployees() {
-      try {
-        await this.employeeStore.fetchEmployees();
-        this.employees = this.mapEmployeeData(this.employeeStore.employees);
-        this.$message.success('Employees loaded successfully');
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-        this.$message.error('Failed to load employees');
-      }
-    },
-
-    async fetchSites() {
-      try {
-        const response = await workLocationService.getAllWorkLocations();
-        this.sites = response.data.map(site => ({
-          id: site.id,
-          name: site.name,
-          type: site.type
-        }));
-      } catch (error) {
-        console.error("Error fetching sites:", error);
-        this.$message.error('Failed to load sites');
-      }
-    },
-
-    async fetchDepartmentsAndPositions() {
-      try {
-        const response = await departmentPositionService.getAllDepartmentPositions();
-
-        // Extract unique departments from the response
-        const uniqueDepartments = [...new Set(response.data.map(item => item.department))];
-        this.departments = uniqueDepartments.map(dept => ({
-          name: dept,
-          id: dept // Using department name as ID for simplicity
-        }));
-
-        // Process positions based on department selection
-        if (this.selectedDepartment) {
-          this.positions = response.data
-            .filter(item => item.department === this.selectedDepartment)
-            .map(item => ({
-              id: item.id,
-              name: item.position,
-              department: item.department
-            }));
-        } else {
-          // Otherwise, get all positions
-          this.positions = response.data.map(item => ({
-            id: item.id,
-            name: item.position,
-            department: item.department
-          }));
-        }
-
-      } catch (error) {
-        console.error("Error fetching departments and positions:", error);
-        this.$message.error('Failed to load departments and positions');
-      }
-    },
-
-    // Keeping these methods for backward compatibility
-    async fetchDepartments() {
-      await this.fetchDepartmentsAndPositions();
-    },
-
-    async fetchPositions() {
-      await this.fetchDepartmentsAndPositions();
-    },
-
-    selectSite(siteName, siteId) {
-      this.selectedSite = siteName;
-      this.siteId = siteId;
-      this.fetchEmployees();
-    },
-
-    selectDepartment(departmentName, departmentId) {
-      this.selectedDepartment = departmentName;
-      this.departmentId = departmentId;
-      this.fetchEmployees();
-    },
-
-    selectPosition(positionName, positionId) {
-      this.selectedPosition = positionName;
-      this.positionId = positionId;
-      this.fetchEmployees();
-    },
-
-    resetSite() {
-      this.selectedSite = null;
-      this.siteId = null;
-      this.fetchEmployees();
-    },
-
-    resetDepartment() {
-      this.selectedDepartment = null;
-      this.departmentId = null;
-      this.fetchEmployees();
-    },
-
-    resetPosition() {
-      this.selectedPosition = null;
-      this.positionId = null;
-      this.fetchEmployees();
     },
   },
 };
@@ -742,12 +911,6 @@ export default {
 :deep(.ant-table-bordered .ant-table-thead > tr > th) {
   background-color: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
-}
-
-/* Persistent hover effect - keeps the background color until cursor leaves the row */
-:deep(.ant-table-tbody > tr:hover)>td {
-  background-color: #f0f7ff !important;
-  transition: background-color 0.1s ease;
 }
 
 /* Make scrollbar bigger and more visible */

@@ -44,8 +44,7 @@
           <div class="card card-bg-1">
             <div class="card-body p-0">
               <span class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2">
-                <img :src="employee.profile_picture || require('@/assets/img/users/user-13.jpg')" class="w-auto h-auto"
-                  alt="Employee Image" />
+                <img :src="require('@/assets/img/users/user-13.jpg')" class="w-auto h-auto" alt="Employee Image" />
               </span>
               <div class="text-center px-3 pb-3 border-bottom">
                 <div class="mb-3">
@@ -213,7 +212,8 @@
                     <i class="ti ti-e-passport me-2"></i>
                     ID type
                   </span>
-                  <p class="text-dark">{{ employee.employee_identification.id_type || 'N/A' }}</p>
+                  <p class="text-dark">{{ employee.identifications && employee.identifications.length > 0 ?
+                    employee.identifications[0].id_type : 'N/A' }}</p>
                 </div>
 
                 <div class="d-flex align-items-center justify-content-between mb-2">
@@ -221,7 +221,16 @@
                     <i class="ti ti-id-badge me-2"></i>
                     ID Number
                   </span>
-                  <p class="text-dark">{{ employee.employee_identification.document_number || 'N/A' }}</p>
+                  <p class="text-dark">{{ employee.identifications && employee.identifications.length > 0 ?
+                    employee.identifications[0].document_number : 'N/A' }}</p>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <span class="d-inline-flex align-items-center">
+                    <i class="ti ti-id-badge me-2"></i>
+                    Social Security Number
+                  </span>
+                  <p class="text-dark">{{ employee.social_security_number || 'N/A' }}</p>
                 </div>
 
                 <div class="d-flex align-items-center justify-content-between mb-2">
@@ -281,9 +290,8 @@
           </div>
           <div class="card">
             <div class="card-body p-0">
-              <div v-if="employee.employee_beneficiaries && employee.employee_beneficiaries.length > 0">
-                <div v-for="(beneficiary, index) in employee.employee_beneficiaries" :key="index"
-                  class="p-3 border-bottom">
+              <div v-if="employee.beneficiaries && employee.beneficiaries.length > 0">
+                <div v-for="(beneficiary, index) in employee.beneficiaries" :key="index" class="p-3 border-bottom">
                   <div class="d-flex align-items-center justify-content-between">
                     <div>
                       <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>

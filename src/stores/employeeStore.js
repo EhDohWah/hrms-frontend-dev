@@ -10,16 +10,19 @@ export const useEmployeeStore = defineStore('employee', {
     currentEmployee: null,
     loading: false,
     error: null,
+    pagination: {
+      currentPage: 1,
+      perPage:     10,
+      lastPage:    1,
+      total:       0,
+    },
     statistics: {
       totalEmployees: 0,
-      activeCount: 0,
-      inactiveCount: 0,
+      activeCount:    0,
+      inactiveCount:  0,
       newJoinerCount: 0,
-      subsidiaryCount: {
-        SMRU_count: 0,
-        BHF_count: 0
-      }
-    }
+      subsidiaryCount:{ SMRU_count: 0, BHF_count: 0 },
+    },
   }),
 
   getters: {
@@ -64,29 +67,68 @@ export const useEmployeeStore = defineStore('employee', {
   },
 
   actions: {
-    async fetchEmployees() {
+    async fetchEmployees(params = {}) {
+      this.loading = true;
+      this.error   = null;
       try {
-        this.loading = true;
-        this.error = null;
-        const response = await employeeService.getEmployees();
-        
-        // Check if response.data exists and is an array; if not, assume response is the array
-        const employeesData = Array.isArray(response.data)
-          ? response.data
-          : Array.isArray(response)
-          ? response
-          : [];
-          
-        this.employees = employeesData;
-        
-        // Update statistics
-        this.updateStatistics();
-        
+        const res = await employeeService.getEmployees(params);
+
+        // Normalize "body":
+        // - if res.data exists (Axios), use res.data
+        // - else use res itself
+        const body = res && res.data !== undefined ? res.data : res;
+        // console.log('🔍 API returned body:', body);
+
+        // Now branch on whether body is an array vs. object
+        let items = [];
+        let meta  = {};
+        let stats = {};
+
+        if (Array.isArray(body)) {
+          // body is already the array of employees
+          items = body;
+        } else {
+          // body is { data: [...], meta: {...}, statistics: {...} }
+          items = Array.isArray(body.data) ? body.data : [];
+          meta  = body.meta       || {};
+          stats = body.statistics || {};
+        }
+
+        // 1) set employees array
+        this.employees = items;
+        console.log('✅ store.employees has rows:', this.employees.length, 'total:', this.employees);
+
+        // 2) pagination
+        this.pagination = {
+          currentPage: meta.current_page ?? this.pagination.currentPage,
+          perPage:     meta.per_page    ?? this.pagination.perPage,
+          lastPage:    meta.last_page   ?? this.pagination.lastPage,
+          total:       meta.total       ?? this.pagination.total,
+        };
+
+        // 3) statistics
+        if (stats.totalEmployees != null) {
+          // Update statistics from API response
+          this.statistics = {
+            ...this.statistics,
+            totalEmployees: stats.totalEmployees || 0,
+            activeCount: stats.activeCount || 0,
+            inactiveCount: stats.inactiveCount || 0,
+            newJoinerCount: stats.newJoinerCount || 0,
+            subsidiaryCount: {
+              SMRU_count: stats.subsidiaryCount?.SMRU_count || 0,
+              BHF_count: stats.subsidiaryCount?.BHF_count || 0
+            }
+          };
+        } else {
+          this.updateStatistics();
+        }
+
         return this.employees;
-      } catch (error) {
-        this.error = error.message || 'Failed to fetch employees';
-        console.error('Error fetching employees:', error);
-        throw error;
+      } catch (err) {
+        this.error = err.message || 'Failed to fetch employees';
+        // console.error('❌ fetchEmployees error:', err);
+        throw err;
       } finally {
         this.loading = false;
       }
@@ -105,7 +147,7 @@ export const useEmployeeStore = defineStore('employee', {
         return this.employments;
       } catch (error) {
         this.error = error.message || 'Failed to fetch employments';
-        console.error('Error fetching employments:', error);
+        // console.error('Error fetching employments:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -121,7 +163,7 @@ export const useEmployeeStore = defineStore('employee', {
         return this.currentEmployee;
       } catch (error) {
         this.error = error.message || 'Failed to fetch employee details';
-        console.error('Error fetching employee details:', error);
+        //console.error('Error fetching employee details:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -138,7 +180,7 @@ export const useEmployeeStore = defineStore('employee', {
         return response;
       } catch (error) {
         this.error = error.message || 'Failed to create employee';
-        console.error('Error creating employee:', error);
+        // console.error('Error creating employee:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -155,7 +197,7 @@ export const useEmployeeStore = defineStore('employee', {
         return response;
       } catch (error) {
         this.error = error.message || 'Failed to update employee';
-        console.error('Error updating employee:', error);
+        // console.error('Error updating employee:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -172,7 +214,7 @@ export const useEmployeeStore = defineStore('employee', {
         return response;
       } catch (error) {
         this.error = error.message || 'Failed to delete employee';
-        console.error('Error deleting employee:', error);
+        // console.error('Error deleting employee:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -193,7 +235,7 @@ export const useEmployeeStore = defineStore('employee', {
         return filteredData;
       } catch (error) {
         this.error = error.message || 'Failed to filter employees';
-        console.error('Error filtering employees:', error);
+        // console.error('Error filtering employees:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -214,7 +256,7 @@ export const useEmployeeStore = defineStore('employee', {
         return response;
       } catch (error) {
         this.error = error.message || 'Failed to upload profile picture';
-        console.error('Error uploading profile picture:', error);
+        // console.error('Error uploading profile picture:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -229,7 +271,7 @@ export const useEmployeeStore = defineStore('employee', {
         return response.data || response;
       } catch (error) {
         this.error = error.message || 'Failed to fetch site records';
-        console.error('Error fetching site records:', error);
+        //console.error('Error fetching site records:', error);
         throw error;
       } finally {
         this.loading = false;
@@ -244,40 +286,30 @@ export const useEmployeeStore = defineStore('employee', {
       const now = new Date();
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(now.getMonth() - 3);
-      
-      this.statistics.totalEmployees = this.employees.length;
-      
-      this.statistics.activeCount = this.employees.filter(employee => 
-        employee.employment && employee.employment.active === 1
+
+      // 1) total from pagination.total
+      this.statistics.totalEmployees = this.pagination.total;
+
+      // 2) active / inactive from the current page
+      this.statistics.activeCount = this.employees.filter(e =>
+        e.employment?.active === 1
       ).length;
-      
-      this.statistics.inactiveCount = this.employees.filter(employee => 
-        employee.employment && employee.employment.active === 0
+
+      this.statistics.inactiveCount = this.employees.filter(e =>
+        e.employment?.active === 0
       ).length;
-      
-      this.statistics.newJoinerCount = this.employees.filter(employee => {
-        if (!employee.employment || !employee.employment.start_date) return false;
-        const startDate = new Date(employee.employment.start_date);
-        return startDate >= threeMonthsAgo && startDate <= now;
+
+      this.statistics.newJoinerCount = this.employees.filter(e => {
+        const d = e.employment?.start_date && new Date(e.employment.start_date);
+        return d && d >= threeMonthsAgo && d <= now;
       }).length;
 
-      // I want to calculate the employee count for each subsidiary 
-      // Count employees by subsidiary
-      this.statistics.subsidiaryCount = {
-        SMRU_count: 0,
-        BHF_count: 0
-      };
-      
-      // Calculate counts based on employee subsidiary
-      this.employees.forEach(employee => {
-        const subsidiary = employee.subsidiary || (employee.employment?.subsidiary);
-        if (subsidiary === 'SMRU') {
-          this.statistics.subsidiaryCount.SMRU_count++;
-        } else if (subsidiary === 'BHF') {
-          this.statistics.subsidiaryCount.BHF_count++;
-        }
+      // 3) subsidiary breakdown from the current page
+      this.statistics.subsidiaryCount = { SMRU_count: 0, BHF_count: 0 };
+      this.employees.forEach(e => {
+        if (e.subsidiary === 'SMRU') this.statistics.subsidiaryCount.SMRU_count++;
+        if (e.subsidiary === 'BHF')  this.statistics.subsidiaryCount.BHF_count++;
       });
-      
     }
   }
 });

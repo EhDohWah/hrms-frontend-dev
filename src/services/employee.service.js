@@ -2,9 +2,39 @@ import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
 class EmployeeService {
-    // Get all employees
-    async getEmployees() {
-        return await apiService.get(API_ENDPOINTS.EMPLOYEE.LIST);
+    // Get all employees with pagination and filtering support
+    async getEmployees(params = {}) {
+        // Extract all possible parameters with defaults
+        const { 
+            page = '', 
+            per_page = '', 
+            staff_id = '', 
+            status = '', 
+            subsidiary = '', 
+            gender = '',
+            date_of_birth = '',
+            sort_by = '', 
+            sort_order = '' 
+        } = params;
+        
+        // Build query parameters object
+        const queryParams = new URLSearchParams();
+        queryParams.append('page', page);
+        queryParams.append('per_page', per_page);
+        
+        // Only add non-empty filter parameters
+        if (staff_id) queryParams.append('staff_id', staff_id);
+        if (status) queryParams.append('status', status);
+        if (subsidiary) queryParams.append('subsidiary', subsidiary);
+        if (gender) queryParams.append('gender', gender);
+        if (date_of_birth) queryParams.append('date_of_birth', date_of_birth);
+        if (sort_by) queryParams.append('sort_by', sort_by);
+        if (sort_order) queryParams.append('sort_order', sort_order);
+        
+        // Use the base endpoint without the query parameters that are already in the URL
+        const endpoint = API_ENDPOINTS.EMPLOYEE.LIST.split('?')[0];
+        
+        return await apiService.get(`${endpoint}?${queryParams.toString()}`);
     }
 
     // Get employee details

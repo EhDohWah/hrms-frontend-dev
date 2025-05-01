@@ -2,6 +2,14 @@
   command = "npm run build"
   publish = "dist"
 
+  # Increase Node’s heap to 4 GB during the build
+  # (prevents "JavaScript heap out of memory")
+  environment = { 
+    NODE_OPTIONS = "--max-old-space-size=4096",
+    VUE_APP_API_BASE_URL = "https://hrms-backend-api-v1-main-wrhlmg.laravel.cloud/api/v1",
+    VUE_APP_ENV          = "production"
+  }   
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

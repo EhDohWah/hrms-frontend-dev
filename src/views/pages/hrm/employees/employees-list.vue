@@ -7,50 +7,24 @@
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
-
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <!-- <div class="me-2 mb-2">
-            <div class="dropdown">
-              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown">
-                <i class="ti ti-file-export me-1"></i>Export
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"><i
-                      class="ti ti-file-type-pdf me-1"></i>Export as PDF</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"><i
-                      class="ti ti-file-type-xls me-1"></i>Export as Excel
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div> -->
-
+          <!-- Add Employee Button -->
           <div class="mb-2 me-2">
             <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_employee"
-              class="btn btn-primary d-flex align-items-center"><i class="ti ti-circle-plus me-2"></i>Add New
-              Employee</a>
+              class="btn btn-primary d-flex align-items-center">
+              <i class="ti ti-circle-plus me-2"></i>Add New Employee
+            </a>
           </div>
 
-          <!-- upload employee excel file -->
+          <!-- Upload Employee Excel File Button -->
           <div class="mb-2 me-2">
             <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal"
-              data-bs-target="#employeeUploadModal"><i class="ti ti-upload me-2"></i>Upload Employee Excel File</a>
+              data-bs-target="#employeeUploadModal">
+              <i class="ti ti-upload me-2"></i>Upload Employee Excel File
+            </a>
           </div>
 
-          <!-- upload employment excel file -->
-          <!-- <div class="mb-2">
-            <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
-              data-bs-toggle="modal"
-              data-bs-target="#employmentUploadModal"
-              ><i class="ti ti-upload me-2"></i>Upload Employment Excel File</a
-            >
-          </div> -->
-
-          <!-- Delete selected employees button -->
+          <!-- Delete Selected Employees Button -->
           <div class="mb-2 me-2">
             <a href="javascript:void(0);" class="btn btn-danger d-flex align-items-center"
               @click="confirmDeleteSelectedEmployees" :class="{ 'disabled': selectedRowKeys.length === 0 }">
@@ -64,13 +38,13 @@
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
-
         </div>
       </div>
       <!-- /Breadcrumb -->
 
+      <!-- Employee Statistics -->
       <div class="row">
-        <!-- Total Plans -->
+        <!-- SMRU Employees -->
         <div class="col-lg-3 col-md-6 d-flex">
           <div class="card flex-fill">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -93,9 +67,9 @@
             </div>
           </div>
         </div>
-        <!-- /Total Plans -->
+        <!-- /SMRU Employees -->
 
-        <!-- Total Plans -->
+        <!-- BHF Employees -->
         <div class="col-lg-3 col-md-6 d-flex">
           <div class="card flex-fill">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -118,9 +92,9 @@
             </div>
           </div>
         </div>
-        <!-- /Total Plans -->
+        <!-- /BHF Employees -->
 
-        <!-- No of Plans  -->
+        <!-- New Joiners -->
         <div class="col-lg-3 col-md-6 d-flex">
           <div class="card flex-fill">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -143,9 +117,9 @@
             </div>
           </div>
         </div>
-        <!-- /No of Plans -->
+        <!-- /New Joiners -->
 
-        <!-- Inactive Plans -->
+        <!-- Resigned Employees -->
         <div class="col-lg-3 col-md-6 d-flex">
           <div class="card flex-fill">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -168,109 +142,151 @@
             </div>
           </div>
         </div>
-        <!-- /Inactive Companies -->
-
-
+        <!-- /Resigned Employees -->
       </div>
+      <!-- /Employee Statistics -->
 
+      <!-- Employee List Table -->
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Employee List</h5>
-
-          <div class="table-operations">
+          <!-- Table Operations -->
+          <div class="table-operations d-flex align-items-center">
+            <span v-if="selectedRowKeys.length > 0" class="me-3">
+              <strong>{{ selectedRowKeys.length }}</strong> {{ selectedRowKeys.length === 1 ? 'item' : 'items' }}
+              selected
+            </span>
             <a-button @click="clearFilters">Clear filters</a-button>
             <a-button @click="clearAll">Clear filters and sorters</a-button>
           </div>
+          <!-- /Table Operations -->
         </div>
 
+        <!-- Table -->
         <div class="card-body p-0">
           <div class="custom-datatable-filter table-responsive">
-            <div v-if="employeeStore.loading" class="text-center my-3">
+            <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <div class="dataTables_length" id="DataTables_Table_0_length">
+                    <label>
+                      Row Per Page
+                      <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0"
+                        class="form-select form-select-sm" v-model.number="perPage"
+                        @change="handlePerPageChange($event)">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option :value="totalEmployees">All</option>
+                      </select>
+                      Entries
+                    </label>
+                  </div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <div id="DataTables_Table_0_filter" class="dataTables_filter text-end me-3">
+                    <label>
+                      STAFF ID SEARCH:
+                      <input type="search" class="form-control form-control-sm d-inline-block w-auto"
+                        placeholder="Search" aria-controls="DataTables_Table_0" v-model="searchStaffId">
+                      <button class="btn btn-sm btn-primary ms-2" @click="handleStaffIdSearch">Search</button>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div v-if="employeeStore.loading" class="text-center py-4">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
               <p class="mt-2">Loading employees...</p>
             </div>
 
-            <a-table v-else class="table datatable thead-light bordered-table" :rowKey="id" :columns="columns"
-              :scroll="{ x: 'max-content', y: 500 }" :data-source="employees" :row-selection="rowSelection"
-              :pagination="pagination" :animate-rows="false" @change="handleChange" :bordered="true">
-              <!-- Name column with highlighting -->
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'fullName'">
-                  <div class="d-flex align-items-center file-name-icon">
-                    <a href="javascript:void(0);" class="avatar avatar-md">
-                      <!-- <img :src="require(`@/assets/img/users/${record.Image}`)" class="img-fluid rounded-circle"
-                        alt="img" /> -->
-                    </a>
-                    <div class="ms-2">
-                      <h6 class="fw-medium">
+            <!-- Employee Table -->
+            <div v-else>
+              <a-table :rowKey="id" :columns="columns" :scroll="{ x: 1500 }" :data-source="employees"
+                :row-selection="rowSelection" :pagination="pagination" @change="handleChange"
+                class="table datatable thead-light">
+                <!-- Name column with highlighting -->
+                <template #bodyCell="{ column, record }">
+                  <template v-if="column.key === 'fullName'">
+                    <div class="d-flex align-items-center file-name-icon">
+                      <a href="javascript:void(0);" class="avatar avatar-md">
+                        <!-- <img :src="require(`@/assets/img/users/${record.Image}`)" class="img-fluid rounded-circle" alt="img" /> -->
+                      </a>
+                      <div class="ms-2">
+                        <h6 class="fw-medium">
+                          <router-link :to="`/employee/employee-details/${record.id}`">
+                            {{ record.first_name_en }} {{ record.last_name_en }}
+                          </router-link>
+                        </h6>
                         <router-link :to="`/employee/employee-details/${record.id}`">
-                          {{ record.fullName }}
+                          <span class="d-block mt-1">{{ record.staff_id }}</span>
                         </router-link>
-                      </h6>
-                      <router-link :to="`/employee/employee-details/${record.id}`">
-                        <span class="d-block mt-1">{{ record.position }}</span>
-                      </router-link>
+                      </div>
                     </div>
+                  </template>
 
-                  </div>
-                </template>
+                  <!-- Status column -->
+                  <template v-if="column.key === 'status'">
+                    <a-badge :status="record.status === 'Local ID'
+                      ? 'success'
+                      : record.status === 'Expats'
+                        ? 'processing'
+                        : record.status === 'Local non ID'
+                          ? 'warning'
+                          : 'default'" :text="record.status" />
+                  </template>
 
-                <!-- Status column -->
-                <template v-if="column.key === 'status'">
-                  <a-badge :status="record.status === 'Local ID'
-                    ? 'success'
-                    : record.status === 'Expats'
-                      ? 'processing'
-                      : record.status === 'Local non ID'
-                        ? 'warning'
-                        : 'default'
-                    " :text="record.status" />
-                </template>
+                  <!-- Subsidiary column -->
+                  <template v-if="column.key === 'subsidiary'">
+                    <span :class="[
+                      'badge badge-sm fw-normal',
+                      record.subsidiary === 'SMRU' ? 'badge-primary' :
+                        record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                          'badge-secondary'
+                    ]">
+                      {{ record.subsidiary }}
+                    </span>
+                  </template>
 
-                <!-- Subsidiary column -->
-                <template v-if="column.key === 'subsidiary'">
-                  <span :class="[
-                    'badge badge-sm fw-normal',
-                    record.subsidiary === 'SMRU' ? 'badge-primary' :
-                      record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
-                        'badge-secondary'
-                  ]">
-                    {{ record.subsidiary }}
-                  </span>
+                  <!-- Action column -->
+                  <template v-if="column.key === 'action'">
+                    <div class="action-icon d-inline-flex">
+                      <!-- View Employee -->
+                      <router-link :to="`/employee/employee-details/${record.id}`" class="me-2">
+                        <i class="ti ti-eye"></i>
+                      </router-link>
+                      <!-- Edit Employee -->
+                      <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal" data-bs-target="#edit_employee">
+                        <i class="ti ti-edit"></i>
+                      </a>
+                      <!-- Delete Employee -->
+                      <a href="javascript:void(0);" @click="confirmDeleteEmployee(record.id)">
+                        <i class="ti ti-trash"></i>
+                      </a>
+                    </div>
+                  </template>
                 </template>
-
-                <!-- Action column -->
-                <template v-if="column.key === 'action'">
-                  <div class="action-icon d-inline-flex">
-                    <!-- View Employee -->
-                    <router-link :to="`/employee/employee-details/${record.id}`" class="me-2">
-                      <i class="ti ti-eye"></i>
-                    </router-link>
-                    <!-- Edit Employee -->
-                    <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal" data-bs-target="#edit_employee"><i
-                        class="ti ti-edit"></i></a>
-                    <a href="javascript:void(0);" @click="confirmDeleteEmployee(record.id)"><i
-                        class="ti ti-trash"></i></a>
-                  </div>
-                </template>
-              </template>
-            </a-table>
+              </a-table>
+            </div>
           </div>
         </div>
+        <!-- /Table -->
       </div>
     </div>
-
-
-
-
-
   </div>
-  <!-- /Page Wrapper -->
+
+  <!-- Add Employee Modal -->
   <employee-list-modal></employee-list-modal>
+
+  <!-- Employee Upload Modal -->
   <employee-upload-modal @refresh-employee-list="fetchEmployees"></employee-upload-modal>
 </template>
+
 
 <script>
 import "daterangepicker/daterangepicker.css";
@@ -280,14 +296,16 @@ import DateRangePicker from "daterangepicker";
 import { useEmployeeStore } from '@/stores/employeeStore';
 import { mapStores } from 'pinia';
 import { Modal, Table } from 'ant-design-vue';
+import { employeeService } from '@/services/employee.service';
 
 export default {
+  name: 'EmployeesList',
   data() {
     return {
+      title: 'Employees',
+      text: 'Employees',
+      text1: 'Employees List',
       employees: [],
-      title: "Employee",
-      text: "Employee",
-      text1: "Employee List",
       selectedSite: null,
       selectedDepartment: null,
       selectedPosition: null,
@@ -301,6 +319,8 @@ export default {
       // Pagination
       page: 1,
       perPage: 10,
+      currentPage: 1,
+      pageSize: 10,
 
       searchTerm: '',
 
@@ -312,9 +332,20 @@ export default {
       sortedInfo: {},
     };
   },
+  mounted() {
+    this.fetchEmployees();
+    this.$nextTick(() => {
+      this.dateRangeInput = document.getElementById('booking-date');
+      this.initializeDateRangePicker();
+    });
+  },
 
   computed: {
     ...mapStores(useEmployeeStore),
+
+    totalEmployees() {
+      return this.employeeStore.statistics.totalEmployees;
+    },
 
     // Get staff IDs based on selected subsidiary
     filteredStaffIds() {
@@ -420,7 +451,7 @@ export default {
           title: 'Gender',
           dataIndex: 'gender',
           key: 'gender',
-          width: 100,
+          width: 120,
           filters: this.getUniqueValues('gender'),
           filteredValue: filtered.gender || null,
           onFilter: (value, record) => record.gender === value,
@@ -449,7 +480,7 @@ export default {
           title: 'Age',
           dataIndex: 'age',
           key: 'age',
-          width: 80,
+          width: 100,
           filters: this.getUniqueValues('age'),
           filteredValue: filtered.age || null,
           onFilter: (value, record) => record.age === value,
@@ -464,7 +495,7 @@ export default {
           title: 'Status',
           dataIndex: 'status',
           key: 'status',
-          width: 200,
+          width: 150,
           filters: this.getUniqueValues('status'),
           filteredValue: filtered.status || null,
           onFilter: (value, record) => record.status === value,
@@ -495,7 +526,7 @@ export default {
           title: 'ID Number',
           dataIndex: 'id_number',
           key: 'id_number',
-          width: 120,
+          width: 150,
           filters: this.getUniqueValues('id_number'),
           filteredValue: filtered.id_number || null,
           onFilter: (value, record) => record.id_number === value,
@@ -552,6 +583,20 @@ export default {
           sortOrder: sorted.columnKey === 'mobile_phone' && sorted.order,
         },
         {
+          title: 'Active',
+          dataIndex: 'active',
+          key: 'active',
+          width: 100,
+          filters: [
+            { text: 'Active', value: true },
+            { text: 'Inactive', value: false },
+          ],
+          filteredValue: filtered.active || null,
+          onFilter: (value, record) => record.active === value,
+          sorter: (a, b) => a.active - b.active,
+          sortOrder: sorted.columnKey === 'active' && sorted.order,
+        },
+        {
           title: 'Actions',
           key: 'action',
           fixed: 'right',
@@ -561,43 +606,28 @@ export default {
       ].filter(col => this.visibleColumns.includes(col.key));
     },
 
-    pagination() {
-      return {
-        current: this.page,
-        pageSize: this.perPage,
-        total: this.employeeStore.statistics.totalEmployees || 0,
-        showTotal: total => `Total ${total} employees`,
-        showSizeChanger: true,
-        pageSizeOptions: ['5', '10', '20', '50', '100'],
-        onChange: (page, size) => {
-          this.page = page;
-          this.perPage = size;
-          this.fetchEmployees(page, size);
-        },
-        onShowSizeChange: (page, size) => {
-          this.page = page;
-          this.perPage = size;
-          this.fetchEmployees(page, size);
-        }
-      };
-    },
-
     rowSelection() {
       return {
+        // fix the column to the left
+        fixed: 'left',
+
+        // give it a custom width
+        columnWidth: 100,
+
+        // your existing config
         selectedRowKeys: this.selectedRowKeys,
         onChange: this.onSelectChange,
         hideDefaultSelections: false,
         selections: [
           Table.SELECTION_ALL,
-          Table.SELECTION_INVERT,
           Table.SELECTION_NONE,
           {
             key: 'smru',
             text: 'Select SMRU Employees',
             onSelect: () => {
               const smruEmployees = this.employees
-                .filter(employee => employee.subsidiary === 'SMRU')
-                .map(employee => employee.id);
+                .filter(e => e.subsidiary === 'SMRU')
+                .map(e => e.id);
               this.selectedRowKeys = smruEmployees;
             },
           },
@@ -606,187 +636,80 @@ export default {
             text: 'Select BHF Employees',
             onSelect: () => {
               const bhfEmployees = this.employees
-                .filter(employee => employee.subsidiary === 'BHF')
-                .map(employee => employee.id);
+                .filter(e => e.subsidiary === 'BHF')
+                .map(e => e.id);
               this.selectedRowKeys = bhfEmployees;
             },
           },
-          {
-            key: 'active',
-            text: 'Select Active Employees',
-            onSelect: () => {
-              const activeEmployees = this.employees
-                .filter(employee => employee.active)
-                .map(employee => employee.id);
-              this.selectedRowKeys = activeEmployees;
-            },
-          },
         ],
-      };
-    }
+      }
+    },
   },
-
-  beforeUnmount() {
-    // Cleanup DateRangePicker when component is destroyed
-    if (this.daterangepicker) {
-      this.daterangepicker.remove();
-    }
-  },
-
-  mounted() {
-    this.$nextTick(() => {
-      this.initializeDateRangePicker();
-    });
-    this.fetchEmployees(this.page, this.perPage);
-    console.log('employees: ', this.employees);
-  },
-
   methods: {
+    async handleStaffIdSearch() {
+      if (!this.searchStaffId) {
+        await this.fetchEmployees()
+        return
+      }
+
+      try {
+        await this.employeeStore.fetchSingleEmployee(this.searchStaffId)
+        // At this point `this.employeeStore.employees` has either [ employee ] or []
+        // console.log('🔍 this.employeeStore.employees:', this.employeeStore.employees);
+        console.log('🔍 this.employees:', this.employeeStore.employees);
+        this.employees = this.mapEmployeeData(this.employeeStore.employees)
+        // this.totalEmployees = this.employeeStore.pagination.total
+
+
+        if (this.employees.length === 0) {
+          this.$message.info('No employee found with that Staff ID')
+        }
+      } catch {
+        this.$message.error('Error searching for employee')
+      }
+    },
+
+
+    handlePerPageChange(event) {
+      const val = event.target.value;
+      // if “all”, pick up the true total; otherwise parse the number
+      this.perPage = val === 'totalEmployees'
+        ? this.totalEmployees
+        : parseInt(val, 10);
+
+      // reset back to page 1
+      this.page = 1;
+
+      this.fetchEmployees();
+    },
 
     async fetchEmployees(page = this.page, perPage = this.perPage) {
       try {
+        // Prepare parameters for API request
         const params = {
-          page: page || this.page,
-          per_page: perPage || this.perPage,
+          page: page,
+          per_page: perPage,
           sort_by: this.sortedInfo?.columnKey,
           sort_order: this.sortedInfo?.order === 'ascend' ? 'asc' : this.sortedInfo?.order === 'descend' ? 'desc' : ''
         };
 
         // Add any active filters
-        if (this.searchTerm) params.staff_id = this.searchTerm;
-        if (this.filteredInfo?.status?.length) params.status = this.filteredInfo.status[0];
-        if (this.filteredInfo?.subsidiary?.length) params.subsidiary = this.filteredInfo.subsidiary[0];
-        if (this.filteredInfo?.gender?.length) params.gender = this.filteredInfo.gender[0];
+        if (this.searchTerm) params.search = this.searchTerm;
 
+        // Add filter parameters from filteredInfo
+        Object.entries(this.filteredInfo).forEach(([key, value]) => {
+          if (value && value.length) {
+            params[key] = value[0];
+          }
+        });
+
+        // Get current page and page size from table if available
+        const currentPage = page || this.page;
+        const pageSize = perPage || this.perPage;
+
+        // Fetch employees from store
         await this.employeeStore.fetchEmployees(params);
-        this.employees = this.mapEmployeeData(this.employeeStore.employees);
-        console.log('employees: ', this.employees.length);
-        this.$message.success('Employees loaded successfully');
-      } catch (error) {
-        console.error("Error fetching employees:", error);
-        this.$message.error('Failed to load employees');
-      }
-    },
-
-
-    // Row selection change handler
-    onSelectChange(selectedRowKeys) {
-      this.selectedRowKeys = selectedRowKeys;
-      console.log('selectedRowKeys changed: ', selectedRowKeys);
-    },
-
-    // Confirm delete selected employees
-    confirmDeleteSelectedEmployees() {
-      if (this.selectedRowKeys.length === 0) {
-        this.$message.warning('Please select at least one employee to delete');
-        return;
-      }
-
-      Modal.confirm({
-        title: `Are you sure you want to delete ${this.selectedRowKeys.length} selected employee(s)?`,
-        content: 'This will delete all selected employees and their associated data. This action cannot be undone.',
-        centered: true,
-        okText: 'Yes, Delete All',
-        okType: 'danger',
-        cancelText: 'Cancel',
-        onOk: () => {
-          this.deleteSelectedEmployees();
-        }
-      });
-    },
-
-    // Delete selected employees
-    async deleteSelectedEmployees() {
-      try {
-        // Create a promise for each employee deletion
-        const deletePromises = this.selectedRowKeys.map(id =>
-          this.employeeStore.deleteEmployee(id)
-        );
-
-        // Wait for all deletions to complete
-        await Promise.all(deletePromises);
-
-        this.$message.success(`Successfully deleted ${this.selectedRowKeys.length} employee(s)`);
-        this.selectedRowKeys = []; // Clear selection
-        this.fetchEmployees(); // Refresh the list
-      } catch (error) {
-        this.$message.error('Failed to delete some or all employees');
-        console.error("Error deleting employees:", error);
-      }
-    },
-
-    // Get unique values for filter dropdowns
-    getUniqueValues(field) {
-      if (!this.employees || this.employees.length === 0) return [];
-
-      const uniqueValues = [...new Set(this.employees.map(item => item[field]))].filter(Boolean);
-      return uniqueValues.map(value => ({ text: value, value }));
-    },
-
-    // Confirm delete grant
-    confirmDeleteEmployee(id) {
-      Modal.confirm({
-        title: 'Are you sure you want to delete this employee?',
-        content: 'This will delete the employee and all associated items. This action cannot be undone.',
-        centered: true,
-        okText: 'Yes',
-        okType: 'danger',
-        cancelText: 'No',
-        onOk: () => {
-          this.deleteEmployee(id);
-        }
-      });
-    },
-
-    async deleteEmployee(id) {
-      if (!id) return;
-
-      try {
-        await this.employeeStore.deleteEmployee(id);
-        this.$message.success('Employee deleted successfully');
-        this.fetchEmployees();
-      } catch (error) {
-        this.$message.error('Failed to delete employee');
-        console.error("Error deleting employee:", error);
-      } finally {
-        this.employeeToDelete = null;
-      }
-    },
-
-    // Handle table change (pagination, filters, sorter)
-    async handleChange(pagination, filters, sorter) {
-      try {
-        // Ensure pagination values are properly set
-        const currentPage = pagination.current || this.page;
-        const pageSize = pagination.pageSize || this.perPage;
-
-        const params = {
-          page: currentPage,
-          per_page: pageSize,
-        };
-
-        // Add filter parameters if they exist
-        if (filters) {
-          if (filters.staff_id && filters.staff_id.length) params.staff_id = filters.staff_id[0];
-          if (filters.status && filters.status.length) params.status = filters.status[0];
-          if (filters.subsidiary && filters.subsidiary.length) params.subsidiary = filters.subsidiary[0];
-          if (filters.gender && filters.gender.length) params.gender = filters.gender[0];
-
-        }
-
-        // Add sort parameters if sorting is applied
-        if (sorter && sorter.order) {
-          params.sort_by = sorter.columnKey;
-          params.sort_order = sorter.order === 'ascend' ? 'asc' : 'desc';
-        }
-
-        // Update local state for filters and sorters
-        this.filteredInfo = filters || {};
-        this.sortedInfo = sorter || {};
-
-        // Fetch employees with the updated parameters
-        await this.employeeStore.fetchEmployees(params);
-
+        console.log('🔍 this.employeeStore.employees:', this.employeeStore.employees);
         // Map the employee data
         this.employees = this.mapEmployeeData(this.employeeStore.employees);
 
@@ -796,6 +719,8 @@ export default {
           this.currentPage = currentPage;
           this.pageSize = pageSize;
         }
+
+        this.$message.success('Employees loaded successfully');
       } catch (error) {
         this.$message.error('Failed to fetch employees');
         console.error("Error fetching employees:", error);
@@ -865,7 +790,7 @@ export default {
         first_name_en: emp.first_name_en || 'N/A',
         last_name_en: emp.last_name_en || 'N/A',
         gender: emp.gender || 'N/A',
-        date_of_birth: emp.date_of_birth ? moment(emp.date_of_birth).format("DD MMM YYYY") : 'N/A',
+        date_of_birth: emp.date_of_birth ? moment(emp.date_of_birth).format("DD/MM/YYYY") : 'N/A',
         age: emp.age || 'N/A',
         status: emp.status || 'N/A',
         id_type: emp.id_type || 'N/A',
@@ -873,10 +798,102 @@ export default {
         social_security_number: emp.social_security_number || 'N/A',
         tax_number: emp.tax_number || 'N/A',
         mobile_phone: emp.mobile_phone || 'N/A',
-        joiningDate: emp.employment?.start_date ? moment(emp.employment.start_date).format("DD MMM YYYY") : "N/A",
-        created_at: moment(emp.created_at).format("DD MMM YYYY"),
+        joiningDate: emp.employment?.start_date ? moment(emp.employment.start_date).format("DD/MM/YYYY") : "N/A",
+        created_at: moment(emp.created_at).format("DD/MM/YYYY"),
         active: emp.employment?.active === 1
       }));
+    },
+
+    // Row selection change handler
+    onSelectChange(selectedRowKeys) {
+      this.selectedRowKeys = selectedRowKeys;
+      console.log('selectedRowKeys changed: ', selectedRowKeys);
+    },
+
+    // Confirm delete selected employees
+    confirmDeleteSelectedEmployees() {
+      if (this.selectedRowKeys.length === 0) {
+        this.$message.warning('Please select at least one employee to delete');
+        return;
+      }
+
+      Modal.confirm({
+        title: `Are you sure you want to delete ${this.selectedRowKeys.length} selected employee(s)?`,
+        content: 'This will delete all selected employees and their associated data. This action cannot be undone.',
+        centered: true,
+        okText: 'Yes, Delete All',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: () => {
+          this.deleteSelectedEmployees();
+        }
+      });
+    },
+
+    // Delete selected employees
+    async deleteSelectedEmployees() {
+      try {
+        // Use the employee service directly instead of going through the store
+        console.log('🔍 this.selectedRowKeys:', this.selectedRowKeys);
+        await employeeService.deleteSelectedEmployees(this.selectedRowKeys);
+        this.$message.success(`${this.selectedRowKeys.length} employee(s) deleted successfully`);
+        this.selectedRowKeys = [];
+        this.fetchEmployees();
+      } catch (error) {
+        this.$message.error('Failed to delete employees');
+        console.error("Error deleting employees:", error);
+      }
+    },
+
+    // Confirm delete single employee
+    confirmDeleteEmployee(id) {
+      Modal.confirm({
+        title: 'Are you sure you want to delete this employee?',
+        content: 'This will delete the employee and all associated data. This action cannot be undone.',
+        centered: true,
+        okText: 'Yes, Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: () => {
+          this.deleteEmployee(id);
+        }
+      });
+    },
+
+    // Delete single employee
+    async deleteEmployee(id) {
+      try {
+        await this.employeeStore.deleteEmployee(id);
+        this.$message.success('Employee deleted successfully');
+        this.fetchEmployees();
+      } catch (error) {
+        this.$message.error('Failed to delete employee');
+        console.error("Error deleting employee:", error);
+      }
+    },
+
+    // Handle table change (pagination, filters, sorter)
+    handleTableChange(pagination, filters, sorter) {
+      console.log('Table params changed:', { pagination, filters, sorter });
+
+      // Update page and perPage
+      this.page = pagination.current;
+      this.perPage = pagination.pageSize;
+
+      // Update filter and sort info
+      this.filteredInfo = filters || {};
+      this.sortedInfo = sorter || {};
+
+      // Fetch employees with the updated parameters
+      this.fetchEmployees(this.page, this.perPage);
+    },
+
+    // Get unique values for filter dropdowns
+    getUniqueValues(field) {
+      if (!this.employees || this.employees.length === 0) return [];
+
+      const uniqueValues = [...new Set(this.employees.map(item => item[field]))].filter(Boolean);
+      return uniqueValues.map(value => ({ text: value, value }));
     },
   },
 };
@@ -891,27 +908,20 @@ export default {
   min-width: 80px;
 }
 
-.table-operations {
-  margin-bottom: 16px;
-}
 
 .table-operations>button {
   margin-right: 8px;
 }
 
-.bordered-table {
-  border: 1px solid #e0e0e0;
-}
-
-:deep(.ant-table-bordered .ant-table-thead > tr > th),
+/* :deep(.ant-table-bordered .ant-table-thead > tr > th),
 :deep(.ant-table-bordered .ant-table-tbody > tr > td) {
-  border-right: 1px solid #e0e0e0;
-}
+  border-right: 1px solid #8d8c8c;
+} */
 
-:deep(.ant-table-bordered .ant-table-thead > tr > th) {
+/* :deep(.ant-table-bordered .ant-table-thead > tr > th) {
   background-color: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
-}
+} */
 
 /* Make scrollbar bigger and more visible */
 :deep(.ant-table-body)::-webkit-scrollbar {
@@ -927,10 +937,55 @@ export default {
 :deep(.ant-table-body)::-webkit-scrollbar-thumb {
   background: #888;
   border-radius: 7px;
-  border: 3px solid #f1f1f1;
+  border: 1px solid #f1f1f1;
 }
 
-:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
-  background: #555;
+/* Fix for bleeding edges and selection column */
+:deep(.ant-table) {
+  border-radius: 0;
+  overflow: hidden;
+}
+
+/* Fix for fixed columns */
+:deep(.ant-table-cell-fix-left),
+:deep(.ant-table-cell-fix-right) {
+  background-color: #ffffff !important;
+  z-index: 2 !important;
+  box-shadow: 0 0 0 1px #e0e0e0;
+}
+
+/* Fix for selection column */
+:deep(.ant-table-selection-column) {
+  background-color: #ffffff !important;
+  z-index: 3 !important;
+  min-width: 60px !important;
+  width: 60px !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Fix for selected rows with fixed columns */
+:deep(.ant-table-row-selected > td.ant-table-cell-fix-left),
+:deep(.ant-table-row-selected > td.ant-table-cell-fix-right),
+:deep(.ant-table-row-selected > td.ant-table-selection-column) {
+  background-color: #e6f7ff !important;
+  z-index: 3 !important;
+}
+
+/* Fix for table borders */
+:deep(.ant-table-container) {
+  border: 1px solid #e0e0e0;
+  border-radius: 0;
+}
+
+/* Fix for table header */
+:deep(.ant-table-thead > tr > th) {
+  font-weight: 600;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+/* Fix for table cell padding */
+:deep(.ant-table-cell) {
+  padding: 8px 8px !important;
 }
 </style>

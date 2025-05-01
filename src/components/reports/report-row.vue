@@ -19,9 +19,9 @@
         </td>
         <td class="text-end">
             <div class="d-flex justify-content-end">
-                <!-- <a class="btn btn-sm btn-primary me-2" @click="$emit('preview')">
+                <a class="btn btn-sm btn-primary me-2" @click="$emit('preview')">
                     <i class="ti ti-eye me-1"></i> Preview
-                </a> -->
+                </a>
                 <a-dropdown :trigger="['click']">
                     <a-button type="default" size="small">
                         <i class="ti ti-file-export me-1"></i> Export <i class="ti ti-arrow-down"></i>

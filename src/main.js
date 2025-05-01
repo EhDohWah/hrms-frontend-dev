@@ -16,7 +16,8 @@ import "vue-form-wizard/dist/vue-form-wizard.min.css";
 import VueSelect from 'vue3-select2-component'
 import DatePicker from 'vue3-datepicker'
 import VCalendar from 'v-calendar';
-import ThemifyIcon from "vue-themify-icons";
+// Import themify icons CSS directly instead of the Vue component
+import ThemifyIcon from "vue-themify-icons";    
 import { IconHome } from '@tabler/icons-vue';
 import Vue3TagsInput from "vue3-tags-input";
 import VueEasyLightbox from "vue-easy-lightbox";
@@ -25,8 +26,7 @@ import SimpleLineIcons from "vue-simple-line";
 import CircleProgress from "vue3-circle-progress";
 import "vue3-circle-progress/dist/circle-progress.css";
 import { createPinia } from 'pinia';
-import { RecycleScroller } from 'vue3-virtual-scroller';
-import 'vue3-virtual-scroller/dist/vue3-virtual-scroller.css';
+
 
 /***********Layout Components **********/
 import Layout_Header from '@/views/layouts/layout-header.vue';
@@ -214,7 +214,7 @@ app.component('grant-headcount-report', GrantHeadcountReport)
 
 
 /************Virtual Scroller********************/
-app.component('recycle-scroller', RecycleScroller);
+
 
 app.component('job-offers-list', jobOffersList)
 app.component('report-list', reportList)
@@ -322,9 +322,9 @@ app.use(FlagIcon)
 app.use(VCalendar)
 .use(BootstrapVue3)
 .use(BToastPlugin)
-  .use(ThemifyIcon)
-  .use(SimpleLineIcons)
+// Removed ThemifyIcon component usage
+.use(SimpleLineIcons)
+.use(ThemifyIcon)
 app.component('IconHome', IconHome);
 app.use(CKEditor);
 app.use(router).mount('#app'); 
-

@@ -11,9 +11,9 @@ export const useEmployeeStore = defineStore('employee', {
     loading: false,
     error: null,
     pagination: {
-      currentPage: 1,
-      perPage:     10,
-      lastPage:    1,
+      currentPage: 0,
+      perPage:     0,
+      lastPage:    0,
       total:       0,
     },
     statistics: {
@@ -70,33 +70,32 @@ export const useEmployeeStore = defineStore('employee', {
     async fetchEmployees(params = {}) {
       this.loading = true;
       this.error   = null;
+      
       try {
         const res = await employeeService.getEmployees(params);
 
         // Normalize "body":
         // - if res.data exists (Axios), use res.data
         // - else use res itself
-        const body = res && res.data !== undefined ? res.data : res;
-        // console.log('🔍 API returned body:', body);
+        const body = res.data;
 
         // Now branch on whether body is an array vs. object
-        let items = [];
-        let meta  = {};
-        let stats = {};
+        let items = Array.isArray(body) ? body : body.data;
+        let meta  = res.meta;
+        let stats = res.statistics;
 
-        if (Array.isArray(body)) {
-          // body is already the array of employees
-          items = body;
-        } else {
-          // body is { data: [...], meta: {...}, statistics: {...} }
-          items = Array.isArray(body.data) ? body.data : [];
-          meta  = body.meta       || {};
-          stats = body.statistics || {};
-        }
+        //console.log('🔍 items:', items);
+        //console.log('🔍 meta:', meta);
+        //console.log('🔍 stats:', stats);
+
+        
+      // Debugging: Log body and stats to check the structure
+      //console.log('API Response Body:', body);
+      //console.log('Statistics Object:', stats);
 
         // 1) set employees array
         this.employees = items;
-        console.log('✅ store.employees has rows:', this.employees.length, 'total:', this.employees);
+        //console.log('✅ store.employees has rows:', this.employees.length, 'total:', this.employees);
 
         // 2) pagination
         this.pagination = {
@@ -123,7 +122,7 @@ export const useEmployeeStore = defineStore('employee', {
         } else {
           this.updateStatistics();
         }
-
+        
         return this.employees;
       } catch (err) {
         this.error = err.message || 'Failed to fetch employees';
@@ -131,6 +130,36 @@ export const useEmployeeStore = defineStore('employee', {
         throw err;
       } finally {
         this.loading = false;
+      }
+    },
+
+    // 2) Exact lookup by ID (show)
+    async fetchSingleEmployee(id) {
+      this.loading = true
+      this.error   = null
+
+      try {
+        const res = await employeeService.getSingleEmployee(id)
+        // pull the object out of res.data.data (or res.data)
+        const emp = res.data?.data ?? res.data
+
+        // wrap it so your table can still bind to `employees`
+        this.employees = Array.isArray(emp) ? emp : [emp];
+        console.log('🔍 emp:', emp);
+        this.pagination = { currentPage: 1, perPage: 1, lastPage: 1, total: 1 }
+
+      } catch (err) {
+        // If 404, reset to empty
+        if (err.response?.status === 404) {
+          this.employees = []
+          this.pagination.total = 0
+          return null
+        }
+        this.error = err.message || 'Failed to fetch employee'
+        throw err
+
+      } finally {
+        this.loading = false
       }
     },
     
@@ -304,12 +333,11 @@ export const useEmployeeStore = defineStore('employee', {
         return d && d >= threeMonthsAgo && d <= now;
       }).length;
 
-      // 3) subsidiary breakdown from the current page
-      this.statistics.subsidiaryCount = { SMRU_count: 0, BHF_count: 0 };
-      this.employees.forEach(e => {
-        if (e.subsidiary === 'SMRU') this.statistics.subsidiaryCount.SMRU_count++;
-        if (e.subsidiary === 'BHF')  this.statistics.subsidiaryCount.BHF_count++;
-      });
+      // 3) subsidiary from the statistics subsidiaryCount total 
+      this.statistics.subsidiaryCount = {
+        SMRU_count: this.employees.filter(e => e.subsidiary === 'SMRU').length,
+        BHF_count: this.employees.filter(e => e.subsidiary === 'BHF').length
+      };
     }
   }
 });

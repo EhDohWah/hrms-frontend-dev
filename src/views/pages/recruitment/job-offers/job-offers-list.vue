@@ -56,6 +56,10 @@
                                 <template v-if="column.dataIndex === 'actions'">
                                     <div class="action-icon d-inline-flex">
                                         <a href="javascript:void(0);" class="me-2"
+                                            @click="openJobOfferModal(record.custom_offer_id)">
+                                            <i class="ti ti-eye"></i>
+                                        </a>
+                                        <a href="javascript:void(0);" class="me-2"
                                             @click="downloadJobOfferPDF(record.custom_offer_id)">
                                             <i class="ti ti-download"></i>
                                         </a>
@@ -80,6 +84,9 @@
     <!-- Job Offer Modal -->
     <job-offers-modal ref="jobOffersModal" @job-offer-added="fetchJobOffers" @job-offer-updated="fetchJobOffers" />
 
+    <!-- Job Offer Report Modal -->
+    <job-offer-report-modal ref="jobOfferReportModal" :pdf-url="pdfUrl" />
+
     <!-- Notification Toast -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
         <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
@@ -103,12 +110,14 @@ import { useJobOfferStore } from '@/stores/jobOfferStore';
 import { ref, computed } from 'vue';
 import moment from 'moment';
 import { jobOfferService } from '@/services/job-offer.service';
+import JobOfferReportModal from '@/components/modal/reports/joboffer-report-modal.vue';
 
 export default {
     name: 'JobOffersList',
     components: {
         JobOffersModal,
-        indexBreadcrumb
+        indexBreadcrumb,
+        JobOfferReportModal
     },
     setup() {
         const filteredInfo = ref({});
@@ -134,7 +143,7 @@ export default {
             pageSize,
             total,
             pagination,
-            jobOfferStore
+            jobOfferStore,
         };
     },
     data() {
@@ -147,7 +156,8 @@ export default {
             isCollapsed: false,
             notificationTitle: '',
             notificationMessage: '',
-            notificationClass: ''
+            notificationClass: '',
+            pdfUrl: null
         };
     },
     computed: {
@@ -238,6 +248,19 @@ export default {
         this.fetchJobOffers();
     },
     methods: {
+        async openJobOfferModal(custom_offer_id) {
+            try {
+                const blob = await jobOfferService.generateJobOfferPDF(custom_offer_id);
+                const url = URL.createObjectURL(blob);
+                console.log('🔍 this.pdfUrl:', url);
+                this.pdfUrl = url;
+                // now that the prop is set, show the modal
+                this.$refs.jobOfferReportModal.openModal();
+            } catch (err) {
+                console.error('Error generating PDF', err);
+                this.$message.error('Failed to generate job offer PDF');
+            }
+        },
 
         async downloadJobOfferPDF(custom_offer_id) {
             try {
@@ -245,6 +268,7 @@ export default {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
+                console.log('🔍 a.href:', a.href);
                 a.download = `job-offer-${custom_offer_id}.pdf`;
                 a.click();
                 this.$message.success('Job offer PDF downloaded successfully');

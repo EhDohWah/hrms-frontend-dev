@@ -2,14 +2,20 @@ import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
 class EmployeeService {
+
+    // Delete selected employees
+    async deleteSelectedEmployees(ids) {
+        return await apiService.delete(API_ENDPOINTS.EMPLOYEE.DELETE_SELECTED.replace(':ids', ids));
+    }
+
     // Get all employees with pagination and filtering support
     async getEmployees(params = {}) {
         // Extract all possible parameters with defaults
         const { 
-            page = '', 
             per_page = '', 
             staff_id = '', 
             status = '', 
+            id_type = '',
             subsidiary = '', 
             gender = '',
             date_of_birth = '',
@@ -19,12 +25,12 @@ class EmployeeService {
         
         // Build query parameters object
         const queryParams = new URLSearchParams();
-        queryParams.append('page', page);
         queryParams.append('per_page', per_page);
         
         // Only add non-empty filter parameters
         if (staff_id) queryParams.append('staff_id', staff_id);
         if (status) queryParams.append('status', status);
+        if (id_type) queryParams.append('id_type', id_type);
         if (subsidiary) queryParams.append('subsidiary', subsidiary);
         if (gender) queryParams.append('gender', gender);
         if (date_of_birth) queryParams.append('date_of_birth', date_of_birth);
@@ -35,6 +41,12 @@ class EmployeeService {
         const endpoint = API_ENDPOINTS.EMPLOYEE.LIST.split('?')[0];
         
         return await apiService.get(`${endpoint}?${queryParams.toString()}`);
+    }
+
+    // Get single employee
+    async getSingleEmployee(id) {
+        const endpoint = API_ENDPOINTS.EMPLOYEE.SINGLE.replace(':id', id);
+        return await apiService.get(endpoint);
     }
 
     // Get employee details

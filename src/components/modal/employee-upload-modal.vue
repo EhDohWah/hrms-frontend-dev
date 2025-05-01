@@ -2,13 +2,8 @@
 
   <!-- upload employee excel file -->
 
-  <div
-    class="modal fade"
-    id="employeeUploadModal"
-    tabindex="-1"
-    aria-labelledby="employeeUploadModalLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="employeeUploadModal" tabindex="-1" aria-labelledby="employeeUploadModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -26,12 +21,7 @@
               <small class="form-text text-muted">Supported formats: .xlsx, .xls</small>
             </div>
             <button type="submit" class="btn btn-primary" :disabled="isUploading">
-              <span
-                v-if="isUploading"
-                class="spinner-border spinner-border-sm"
-                role="status"
-                aria-hidden="true"
-              ></span>
+              <span v-if="isUploading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
               Upload
             </button>
           </form>
@@ -43,13 +33,8 @@
 
   <!-- Employment Upload Modal -->
 
-  <div
-    class="modal fade"
-    id="employmentUploadModal"
-    tabindex="-1"
-    aria-labelledby="employmentUploadModalLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="employmentUploadModal" tabindex="-1" aria-labelledby="employmentUploadModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -58,21 +43,18 @@
         </div>
         <div class="modal-body">
           <div v-if="employmentAlertMessage" class="alert" :class="employmentAlertClass" role="alert">
-            {{ employmentAlertMessage }}  
+            {{ employmentAlertMessage }}
           </div>
           <form @submit.prevent="handleEmploymentSubmit">
             <div class="mb-3">
               <label for="employmentFile" class="form-label">Select Excel File</label>
-              <input type="file" class="form-control" id="employmentFile" @change="handleEmploymentFileChange" required />
+              <input type="file" class="form-control" id="employmentFile" @change="handleEmploymentFileChange"
+                required />
               <small class="form-text text-muted">Supported formats: .xlsx, .xls</small>
             </div>
             <button type="submit" class="btn btn-primary" :disabled="isEmploymentUploading">
-              <span
-                v-if="isEmploymentUploading"
-                class="spinner-border spinner-border-sm"
-                role="status"
-                aria-hidden="true"
-              ></span>
+              <span v-if="isEmploymentUploading" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
               Upload
             </button>
           </form>
@@ -80,8 +62,8 @@
       </div>
     </div>
   </div>
-    
-  
+
+
 </template>
 
 <script>
@@ -112,7 +94,7 @@ export default {
     showAlert(message, type = 'danger') {
       this.alertMessage = message;
       this.alertClass = `alert-${type}`;
-      
+
       // Auto-dismiss success alerts after 3 seconds
       if (type === 'success') {
         setTimeout(() => {
@@ -123,7 +105,7 @@ export default {
     showEmploymentAlert(message, type = 'danger') {
       this.employmentAlertMessage = message;
       this.employmentAlertClass = `alert-${type}`;
-      
+
       // Auto-dismiss success alerts after 3 seconds
       if (type === 'success') {
         setTimeout(() => {
@@ -131,7 +113,7 @@ export default {
         }, 3000);
       }
     },
-    
+
     async handleSubmit() {
       if (!this.file) {
         this.showAlert('Please select a file to upload.');
@@ -152,30 +134,30 @@ export default {
       this.isUploading = true;
       try {
         const response = await employeeService.uploadEmployeeFile(formData);
-        
+
         // Handle successful response
         if (response) {
           if (response.errors && response.errors.length > 0) {
             this.showAlert(`Upload completed but with issues: ${response.errors.join(', ')}`, 'warning');
           } else {
             const successMessage = response.message || 'File uploaded successfully!';
-            this.showAlert(`${successMessage} (${response.data.processed_employees || 0} employees processed)`, 'success');
+            this.showAlert(`${successMessage}`, 'success');
             this.resetForm();
           }
         } else {
           this.showAlert('File uploaded successfully!', 'success');
           this.resetForm();
         }
-        
+
         // Emit event to refresh employee list
         this.$emit('refresh-employee-list');
-        
+
       } catch (error) {
         console.error('Error uploading file:', error);
         // Show more detailed error message if available
-        const errorMessage = error.response?.data?.message || 
-                            error.message || 
-                            'An error occurred while uploading the file.';
+        const errorMessage = error.response?.data?.message ||
+          error.message ||
+          'An error occurred while uploading the file.';
         this.showAlert(errorMessage);
       } finally {
         this.isUploading = false;
@@ -201,7 +183,7 @@ export default {
       this.isEmploymentUploading = true;
       try {
         const response = await employmentService.uploadEmploymentFile(formData);
-        
+
         // Handle successful response with potential warnings
         if (response) {
           if (response.error) {
@@ -217,23 +199,23 @@ export default {
           } else {
             // Success with no issues
             const successMessage = response.message || 'File uploaded successfully!';
-            this.showEmploymentAlert(`${successMessage} (${response.processed_employments || 0} employments processed)`, 'success');
+            this.showEmploymentAlert(`${successMessage}`, 'success');
             this.resetEmploymentForm();
           }
         } else {
           this.showEmploymentAlert('File uploaded successfully!', 'success');
           this.resetEmploymentForm();
         }
-        
+
         // Emit event to refresh employment list
         this.$emit('refresh-employment-list');
-        
+
       } catch (error) {
         console.error('Error uploading employment file:', error);
         // Show more detailed error message if available
-        const errorMessage = error.response?.data?.message || 
-                            error.message || 
-                            'An error occurred while uploading the file.';
+        const errorMessage = error.response?.data?.message ||
+          error.message ||
+          'An error occurred while uploading the file.';
         this.showEmploymentAlert(errorMessage);
       } finally {
         this.isEmploymentUploading = false;

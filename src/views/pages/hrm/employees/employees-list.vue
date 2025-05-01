@@ -284,7 +284,7 @@
   <employee-list-modal></employee-list-modal>
 
   <!-- Employee Upload Modal -->
-  <employee-upload-modal @refresh-employee-list="fetchEmployees"></employee-upload-modal>
+  <employee-upload-modal @refresh-employee-list="fetchEmployees(1, 10)"></employee-upload-modal>
 </template>
 
 
@@ -668,7 +668,6 @@ export default {
         this.$message.error('Error searching for employee')
       }
     },
-
 
     handlePerPageChange(event) {
       const val = event.target.value;

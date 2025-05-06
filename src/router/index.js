@@ -833,7 +833,7 @@ const routes = [
   },
   {
     path: '/requests/travel/admin',
-    component: lazyView('pages/requests/travel/travel-request-index'),
+    component: lazyView('pages/requests/travel/travel-index'),
     beforeEnter: roleGuard(['admin', 'hr-manager', 'hr-assistant']),
     meta: {
       requiresAuth: true,
@@ -847,12 +847,12 @@ const routes = [
           title: 'Travel Request Admin'
         }
       },
-      { path: ':id', component: lazyView('pages/requests/travel/travel-request-details') }
+      { path: ':id', component: lazyView('pages/requests/travel/travel-details') }
     ]
   },
   {
     path: '/requests/travel',
-    component: lazyView('pages/requests/travel/travel-request-index'), 
+    component: lazyView('pages/requests/travel/travel-index'), 
     beforeEnter: roleGuard(['employee', 'hr-manager', 'hr-assistant']),
     meta: {
       requiresAuth: true,
@@ -860,8 +860,8 @@ const routes = [
     },
 
     children: [
-      { path: '', component: lazyView('pages/requests/travel/travel-request-list') },
-      { path: ':id', component: lazyView('pages/requests/travel/travel-request-details') }
+      { path: '', component: lazyView('pages/requests/travel/travel-list') },
+      { path: ':id', component: lazyView('pages/requests/travel/travel-details') }
     ]
   },
 ];

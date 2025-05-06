@@ -281,10 +281,10 @@
   </div>
 
   <!-- Add Employee Modal -->
-  <employee-list-modal></employee-list-modal>
+  <employee-list-modal @employee-added="fetchEmployees"></employee-list-modal>
 
   <!-- Employee Upload Modal -->
-  <employee-upload-modal @refresh-employee-list="fetchEmployees(1, 10)"></employee-upload-modal>
+  <employee-upload-modal @refresh-employee-list="fetchEmployees"></employee-upload-modal>
 </template>
 
 
@@ -666,7 +666,49 @@ export default {
         }
       } catch {
         this.$message.error('Error searching for employee')
+        this.employees = []
+
       }
+    },
+    handleChange(pagination, filters, sorter) {
+      // Update pagination state
+      this.page = pagination.current;
+      this.pageSize = pagination.pageSize;
+
+      // Update filtered info state
+      this.filteredInfo = filters;
+
+      // Update sorted info state
+      this.sortedInfo = sorter;
+
+      // Apply filters and sorting to the existing data without making API calls
+      let filteredData = [...this.employeeStore.employees];
+
+      // Apply filters
+      Object.entries(filters).forEach(([key, values]) => {
+        if (values && values.length) {
+          filteredData = filteredData.filter(record => {
+            return values.includes(record[key]);
+          });
+        }
+      });
+
+      // Apply sorting
+      if (sorter.columnKey && sorter.order) {
+        filteredData.sort((a, b) => {
+          const valueA = a[sorter.columnKey];
+          const valueB = b[sorter.columnKey];
+
+          if (sorter.order === 'ascend') {
+            return valueA > valueB ? 1 : -1;
+          } else {
+            return valueA < valueB ? 1 : -1;
+          }
+        });
+      }
+
+      // Update the displayed data
+      this.employees = this.mapEmployeeData(filteredData);
     },
 
     handlePerPageChange(event) {
@@ -785,7 +827,7 @@ export default {
         id: emp.id,
         subsidiary: emp.subsidiary || 'N/A',
         staff_id: emp.staff_id || 'N/A',
-        initials: emp.initials || 'N/A',
+        initials: emp.initial_en || 'N/A',
         first_name_en: emp.first_name_en || 'N/A',
         last_name_en: emp.last_name_en || 'N/A',
         gender: emp.gender || 'N/A',
@@ -793,7 +835,7 @@ export default {
         age: emp.age || 'N/A',
         status: emp.status || 'N/A',
         id_type: emp.id_type || 'N/A',
-        id_number: emp.id_number || 'N/A',
+        id_number: emp.identification && emp.identification.length > 0 ? emp.identification[0].document_number || 'N/A' : 'N/A',
         social_security_number: emp.social_security_number || 'N/A',
         tax_number: emp.tax_number || 'N/A',
         mobile_phone: emp.mobile_phone || 'N/A',
@@ -834,6 +876,9 @@ export default {
       try {
         // Use the employee service directly instead of going through the store
         console.log('🔍 this.selectedRowKeys:', this.selectedRowKeys);
+        // Convert selectedRowKeys array to the expected format for the API
+
+        console.log('Sending IDs to delete:', this.selectedRowKeys);
         await employeeService.deleteSelectedEmployees(this.selectedRowKeys);
         this.$message.success(`${this.selectedRowKeys.length} employee(s) deleted successfully`);
         this.selectedRowKeys = [];

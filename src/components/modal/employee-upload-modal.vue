@@ -164,7 +164,7 @@ export default {
       }
     },
 
-    
+
     async handleEmploymentSubmit() {
       if (!this.employmentFile) {
         this.showEmploymentAlert('Please select a file to upload.');

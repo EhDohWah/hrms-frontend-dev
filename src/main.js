@@ -52,6 +52,7 @@ import employmentList from '@/views/pages/hrm/employment/employment-list.vue';
 import employeeStatus from '@/views/pages/dashboard/admin-dashboard/employee-status.vue';
 
 import employeeListModal from '@/components/modal/employee-list-modal.vue';
+import employeeDetailsModal from '@/components/modal/employee-details-modal.vue'; 
 
 import welcomeWrap from '@/views/pages/dashboard/admin-dashboard/welcome-wrap.vue';
 import welcomeHrManager from '@/views/pages/dashboard/hr-manager-dashboard/welcome-hr-manager.vue';
@@ -220,7 +221,7 @@ app.component('job-offers-list', jobOffersList)
 app.component('report-list', reportList)
 app.component('employment-list', employmentList)
 app.component('employee-list-modal', employeeListModal)
-
+app.component('employee-details-modal', employeeDetailsModal)
 
 app.component('trining-table', TrainingTable)
 app.component('trainers-table', TrainersTable)

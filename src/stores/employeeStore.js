@@ -134,12 +134,12 @@ export const useEmployeeStore = defineStore('employee', {
     },
 
     // 2) Exact lookup by ID (show)
-    async fetchSingleEmployee(id) {
+    async fetchSingleEmployee(staffId) {
       this.loading = true
       this.error   = null
 
       try {
-        const res = await employeeService.getSingleEmployee(id)
+        const res = await employeeService.getSingleEmployee(staffId)
         // pull the object out of res.data.data (or res.data)
         const emp = res.data?.data ?? res.data
 

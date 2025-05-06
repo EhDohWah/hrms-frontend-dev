@@ -40,7 +40,7 @@
       </div>
 
       <div v-else class="row">
-        <div class="col-xl-4 theiaStickySidebar">
+        <div class="col-xl-5 theiaStickySidebar">
           <div class="card card-bg-1">
             <div class="card-body p-0">
               <span class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2">
@@ -49,7 +49,7 @@
               <div class="text-center px-3 pb-3 border-bottom">
                 <div class="mb-3">
                   <h5 class="d-flex align-items-center justify-content-center mb-1">
-                    {{ employee.first_name_en }} {{ employee.last_name_en }}
+                    {{ employee.initial_en }}. {{ employee.first_name_en }} {{ employee.last_name_en }}
                   </h5>
                   <span :class="[
                     'badge badge-sm fw-bold',
@@ -69,8 +69,12 @@
 
 
                 </div>
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <h6>Basic information</h6>
+                  <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
+                    data-bs-target="#edit_employee"><i class="ti ti-edit"></i></a>
+                </div>
                 <div>
-
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-id text-primary me-2"></i>
@@ -79,40 +83,50 @@
                     <p class="text-dark">{{ employee.staff_id || 'N/A' }}</p>
                   </div>
 
+                  <!-- First Name -->
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-user text-info me-2"></i>
+                      <!-- “signature” suggests a personal name -->
+                      <i class="ti ti-signature text-info me-2"></i>
                       First Name
                     </span>
                     <p class="text-dark">{{ employee.first_name_en || 'N/A' }}</p>
                   </div>
 
+                  <!-- Last Name -->
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-user-circle text-info me-2"></i>
+                      <!-- “id-badge” evokes an ID card with your name on it -->
+                      <i class="ti ti-id-badge text-info me-2"></i>
                       Last Name
                     </span>
                     <p class="text-dark">{{ employee.last_name_en || 'N/A' }}</p>
                   </div>
+
+                  <!-- First Name – Thai -->
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-language text-warning me-2"></i>
-                      First Name - Thai
+                      <!-- a simple flag icon to denote the Thai version -->
+                      <i class="ti ti-flag text-warning me-2"></i>
+                      First Name – Thai
                     </span>
                     <p class="text-dark">{{ employee.first_name_th || 'N/A' }}</p>
                   </div>
 
+                  <!-- Last Name – Thai -->
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-language text-warning me-2"></i>
-                      Last Name - Thai
+                      <!-- same flag here to keep it consistent -->
+                      <i class="ti ti-flag text-warning me-2"></i>
+                      Last Name – Thai
                     </span>
                     <p class="text-dark">{{ employee.last_name_th || 'N/A' }}</p>
                   </div>
 
+
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
-                      <i class="ti ti-star text-success me-2"></i>
+                      <i class="ti ti-briefcase-2 text-success me-2"></i>
                       Department
                     </span>
                     <p class="text-dark">{{ employee.employment?.department?.name || 'N/A' }}</p>
@@ -125,7 +139,7 @@
                     </span>
                     <p class="text-dark">{{ formatDate(employee.employment?.start_date) }}</p>
                   </div>
-                  <div class="d-flex align-items-center justify-content-between">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-calendar-check text-danger me-2"></i>
                       Report To
@@ -137,70 +151,102 @@
                       <p class="text-gray-9 mb-0">{{ employee.employment?.supervisor?.first_name || 'N/A' }}</p>
                     </div>
                   </div>
-                  <div class="row gx-2 mt-3">
-                    <div class="col-12">
-                      <div>
-                        <a href="javascript:void(0);" class="btn btn-dark w-100" data-bs-toggle="modal"
-                          data-bs-target="#edit_employee"><i class="ti ti-edit me-1"></i>Edit Info</a>
-                      </div>
-                    </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-phone me-2"></i>
+                      Phone
+                    </span>
+                    <p class="text-dark">{{ employee.mobile_phone || 'N/A' }}</p>
+                  </div>
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-gender-male me-2"></i>
+                      Gender
+                    </span>
+                    <p class="text-dark text-end">{{ employee.gender || 'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-cake me-2"></i>
+                      Birthday
+                    </span>
+                    <p class="text-dark text-end">{{ formatDate(employee.date_of_birth) }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-calendar me-2"></i>
+                      Birthday (Thai)
+                    </span>
+                    <p class="text-dark text-end">{{ employee.date_of_birth ? formatThaiDate(employee.date_of_birth) :
+                      'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-hourglass me-2"></i>
+                      Age
+                    </span>
+                    <p class="text-dark text-end">{{ employee.age || 'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-flag me-2"></i>
+                      Nationality
+                    </span>
+                    <p class="text-dark text-end">{{ employee.nationality || 'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-pray me-2"></i>
+                      Religion
+                    </span>
+                    <p class="text-dark text-end">{{ employee.religion || 'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-heart me-2"></i>
+                      Marital Status
+                    </span>
+                    <p class="text-dark text-end">{{ employee.marital_status || 'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-status-change me-2"></i>
+                      Status
+                    </span>
+                    <p class="text-dark text-end">{{ employee.status || 'N/A' }}</p>
+                  </div>
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-map-pin-check me-2"></i>
+                      Current Address
+                    </span>
+                    <p class="text-dark text-end">
+                      {{ employee.current_address }}
+                    </p>
+                  </div>
+
+
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-map-pin-check me-2"></i>
+                      Permanent Address
+                    </span>
+                    <p class="text-dark text-end">{{ employee.permanent_address || 'N/A' }}</p>
                   </div>
                 </div>
               </div>
 
-              <div class="p-3 border-bottom">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <h6>Basic information</h6>
-                  <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
-                    data-bs-target="#edit_employee"><i class="ti ti-edit"></i></a>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <span class="d-inline-flex align-items-center">
-                    <i class="ti ti-phone me-2"></i>
-                    Phone
-                  </span>
-                  <p class="text-dark">{{ employee.mobile_phone || 'N/A' }}</p>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <span class="d-inline-flex align-items-center">
-                    <i class="ti ti-gender-male me-2"></i>
-                    Gender
-                  </span>
-                  <p class="text-dark text-end">{{ employee.gender || 'N/A' }}</p>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <span class="d-inline-flex align-items-center">
-                    <i class="ti ti-cake me-2"></i>
-                    Birthday
-                  </span>
-                  <p class="text-dark text-end">{{ formatDate(employee.date_of_birth) }}</p>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <span class="d-inline-flex align-items-center">
-                    <i class="ti ti-calendar me-2"></i>
-                    Birthday (Thai)
-                  </span>
-                  <p class="text-dark text-end">{{ employee.date_of_birth ? formatThaiDate(employee.date_of_birth) :
-                    'N/A' }}</p>
-                </div>
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <span class="d-inline-flex align-items-center">
-                    <i class="ti ti-map-pin-check me-2"></i>
-                    Current Address
-                  </span>
-                  <p class="text-dark text-end">
-                    {{ employee.current_address }}
-                  </p>
-                </div>
 
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                  <span class="d-inline-flex align-items-center">
-                    <i class="ti ti-map-pin-check me-2"></i>
-                    Permanent Address
-                  </span>
-                  <p class="text-dark text-end">{{ employee.permanent_address || 'N/A' }}</p>
-                </div>
-              </div>
+
               <div class="p-3 border-bottom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <h6>Personal Information</h6>
@@ -212,8 +258,8 @@
                     <i class="ti ti-e-passport me-2"></i>
                     ID type
                   </span>
-                  <p class="text-dark">{{ employee.identifications && employee.identifications.length > 0 ?
-                    employee.identifications[0].id_type : 'N/A' }}</p>
+                  <p class="text-dark">{{ employee.employee_identification ? employee.employee_identification.id_type :
+                    'N/A' }}</p>
                 </div>
 
                 <div class="d-flex align-items-center justify-content-between mb-2">
@@ -221,8 +267,8 @@
                     <i class="ti ti-id-badge me-2"></i>
                     ID Number
                   </span>
-                  <p class="text-dark">{{ employee.identifications && employee.identifications.length > 0 ?
-                    employee.identifications[0].document_number : 'N/A' }}</p>
+                  <p class="text-dark">{{ employee.employee_identification ?
+                    employee.employee_identification.document_number : 'N/A' }}</p>
                 </div>
 
                 <div class="d-flex align-items-center justify-content-between mb-2">
@@ -344,9 +390,7 @@
 
 
         </div>
-
-
-        <div class="col-xl-8">
+        <div class="col-xl-7">
           <div>
             <div class="card">
               <div class="card-body">

@@ -258,14 +258,27 @@ class ApiService {
     }
 
     // DELETE request
-    async delete(endpoint) {
+    async delete(endpoint, data = null) {
         try {
-            const response = await fetch(this.getFullURL(endpoint), {
+            const opts = {
                 method: 'DELETE',
                 headers: this.headers,
                 credentials: 'include'
-            });
-            return this.handleResponse(response, { endpoint, method: 'DELETE' });
+            };
+
+            // if data passed, stringify it into the body
+            if (data !== null) {
+                opts.body = JSON.stringify(data);
+                // ensure the server sees JSON
+                opts.headers = { 
+                    ...opts.headers, 
+                    'Content-Type': 'application/json' 
+                };
+            }
+
+            const response = await fetch(this.getFullURL(endpoint), opts);
+            // include data in originalRequest so retry logic still works
+            return this.handleResponse(response, { endpoint, method: 'DELETE', data });
         } catch (error) {
             if (!error.response) {
                 error.message = 'Network Error: Server is not responding';

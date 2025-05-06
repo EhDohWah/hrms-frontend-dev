@@ -186,6 +186,7 @@ export default {
       isSubmitting: false,
       modalInstance: null,
       employees: [],
+      perPage: 10,
       departmentPositions: [],
       workLocations: [],
       employeeTreeData: []
@@ -218,7 +219,7 @@ export default {
     this.fetchDepartmentPositions();
 
     // Fetch employees
-    this.fetchEmployees();
+    this.fetchEmployees(this.perPage);
 
     // Fetch work locations
     this.fetchWorkLocations();
@@ -315,9 +316,15 @@ export default {
         message.error('Failed to load department positions');
       }
     },
-    async fetchEmployees() {
+    async fetchEmployees(perPage) {
       try {
-        const response = await employeeService.getEmployees();
+        // Prepare parameters for API request
+        const params = {
+          page: 1,
+          per_page: perPage
+        };
+
+        const response = await employeeService.getEmployees(params);
         if (response.data) {
           this.employees = response.data;
 
@@ -356,6 +363,8 @@ export default {
         message.error('Failed to load employees');
       }
     },
+
+
     async fetchWorkLocations() {
       try {
         const response = await workLocationService.getAllWorkLocations();

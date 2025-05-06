@@ -54,7 +54,7 @@ export const API_ENDPOINTS = {
     // Employee endpoints
     EMPLOYEE: {
         LIST: '/employees?per_page=&staff_id=&status=&subsidiary=&gender=&date_of_birth=&sort_by=&sort_order=',
-        SINGLE: '/employees/staff-id/:id',
+        SINGLE: '/employees/staff-id/:staffId',
         CREATE: '/employees',
         UPDATE: '/employees/:id',
         DELETE: '/employees/:id',

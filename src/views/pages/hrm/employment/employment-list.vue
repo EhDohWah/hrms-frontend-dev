@@ -162,6 +162,7 @@
         pageSize,
         total,
         pagination,
+        perPage: 10,
       };
     },
     data() {

@@ -6,7 +6,7 @@
         <div class="modal-header">
           <div class="d-flex align-items-center">
             <h4 class="modal-title me-2">Edit Employee</h4>
-            <span>Employee ID : EMP -0024</span>
+            <span>Employee ID : EMP -00233</span>
           </div>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
@@ -20,12 +20,14 @@
           <div class="contact-grids-tab">
             <ul class="nav nav-underline" id="myTab2" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="info-tab3" data-bs-toggle="tab" data-bs-target="#basic-info3" type="button" role="tab" aria-selected="true">
+                <button class="nav-link active" id="info-tab3" data-bs-toggle="tab" data-bs-target="#basic-info3"
+                  type="button" role="tab" aria-selected="true">
                   Basic Information
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="address-tab3" data-bs-toggle="tab" data-bs-target="#address3" type="button" role="tab" aria-selected="false">
+                <button class="nav-link" id="address-tab3" data-bs-toggle="tab" data-bs-target="#address3" type="button"
+                  role="tab" aria-selected="false">
                   Permissions
                 </button>
               </li>
@@ -33,13 +35,15 @@
           </div>
           <div class="tab-content" id="myTabContent2">
             <!-- Basic Information Tab -->
-            <div class="tab-pane fade show active" id="basic-info3" role="tabpanel" aria-labelledby="info-tab3" tabindex="0">
+            <div class="tab-pane fade show active" id="basic-info3" role="tabpanel" aria-labelledby="info-tab3"
+              tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <!-- Profile Image and Upload -->
                   <div class="col-md-12">
                     <div class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-3 mb-4">
-                      <div class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-dashed me-2 flex-shrink-0 text-dark frames">
+                      <div
+                        class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-dashed me-2 flex-shrink-0 text-dark frames">
                         <img src="@/assets/img/users/user-13.jpg" alt="img" class="rounded-circle" />
                       </div>
                       <div class="profile-upload">
@@ -80,7 +84,8 @@
                     <div class="mb-3">
                       <label class="form-label">Joining Date <span class="text-danger"> *</span></label>
                       <div class="input-icon-end position-relative">
-                        <date-picker v-model="startdate" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                        <date-picker v-model="startdate" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                          :editable="true" :clearable="false" :input-format="dateFormat" />
                         <span class="input-icon-addon">
                           <i class="ti ti-calendar text-gray-7"></i>
                         </span>
@@ -105,7 +110,8 @@
                       <label class="form-label">Password <span class="text-danger"> *</span></label>
                       <div class="pass-group">
                         <input :type="showPassword ? 'text' : 'password'" class="pass-input form-control" />
-                        <span @click="toggleShow" class="ti toggle-password" :class="{'ti-eye': showPassword, 'ti-eye-off': !showPassword}"></span>
+                        <span @click="toggleShow" class="ti toggle-password"
+                          :class="{ 'ti-eye': showPassword, 'ti-eye-off': !showPassword }"></span>
                       </div>
                     </div>
                   </div>
@@ -114,7 +120,8 @@
                       <label class="form-label">Confirm Password <span class="text-danger"> *</span></label>
                       <div class="pass-group">
                         <input :type="showPassword1 ? 'text' : 'password'" class="pass-inputs form-control" />
-                        <span @click="toggleShow1" class="ti toggle-passwords" :class="{'ti-eye': showPassword1, 'ti-eye-off': !showPassword1}"></span>
+                        <span @click="toggleShow1" class="ti toggle-passwords"
+                          :class="{ 'ti-eye': showPassword1, 'ti-eye-off': !showPassword1 }"></span>
                       </div>
                     </div>
                   </div>
@@ -209,7 +216,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
               </div>
               <div class="modal-footer">
                 <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#success_modal">Save</button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                  data-bs-target="#success_modal">Save</button>
               </div>
             </div>
           </div>
@@ -242,7 +250,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
                 <div class="mb-3">
                   <label class="form-label">Passport Expiry Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateOne" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <date-picker v-model="startdateOne" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                      :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -454,7 +463,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
                 <div class="mb-3">
                   <label class="form-label">Passport Expiry Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateTwo" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <date-picker v-model="startdateTwo" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                      :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -502,7 +512,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
                 <div class="mb-3">
                   <label class="form-label">Start Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateThree" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <date-picker v-model="startdateThree" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                      :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -513,7 +524,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
                 <div class="mb-3">
                   <label class="form-label">End Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateFour" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <date-picker v-model="startdateFour" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                      :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -561,7 +573,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
                 <div class="mb-3">
                   <label class="form-label">Start Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateFive" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <date-picker v-model="startdateFive" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                      :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -572,7 +585,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
                 <div class="mb-3">
                   <label class="form-label">End Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateSix" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <date-picker v-model="startdateSix" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                      :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -776,21 +790,24 @@ As an award winning designer, I deliver exceptional quality work and bring value
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Level of Effort (%)</label>
-                  <input type="number" v-model.number="form.level_of_effort" class="form-control" placeholder="Enter level of effort" />
+                  <input type="number" v-model.number="form.level_of_effort" class="form-control"
+                    placeholder="Enter level of effort" />
                 </div>
               </div>
               <!-- Start Date -->
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Start Date</label>
-                  <date-picker v-model="form.start_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :input-format="dateFormat" />
+                  <date-picker v-model="form.start_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                    :input-format="dateFormat" />
                 </div>
               </div>
               <!-- End Date -->
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">End Date</label>
-                  <date-picker v-model="form.end_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy" :input-format="dateFormat" />
+                  <date-picker v-model="form.end_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                    :input-format="dateFormat" />
                 </div>
               </div>
               <!-- Active Checkbox -->
@@ -806,7 +823,8 @@ As an award winning designer, I deliver exceptional quality work and bring value
             <div class="modal-footer">
               <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
               <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-                <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"
+                  aria-hidden="true"></span>
                 <span v-if="isSubmitting">Saving...</span>
                 <span v-else>Save</span>
               </button>
@@ -1051,22 +1069,22 @@ export default {
         this.isSubmitting = true;
         this.alertMessage = '';
         this.alertClass = '';
-        
+
         // Validate employment ID
         if (!this.employee || !this.employee.employment || !this.employee.employment.id) {
           throw new Error("No employment record found for this employee");
         }
-        
+
         // Validate grant item selection
         if (!this.form.grant_items_id) {
           throw new Error("Please select a grant position");
         }
-        
+
         // Validate dates
         if (!this.form.start_date) {
           throw new Error("Start date is required");
         }
-        
+
         // Prepare payload with employmentId from parent
         const payload = {
           employment_id: this.employee.employment.id,
@@ -1089,17 +1107,17 @@ export default {
         // Reset form after short delay to allow user to see success message
         setTimeout(() => {
           this.resetForm();
-          
+
           const modalEl = document.getElementById("add_grant_position");
           if (modalEl) {
             const modal = Modal.getInstance(modalEl);
             modal.hide();
           }
         }, 1500);
-        
+
       } catch (error) {
         this.alertClass = "alert-danger";
-        
+
         if (error.message.includes("employment")) {
           this.alertMessage = "Error: No employment record found for this employee";
         } else if (error.message.includes("grant position")) {
@@ -1111,7 +1129,7 @@ export default {
         } else {
           this.alertMessage = "Error adding grant allocation: " + error.message;
         }
-        
+
         console.error("Error adding grant allocation:", error);
       } finally {
         this.isSubmitting = false;
@@ -1149,6 +1167,7 @@ export default {
 .modal-content {
   padding: 20px;
 }
+
 .alert {
   margin-bottom: 15px;
 }

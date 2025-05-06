@@ -3,10 +3,17 @@ import { API_ENDPOINTS } from '../config/api.config';
 
 class EmployeeService {
 
-    // Delete selected employees
+    // employee.service.js
+    /**
+     * @param {number[]} ids
+     */
     async deleteSelectedEmployees(ids) {
-        return await apiService.delete(API_ENDPOINTS.EMPLOYEE.DELETE_SELECTED.replace(':ids', ids));
-    }
+        return apiService.delete(
+        API_ENDPOINTS.EMPLOYEE.DELETE_SELECTED, 
+        { ids }      // ← this will now become the JSON body
+        );
+     }
+
 
     // Get all employees with pagination and filtering support
     async getEmployees(params = {}) {
@@ -44,8 +51,8 @@ class EmployeeService {
     }
 
     // Get single employee
-    async getSingleEmployee(id) {
-        const endpoint = API_ENDPOINTS.EMPLOYEE.SINGLE.replace(':id', id);
+    async getSingleEmployee(staffId) {
+        const endpoint = API_ENDPOINTS.EMPLOYEE.SINGLE.replace(':staffId', staffId);
         return await apiService.get(endpoint);
     }
 
@@ -109,15 +116,22 @@ class EmployeeService {
     formatEmployeeData(data) {
         return {
             staff_id: data.staff_id,
-            subsidiary: data.subsidiary || 'SMRU',
-            first_name: data.first_name,
-            middle_name: data.middle_name,
-            last_name: data.last_name,
+            subsidiary: data.subsidiary,
+            first_name_en: data.first_name_en,
+            last_name_en: data.last_name_en,
+            first_name_th: data.first_name_th,
+            last_name_th: data.last_name_th,
+            initial_en: data.initial_en,
+            initial_th: data.initial_th,
+            joining_date: data.joining_date,
+            phone: data.phone,
             gender: data.gender,
+            age: data.age,
+            status: data.status,
+            nationality: data.nationality,
             date_of_birth: data.date_of_birth,
-            status: data.status || 'Expats',
+            employee_status: data.employee_status,
             religion: data.religion,
-            birth_place: data.birth_place,
             identification_number: data.identification_number,
             social_security_number: data.social_security_number,
             tax_number: data.tax_number,
@@ -130,18 +144,7 @@ class EmployeeService {
             mobile_phone: data.mobile_phone,
             permanent_address: data.permanent_address,
             current_address: data.current_address,
-            stay_with: data.stay_with,
-            military_status: data.military_status || false,
             marital_status: data.marital_status,
-            spouse_name: data.spouse_name,
-            spouse_occupation: data.spouse_occupation,
-            father_name: data.father_name,
-            father_occupation: data.father_occupation,
-            mother_name: data.mother_name,
-            mother_occupation: data.mother_occupation,
-            driver_license_number: data.driver_license_number,
-            updated_by: data.updated_by,
-            email: data.email
         };
     }
 

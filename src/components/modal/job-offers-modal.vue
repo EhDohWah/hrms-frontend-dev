@@ -16,8 +16,14 @@
             <div class="row">
               <div class="col-12">
                 <div class="mb-3">
-                  <label for="date" class="form-label">Offer Date</label>
-                  <input type="date" class="form-control" id="date" v-model="formData.date" required />
+                  <label class="form-label">Offer Date <span class="text-danger">*</span></label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" :editable="true" :clearable="false"
+                      :input-format="displayFormat" v-model="formData.date" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -32,9 +38,14 @@
                     required />
                 </div>
                 <div class="mb-3">
-                  <label for="acceptanceDeadline" class="form-label">Acceptance Deadline</label>
-                  <input type="date" class="form-control" id="acceptanceDeadline" v-model="formData.acceptance_deadline"
-                    required />
+                  <label class="form-label">Acceptance Deadline <span class="text-danger"> *</span></label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="displayFormat" v-model="formData.acceptance_deadline" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                 </div>
 
               </div>
@@ -118,11 +129,13 @@ export default {
         position_name: '',
         custom_offer_id: '',
         salary_detail: '',
-        date: new Date().toISOString().split('T')[0], // Set default to today in YYYY-MM-DD format
-        acceptance_deadline: '',
+        date: null,
+        acceptance_deadline: null,
         acceptance_status: 'pending',
         note: ''
       },
+      displayFormat: 'dd/MM/yyyy',
+      inputFormat: 'yyyy-MM-dd',
       isSubmitting: false,
       modalInstance: null
     }
@@ -134,13 +147,21 @@ export default {
           // Clone the job offer data but convert formatted dates back to YYYY-MM-DD
           const formattedData = { ...newVal };
 
-          // Convert DD/MM/YYYY format back to YYYY-MM-DD for form inputs
-          if (formattedData.date && typeof formattedData.date === 'string' && formattedData.date.includes('/')) {
-            formattedData.date = moment(formattedData.date, 'DD/MM/YYYY').format('YYYY-MM-DD');
+          // Convert date strings to Date objects
+          if (formattedData.date) {
+            if (typeof formattedData.date === 'string' && formattedData.date.includes('/')) {
+              formattedData.date = moment(formattedData.date, 'DD/MM/YYYY').toDate();
+            } else {
+              formattedData.date = new Date(formattedData.date);
+            }
           }
 
-          if (formattedData.acceptance_deadline && typeof formattedData.acceptance_deadline === 'string' && formattedData.acceptance_deadline.includes('/')) {
-            formattedData.acceptance_deadline = moment(formattedData.acceptance_deadline, 'DD/MM/YYYY').format('YYYY-MM-DD');
+          if (formattedData.acceptance_deadline) {
+            if (typeof formattedData.acceptance_deadline === 'string' && formattedData.acceptance_deadline.includes('/')) {
+              formattedData.acceptance_deadline = moment(formattedData.acceptance_deadline, 'DD/MM/YYYY').toDate();
+            } else {
+              formattedData.acceptance_deadline = new Date(formattedData.acceptance_deadline);
+            }
           }
 
           this.formData = formattedData;
@@ -162,13 +183,21 @@ export default {
         // Clone existing data for edit mode
         const formattedData = { ...this.jobOfferData };
 
-        // Convert DD/MM/YYYY format back to YYYY-MM-DD for form inputs
-        if (formattedData.date && typeof formattedData.date === 'string' && formattedData.date.includes('/')) {
-          formattedData.date = moment(formattedData.date, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        // Convert date strings to Date objects
+        if (formattedData.date) {
+          if (typeof formattedData.date === 'string' && formattedData.date.includes('/')) {
+            formattedData.date = moment(formattedData.date, 'DD/MM/YYYY').toDate();
+          } else {
+            formattedData.date = new Date(formattedData.date);
+          }
         }
 
-        if (formattedData.acceptance_deadline && typeof formattedData.acceptance_deadline === 'string' && formattedData.acceptance_deadline.includes('/')) {
-          formattedData.acceptance_deadline = moment(formattedData.acceptance_deadline, 'DD/MM/YYYY').format('YYYY-MM-DD');
+        if (formattedData.acceptance_deadline) {
+          if (typeof formattedData.acceptance_deadline === 'string' && formattedData.acceptance_deadline.includes('/')) {
+            formattedData.acceptance_deadline = moment(formattedData.acceptance_deadline, 'DD/MM/YYYY').toDate();
+          } else {
+            formattedData.acceptance_deadline = new Date(formattedData.acceptance_deadline);
+          }
         }
 
         this.formData = formattedData;
@@ -180,8 +209,8 @@ export default {
           position_name: '',
           custom_offer_id: '',
           salary_detail: '',
-          date: new Date().toISOString().split('T')[0], // <-- default today
-          acceptance_deadline: '',
+          date: new Date(), // <-- default today as Date object
+          acceptance_deadline: null, // <-- default today as Date object
           acceptance_status: 'pending',
           note: ''
         };
@@ -235,8 +264,8 @@ export default {
         position_name: '',
         custom_offer_id: '',
         salary_detail: '',
-        date: '',
-        acceptance_deadline: '',
+        date: null,
+        acceptance_deadline: null,
         acceptance_status: 'pending',
         note: ''
       };

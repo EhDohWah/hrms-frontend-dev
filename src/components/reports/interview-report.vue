@@ -141,8 +141,37 @@ export default {
                 message.error({ content: 'Failed to generate PDF. Please try again.', key: 'pdfExport' });
             }
         },
-        exportExcel() {
-            message.success('Exported Interview Report as Excel');
+        async exportExcel() {
+            try {
+                // Get the start_date and end_date that we store as data attributes
+                const startDate = this.$refs.dateInput.dataset.startDate;
+                const endDate = this.$refs.dateInput.dataset.endDate;
+
+                if (!startDate || !endDate) {
+                    message.error('Please select a date range.');
+                    return;
+                }
+
+                message.loading({ content: 'Generating Excel...', key: 'excelExport' });
+
+                // Use the service to generate the Excel file
+                const excelBlob = await reportInterviewService.generateInterviewReportExcel(startDate, endDate);
+
+                // Create a URL for the blob and trigger download
+                const url = window.URL.createObjectURL(excelBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `interview-report-${startDate}-to-${endDate}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                message.success({ content: 'Excel file generated successfully!', key: 'excelExport' });
+            } catch (error) {
+                console.error('Error exporting Excel:', error);
+                message.error({ content: 'Failed to generate Excel file. Please try again.', key: 'excelExport' });
+            }
         },
         exportCSV() {
             message.success('Exported Interview Report as CSV');

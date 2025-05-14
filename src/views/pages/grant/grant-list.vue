@@ -37,6 +37,36 @@
           </div>
         </div>
         <div class="card-body">
+          <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
+            <div class="row">
+              <!-- <div class="col-sm-12 col-md-6">
+                <div class="dataTables_length" id="DataTables_Table_0_length">
+                  <label>
+                    Row Per Page
+                    <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0"
+                      class="form-select form-select-sm" v-model.number="perPage" @change="handlePerPageChange($event)">
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                      <option :value="totalEmployees">All</option>
+                    </select>
+                    Entries
+                  </label>
+                </div>
+              </div> -->
+              <div class="col-sm-12">
+                <div id="DataTables_Table_0_filter" class="dataTables_filter text-end me-3">
+                  <label>
+                    GRANT CODE SEARCH:
+                    <input type="search" class="form-control form-control-sm d-inline-block w-auto" placeholder="Search"
+                      aria-controls="DataTables_Table_0" v-model="searchGrantCode">
+                    <button class="btn btn-sm btn-primary ms-2" @click="handleGrantCodeSearch">Search</button>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
           <div v-if="loading" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
@@ -286,7 +316,8 @@ export default {
       total,
       pagination,
       grantStore,
-      editableData
+      editableData,
+      searchGrantCode: ''
     };
   },
   data() {
@@ -653,11 +684,15 @@ export default {
 
     clearFilters() {
       this.filteredInfo = {};
+      this.fetchGrants();
+
     },
 
     clearAll() {
       this.filteredInfo = {};
       this.sortedInfo = {};
+      this.searchGrantCode = '';
+      this.fetchGrants();
     },
 
     mapGrantItems(items) {
@@ -689,6 +724,49 @@ export default {
         };
       });
     },
+    async handleGrantCodeSearch() {
+      this.loading = true;
+      try {
+        const response = await this.grantStore.getGrantByCode(this.searchGrantCode);
+
+        if (response && (response.data || response)) {
+          const grantData = response.data || response;
+
+          // Format the grant data similar to fetchGrants method
+          const isoEndDate = grantData.end_date || moment(new Date(new Date().setFullYear(new Date().getFullYear() + 1))).format('YYYY-MM-DD');
+
+          const formattedGrant = {
+            id: grantData.id,
+            code: grantData.code,
+            name: grantData.name,
+            subsidiary: grantData.subsidiary,
+            description: grantData.description,
+            startDate: grantData.startDate || moment(new Date()).format('DD/MM/YYYY'),
+            endDate: moment(isoEndDate).format('DD/MM/YYYY'),
+            isoEndDate,
+            items: this.mapGrantItems(grantData.grant_items)
+          };
+
+          // Update the grants array with just this grant
+          this.grants = [formattedGrant];
+          this.total = 1;
+          this.$message.success('Grant found successfully');
+        } else {
+          this.grants = [];
+          this.total = 0;
+          this.$message.warning('No grant found with this code');
+        }
+
+        return response;
+      } catch (error) {
+        console.error('Error fetching grant by code:', error);
+        this.$message.error('Failed to fetch grant by code');
+        this.grants = [];
+        this.total = 0;
+      } finally {
+        this.loading = false;
+      }
+    },
 
     async fetchGrants() {
       this.loading = true;
@@ -708,7 +786,7 @@ export default {
             description: grant.description,
             startDate: grant.startDate || moment(new Date()).format('DD/MM/YYYY'),
             // Format the end date for display as dd/mm/yyyy
-            endDate: moment(isoEndDate).format('DD/MM/YYYY'),
+            endDate: grant.end_date ? moment(grant.end_date).format('DD MMM YYYY') : '',
             // Keep the original ISO date for sorting purposes
             isoEndDate,
             items: this.mapGrantItems(grant.grant_items)

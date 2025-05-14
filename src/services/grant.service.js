@@ -3,6 +3,13 @@ import { apiService } from '@/services/api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
 
 class GrantService {
+
+  // Fetch a grant by code
+  async getGrantByCode(code) {
+    const endpoint = API_ENDPOINTS.GRANT.GET_BY_CODE.replace(':id', code);
+    return await apiService.get(endpoint);
+  }
+
   // Fetch all grants
   async getAllGrants() {
     return await apiService.get(API_ENDPOINTS.GRANT.LIST);

@@ -5,53 +5,35 @@
   <div class="page-wrapper">
     <div class="content">
       <!-- Breadcrumb -->
-      <div
-        class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
-      >
+      <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="me-2 mb-2">
             <div class="dropdown">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
+              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                data-bs-toggle="dropdown">
                 <i class="ti ti-file-export me-1"></i>Export
               </a>
               <ul class="dropdown-menu dropdown-menu-end p-3">
                 <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    ><i class="ti ti-file-type-pdf me-1"></i>Export as PDF</a
-                  >
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"><i
+                      class="ti ti-file-type-pdf me-1"></i>Export as PDF</a>
                 </li>
                 <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    ><i class="ti ti-file-type-xls me-1"></i>Export as Excel
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"><i
+                      class="ti ti-file-type-xls me-1"></i>Export as Excel
                   </a>
                 </li>
               </ul>
             </div>
           </div>
           <div class="mb-2">
-            <a
-              href="javascript:void(0);"
-              data-bs-toggle="modal"
-              data-bs-target="#add_lookup"
-              class="btn btn-primary d-flex align-items-center"
-              ><i class="ti ti-circle-plus me-2"></i>Add Lookup</a
-            >
+            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_lookup"
+              class="btn btn-primary d-flex align-items-center"><i class="ti ti-circle-plus me-2"></i>Add Lookup</a>
           </div>
           <div class="head-icons ms-2">
-            <a
-              href="javascript:void(0);"
-              class=""
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              data-bs-original-title="Collapse"
-              id="collapse-header"
-              @click="toggleHeader"
-            >
+            <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+              data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
@@ -61,13 +43,9 @@
 
       <!-- Lookups List -->
       <div class="card">
-        <div
-          class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"
-        >
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Lookups List</h5>
-          <div
-            class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3"
-          >
+          <div class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3">
             <div class="ms-3">
               <a-button @click="clearFilters">Clear filters</a-button>
               <a-button @click="clearAll" class="ms-2">Clear filters and sorters</a-button>
@@ -82,17 +60,12 @@
               </div>
               <p class="mt-2">Loading lookups...</p>
             </div>
-            
+
             <div v-else>
               <a-tabs v-model:activeKey="activeTabKey" @change="handleTabChange">
                 <a-tab-pane v-for="type in lookupTypes" :key="type" :tab="type">
-                  <a-table
-                    class="table datatable thead-light"
-                    :columns="columns"
-                    :data-source="getFilteredData(type)"
-                    :row-selection="rowSelection"
-                    @change="handleChange"
-                  >
+                  <a-table class="table datatable thead-light" :columns="columns" :data-source="getFilteredData(type)"
+                    :row-selection="rowSelection" @change="handleChange">
                     <template #bodyCell="{ column, record }">
                       <template v-if="column.key === 'id'">
                         <span>{{ record.id }}</span>
@@ -108,19 +81,10 @@
                       </template>
                       <template v-if="column.key === 'action'">
                         <div class="action-icon d-inline-flex">
-                          <a-button 
-                            type="primary"
-                            size="small"
-                            class="me-2"
-                            @click="editLookup(record)"
-                          >
+                          <a-button type="primary" size="small" class="me-2" @click="editLookup(record)">
                             <template #icon><i class="ti ti-edit"></i></template>
                           </a-button>
-                          <a-button
-                            type="danger"
-                            size="small"
-                            @click="confirmDeleteLookup(record.id)"
-                          >
+                          <a-button type="danger" size="small" @click="confirmDeleteLookup(record.id)">
                             <template #icon><i class="ti ti-trash"></i></template>
                           </a-button>
                         </div>
@@ -129,13 +93,8 @@
                   </a-table>
                 </a-tab-pane>
                 <a-tab-pane key="all" tab="All Lookups">
-                  <a-table
-                    class="table datatable thead-light"
-                    :columns="columns"
-                    :data-source="data"
-                    :row-selection="rowSelection"
-                    @change="handleChange"
-                  >
+                  <a-table class="table datatable thead-light" :columns="columns" :data-source="data"
+                    :row-selection="rowSelection" @change="handleChange">
                     <template #bodyCell="{ column, record }">
                       <template v-if="column.key === 'Type'">
                         <a-tag :color="getTypeColor(record.type)">{{ record.type }}</a-tag>
@@ -148,19 +107,10 @@
                       </template>
                       <template v-if="column.key === 'action'">
                         <div class="action-icon d-inline-flex">
-                          <a-button 
-                            type="primary"
-                            size="small"
-                            class="me-2"
-                            @click="editLookup(record)"
-                          >
+                          <a-button type="primary" size="small" class="me-2" @click="editLookup(record)">
                             <template #icon><i class="ti ti-edit"></i></template>
                           </a-button>
-                          <a-button
-                            type="danger"
-                            size="small"
-                            @click="confirmDeleteLookup(record.id)"
-                          >
+                          <a-button type="danger" size="small" @click="confirmDeleteLookup(record.id)">
                             <template #icon><i class="ti ti-trash"></i></template>
                           </a-button>
                         </div>
@@ -176,9 +126,7 @@
       <!-- /Lookups List -->
     </div>
 
-    <div
-      class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3"
-    >
+    <div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
       <p class="mb-0">2014 - 2025 &copy; SmartHR.</p>
       <p>
         Designed &amp; Developed By
@@ -187,7 +135,8 @@
     </div>
   </div>
   <!-- /Page Wrapper -->
-  <lookup-modal ref="lookupModal" @lookup-added="fetchLookups" @lookup-updated="fetchLookups" @lookup-deleted="fetchLookups"></lookup-modal>
+  <lookup-modal ref="lookupModal" @lookup-added="fetchLookups" @lookup-updated="fetchLookups"
+    @lookup-deleted="fetchLookups"></lookup-modal>
 </template>
 <script>
 import "daterangepicker/daterangepicker.css";
@@ -198,9 +147,9 @@ import { useLookupStore } from "@/stores/lookupStore";
 import LookupModal from "@/components/modal/lookup-modal.vue";
 
 const rowSelection = {
-  onChange: () => {},
-  onSelect: () => {},
-  onSelectAll: () => {},
+  onChange: () => { },
+  onSelect: () => { },
+  onSelectAll: () => { },
 };
 
 export default {
@@ -303,6 +252,10 @@ export default {
         'interview_status': 'volcano',
         'identification_types': 'red',
         'employment_type': 'pink',
+        'employee_language': 'lime',
+        'employee_education': 'lime',
+        'employee_initial_en': 'lime',
+        'employee_initial_th': 'lime',
         'Default': 'default'
       };
       return colors[type] || colors['Default'];
@@ -316,10 +269,10 @@ export default {
       this.loading = true;
       try {
         await this.lookupStore.fetchAllLookups();
-        
+
         // Get all lookup types from the store's getter
         this.lookupTypes = this.lookupStore.getAllLookupTypes;
-        
+
         // Process the data
         this.data = [];
         for (const type in this.lookupStore.lookupsByType) {
@@ -338,7 +291,7 @@ export default {
             this.data.push(...processedLookups);
           }
         }
-        
+
         this.$message.success('Lookups loaded successfully');
       } catch (error) {
         console.error('Error loading lookups:', error);
@@ -347,22 +300,22 @@ export default {
         this.loading = false;
       }
     },
-    
+
     getFilteredData(type) {
       return this.data.filter(item => item.type === type);
     },
-    
+
     handleTabChange(activeKey) {
       this.activeTabKey = activeKey;
       // Reset filters and sorters when changing tabs
       this.clearAll();
     },
-    
+
     editLookup(record) {
       // Pass the lookup data to the modal component
       this.$refs.lookupModal.setEditLookup(record);
     },
-    
+
     confirmDeleteLookup(lookupId) {
       this.$confirm({
         title: 'Are you sure you want to delete this lookup?',
@@ -375,7 +328,7 @@ export default {
         }
       });
     },
-    
+
     async deleteLookup(lookupId) {
       try {
         const result = await this.lookupStore.deleteLookup(lookupId);
@@ -390,7 +343,7 @@ export default {
         this.$message.error('An error occurred while deleting the lookup');
       }
     },
-    
+
     initDateRangePicker() {
       const dateRangeInput = document.getElementById('daterange');
       if (dateRangeInput) {
@@ -420,31 +373,31 @@ export default {
         this.date_range(start, end);
       }
     },
-    
+
     date_range(start, end) {
       return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
     },
-    
+
     toggleHeader() {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
     },
-    
+
     handleChange(pagination, filters, sorter) {
       console.log("Various parameters", pagination, filters, sorter);
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
     },
-    
+
     clearFilters() {
       this.filteredInfo = null;
     },
-    
+
     clearAll() {
       this.filteredInfo = null;
       this.sortedInfo = null;
     },
-    
+
     getTypeFilters() {
       if (!this.data || this.data.length === 0) {
         return [];
@@ -452,18 +405,18 @@ export default {
       const types = [...new Set(this.data.map(item => item.type))];
       return types.map(type => ({ text: type, value: type }));
     },
-    
+
     getValueFilters() {
       if (!this.data || this.data.length === 0) {
         return [];
       }
-      
+
       // If we're on a specific tab, only show values for that type
       if (this.activeTabKey !== 'all') {
         const values = [...new Set(this.getFilteredData(this.activeTabKey).map(item => item.value))];
         return values.map(value => ({ text: value, value: value }));
       }
-      
+
       // Otherwise show all values
       const values = [...new Set(this.data.map(item => item.value))];
       return values.map(value => ({ text: value, value: value }));

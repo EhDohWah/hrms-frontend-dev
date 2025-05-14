@@ -31,9 +31,14 @@
                 </div>
 
                 <div class="mb-3">
-                  <label for="interviewDate" class="form-label">Interview Date</label>
-                  <input type="date" class="form-control" id="interviewDate" v-model="formData.interview_date"
-                    required />
+                  <label class="form-label">Interview Date <span class="text-danger"> *</span></label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="displayFormat" v-model="formData.interview_date" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label for="interviewMode" class="form-label">Interview Mode</label>
@@ -143,7 +148,7 @@ export default {
         phone: '',
         job_position: '',
         interviewer_name: '',
-        interview_date: '',
+        interview_date: null,
         start_time: '',
         end_time: '',
         interview_mode: 'In-person',
@@ -154,7 +159,9 @@ export default {
         hired_status: ''
       },
       isSubmitting: false,
-      modalInstance: null
+      modalInstance: null,
+      displayFormat: 'dd/MM/yyyy',
+      inputFormat: 'yyyy-MM-dd'
     };
   },
   watch: {
@@ -162,6 +169,11 @@ export default {
       handler(newVal) {
         if (newVal) {
           this.formData = { ...newVal };
+
+          // Convert the incoming string to a JS Date
+          if (this.formData.interview_date) {
+            this.formData.interview_date = new Date(this.formData.interview_date);
+          }
 
           // Format time fields when in edit mode
           if (this.editMode) {
@@ -188,6 +200,11 @@ export default {
     openModal() {
       if (this.editMode && this.interviewData) {
         this.formData = { ...this.interviewData };
+
+        // Convert the incoming string to a JS Date
+        if (this.formData.interview_date) {
+          this.formData.interview_date = new Date(this.formData.interview_date);
+        }
 
         // Format time fields for display in the form
         if (this.formData.start_time) {
@@ -288,7 +305,7 @@ export default {
         phone: '',
         job_position: '',
         interviewer_name: '',
-        interview_date: '',
+        interview_date: null,
         start_time: '',
         end_time: '',
         interview_mode: 'In-person',

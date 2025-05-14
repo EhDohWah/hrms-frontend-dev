@@ -6,252 +6,103 @@
         <div class="modal-header">
           <div class="d-flex align-items-center">
             <h4 class="modal-title me-2">Edit Employee</h4>
-            <span>Employee ID : EMP -00233</span>
+            <span>Employee ID : {{ editFormData.staff_id }}</span>
           </div>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
-        <form @submit.prevent="submitFormOne">
-          <!-- Alert Message -->
-          <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
-            {{ alertMessage }}
-          </div>
-          <div class="contact-grids-tab">
-            <ul class="nav nav-underline" id="myTab2" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="info-tab3" data-bs-toggle="tab" data-bs-target="#basic-info3"
-                  type="button" role="tab" aria-selected="true">
-                  Basic Information
-                </button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="address-tab3" data-bs-toggle="tab" data-bs-target="#address3" type="button"
-                  role="tab" aria-selected="false">
-                  Permissions
-                </button>
-              </li>
-            </ul>
-          </div>
-          <div class="tab-content" id="myTabContent2">
-            <!-- Basic Information Tab -->
-            <div class="tab-pane fade show active" id="basic-info3" role="tabpanel" aria-labelledby="info-tab3"
-              tabindex="0">
-              <div class="modal-body pb-0">
-                <div class="row">
-                  <!-- Profile Image and Upload -->
-                  <div class="col-md-12">
-                    <div class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-3 mb-4">
-                      <div
-                        class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-dashed me-2 flex-shrink-0 text-dark frames">
-                        <img src="@/assets/img/users/user-13.jpg" alt="img" class="rounded-circle" />
-                      </div>
-                      <div class="profile-upload">
-                        <div class="mb-2">
-                          <h6 class="mb-1">Upload Profile Image</h6>
-                          <p class="fs-12">Image should be below 4 mb</p>
-                        </div>
-                        <div class="profile-uploader d-flex align-items-center">
-                          <div class="drag-upload-btn btn btn-sm btn-primary me-2">
-                            Upload
-                            <input type="file" class="form-control image-sign" multiple />
-                          </div>
-                          <a href="javascript:void(0);" class="btn btn-light btn-sm">Cancel</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Employee Basic Fields -->
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">First Name <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" value="Anthony" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Last Name</label>
-                      <input type="email" class="form-control" value="Lewis" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Employee ID <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" value="Emp-001" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Joining Date <span class="text-danger"> *</span></label>
-                      <div class="input-icon-end position-relative">
-                        <date-picker v-model="startdate" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                          :editable="true" :clearable="false" :input-format="dateFormat" />
-                        <span class="input-icon-addon">
-                          <i class="ti ti-calendar text-gray-7"></i>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- More fields: Username, Email, Password, etc. -->
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Username <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" value="Anthony" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Email <span class="text-danger"> *</span></label>
-                      <input type="email" class="form-control" value="anthony@example.com" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Password <span class="text-danger"> *</span></label>
-                      <div class="pass-group">
-                        <input :type="showPassword ? 'text' : 'password'" class="pass-input form-control" />
-                        <span @click="toggleShow" class="ti toggle-password"
-                          :class="{ 'ti-eye': showPassword, 'ti-eye-off': !showPassword }"></span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Confirm Password <span class="text-danger"> *</span></label>
-                      <div class="pass-group">
-                        <input :type="showPassword1 ? 'text' : 'password'" class="pass-inputs form-control" />
-                        <span @click="toggleShow1" class="ti toggle-passwords"
-                          :class="{ 'ti-eye': showPassword1, 'ti-eye-off': !showPassword1 }"></span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Phone Number <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" value="(123) 4567 890" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Company <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" value="Abac Company" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Department</label>
-                      <vue-select :options="FinanceDeo" id="defeaj" placeholder="Finance" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Designation</label>
-                      <vue-select :options="OneFinanceDeo" id="onedefeaj" placeholder="Finance" />
-                    </div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="mb-3">
-                      <label class="form-label">About <span class="text-danger"> *</span></label>
-                      <textarea class="form-control" rows="3">
-As an award winning designer, I deliver exceptional quality work and bring value to your brand!
-                      </textarea>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <!-- Footer for Basic Information -->
-              <div class="modal-footer">
-                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save</button>
-              </div>
-            </div>
-            <!-- Permissions Tab (content abbreviated for brevity) -->
-            <div class="tab-pane fade" id="address3" role="tabpanel" aria-labelledby="address-tab3" tabindex="0">
-              <div class="modal-body">
-                <!-- Permissions content goes here -->
-                <div class="card bg-light-500 shadow-none">
-                  <div class="card-body d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                    <h6>Enable Options</h6>
-                    <div class="d-flex align-items-center justify-content-end">
-                      <div class="form-check form-switch me-2">
-                        <label class="form-check-label mt-0">
-                          <input class="form-check-input me-2" type="checkbox" role="switch" />
-                          Enable all Module
-                        </label>
-                      </div>
-                      <div class="form-check d-flex align-items-center">
-                        <label class="form-check-label mt-0">
-                          <input class="form-check-input" type="checkbox" checked />
-                          Select All
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="table-responsive border rounded">
-                  <table class="table">
-                    <tbody>
-                      <tr>
-                        <td>
-                          <div class="form-check form-switch me-2">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input me-2" type="checkbox" role="switch" checked />
-                              Holidays
-                            </label>
-                          </div>
-                        </td>
-                        <td>
-                          <div class="form-check d-flex align-items-center">
-                            <label class="form-check-label mt-0">
-                              <input class="form-check-input" type="checkbox" checked />
-                              Read
-                            </label>
-                          </div>
-                        </td>
-                        <!-- Additional cells omitted for brevity -->
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                  data-bs-target="#success_modal">Save</button>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <!-- /Edit Employee Modal -->
-
-  <!-- Edit Personal Modal -->
-  <div class="modal fade" id="edit_personal">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Edit Personal Info</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
+        <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
+          {{ alertMessage }}
         </div>
-        <form @submit.prevent="submitForm">
+        <form @submit.prevent="handleEditSubmit">
           <div class="modal-body pb-0">
             <div class="row">
               <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Passport No <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
+                <div class="input-block mb-3">
+                  <label class="form-label" for="edit-subsidiary">Subsidiary</label>
+                  <select id="edit-subsidiary" v-model="editFormData.subsidiary" class="form-control" required>
+                    <option value="" disabled selected>Select a subsidiary</option>
+                    <option v-for="subsidiary in subsidiaries" :key="subsidiary.id" :value="subsidiary.value" :class="[
+                      subsidiary.value === 'SMRU' ? 'text-primary' :
+                        subsidiary.value === 'BHF' ? 'text-primary' :
+                          'text-secondary'
+                    ]">
+                      {{ subsidiary.value }}
+                    </option>
+                  </select>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Passport Expiry Date <span class="text-danger"> *</span></label>
+                  <label class="form-label">Staff ID <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" placeholder="Enter staff ID"
+                    v-model="editFormData.staff_id" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Initial (EN)</label>
+                  <input type="text" class="form-control" placeholder="Enter English initial" maxlength="10"
+                    v-model="editFormData.initial_en" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Initial (TH)</label>
+                  <input type="text" class="form-control" placeholder="Enter Thai initial" maxlength="10"
+                    v-model="editFormData.initial_th" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">First Name (EN) <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" maxlength="255" placeholder="Enter English first name"
+                    v-model="editFormData.first_name_en" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Last Name (EN)</label>
+                  <input type="text" class="form-control" maxlength="255" placeholder="Enter English last name"
+                    v-model="editFormData.last_name_en" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">First Name (TH)</label>
+                  <input type="text" class="form-control" maxlength="255" placeholder="Enter Thai first name"
+                    v-model="editFormData.first_name_th" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Last Name (TH)</label>
+                  <input type="text" class="form-control" maxlength="255" placeholder="Enter Thai last name"
+                    v-model="editFormData.last_name_th" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-block mb-3">
+                  <label class="form-label" for="edit-gender">Gender <span class="text-danger"> *</span></label>
+                  <select id="edit-gender" v-model="editFormData.gender" class="form-control" required>
+                    <option value="" disabled selected>Select gender</option>
+                    <option v-for="gender in genders" :key="gender.id" :value="gender.value" :class="[
+                      gender.value === 'Male' ? 'text-primary' :
+                        gender.value === 'Female' ? 'text-primary' :
+                          'text-secondary'
+                    ]">
+                      {{ gender.value }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Date of Birth <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateOne" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                      :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="dateFormat" v-model="editFormData.date_of_birth" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -260,124 +111,321 @@ As an award winning designer, I deliver exceptional quality work and bring value
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Nationality <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
+                  <label class="form-label">Age <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="calculatedAge" readonly />
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Religion</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Marital status <span class="text-danger"> *</span></label>
-                  <vue-select :options="MartSel" id="martsel" placeholder="Select" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Employment spouse</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">No. of children</label>
-                  <input type="text" class="form-control" />
+                <div class="input-block mb-3">
+                  <label class="form-label" for="edit-employee-status">Status <span class="text-danger">
+                      *</span></label>
+                  <select id="edit-employee-status" v-model="editFormData.status" class="form-control" required>
+                    <option value="" disabled selected>Select status</option>
+                    <option v-for="status in statuses" :key="status.id" :value="status.value" :class="[
+                      status.value === 'Active' ? 'text-primary' :
+                        status.value === 'Inactive' ? 'text-danger' :
+                          'text-secondary'
+                    ]">
+                      {{ status.value }}
+                    </option>
+                  </select>
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+              Update
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Edit Personal Modal -->
+  <!-- /Edit Employee Modal -->
 
-  <!-- Edit Emergency Contact Modal -->
-  <div class="modal fade" id="edit_emergency">
+  <!-- Edit Personal Information Modal -->
+  <div class="modal fade" id="edit_personal">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">Emergency Contact Details</h4>
+          <h4 class="modal-title">Personal Information</h4>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
         <form @submit.prevent="submitForm">
           <div class="modal-body pb-0">
-            <div class="border-bottom mb-3">
-              <div class="row">
-                <h5 class="mb-3">Secondary Contact Details</h5>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Name <span class="text-danger"> *</span></label>
-                    <input type="text" class="form-control" />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Relationship</label>
-                    <input type="text" class="form-control" />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Phone No 1 <span class="text-danger"> *</span></label>
-                    <input type="text" class="form-control" />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Phone No 2</label>
-                    <input type="text" class="form-control" />
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="row">
-              <h5 class="mb-3">Secondary Contact Details</h5>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
+                  <label class="form-label">Phone <span class="text-danger"> *</span></label>
+                  <input type="tel" class="form-control" v-model="editFormData.mobile_phone"
+                    placeholder="Enter phone number" required />
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Nationality <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="editFormData.nationality">
+                    <option value="" disabled selected>Select Nationality</option>
+                    <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
+                      {{ nationality.value }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Social Security Number</label>
+                  <input type="text" class="form-control" v-model="editFormData.social_security_number"
+                    placeholder="Enter SSN" />
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Tax Number</label>
+                  <input type="text" class="form-control" v-model="editFormData.tax_number"
+                    placeholder="Enter tax number" />
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Religion <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="editFormData.religion">
+                    <option value="" disabled selected>Select Religion</option>
+                    <option v-for="religion in religions" :key="religion.id" :value="religion.value">
+                      {{ religion.value }}
+                    </option>
+                  </select>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Relationship</label>
-                  <input type="text" class="form-control" />
+                  <label class="form-label">Marital Status <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="editFormData.marital_status">
+                    <option value="" disabled selected>Select Marital Status</option>
+                    <option v-for="status in maritalStatuses" :key="status.id" :value="status.value">
+                      {{ status.value }}
+                    </option>
+                  </select>
                 </div>
               </div>
-              <div class="col-md-6">
+
+              <template v-if="editFormData.marital_status === 'Married'">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Spouse Name</label>
+                    <input type="text" class="form-control" v-model="editFormData.spouse_name"
+                      placeholder="Enter spouse name" />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Spouse Mobile</label>
+                    <input type="tel" class="form-control" v-model="editFormData.spouse_mobile"
+                      placeholder="Enter spouse mobile number" />
+                  </div>
+                </div>
+              </template>
+
+              <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">Phone No 1 <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
+                  <label class="form-label">Languages</label>
+                  <a-select v-model:value="selectedLanguages" mode="multiple" style="width: 100%"
+                    placeholder="Select languages"
+                    :options="languages.map(language => ({ value: language.value, label: language.value }))"
+                    @change="handleLanguageChange"></a-select>
                 </div>
               </div>
-              <div class="col-md-6">
+
+              <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">Phone No 2</label>
-                  <input type="text" class="form-control" />
+                  <label class="form-label">Current Address <span class="text-danger"> *</span></label>
+                  <textarea class="form-control" v-model="editFormData.current_address"
+                    placeholder="Enter current address" rows="3" required></textarea>
+                </div>
+              </div>
+
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Permanent Address <span class="text-danger"> *</span></label>
+                  <textarea class="form-control" v-model="editFormData.permanent_address"
+                    placeholder="Enter permanent address" rows="3" required></textarea>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="card border rounded-3 mb-2">
+                  <div class="card-header bg-light">
+                    <h6 class="mb-0">Identification Information</h6>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label class="form-label">ID Type</label>
+                          <select class="form-select" v-model="editFormData.id_type">
+                            <option value="" disabled selected>Select ID Type</option>
+                            <option value="Passport">Passport</option>
+                            <option value="National ID">National ID</option>
+                            <option value="Driver's License">Driver's License</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label class="form-label">ID Number</label>
+                          <input type="text" class="form-control" v-model="editFormData.document_number"
+                            placeholder="Enter ID number" />
+                        </div>
+                      </div>
+
+                      <!-- Passport specific fields - commented out for now
+                      <template v-if="editFormData.id_type === 'Passport'">
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Passport Expiry Date</label>
+                            <input type="date" class="form-control" v-model="editFormData.expiry_date" />
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Date to Renew Passport</label>
+                            <input type="date" class="form-control" v-model="editFormData.renewal_date" />
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Arrival Date</label>
+                            <input type="date" class="form-control" v-model="editFormData.arrival_date" />
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">TM Card</label>
+                            <input type="text" class="form-control" v-model="editFormData.tm_card" />
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">90 Days</label>
+                            <input type="date" class="form-control" v-model="editFormData.ninety_days" />
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Date to Report to Immigration</label>
+                            <input type="date" class="form-control" v-model="editFormData.immigration_report_date" />
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Visa Expiry Date</label>
+                            <input type="date" class="form-control" v-model="editFormData.visa_expiry_date" />
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Work Permit</label>
+                            <input type="text" class="form-control" v-model="editFormData.work_permit" />
+                          </div>
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-3">
+                            <label class="form-label">Work Permit Expiry Date</label>
+                            <input type="date" class="form-control" v-model="editFormData.work_permit_expiry_date" />
+                          </div>
+                        </div>
+                      </template>
+-->
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+              Update
+            </button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Edit Emergency Contact Modal -->
+  <!-- /Edit Personal Information Modal -->
+
+  <!-- Edit Beneficiary Modal -->
+  <div class="modal fade" id="edit_beneficiary">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Beneficiary Details</h4>
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+        <form @submit.prevent="submitBeneficiaryForm">
+          <div class="modal-body pb-0">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Name <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_name" required />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Relationship <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="beneficiaryForm.beneficiary_relationship" required>
+                    <option value="" disabled selected>Select Relationship</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Child">Child</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Phone Number <span class="text-danger"> *</span></label>
+                  <input type="tel" class="form-control" v-model="beneficiaryForm.phone_number" required />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Email</label>
+                  <input type="email" class="form-control" v-model="beneficiaryForm.beneficiary_email" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- /Edit Beneficiary Modal -->
 
   <!-- Edit Bank Modal -->
   <div class="modal fade" id="edit_bank">
@@ -427,6 +475,107 @@ As an award winning designer, I deliver exceptional quality work and bring value
     </div>
   </div>
   <!-- /Edit Bank Modal -->
+
+  <!-- Add Beneficiary Modal -->
+  <div class="modal fade" id="add_beneficiary">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Add Beneficiary</h4>
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+        <form @submit.prevent="submitBeneficiaryForm">
+          <div class="modal-body pb-0">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Beneficiary Name <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_name" required />
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Relationship <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="beneficiaryForm.beneficiary_relationship" required>
+                    <option value="" disabled selected>Select Relationship</option>
+                    <option value="Spouse">Spouse</option>
+                    <option value="Child">Child</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Sibling">Sibling</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Phone Number <span class="text-danger"> *</span></label>
+                  <input type="tel" class="form-control" v-model="beneficiaryForm.phone_number" required />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- /Add Beneficiary Modal -->
+
+  <!-- Add Child Modal -->
+  <div class="modal fade" id="add_child">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Add Child</h4>
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+        <form @submit.prevent="submitChildForm">
+          <div class="modal-body pb-0">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Child Name <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="childForm.child_name" required />
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Date of Birth</label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker v-model="childForm.date_of_birth" class="form-control datetimepicker"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+              Save
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- /Add Child Modal -->
 
   <!-- Add Family Modal -->
   <div class="modal fade" id="edit_familyinformation">
@@ -982,6 +1131,7 @@ import { ref } from "vue";
 import employmentService from "@/services/employment.service";
 import { grantService } from "@/services/grant.service";
 import { Modal } from 'bootstrap';
+import { useLookupStore } from "@/stores/lookupStore";
 
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
@@ -1004,8 +1154,16 @@ export default {
       showPassword: false,
       showPassword1: false,
       isSubmitting: false,
+      age: '',
       alertMessage: '',
       alertClass: '',
+      subsidiaries: [],
+      genders: [],
+      date_of_birth: '',
+      nationalities: [],
+      religions: [],
+      maritalStatuses: [],
+      statuses: [],
       startdate: currentDate,
       startdateOne: currentDateOne,
       startdateTwo: currentDateTwo,
@@ -1013,6 +1171,48 @@ export default {
       startdateFour: currentDateFour,
       startdateFive: currentDateFive,
       startdateSix: currentDateSix,
+      editFormData: {
+        first_name_en: '',
+        last_name_en: '',
+        first_name_th: '',
+        last_name_th: '',
+        initial_en: '',
+        initial_th: '',
+        staff_id: '',
+        joining_date: '',
+        age: '',
+        status: '',
+        mobile_phone: '',
+        current_address: '',
+        permanent_address: '',
+        subsidiary: '',
+        gender: '',
+        nationality: '',
+        religion: '',
+        marital_status: '',
+        employee_status: '',
+        date_of_birth: '',
+      },
+
+      beneficiaryForm: {
+        beneficiary_name: '',
+        beneficiary_relationship: '',
+        beneficiary_phone: '',
+        beneficiary_email: '',
+        beneficiary_address: '',
+      },
+
+      languages: [
+        { id: 1, value: 'English' },
+        { id: 2, value: 'Thai' },
+        { id: 3, value: 'Burmese' },
+        { id: 4, value: 'Karen' },
+      ],
+
+      childForm: {
+        child_name: '',
+        date_of_birth: '',
+      },
       dateFormat: "dd-MM-yyyy",
       EpsRate: ["Select", "EPS", "ESI", "EPF"],
       OneEpsRate: ["Select", "EPS", "ESI", "EPF"],
@@ -1033,15 +1233,165 @@ export default {
       },
     };
   },
+  async created() {
+    await this.initFetchGender();
+    await this.initFetchNationality();
+    await this.initFetchReligion();
+    await this.initFetchMaritalStatus();
+    await this.initFetchEmployeeStatus();
+    await this.initSubsidiaries();
+  },
+
   computed: {
+    calculatedAge() {
+      const dobVal = this.editFormData.date_of_birth;
+      if (!dobVal) return '';
+
+      // if dobVal is a string in ISO or Date object, normalize:
+      const dob = dobVal instanceof Date
+        ? dobVal
+        : new Date(dobVal);
+      const today = new Date();
+
+      let age = today.getFullYear() - dob.getFullYear();
+      // subtract 1 if we haven't hit their birthday this year yet:
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+
+      return age;
+    },
     buttonLabel() {
       return this.showPassword ? "Hide" : "Show";
     },
     buttonLabel1() {
       return this.showPassword1 ? "Hide" : "Show";
     },
+
   },
   methods: {
+
+    // // Get subsidiary data from lookups
+    // async fetchSubsidiaries() {
+    //   try {
+    //     // Use the lookup store to get subsidiaries
+    //     const lookupStore = useLookupStore();
+    //     const subsidiaries = lookupStore.getLookupsByType('subsidiary');
+    //     return subsidiaries || [];
+    //   } catch (error) {
+    //     console.error('Error fetching subsidiaries:', error);
+    //     return [];
+    //   }
+    // },
+
+    // async fetchGender() {
+    //   try {
+    //     const lookupStore = useLookupStore();
+    //     const genders = lookupStore.getLookupsByType('gender');
+    //     return genders || [];
+    //   } catch (error) {
+    //     console.error('Error fetching genders:', error);
+    //     return [];
+    //   }
+    // },
+
+    // async fetchNationality() {
+    //   try {
+    //     const lookupStore = useLookupStore();
+    //     const nationalities = lookupStore.getLookupsByType('nationality');
+    //     return nationalities || [];
+    //   } catch (error) {
+    //     console.error('Error fetching nationalities:', error);
+    //     return [];
+    //   }
+    // },
+
+    // async fetchReligion() {
+    //   try {
+    //     const lookupStore = useLookupStore();
+    //     const religions = lookupStore.getLookupsByType('religion');
+    //     return religions || [];
+    //   } catch (error) {
+    //     console.error('Error fetching religions:', error);
+    //     return [];
+    //   }
+    // },
+
+    // async fetchMaritalStatus() {
+    //   try {
+    //     const lookupStore = useLookupStore();
+    //     const maritalStatuses = lookupStore.getLookupsByType('marital_status');
+    //     return maritalStatuses || [];
+    //   } catch (error) {
+    //     console.error('Error fetching marital statuses:', error);
+    //     return [];
+    //   }
+    // },
+
+    // async fetchEmployeeStatus() {
+    //   try {
+    //     const lookupStore = useLookupStore();
+    //     const statuses = lookupStore.getLookupsByType('employee_status');
+    //     return statuses || [];
+    //   } catch (error) {
+    //     console.error('Error fetching employee statuses:', error);
+    //     return [];
+    //   }
+    // },
+
+    async initFetchGender() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.genders = lookupStore.getLookupsByType('gender');
+    },
+
+    async initFetchNationality() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.nationalities = lookupStore.getLookupsByType('nationality');
+    },
+
+    async initFetchReligion() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.religions = lookupStore.getLookupsByType('religion');
+    },
+
+    async initFetchMaritalStatus() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.maritalStatuses = lookupStore.getLookupsByType('marital_status');
+    },
+
+    async initFetchEmployeeStatus() {
+      const lookupStore = useLookupStore();
+
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.statuses = lookupStore.getLookupsByType('employee_status');
+    },
+
+    // Initialize subsidiary data when component is created
+    async initSubsidiaries() {
+      const lookupStore = useLookupStore();
+      // If lookups aren't loaded yet, fetch them first
+      // Only fetch if not already loaded
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
+    },
+
     toggleShow() {
       this.showPassword = !this.showPassword;
     },

@@ -174,7 +174,15 @@ export default {
       return statusClasses[status] || 'bg-secondary text-dark';
     },
     formatDate(date) {
-      return date ? new Date(date).toLocaleDateString() : 'N/A';
+      if (!date) return 'N/A';
+      const userLocale = navigator.language || 'en-GB';
+      // force DMY for any US‐style locale
+      const localeToUse = userLocale === 'en-US' ? 'en-GB' : userLocale;
+      return new Intl.DateTimeFormat(localeToUse, {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }).format(new Date(date));
     },
     formatTime(time) {
       return time ? time.substring(0, 5) : 'N/A'; // Format HH:mm

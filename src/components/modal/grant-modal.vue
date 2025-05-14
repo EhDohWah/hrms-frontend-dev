@@ -12,23 +12,13 @@
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-subsidiary">Subsidiary</label>
-                  <select
-                    id="grant-subsidiary"
-                    v-model="formData.subsidiary"
-                    class="form-control"
-                    required
-                  >
+                  <select id="grant-subsidiary" v-model="formData.subsidiary" class="form-control" required>
                     <option value="" disabled selected>Select a subsidiary</option>
-                    <option
-                      v-for="subsidiary in subsidiaries"
-                      :key="subsidiary.id"
-                      :value="subsidiary.value"
-                      :class="[
-                        subsidiary.value === 'SMRU' ? 'text-primary' :
+                    <option v-for="subsidiary in subsidiaries" :key="subsidiary.id" :value="subsidiary.value" :class="[
+                      subsidiary.value === 'SMRU' ? 'text-primary' :
                         subsidiary.value === 'BHF' ? 'text-primary' :
-                        'text-secondary'
-                      ]"
-                    >
+                          'text-secondary'
+                    ]">
                       {{ subsidiary.value }}
                     </option>
                   </select>
@@ -40,13 +30,15 @@
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-name">Grant Name</label>
-                  <input type="text" id="grant-name" v-model="formData.name" class="form-control" placeholder="e.g., UNICEF-EP" required>
+                  <input type="text" id="grant-name" v-model="formData.name" class="form-control"
+                    placeholder="e.g., UNICEF-EP" required>
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-code">Grant Code</label>
-                  <input type="text" id="grant-code" v-model="formData.code" class="form-control" placeholder="e.g., B-24004" required>
+                  <input type="text" id="grant-code" v-model="formData.code" class="form-control"
+                    placeholder="e.g., B-24004" required>
                 </div>
               </div>
             </div>
@@ -55,7 +47,8 @@
               <div class="col-md-12">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-description">Description</label>
-                  <textarea id="grant-description" v-model="formData.description" class="form-control" rows="3"></textarea>
+                  <textarea id="grant-description" v-model="formData.description" class="form-control"
+                    rows="3"></textarea>
                 </div>
               </div>
             </div>
@@ -64,7 +57,13 @@
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-end-date">End Date</label>
-                  <input type="date" id="grant-end-date" v-model="formData.end_date" class="form-control">
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="dateFormat" v-model="formData.end_date" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -110,15 +109,15 @@ export default {
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
-            if (modalElement.getAttribute('aria-hidden') === 'true' && 
-                modalElement.contains(document.activeElement)) {
+            if (modalElement.getAttribute('aria-hidden') === 'true' &&
+              modalElement.contains(document.activeElement)) {
               // Remove aria-hidden when the modal contains focus
               modalElement.removeAttribute('aria-hidden');
             }
           }
         });
       });
-      
+
       observer.observe(modalElement, { attributes: true });
     }
   },
@@ -135,7 +134,7 @@ export default {
         return [];
       }
     },
-    
+
     // Initialize subsidiary data when component is created
     async initSubsidiaries() {
       const lookupStore = useLookupStore();
@@ -156,13 +155,13 @@ export default {
 
       // Emit the form data to parent component
       this.$emit('add-grant', { ...this.formData });
-      
+
       // Reset form after submission
       this.resetForm();
-      
+
       // Close modal
       document.querySelector('#grant_modal [data-bs-dismiss="modal"]').click();
-      
+
       // Reset submission state
       this.isSubmitting = false;
     },
@@ -183,10 +182,12 @@ export default {
 .modal-dialog {
   max-width: 800px;
 }
+
 .input-block {
   position: relative;
 }
+
 .form-label {
   font-weight: 500;
 }
-</style> 
+</style>

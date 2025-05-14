@@ -53,6 +53,7 @@ export const API_ENDPOINTS = {
 
     // Employee endpoints
     EMPLOYEE: {
+        TREE_SEARCH: '/employees/tree-search',
         LIST: '/employees?per_page=&staff_id=&status=&subsidiary=&gender=&date_of_birth=&sort_by=&sort_order=',
         SINGLE: '/employees/staff-id/:staffId',
         CREATE: '/employees',
@@ -100,6 +101,7 @@ export const API_ENDPOINTS = {
     // Grant endpoints
     GRANT: {
         LIST: '/grants',
+        GET_BY_CODE: '/grants/:id',
         CREATE: '/grants',
         UPDATE: '/grants/:id',
         DELETE: '/grants/:id',
@@ -258,7 +260,8 @@ export const API_ENDPOINTS = {
     // Report endpoints
     REPORT: {
         INTERVIEW_EXPORT_PDF: '/reports/interview-report/export-pdf',
-        JOB_OFFER_EXPORT_PDF: '/reports/job-offer-report/export-pdf'
+        JOB_OFFER_EXPORT_PDF: '/reports/job-offer-report/export-pdf',
+        INTERVIEW_EXPORT_EXCEL: '/reports/interview-report/export-excel',
     }
     
 };

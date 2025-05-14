@@ -205,7 +205,6 @@ export const useEmployeeStore = defineStore('employee', {
         this.error = null;
         const response = await employeeService.createEmployee(data);
         // Refresh employee list after creation
-        await this.fetchEmployees();
         return response;
       } catch (error) {
         this.error = error.message || 'Failed to create employee';
@@ -239,7 +238,6 @@ export const useEmployeeStore = defineStore('employee', {
         this.error = null;
         const response = await employeeService.deleteEmployee(id);
         // Refresh employee list after deletion
-        await this.fetchEmployees();
         return response;
       } catch (error) {
         this.error = error.message || 'Failed to delete employee';

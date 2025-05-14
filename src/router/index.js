@@ -417,7 +417,7 @@ const routes = [
         path: "interviews-list", 
         component: lazyView('pages/recruitment/interviews/interviews-list'),
         meta: {
-          title: 'Interviews List '
+          title: 'Interview List '
         }
       },
       { path: "job-offers-list", component: lazyView('pages/recruitment/job-offers/job-offers-list'),
@@ -541,11 +541,21 @@ const routes = [
     },
     children: [
       { path: '', redirect: '/employee/employee-list' },
-      { path: "employee-list", component: lazyView('pages/hrm/employees/employees-list') },
+      { path: "employee-list", 
+        component: lazyView('pages/hrm/employees/employees-list'),
+        meta: {
+          title: 'Employee List'
+        }
+      },
       { path: "employee-grid", component: lazyView('pages/hrm/employees/employees-grid') },
       // Updated route with dynamic parameter
       { path: "employee-details/:id", component: lazyView('pages/hrm/employees/employee-details') },
-      { path: "employment-list", component: lazyView('pages/hrm/employment/employment-list') },
+      { path: "employment-list", 
+        component: lazyView('pages/hrm/employment/employment-list'),
+        meta: {
+          title: 'Employment List'
+        }
+      },
       { path: "departments", component: lazyView('pages/hrm/employees/employee-departments') },
       { path: "positions", component: lazyView('pages/hrm/employees/employee-positions') },
       { path: "policy", component: lazyView('pages/hrm/employees/employee-policy') },

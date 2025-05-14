@@ -31,10 +31,10 @@
                             <a-menu-item @click="$emit('export-pdf')">
                                 <i class="ti ti-file-type-pdf me-1"></i> PDF
                             </a-menu-item>
-                            <!-- <a-menu-item @click="$emit('export-excel')">
+                            <a-menu-item @click="$emit('export-excel')">
                                 <i class="ti ti-file-type-xls me-1"></i> Excel
                             </a-menu-item>
-                            <a-menu-item @click="$emit('export-csv')">
+                            <!--<a-menu-item @click="$emit('export-csv')">
                                 <i class="ti ti-file me-1"></i> CSV
                             </a-menu-item> -->
                         </a-menu>

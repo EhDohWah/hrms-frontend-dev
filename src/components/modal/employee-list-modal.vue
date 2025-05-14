@@ -2,10 +2,11 @@
   <!-- Add Employee -->
   <div class="modal fade" id="add_employee">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
+      <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+        <div class="modal-header"
+          style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 15px 20px;">
           <div class="d-flex align-items-center">
-            <h4 class="modal-title me-2">Add New Employee</h4>
+            <h4 class="modal-title me-2" style="color: #0067A5; font-weight: 600;">Add New Employee</h4>
           </div>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
@@ -94,17 +95,29 @@
                     </div>
                   </div>
                   <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Initial (EN)</label>
-                      <input type="text" class="form-control" placeholder="Enter English initial" maxlength="10"
-                        v-model="formData.initial_en" />
+                    <div class="input-block mb-3">
+                      <label class="form-label" for="initial-en">Initial (EN)</label>
+                      <select id="initial-en" v-model="formData.initial_en" class="form-control">
+                        <option value="" disabled selected>Select initial</option>
+                        <option v-for="initial in employeeInitialEN" :key="initial.id" :value="initial.value" :class="[
+                          'text-secondary'
+                        ]">
+                          {{ initial.value }}
+                        </option>
+                      </select>
                     </div>
                   </div>
                   <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Initial (TH)</label>
-                      <input type="text" class="form-control" placeholder="Enter Thai initial" maxlength="10"
-                        v-model="formData.initial_th" />
+                    <div class="input-block mb-3">
+                      <label class="form-label" for="initial-th">Initial (TH)</label>
+                      <select id="initial-th" v-model="formData.initial_th" class="form-control">
+                        <option value="" disabled selected>Select initial</option>
+                        <option v-for="initial in employeeInitialTH" :key="initial.id" :value="initial.value" :class="[
+                          'text-secondary'
+                        ]">
+                          {{ initial.value }}
+                        </option>
+                      </select>
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -236,7 +249,7 @@
                     </div>
                   </div>
 
-                  <div class="col-md-6">
+                  <!-- <div class="col-md-6">
                     <div class="mb-3">
                       <label class="form-label">Nationality <span class="text-danger"> *</span></label>
                       <select class="form-select" v-model="formData.nationality">
@@ -283,8 +296,8 @@
                   <div class="col-md-6">
                     <div class="mb-3">
                       <label class="form-label">Phone <span class="text-danger"> *</span></label>
-                      <input type="tel" class="form-control" v-model="formData.phone" placeholder="Enter phone number"
-                        required />
+                      <input type="tel" class="form-control" v-model="formData.mobile_phone"
+                        placeholder="Enter phone number" required />
                     </div>
                   </div>
 
@@ -296,14 +309,13 @@
                     </div>
                   </div>
 
-
                   <div class="col-md-12">
                     <div class="mb-3">
                       <label class="form-label">Permanent Address <span class="text-danger"> *</span></label>
                       <textarea class="form-control" v-model="formData.permanent_address"
                         placeholder="Enter permanent address" rows="3" required></textarea>
                     </div>
-                  </div>
+                  </div> -->
                   <!-- <div class="col-md-6">
                     <div class="mb-3">
                       <label class="form-label">Department</label>
@@ -324,11 +336,15 @@
                   </div> -->
                 </div>
               </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
+              <div class="modal-footer"
+                style="background-color: #f8f9fa; border-top: 1px solid #e9ecef; padding: 15px 20px;">
+                <button type="button" class="btn btn-outline-light border me-2"
+                  style="border-radius: 4px; padding: 8px 16px; font-weight: 500;" data-bs-dismiss="modal">
                   Cancel
                 </button>
-                <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                <button type="submit" class="btn btn-primary"
+                  style="background-color: #0067A5; border-color: #0067A5; border-radius: 4px; padding: 8px 16px; font-weight: 500;"
+                  :disabled="isSubmitting">
                   <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                     aria-hidden="true"></span>
                   Save
@@ -370,14 +386,18 @@
   <!-- Edit Employee -->
   <div class="modal fade" id="edit_employee" role="dialog">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
+      <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+        <div class="modal-header"
+          style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 15px 20px;">
           <div class="d-flex align-items-center">
-            <h4 class="modal-title me-2">Edit Employee</h4>
+            <h4 class="modal-title me-2" style="color: #0067A5; font-weight: 600;">Edit Employee</h4>
           </div>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
+        </div>
+        <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
+          {{ alertMessage }}
         </div>
         <form @submit.prevent="handleEditSubmit">
           <div class="modal-body pb-0">
@@ -402,6 +422,20 @@
                   <label class="form-label">Staff ID <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" placeholder="Enter staff ID"
                     v-model="editFormData.staff_id" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Initial (EN)</label>
+                  <input type="text" class="form-control" placeholder="Enter English initial" maxlength="10"
+                    v-model="editFormData.initial_en" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Initial (TH)</label>
+                  <input type="text" class="form-control" placeholder="Enter Thai initial" maxlength="10"
+                    v-model="editFormData.initial_th" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -433,32 +467,6 @@
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Initial (EN)</label>
-                  <input type="text" class="form-control" maxlength="10" placeholder="Enter English initial"
-                    v-model="editFormData.initial_en" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Initial (TH)</label>
-                  <input type="text" class="form-control" maxlength="10" placeholder="Enter Thai initial"
-                    v-model="editFormData.initial_th" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Joining Date</label>
-                  <input type="date" class="form-control" v-model="editFormData.joining_date" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Date of Birth</label>
-                  <input type="date" class="form-control" v-model="editFormData.date_of_birth" />
-                </div>
-              </div>
-              <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="edit-gender">Gender <span class="text-danger"> *</span></label>
                   <select id="edit-gender" v-model="editFormData.gender" class="form-control" required>
@@ -475,54 +483,27 @@
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Phone <span class="text-danger"> *</span></label>
-                  <input type="tel" class="form-control" v-model="editFormData.phone" placeholder="Enter phone number"
-                    required />
-                </div>
-              </div>
-
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="edit-nationality">Nationality</label>
-                  <select id="edit-nationality" v-model="editFormData.nationality" class="form-control">
-                    <option value="" disabled selected>Select nationality</option>
-                    <option value="Thai">Thai</option>
-                    <option value="Myanmar">Myanmar</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  <label class="form-label">Date of Birth <span class="text-danger"> *</span></label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="dateFormat" v-model="editFormData.date_of_birth" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="edit-religion">Religion</label>
-                  <select id="edit-religion" v-model="editFormData.religion" class="form-control">
-                    <option value="" disabled selected>Select religion</option>
-                    <option value="Buddhism">Buddhism</option>
-                    <option value="Christianity">Christianity</option>
-                    <option value="Islam">Islam</option>
-                    <option value="Hinduism">Hinduism</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="edit-marital-status">Marital Status</label>
-                  <select id="edit-marital-status" v-model="editFormData.marital_status" class="form-control">
-                    <option value="" disabled selected>Select marital status</option>
-                    <option value="Single">Single</option>
-                    <option value="Married">Married</option>
-                    <option value="Divorced">Divorced</option>
-                    <option value="Widowed">Widowed</option>
-                  </select>
+                <div class="mb-3">
+                  <label class="form-label">Age <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="editCalculatedAge" readonly />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="edit-employee-status">Status <span class="text-danger">
                       *</span></label>
-                  <select id="edit-employee-status" v-model="editFormData.employee_status" class="form-control"
-                    required>
+                  <select id="edit-employee-status" v-model="editFormData.status" class="form-control" required>
                     <option value="" disabled selected>Select status</option>
                     <option v-for="status in statuses" :key="status.id" :value="status.value" :class="[
                       status.value === 'Active' ? 'text-primary' :
@@ -534,28 +515,79 @@
                   </select>
                 </div>
               </div>
-
-              <div class="col-md-12">
+              <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Current Address</label>
-                  <textarea class="form-control" rows="3" v-model="editFormData.current_address"
-                    placeholder="Enter current address"></textarea>
+                  <label class="form-label">Nationality <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="editFormData.nationality">
+                    <option value="" disabled selected>Select Nationality</option>
+                    <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
+                      {{ nationality.value }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Religion <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="editFormData.religion">
+                    <option value="" disabled selected>Select Religion</option>
+                    <option v-for="religion in religions" :key="religion.id" :value="religion.value" :class="[
+                      religion.value === 'Buddhism' ? 'text-primary' :
+                        religion.value === 'Christianity' ? 'text-primary' :
+                          'text-secondary'
+                    ]">
+                      {{ religion.value }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Marital Status <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="editFormData.marital_status">
+                    <option value="" disabled selected>Select Marital Status</option>
+                    <option v-for="status in maritalStatuses" :key="status.id" :value="status.value" :class="[
+                      status.value === 'Single' ? 'text-primary' :
+                        status.value === 'Married' ? 'text-primary' :
+                          'text-secondary'
+                    ]">
+                      {{ status.value }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Phone <span class="text-danger"> *</span></label>
+                  <input type="tel" class="form-control" v-model="editFormData.mobile_phone"
+                    placeholder="Enter phone number" required />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">Permanent Address</label>
-                  <textarea class="form-control" rows="3" v-model="editFormData.permanent_address"
-                    placeholder="Enter permanent address"></textarea>
+                  <label class="form-label">Current Address <span class="text-danger"> *</span></label>
+                  <textarea class="form-control" v-model="editFormData.current_address"
+                    placeholder="Enter current address" rows="3" required></textarea>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Permanent Address <span class="text-danger"> *</span></label>
+                  <textarea class="form-control" v-model="editFormData.permanent_address"
+                    placeholder="Enter permanent address" rows="3" required></textarea>
                 </div>
               </div>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
+          <div class="modal-footer"
+            style="background-color: #f8f9fa; border-top: 1px solid #e9ecef; padding: 15px 20px;">
+            <button type="button" class="btn btn-outline-light border me-2"
+              style="border-radius: 4px; padding: 8px 16px; font-weight: 500;" data-bs-dismiss="modal">
               Cancel
             </button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+            <button type="submit" class="btn btn-primary"
+              style="background-color: #0067A5; border-color: #0067A5; border-radius: 4px; padding: 8px 16px; font-weight: 500;"
+              :disabled="isSubmitting">
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
               Update
@@ -574,20 +606,10 @@
           <div class="text-center p-3">
             <span class="avatar avatar-lg avatar-rounded bg-success mb-3"><i class="ti ti-check fs-24"></i></span>
             <h5 class="mb-2">Employee Added Successfully</h5>
-            <p class="mb-3">
-              Stephan Peralt has been added with Client ID :
-              <span class="text-primary">#EMP - 0001</span>
+            <p class="mb-3" v-if="lastAddedEmployee">
+              {{ lastAddedEmployee.first_name_en }} {{ lastAddedEmployee.last_name_en }} has been added with Staff ID :
+              <span class="text-primary">{{ lastAddedEmployee.staff_id }}</span>
             </p>
-            <div>
-              <div class="row g-2">
-                <div class="col-6">
-                  <router-link to="/employee/employee-list" class="btn btn-dark w-100">Back to List</router-link>
-                </div>
-                <div class="col-6">
-                  <router-link to="/employee/employee-details" class="btn btn-primary w-100">Detail Page</router-link>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -598,18 +620,21 @@
   <!-- Delete Modal -->
   <div class="modal fade" id="delete_modal">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content">
-        <div class="modal-body text-center">
-          <span class="avatar avatar-xl bg-transparent-danger text-danger mb-3">
+      <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
+        <div class="modal-body text-center" style="padding: 25px 20px;">
+          <span class="avatar avatar-xl bg-transparent-danger text-danger mb-3"
+            style="background-color: rgba(239, 68, 68, 0.1);">
             <i class="ti ti-trash-x fs-36"></i>
           </span>
-          <h4 class="mb-1">Confirm Delete</h4>
-          <p class="mb-3">
+          <h4 class="mb-1" style="color: #0067A5; font-weight: 600;">Confirm Delete</h4>
+          <p class="mb-3" style="color: #6B7280;">
             You want to delete all the marked items, this cant be undone once you delete.
           </p>
           <div class="d-flex justify-content-center">
-            <a href="javascript:void(0);" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</a>
-            <router-link to="/employee/employee-list" class="btn btn-danger">Yes, Delete</router-link>
+            <a href="javascript:void(0);" class="btn btn-light me-3"
+              style="border-radius: 4px; padding: 8px 16px; font-weight: 500;" data-bs-dismiss="modal">Cancel</a>
+            <router-link to="/employee/employee-list" class="btn btn-danger"
+              style="border-radius: 4px; padding: 8px 16px; font-weight: 500;">Yes, Delete</router-link>
           </div>
         </div>
       </div>
@@ -640,6 +665,10 @@ export default {
       maritalStatuses: [],
       statuses: [],
       editMode: false,
+      employeeLanguages: [],
+      employeeEducations: [],
+      employeeInitialEN: [],
+      employeeInitialTH: [],
       editFormData: {
         first_name_en: '',
         last_name_en: '',
@@ -651,7 +680,7 @@ export default {
         joining_date: '',
         age: '',
         status: '',
-        phone: '',
+        mobile_phone: '',
         current_address: '',
         permanent_address: '',
         subsidiary: '',
@@ -671,19 +700,19 @@ export default {
         initial_th: '',
         staff_id: '',
         joining_date: '',
-        phone: '',
-        current_address: '',
-        permanent_address: '',
+        // mobile_phone: '',
+        // current_address: '',
+        // permanent_address: '',
         subsidiary: '',
         status: '',
         age: '',
         gender: '',
-        nationality: '',
-        religion: '',
-        marital_status: '',
-        employee_status: '',
+        // nationality: '',
+        // religion: '',
+        // marital_status: '',
         date_of_birth: '',
       },
+      lastAddedEmployee: null,    // ← new
       isSubmitting: false,
       modalInstance: null,
       alertMessage: '',
@@ -706,6 +735,10 @@ export default {
     await this.initFetchReligion();
     await this.initFetchMaritalStatus();
     await this.initFetchEmployeeStatus();
+    await this.initFetchEmployeeLanguage();
+    await this.initFetchEmployeeEducation();
+    await this.initFetchEmployeeInitialEN();
+    await this.initFetchEmployeeInitialTH();
   },
   mounted() {
     // Initialize the modal when component is mounted
@@ -754,15 +787,28 @@ export default {
         const response = await employeeStore.createEmployee(this.formData);
 
         if (response && response.success) {
+          this.lastAddedEmployee = response.data; // ← new
           message.success('Employee added successfully');
           this.$emit('employee-added');
-          this.resetForm();
           if (this.modalInstance) {
             this.modalInstance.hide();
           }
-          // Show success modal
+
+
+
+          //Show success modal
           const successModal = new Modal(document.getElementById('success_modal'));
           successModal.show();
+
+          // 4. When the success modal closes, reset the form
+          successModal._element.addEventListener('hidden.bs.modal', () => {
+            // reset the form
+            this.resetForm();
+            this.lastAddedEmployee = null; // clear the snapshot
+          }, { once: true });
+
+
+
         } else {
           this.showAlert(response?.message || 'Failed to add employee', 'alert-danger');
           if (response?.errors) {
@@ -820,6 +866,31 @@ export default {
         clearTimeout(this.alertTimeout);
       }
     },
+
+    async fetchEmployeeLanguage() {
+      const lookupStore = useLookupStore();
+      const employeeLanguages = lookupStore.getLookupsByType('employee_language');
+      return employeeLanguages || [];
+    },
+
+    async fetchEmployeeEducation() {
+      const lookupStore = useLookupStore();
+      const employeeEducations = lookupStore.getLookupsByType('employee_education');
+      return employeeEducations || [];
+    },
+
+    async fetchEmployeeInitialEN() {
+      const lookupStore = useLookupStore();
+      const employeeInitialEN = lookupStore.getLookupsByType('employee_initial_en');
+      return employeeInitialEN || [];
+    },
+
+    async fetchEmployeeInitialTH() {
+      const lookupStore = useLookupStore();
+      const employeeInitialTH = lookupStore.getLookupsByType('employee_initial_th');
+      return employeeInitialTH || [];
+    },
+
 
     // Get subsidiary data from lookups
     async fetchSubsidiaries() {
@@ -887,6 +958,22 @@ export default {
         console.error('Error fetching employee statuses:', error);
         return [];
       }
+    },
+
+    async initFetchEmployeeLanguage() {
+      this.employeeLanguages = await this.fetchEmployeeLanguage();
+    },
+
+    async initFetchEmployeeEducation() {
+      this.employeeEducations = await this.fetchEmployeeEducation();
+    },
+
+    async initFetchEmployeeInitialEN() {
+      this.employeeInitialEN = await this.fetchEmployeeInitialEN();
+    },
+
+    async initFetchEmployeeInitialTH() {
+      this.employeeInitialTH = await this.fetchEmployeeInitialTH();
     },
 
     async initFetchGender() {

@@ -17,7 +17,7 @@ export const useLookupStore = defineStore('lookup', {
     hasError: (state) => !!state.error,
     getError: (state) => state.error,
 
-    // Get lookups by category/type
+    // Get lookups by category/t..
     getLookupsByType: (state) => (type) => {
       // First check if we have it in the organized lookupsByType object
       if (state.lookupsByType[type]) {

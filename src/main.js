@@ -56,6 +56,7 @@ import employeeDetailsModal from '@/components/modal/employee-details-modal.vue'
 
 import welcomeWrap from '@/views/pages/dashboard/admin-dashboard/welcome-wrap.vue';
 import welcomeHrManager from '@/views/pages/dashboard/hr-manager-dashboard/welcome-hr-manager.vue';
+import welcomeHrAssistant from '@/views/pages/dashboard/hr-assistant-dashboard/welcome-hr-assistant.vue';
 
 import TrainingTable from '@/views/pages/hrm/attendance/training/training-table.vue';
 import TrainersTable from '@/views/pages/hrm/attendance/training/trainers-table.vue';
@@ -103,7 +104,7 @@ import interviewsDetails from '@/views/pages/recruitment/interviews/interviews-d
 // Grant components
 import grantPositionModal from '@/components/modal/grant-position-modal.vue';
 import grantAllocateEmployeeModal from '@/components/modal/grant-allocate-employee-modal.vue';
-
+import employeeSalaryModal from '@/components/modal/employee-salary-modal.vue';             
 // Employee Training components
 import employeeTrainingList from '@/views/pages/hrm/attendance/training/employee-training-list.vue';
 
@@ -202,6 +203,7 @@ app.component('theme-color', themeColor)
 app.component('layout-footer', layoutFooter)
 app.component('employee-training-list', employeeTrainingList)
 app.component('employee-training-modal', employeeTrainingModal)
+app.component('employee-salary-modal', employeeSalaryModal)
 /*************Breadcrumb *****************/
 app.component('index-breadcrumb', indexBreadcrumb)
 
@@ -266,6 +268,7 @@ app.component('lookup-list', lookupList)
 app.component('employee-status', employeeStatus)
 app.component('welcome-wrap', welcomeWrap)
 app.component('welcome-hr-manager', welcomeHrManager)
+app.component('welcome-hr-assistant', welcomeHrAssistant)
 
 
 

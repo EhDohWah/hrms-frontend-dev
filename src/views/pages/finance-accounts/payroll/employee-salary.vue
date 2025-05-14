@@ -5,54 +5,36 @@
   <div class="page-wrapper">
     <div class="content">
       <!-- Breadcrumb -->
-      <div
-        class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
-      >
+      <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="me-2 mb-2">
+          <!-- <div class="me-2 mb-2">
             <div class="dropdown">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
+              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                data-bs-toggle="dropdown">
                 <i class="ti ti-file-export me-1"></i>Export
               </a>
               <ul class="dropdown-menu dropdown-menu-end p-3">
                 <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    ><i class="ti ti-file-type-pdf me-1"></i>Export as PDF</a
-                  >
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"><i
+                      class="ti ti-file-type-pdf me-1"></i>Export as PDF</a>
                 </li>
                 <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    ><i class="ti ti-file-type-xls me-1"></i>Export as Excel
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"><i
+                      class="ti ti-file-type-xls me-1"></i>Export as Excel
                   </a>
                 </li>
               </ul>
             </div>
-          </div>
+          </div> -->
 
           <div class="mb-2">
-            <a
-              href="javascript:void(0);"
-              data-bs-toggle="modal"
-              data-bs-target="#new-employee-salary"
-              class="btn btn-primary d-flex align-items-center"
-              ><i class="ti ti-circle-plus me-2"></i>Add Salary</a
-            >
+            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#new-employee-salary"
+              class="btn btn-primary d-flex align-items-center"><i class="ti ti-circle-plus me-2"></i>Add Salary</a>
           </div>
           <div class="head-icons ms-2">
-            <a
-              href="javascript:void(0);"
-              class=""
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              data-bs-original-title="Collapse"
-              id="collapse-header"
-              @click="toggleHeader"
-            >
+            <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+              data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
@@ -60,116 +42,9 @@
       </div>
       <!-- /Breadcrumb -->
 
-      <div class="row">
-        <!-- Total Payrolls -->
-        <div class="col-lg-3 col-md-6 d-flex">
-          <div class="card flex-fill">
-            <div class="card-body d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center overflow-hidden">
-                <div>
-                  <span class="avatar avatar-lg bg-dark rounded-circle"
-                    ><i class="ti ti-receipt"></i
-                  ></span>
-                </div>
-                <div class="ms-2 overflow-hidden">
-                  <p class="fs-12 fw-medium mb-1 text-truncate">Total Payrolls</p>
-                  <h4>{{ payrollStore.payrolls.length }}</h4>
-                </div>
-              </div>
-              <div>
-                <span class="badge badge-soft-purple badge-sm fw-normal">
-                  <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ new Date().toLocaleString('default', { month: 'long' }) }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- /Total Payrolls -->
-
-        <!-- Total Amount -->
-        <div class="col-lg-3 col-md-6 d-flex">
-          <div class="card flex-fill">
-            <div class="card-body d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center overflow-hidden">
-                <div>
-                  <span class="avatar avatar-lg bg-success rounded-circle"
-                    ><i class="ti ti-cash"></i
-                  ></span>
-                </div>
-                <div class="ms-2 overflow-hidden">
-                  <p class="fs-12 fw-medium mb-1 text-truncate">Total Amount</p>
-                  <h4>{{ calculateTotalAmount() }}</h4>
-                </div>
-              </div>
-              <div>
-                <span class="badge badge-soft-primary badge-sm fw-normal">
-                  <i class="ti ti-arrow-wave-right-down"></i>
-                  This Month
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- /Total Amount -->
-
-        <!-- Pending Payrolls -->
-        <div class="col-lg-3 col-md-6 d-flex">
-          <div class="card flex-fill">
-            <div class="card-body d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center overflow-hidden">
-                <div>
-                  <span class="avatar avatar-lg bg-warning rounded-circle"
-                    ><i class="ti ti-clock"></i
-                  ></span>
-                </div>
-                <div class="ms-2 overflow-hidden">
-                  <p class="fs-12 fw-medium mb-1 text-truncate">Pending</p>
-                  <h4>{{ countPendingPayrolls() }}</h4>
-                </div>
-              </div>
-              <div>
-                <span class="badge badge-soft-dark badge-sm fw-normal">
-                  <i class="ti ti-arrow-wave-right-down"></i>
-                  Awaiting
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- /Pending Payrolls -->
-
-        <!-- Processed Payrolls -->
-        <div class="col-lg-3 col-md-6 d-flex">
-          <div class="card flex-fill">
-            <div class="card-body d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center overflow-hidden">
-                <div>
-                  <span class="avatar avatar-lg bg-info rounded-circle"
-                    ><i class="ti ti-check"></i
-                  ></span>
-                </div>
-                <div class="ms-2 overflow-hidden">
-                  <p class="fs-12 fw-medium mb-1 text-truncate">Processed</p>
-                  <h4>{{ countProcessedPayrolls() }}</h4>
-                </div>
-              </div>
-              <div>
-                <span class="badge badge-soft-secondary badge-sm fw-normal">
-                  <i class="ti ti-arrow-wave-right-down"></i>
-                  Completed
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- /Processed Payrolls -->
-      </div>
 
       <div class="card">
-        <div
-          class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"
-        >
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Employee Salary List</h5>
           <div class="table-operations">
             <a-button @click="clearFilters">Clear filters</a-button>
@@ -186,27 +61,15 @@
               <p class="mt-2">Loading payrolls...</p>
             </div>
 
-            <a-table
-              v-else
-              class="table datatable thead-light bordered-table"
-              :columns="columns"
-              :scroll="{ x: 'max-content' }"
-              :data-source="payrolls"
-              :row-selection="rowSelection"
-              :pagination="pagination"
-              @change="handleChange"
-              :bordered="true"
-            >
+            <a-table v-else class="table datatable thead-light bordered-table" :columns="columns"
+              :scroll="{ x: 'max-content' }" :data-source="payrolls" :row-selection="rowSelection"
+              :pagination="pagination" @change="handleChange" :bordered="true">
               <!-- Employee Name column with highlighting -->
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'employeeName'">
                   <div class="d-flex align-items-center file-name-icon">
                     <a href="javascript:void(0);" class="avatar avatar-md">
-                      <img
-                        src="@/assets/img/users/user-32.jpg"
-                        class="img-fluid rounded-circle"
-                        alt="img"
-                      />
+                      <img src="@/assets/img/users/user-32.jpg" class="img-fluid rounded-circle" alt="img" />
                     </a>
                     <div class="ms-2">
                       <h6 class="fw-medium">
@@ -223,24 +86,19 @@
 
                 <!-- Department column -->
                 <template v-if="column.key === 'department'">
-                  <span 
-                    :class="[
-                      'badge badge-sm fw-normal',
-                      record.department === 'Finance' ? 'badge-primary' : 
-                      record.department === 'HR' ? 'badge-soft-primary fw-bold' : 
-                      'badge-secondary'
-                    ]"
-                  >
+                  <span :class="[
+                    'badge badge-sm fw-normal',
+                    record.department === 'Finance' ? 'badge-primary' :
+                      record.department === 'HR' ? 'badge-soft-primary fw-bold' :
+                        'badge-secondary'
+                  ]">
                     {{ record.department }}
                   </span>
                 </template>
 
                 <!-- Payslip column -->
                 <template v-if="column.key === 'payslip'">
-                  <router-link 
-                    :to="`/payroll/payslip/${record.id}`" 
-                    class="btn btn-sm btn-primary"
-                  >
+                  <router-link :to="`/payroll/payslip/${record.id}`" class="btn btn-sm btn-primary">
                     Generate Slip
                   </router-link>
                 </template>
@@ -248,19 +106,10 @@
                 <!-- Action column -->
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
-                    <a
-                      href="javascript:void(0);"
-                      class="me-2"
-                      data-bs-toggle="modal"
-                      data-bs-target="#edit-employee-salary"
-                      @click="editPayroll(record)"
-                      ><i class="ti ti-edit"></i
-                    ></a>
-                    <a
-                      href="javascript:void(0);"
-                      @click="confirmDeletePayroll(record.id)"
-                      ><i class="ti ti-trash"></i
-                    ></a>
+                    <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal"
+                      data-bs-target="#edit-employee-salary" @click="editPayroll(record)"><i class="ti ti-edit"></i></a>
+                    <a href="javascript:void(0);" @click="confirmDeletePayroll(record.id)"><i
+                        class="ti ti-trash"></i></a>
                   </div>
                 </template>
               </template>
@@ -273,7 +122,7 @@
     <layout-footer></layout-footer>
   </div>
   <!-- /Page Wrapper -->
-  <employee-salary-modal></employee-salary-modal>
+  <employee-salary-modal @update="fetchPayrolls"></employee-salary-modal>
 </template>
 
 <script>
@@ -285,6 +134,7 @@ import { usePayrollStore } from '@/stores/payrollStore';
 import { mapStores } from 'pinia';
 import { Modal } from 'ant-design-vue';
 
+
 export default {
   data() {
     return {
@@ -292,7 +142,7 @@ export default {
       text: "HR",
       text1: "Employee Salary",
       payrolls: [],
-      
+
       // Pagination
       currentPage: 1,
       pageSize: 10,
@@ -301,11 +151,11 @@ export default {
         showSizeChanger: true,
         showQuickJumper: false,
       },
-      
+
       // Filter and sort info
       filteredInfo: {},
       sortedInfo: {},
-      
+
       // Row selection configuration
       rowSelection: {
         onChange: (selectedRowKeys, selectedRows) => {
@@ -318,10 +168,10 @@ export default {
           console.log(selected, selectedRows, changeRows);
         },
       },
-      
+
       payrollToEdit: null,
       payrollToDelete: null,
-      
+
       // Sample demo record
       samplePayroll: {
         id: 'demo-1',
@@ -339,20 +189,44 @@ export default {
       },
     };
   },
-  
+
   computed: {
     ...mapStores(usePayrollStore),
-    
+
     // Define columns with filters and sorters
     columns() {
       const filtered = this.filteredInfo || {};
       const sorted = this.sortedInfo || {};
-      
+
       return [
+        {
+          title: 'ID',
+          dataIndex: 'id',
+          fixed: 'left',
+          key: 'id',
+        },
+
+        {
+          title: 'Dept',
+          dataIndex: 'department',
+          key: 'department',
+          fixed: 'left',
+          filters: this.getUniqueValues('department'),
+          filteredValue: filtered.department || null,
+          onFilter: (value, record) => record.department === value,
+          sorter: (a, b) => {
+            a = a.department.toLowerCase();
+            b = b.department.toLowerCase();
+            return a.localeCompare(b);
+          },
+          sortOrder: sorted.columnKey === 'department' && sorted.order,
+        },
         {
           title: 'Staff ID',
           dataIndex: 'staff_id',
           key: 'staff_id',
+          fixed: 'left',
+          filters: this.getUniqueValues('staff_id'),
           filteredValue: filtered.staff_id || null,
           onFilter: (value, record) => record.staff_id.includes(value),
           sorter: (a, b) => {
@@ -366,6 +240,7 @@ export default {
           title: 'Employee Name',
           dataIndex: 'employeeName',
           key: 'employeeName',
+          fixed: 'left',
           filteredValue: filtered.employeeName || null,
           onFilter: (value, record) => record.employeeName.toLowerCase().includes(value.toLowerCase()),
           sorter: (a, b) => {
@@ -376,40 +251,112 @@ export default {
           sortOrder: sorted.columnKey === 'employeeName' && sorted.order,
         },
         {
-          title: 'Department',
-          dataIndex: 'department',
-          key: 'department',
-          filters: this.getUniqueValues('department'),
-          filteredValue: filtered.department || null,
-          onFilter: (value, record) => record.department === value,
-          sorter: (a, b) => {
-            a = a.department.toLowerCase();
-            b = b.department.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'department' && sorted.order,
+          title: 'Salary',
+          dataIndex: 'salary',
+          key: 'salary',
+          sorter: (a, b) => a.salary - b.salary,
+          sortOrder: sorted.columnKey === 'salary' && sorted.order,
+          render: (text) => {
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
         },
+
         {
-          title: 'Position',
-          dataIndex: 'position',
-          key: 'position',
-          filters: this.getUniqueValues('position'),
-          filteredValue: filtered.position || null,
-          onFilter: (value, record) => record.position === value,
-          sorter: (a, b) => {
-            a = a.position.toLowerCase();
-            b = b.position.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'position' && sorted.order,
+          title: 'Retroactive Fund',
+          dataIndex: 'retroactive_fund',
+          key: 'retroactive_fund',
+          sorter: (a, b) => (a.retroactive_fund || 0) - (b.retroactive_fund || 0),
+          sortOrder: sorted.columnKey === 'retroactive_fund' && sorted.order,
+          render: (text) => {
+            if (!text) return '฿0.00';
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
         },
+
         {
-          title: 'Created Date',
-          dataIndex: 'created_at',
-          key: 'created_at',
-          sorter: (a, b) => moment(a.created_at).unix() - moment(b.created_at).unix(),
-          sortOrder: sorted.columnKey === 'created_at' && sorted.order,
+          title: '13 mo.salary',
+          dataIndex: 'thirteenth_month_salary',
+          key: 'thirteenth_month_salary',
+          sorter: (a, b) => (a.thirteenth_month_salary || 0) - (b.thirteenth_month_salary || 0),
+          sortOrder: sorted.columnKey === 'thirteenth_month_salary' && sorted.order,
+          render: (text) => {
+            if (!text) return '฿0.00';
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
         },
+
+        {
+          title: 'Salary Accrue',
+          dataIndex: 'salary_accrue',
+          key: 'salary_accrue',
+          sorter: (a, b) => (a.salary_accrue || 0) - (b.salary_accrue || 0),
+          sortOrder: sorted.columnKey === 'salary_accrue' && sorted.order,
+          render: (text) => {
+            if (!text) return '฿0.00';
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        },
+
+        {
+          title: 'PVD/Saving Fund',
+          dataIndex: 'pvd_saving_fund',
+          key: 'pvd_saving_fund',
+          sorter: (a, b) => (a.pvd_saving_fund || 0) - (b.pvd_saving_fund || 0),
+          sortOrder: sorted.columnKey === 'pvd_saving_fund' && sorted.order,
+          render: (text) => {
+            if (!text) return '฿0.00';
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        },
+
+        {
+          title: 'SSF',
+          dataIndex: 'ssf',
+          key: 'ssf',
+          sorter: (a, b) => (a.ssf || 0) - (b.ssf || 0),
+          sortOrder: sorted.columnKey === 'ssf' && sorted.order,
+          render: (text) => {
+            if (!text) return '฿0.00';
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        },
+
+        {
+          title: 'H/W',
+          dataIndex: 'hw',
+          key: 'hw',
+          sorter: (a, b) => (a.hw || 0) - (b.hw || 0),
+          sortOrder: sorted.columnKey === 'hw' && sorted.order,
+          render: (text) => {
+            if (!text) return '฿0.00';
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        },
+
+        {
+          title: 'Tax',
+          dataIndex: 'tax',
+          key: 'tax',
+          sorter: (a, b) => (a.tax || 0) - (b.tax || 0),
+          sortOrder: sorted.columnKey === 'tax' && sorted.order,
+          render: (text) => {
+            if (!text) return '฿0.00';
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        },
+
+        {
+          title: 'Net Salary',
+          dataIndex: 'net_paid',
+          key: 'net_paid',
+          sorter: (a, b) => (a.net_paid || 0) - (b.net_paid || 0),
+          sortOrder: sorted.columnKey === 'net_paid' && sorted.order,
+          render: (text) => {
+            if (!text) return '฿0.00';
+            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        },
+
         {
           title: 'Payslip',
           dataIndex: 'payslip',
@@ -418,10 +365,11 @@ export default {
         {
           title: 'Actions',
           key: 'action',
+          fixed: 'right',
         },
       ];
     },
-    
+
     pagination() {
       return {
         ...this.paginationSettings,
@@ -432,30 +380,30 @@ export default {
       };
     }
   },
-  
+
   mounted() {
     this.fetchPayrolls();
     this.$nextTick(() => {
       this.initializeDateRangePicker();
     });
   },
-  
+
   beforeUnmount() {
     // Cleanup DateRangePicker when component is destroyed
     if (this.daterangepicker) {
       this.daterangepicker.remove();
     }
   },
-  
+
   methods: {
     // Get unique values for filter dropdowns
     getUniqueValues(field) {
       if (!this.payrolls || this.payrolls.length === 0) return [];
-      
+
       const uniqueValues = [...new Set(this.payrolls.map(item => item[field]))].filter(Boolean);
       return uniqueValues.map(value => ({ text: value, value }));
     },
-    
+
     // Handle table change (pagination, filters, sorter)
     handleChange(pagination, filters, sorter) {
       console.log('Various parameters', pagination, filters, sorter);
@@ -464,27 +412,27 @@ export default {
       this.currentPage = pagination.current;
       this.pageSize = pagination.pageSize;
     },
-    
+
     // Clear all filters
     clearFilters() {
       this.filteredInfo = {};
     },
-    
+
     // Clear all filters and sorters
     clearAll() {
       this.filteredInfo = {};
       this.sortedInfo = {};
     },
-    
+
     toggleHeader() {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
     },
-    
+
     booking_range(start, end) {
       return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
     },
-    
+
     initializeDateRangePicker() {
       const dateRangeInput = this.$refs.dateRangeInput;
       if (dateRangeInput) {
@@ -514,7 +462,7 @@ export default {
         this.booking_range(start, end);
       }
     },
-    
+
     mapPayrollData(data) {
       return data.map(payroll => ({
         id: payroll.id,
@@ -531,22 +479,22 @@ export default {
         payslip_number: payroll.payslip_number || 'Not Generated'
       }));
     },
-    
+
     async fetchPayrolls() {
       try {
         await this.payrollStore.fetchPayrolls();
         this.payrolls = this.mapPayrollData(this.payrollStore.payrolls);
-        
-        // Add sample demo record if needed for testing
-        this.addSampleRecord();
-        
+
+        // // Add sample demo record if needed for testing
+        // this.addSampleRecord();
+
         this.$message.success('Payrolls loaded successfully');
       } catch (error) {
         console.error("Error fetching payrolls:", error);
         this.$message.error('Failed to load payrolls');
       }
     },
-    
+
     // Add a sample record for demo purposes
     addSampleRecord() {
       // Check if the demo record already exists
@@ -555,36 +503,36 @@ export default {
         this.payrolls.unshift(this.samplePayroll);
       }
     },
-    
+
     calculateTotalAmount() {
       if (!this.payrollStore.payrolls || this.payrollStore.payrolls.length === 0) {
         return '$0.00';
       }
-      
+
       const total = this.payrollStore.payrolls.reduce((sum, payroll) => {
         return sum + (parseFloat(payroll.net_paid) || 0);
       }, 0);
-      
+
       return '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     },
-    
+
     countPendingPayrolls() {
       if (!this.payrollStore.payrolls) return 0;
-      
+
       return this.payrollStore.payrolls.filter(payroll => !payroll.payslip_number).length;
     },
-    
+
     countProcessedPayrolls() {
       if (!this.payrollStore.payrolls) return 0;
-      
+
       return this.payrollStore.payrolls.filter(payroll => payroll.payslip_number).length;
     },
-    
+
     editPayroll(payroll) {
       this.payrollToEdit = payroll;
       // The modal will be shown by the data-bs-target attribute
     },
-    
+
     confirmDeletePayroll(id) {
       Modal.confirm({
         title: 'Are you sure you want to delete this payroll?',
@@ -598,10 +546,10 @@ export default {
         }
       });
     },
-    
+
     async deletePayroll(id) {
       if (!id) return;
-      
+
       try {
         await this.payrollStore.deletePayroll(id);
         this.$message.success('Payroll deleted successfully');
@@ -628,7 +576,7 @@ export default {
   margin-bottom: 16px;
 }
 
-.table-operations > button {
+.table-operations>button {
   margin-right: 8px;
 }
 
@@ -647,7 +595,7 @@ export default {
 }
 
 /* Persistent hover effect - keeps the background color until cursor leaves the row */
-:deep(.ant-table-tbody > tr:hover) > td {
+:deep(.ant-table-tbody > tr:hover)>td {
   background-color: #f0f7ff !important;
   transition: background-color 0.1s ease;
 }

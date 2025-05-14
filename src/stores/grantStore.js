@@ -23,6 +23,39 @@ export const useGrantStore = defineStore('grant', {
   },
 
   actions: {
+
+    async getGrantByCode(code) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.getGrantByCode(code);
+        
+        // Check if response.data exists; if not, assume response is the data
+        const grantData = response.data || response;
+        
+        // Update the grants array with the fetched grant if it exists
+        if (grantData) {
+          // Check if the grant already exists in the store
+          const existingIndex = this.grants.findIndex(g => g.id === grantData.id);
+          if (existingIndex >= 0) {
+            // Update existing grant
+            this.grants[existingIndex] = grantData;
+          } else {
+            // Add new grant to the array
+            this.grants.push(grantData);
+          }
+        }
+        
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch grant by code';
+        console.error('Error fetching grant by code:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
     async fetchGrants() {
       try {
         this.loading = true;

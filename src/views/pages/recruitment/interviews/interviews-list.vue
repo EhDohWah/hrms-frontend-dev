@@ -353,7 +353,7 @@ export default {
         if (this.interviewStore.interviews) {
           this.interviews = this.interviewStore.interviews.map(interview => ({
             ...interview,
-            interview_date: interview.interview_date ? moment(interview.interview_date).format('DD/MM/YYYY') : '',
+            interview_date: interview.interview_date ? moment(interview.interview_date).format('DD MMM YYYY') : '',
 
           }));
           this.total = this.interviews.length;

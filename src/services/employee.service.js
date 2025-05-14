@@ -3,6 +3,11 @@ import { API_ENDPOINTS } from '../config/api.config';
 
 class EmployeeService {
 
+    // Tree search
+    async treeSearch(params = {}) {
+        return await apiService.get(API_ENDPOINTS.EMPLOYEE.TREE_SEARCH, { params });
+    }
+
     // employee.service.js
     /**
      * @param {number[]} ids
@@ -12,7 +17,7 @@ class EmployeeService {
         API_ENDPOINTS.EMPLOYEE.DELETE_SELECTED, 
         { ids }      // ← this will now become the JSON body
         );
-     }
+    }
 
 
     // Get all employees with pagination and filtering support

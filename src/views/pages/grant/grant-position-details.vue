@@ -359,8 +359,8 @@ export default {
                             staffId: employee.staff_id || 'N/A',
                             employeeName: `${employee.first_name_en || 'N/A'} ${employee.last_name_en !== '-' ? employee.last_name_en : ''}`.trim() || 'N/A',
                             levelOfEffort: response.data.level_of_effort || 'N/A',
-                            startDate: response.data.start_date || 'N/A',
-                            endDate: response.data.end_date || 'N/A',
+                            startDate: response.data.start_date ? moment(response.data.start_date).format('DD MMM YYYY') : 'N/A',
+                            endDate: response.data.end_date ? moment(response.data.end_date).format('DD MMM YYYY') : 'N/A',
                             active: response.data.active === '1'
                         }));
                     } else {

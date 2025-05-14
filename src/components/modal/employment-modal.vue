@@ -28,11 +28,9 @@
               <label class="form-label">Employment Type</label>
               <select class="form-select" v-model="formData.employment_type" required>
                 <option disabled value="">Select Type</option>
-                <option value="Full-Time">Full-Time</option>
-                <option value="Part-Time">Part-Time</option>
-                <option value="Contract">Contract</option>
-                <option value="Temporary">Temporary</option>
-                <option value="Internship">Internship</option>
+                <option v-for="type in employmentTypes" :key="type.id" :value="type.value">
+                  {{ type.value }}
+                </option>
               </select>
             </div>
 
@@ -60,44 +58,82 @@
 
             <!-- Start Date -->
             <div class="mb-3">
-              <label class="form-label">Start Date</label>
-              <input type="date" class="form-control" v-model="formData.start_date" required />
+              <label class="form-label">Start Date <span class="text-danger"> *</span></label>
+              <div class="input-icon-end position-relative">
+                <date-picker v-model="formData.start_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                  :editable="true" :clearable="false" :input-format="dateFormat" required />
+                <span class="input-icon-addon">
+                  <i class="ti ti-calendar text-gray-7"></i>
+                </span>
+              </div>
             </div>
 
             <!-- End Date -->
             <div class="mb-3">
-              <label class="form-label">End Date</label>
-              <input type="date" class="form-control" v-model="formData.end_date" />
+              <label class="form-label">End Date <span class="text-danger"> *</span></label>
+              <div class="input-icon-end position-relative">
+                <date-picker v-model="formData.end_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                  :editable="true" :clearable="false" :input-format="dateFormat" required />
+                <span class="input-icon-addon">
+                  <i class="ti ti-calendar text-gray-7"></i>
+                </span>
+              </div>
             </div>
 
             <!-- Probation End Date -->
             <div class="mb-3">
               <label class="form-label">Probation End Date</label>
-              <input type="date" class="form-control" v-model="formData.probation_end_date" />
+              <div class="input-icon-end position-relative">
+                <date-picker v-model="formData.probation_end_date" class="form-control datetimepicker"
+                  placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                <span class="input-icon-addon">
+                  <i class="ti ti-calendar text-gray-7"></i>
+                </span>
+              </div>
             </div>
 
             <!-- Position Salary -->
             <div class="mb-3">
               <label class="form-label">Position Salary</label>
-              <input type="number" class="form-control" v-model="formData.position_salary" required />
+              <div class="input-icon-end position-relative">
+                <input type="number" class="form-control" v-model="formData.position_salary" required />
+                <span class="input-icon-addon">
+                  <i class="ti ti-currency-baht text-gray-7"></i>
+                </span>
+              </div>
             </div>
 
             <!-- Probation Salary -->
             <div class="mb-3">
               <label class="form-label">Probation Salary</label>
-              <input type="number" class="form-control" v-model="formData.probation_salary" />
+              <div class="input-icon-end position-relative">
+                <input type="number" class="form-control" v-model="formData.probation_salary" />
+                <span class="input-icon-addon">
+                  <i class="ti ti-currency-baht text-gray-7"></i>
+                </span>
+              </div>
             </div>
 
             <!-- Employee Tax -->
             <div class="mb-3">
               <label class="form-label">Employee Tax (%)</label>
-              <input type="number" class="form-control" v-model="formData.employee_tax" />
+              <div class="input-icon-end position-relative">
+                <input type="number" class="form-control" v-model="formData.employee_tax" />
+                <span class="input-icon-addon">
+                  <i class="ti ti-percent text-gray-7"></i>
+                </span>
+              </div>
             </div>
 
             <!-- FTE -->
             <div class="mb-3">
               <label class="form-label">FTE (Full-Time Equivalent)</label>
-              <input type="number" step="0.1" min="0" max="1" class="form-control" v-model="formData.fte" />
+              <div class="input-icon-end position-relative">
+                <input type="number" step="0.1" min="0" max="1" class="form-control" v-model="formData.fte" />
+                <span class="input-icon-addon">
+                  <i class="ti ti-percent text-gray-7"></i>
+                </span>
+              </div>
             </div>
 
             <!-- Active Checkbox -->
@@ -115,11 +151,13 @@
                 </label>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="pvd" v-model="formData.pvd" />
+                <input class="form-check-input" type="checkbox" id="pvd" v-model="formData.pvd"
+                  :checked="formData.employment_type === 'Local ID Staff'" @change="handlePvdChange" />
                 <label class="form-check-label" for="pvd">PVD</label>
               </div>
               <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="savingFund" v-model="formData.saving_fund" />
+                <input class="form-check-input" type="checkbox" id="savingFund" v-model="formData.saving_fund"
+                  :checked="formData.employment_type === 'Local non ID Staff'" @change="handleSavingFundChange" />
                 <label class="form-check-label" for="savingFund">
                   Saving Fund
                 </label>
@@ -147,7 +185,7 @@ import { employmentService } from '@/services/employment.service';
 import { employeeService } from '@/services/employee.service';
 import { departmentPositionService } from '@/services/department-position.service';
 import { workLocationService } from '@/services/worklocation.service';
-
+import { useLookupStore } from '@/stores/lookupStore';
 
 export default {
   name: 'EmploymentModal',
@@ -171,9 +209,9 @@ export default {
         employment_type: '',
         department_position_id: '',
         work_location_id: '',
-        start_date: '',
-        end_date: '',
-        probation_end_date: '',
+        start_date: null,
+        end_date: null,
+        probation_end_date: null,
         position_salary: '',
         probation_salary: '',
         employee_tax: '',
@@ -183,13 +221,15 @@ export default {
         pvd: false,
         saving_fund: false
       },
+      dateFormat: "dd-MM-yyyy",
       isSubmitting: false,
       modalInstance: null,
       employees: [],
       perPage: 10,
       departmentPositions: [],
       workLocations: [],
-      employeeTreeData: []
+      employeeTreeData: [],
+      employmentTypes: []
     };
   },
   watch: {
@@ -197,6 +237,9 @@ export default {
       handler(newVal) {
         if (newVal) {
           this.formData = { ...newVal };
+          this.formData.start_date = new Date(this.formData.start_date);
+          this.formData.end_date = new Date(this.formData.end_date);
+          this.formData.probation_end_date = new Date(this.formData.probation_end_date);
         }
       },
       deep: true
@@ -219,12 +262,25 @@ export default {
     this.fetchDepartmentPositions();
 
     // Fetch employees
-    this.fetchEmployees(this.perPage);
+    this.fetchEmployees();
 
     // Fetch work locations
     this.fetchWorkLocations();
+
+    // Fetch employment types
+    this.initFetchEmploymentTypes();
   },
   methods: {
+
+    async initFetchEmploymentTypes() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.employmentTypes = lookupStore.getLookupsByType('employment_type');
+    },
+
+
     openModal() {
       if (this.editMode && this.employmentData) {
         this.formData = { ...this.employmentData };
@@ -244,6 +300,7 @@ export default {
         }
       }
     },
+
     async handleSubmit() {
       this.isSubmitting = true;
       this.alertMessage = '';
@@ -305,6 +362,7 @@ export default {
       this.alertMessage = '';
       this.alertClass = '';
     },
+
     async fetchDepartmentPositions() {
       try {
         const response = await departmentPositionService.getAllDepartmentPositions();
@@ -316,50 +374,14 @@ export default {
         message.error('Failed to load department positions');
       }
     },
-    async fetchEmployees(perPage) {
+
+    async fetchEmployees() {
       try {
-        // Prepare parameters for API request
-        const params = {
-          page: 1,
-          per_page: perPage
-        };
-
-        const response = await employeeService.getEmployees(params);
-        if (response.data) {
-          this.employees = response.data;
-
-          // Organize employees by subsidiary for tree select
-          const subsidiaries = {};
-
-          // Group employees by subsidiary
-          response.data.forEach(emp => {
-            const subsidiaryName = emp.subsidiary?.name || 'Other';
-            if (!subsidiaries[subsidiaryName]) {
-              subsidiaries[subsidiaryName] = [];
-            }
-            subsidiaries[subsidiaryName].push(emp);
-          });
-
-          // Convert to tree data format
-          this.employeeTreeData = Object.keys(subsidiaries).map(subsidiary => {
-            return {
-              title: subsidiary,
-              key: `subsidiary-${subsidiary}`,
-              value: `subsidiary-${subsidiary}`,
-              selectable: false,
-              children: subsidiaries[subsidiary].map(emp => {
-                const fullName = `${emp.staff_id || ''} - ${emp.first_name_en || ''} ${emp.last_name_en || ''}`;
-                return {
-                  key: `employee-${emp.id}`,
-                  title: fullName,
-                  value: emp.id
-                };
-              })
-            };
-          });
-        }
+        const response = await employeeService.treeSearch();
+        // The API now directly returns the tree structure we need
+        this.employeeTreeData = response.data || [];
       } catch (error) {
-        console.error('Error fetching employees:', error);
+        console.error('Error loading employees:', error);
         message.error('Failed to load employees');
       }
     },

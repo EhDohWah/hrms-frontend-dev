@@ -39,14 +39,26 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Start Date</label>
-                  <input type="date" v-model="formData.startDate" class="form-control" />
+                  <div class="input-icon-end position-relative">
+                    <date-picker v-model="formData.startDate" class="form-control datetimepicker"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                 </div>
               </div>
               <!-- End Date -->
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">End Date</label>
-                  <input type="date" v-model="formData.endDate" class="form-control" />
+                  <div class="input-icon-end position-relative">
+                    <date-picker v-model="formData.endDate" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                      :editable="true" :clearable="false" :input-format="dateFormat" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                 </div>
               </div>
               <!-- Employee Selection TreeSelect -->
@@ -148,39 +160,9 @@ export default {
 
     async loadEmployees() {
       try {
-        const response = await employeeService.getEmployees();
-        const employees = response.data || [];
-
-        // Group employees by subsidiary
-        const grouped = employees.reduce((acc, employee) => {
-          const sub = employee.subsidiary;
-          if (!acc[sub]) {
-            acc[sub] = [];
-          }
-          acc[sub].push(employee);
-          return acc;
-        }, {});
-
-        // Map each subsidiary into a parent node with its employees as children.
-        this.employeeTreeData = Object.keys(grouped).map(subsidiary => {
-          return {
-            key: `subsidiary-${subsidiary}`,
-            title: subsidiary,
-            value: `subsidiary-${subsidiary}`,
-            children: grouped[subsidiary].map(emp => {
-              // Use first_name_en and last_name_en for display, or adjust as needed.
-              const staff_id = emp.staff_id;
-              const fullName =
-                emp.first_name_en +
-                (emp.last_name_en && emp.last_name_en !== '-' ? ' ' + emp.last_name_en : '');
-              return {
-                key: `employee-${emp.id}`,
-                title: staff_id + ' - ' + fullName,
-                value: `employee-${emp.id}`
-              };
-            })
-          };
-        });
+        const response = await employeeService.treeSearch();
+        // The API now directly returns the tree structure we need
+        this.employeeTreeData = response.data || [];
       } catch (error) {
         console.error('Error loading employees:', error);
         this.$message.error('Failed to load employees');

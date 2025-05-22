@@ -198,7 +198,7 @@
             </div>
 
             <!-- Loading Indicator -->
-            <div v-if="employeeStore.loading" class="text-center py-4">
+            <div v-if="employeeStore.loading" class="text-center py-4"> 
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>

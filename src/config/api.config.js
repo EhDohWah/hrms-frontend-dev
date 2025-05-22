@@ -236,6 +236,7 @@ export const API_ENDPOINTS = {
         UPDATE: '/payrolls/:id',
         DELETE: '/payrolls/:id',
         DETAILS: '/payrolls/:id',
+        EMPLOYEE_EMPLOYMENT: '/payrolls/employee-employment'
     },
 
     // Employee grant allocation endpoints

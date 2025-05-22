@@ -2,6 +2,14 @@ import { apiService } from '@/services/api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
 
 class PayrollService {
+  // Get employee employment details
+  async getEmployeeEmploymentDetails(employeeId) {
+    // build the URL with the query string
+    const base = API_ENDPOINTS.PAYROLL.EMPLOYEE_EMPLOYMENT;           // "/payrolls/employee-employment"
+    const url  = `${base}?employee_id=${encodeURIComponent(employeeId)}`;
+    return apiService.get(url);
+  }
+
   // Fetch all payrolls
   async getAllPayrolls() {
     return await apiService.get(API_ENDPOINTS.PAYROLL.LIST);

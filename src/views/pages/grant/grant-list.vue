@@ -142,7 +142,7 @@
                               style="margin: -5px 0; width: 100%" :min="0" :max="100" />
                           </template>
                           <template v-else>
-                            {{ text }}%
+                            {{ (text || 0) * 100 }}%
                           </template>
                         </div>
                       </template>
@@ -527,7 +527,11 @@ export default {
     edit(id) {
       const item = this.tableData.flatMap(grant => grant.items || []).find(item => item.id === id);
       if (item) {
-        this.editableData[id] = cloneDeep(item);
+        // Convert DB decimal to percent
+        this.editableData[id] = {
+          ...cloneDeep(item),
+          grant_level_of_effort: item.grant_level_of_effort ? Math.round(parseFloat(item.grant_level_of_effort) * 100) : 0
+        };
       }
     },
 
@@ -535,21 +539,18 @@ export default {
     async save(id) {
       if (!this.editableData[id]) return;
 
-      const itemData = this.editableData[id];
+      const itemData = { ...this.editableData[id] };
+
+      // UI/DB Conversion: percent ➔ decimal (save as string to 2 decimals)
+      itemData.grant_level_of_effort = (itemData.grant_level_of_effort / 100).toFixed(2);
 
       // Basic validation
       if (
-        // budget line
         !itemData.bg_line ||
-        // position
         !itemData.grant_position ||
-        // salary
         itemData.grant_salary == null ||
-        // benefit
         itemData.grant_benefit == null ||
-        // level of effort
         itemData.grant_level_of_effort == null ||
-        // position number
         itemData.grant_position_number == null
       ) {
         this.$message.error('Please fill in all fields');
@@ -560,10 +561,8 @@ export default {
         let updatedItem;
 
         if (itemData.__isNew) {
-          // Creating a new item
           updatedItem = await this.grantStore.createGrantItem(itemData);
         } else {
-          // Updating an existing item
           await this.grantStore.updateGrantItem(id, itemData);
           updatedItem = itemData;
         }
@@ -584,10 +583,7 @@ export default {
         }
 
         delete this.editableData[id];
-
         this.$message.success(itemData.__isNew ? 'Grant item created' : 'Grant item updated');
-
-        // Reload from API to get fresh data (optional)
         this.fetchGrants();
       } catch (error) {
         console.error('Error saving grant item:', error);
@@ -702,7 +698,7 @@ export default {
         // Calculate cost by monthly
         const salary = parseFloat(item.grant_salary || 0);
         const benefit = parseFloat(item.grant_benefit || 0);
-        const effort = parseFloat(item.grant_level_of_effort || 0) / 100;
+        const effort = parseFloat(item.grant_level_of_effort || 0);
 
         const costByMonthly = (salary + benefit) * effort;
         const totalAmountYear = costByMonthly * 12 * item.grant_position_number;

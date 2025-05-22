@@ -1,37 +1,42 @@
 <template>
-  <!-- Add Employee Salary -->
-  <div class="modal fade" id="new-employee-salary">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+  <!-- Employee Salary -->
+  <div class="modal fade" id="new-employee-salary" tabindex="-1" role="dialog" aria-labelledby="myExtraLargeModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen">
       <div class="modal-content">
         <!-- header -->
         <div class="modal-header">
-          <h4 class="modal-title">Add Employee Salary</h4>
+          <h4 class="modal-title" id="myExtraLargeModalLabel">Add Employee Salary</h4>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal">
             <i class="ti ti-x"></i>
           </button>
         </div>
 
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="accordion" id="addSalaryAccordion">
-              <!-- Employee Info -->
-              <div class="accordion-item" :class="{ active: open.employeeInfo }">
-                <div class="accordion-header" @click="toggle('employeeInfo')">
-                  <div class="arrow"></div>
-                  <div class="title">Employee Information</div>
-                </div>
-                <div class="accordion-content">
-                  <div class="inner">
-                    <div class="row">
-                      <div class="col-12 col-md-6 mb-3">
+        <div class="modal-body pb-0 resize-observer-fix">
+          <div class="accordion" id="addSalaryAccordion">
+            <!-- Employee Info -->
+            <div class="accordion-item" :class="{ active: open.employeeInfo }">
+              <div class="accordion-header" @click="toggle('employeeInfo')">
+                <div class="arrow"></div>
+                <div class="title">Employee Information</div>
+              </div>
+              <div class="accordion-content">
+                <div class="inner">
+                  <div class="row">
+                    <!-- LEFT column: both selector & date -->
+                    <div class="col-12 col-md-4">
+                      <!-- Employee selector -->
+                      <div class="mb-3">
                         <label class="form-label">Employee Name</label>
-                        <a-tree-select v-model:value="formData.employee_id" show-search style="width: 100%;"
-                          :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }" placeholder="Select employee"
-                          allow-clear tree-default-expand-all :tree-data="employeeTreeData"
-                          tree-node-filter-prop="title" :getPopupContainer="getPopupContainer" required />
+                        <a-tree-select v-model:value="formData.employee_id" show-search allow-clear
+                          placeholder="Select employee" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+                          @change="onEmployeeSelect" :tree-data="processedTreeData" tree-node-filter-prop="title"
+                          :getPopupContainer="getPopupContainer" style="width:100%" />
                       </div>
-                      <div class="col-12 col-md-6 mb-3">
-                        <label class="form-label">Pay Period Date <span class="text-danger"> *</span></label>
+
+                      <!-- Pay period date sits under the selector -->
+                      <div class="mb-3">
+                        <label class="form-label">Pay Period Date <span class="text-danger">*</span></label>
                         <div class="input-icon-end position-relative">
                           <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
                             :clearable="false" :input-format="dateFormat" v-model="formData.pay_period_date"
@@ -42,213 +47,24 @@
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
 
-              <!-- Earnings -->
-              <div class="accordion-item" :class="{ active: open.earnings }">
-                <div class="accordion-header" @click="toggle('earnings')">
-                  <div class="arrow"></div>
-                  <div class="title">Earnings</div>
-                </div>
-                <div class="accordion-content">
-                  <div class="inner">
-                    <div class="row">
-                      <div class="col-sm-6 col-md-4 mb-3" v-for="field in earningFields" :key="field.key">
-                        <label class="form-label">{{ field.label }}</label>
-                        <div class="input-group">
-                          <span class="input-group-text">&#3647;</span>
-                          <input type="number" class="form-control" v-model="formData[field.key]"
-                            @input="calculateTotals" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="alert alert-success summary">
-                      <strong>Total Earnings: {{ formatMoney(formData.grand_total_income) }}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                    <!-- RIGHT column: the employee-details card spans both of the above -->
+                    <div class="col-12 col-md-8" v-if="employeeDetails">
+                      <a-card class="employee-card p-3">
+                        <div class="d-flex align-items-center">
 
-              <!-- Deductions -->
-              <div class="accordion-item" :class="{ active: open.deductions }">
-                <div class="accordion-header" @click="toggle('deductions')">
-                  <div class="arrow"></div>
-                  <div class="title">Deductions</div>
-                </div>
-                <div class="accordion-content">
-                  <div class="inner">
-                    <div class="row">
-                      <div class="col-sm-6 col-md-4 mb-3" v-for="field in deductionFields" :key="field.key">
-                        <label class="form-label">{{ field.label }}</label>
-                        <div class="input-group">
-                          <span class="input-group-text">&#3647;</span>
-                          <input type="number" class="form-control" v-model="formData[field.key]"
-                            @input="calculateTotals" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="alert alert-danger summary">
-                      <strong>Total Deductions: {{ formatMoney(formData.grand_total_deduction) }}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Employer Contributions -->
-              <div class="accordion-item" :class="{ active: open.employerContrib }">
-                <div class="accordion-header" @click="toggle('employerContrib')">
-                  <div class="arrow"></div>
-                  <div class="title">Employer Contributions</div>
-                </div>
-                <div class="accordion-content">
-                  <div class="inner">
-                    <div class="row">
-                      <div class="col-sm-6 mb-3" v-for="field in employerFields" :key="field.key">
-                        <label class="form-label">{{ field.label }}</label>
-                        <div class="input-group">
-                          <span class="input-group-text">&#3647;</span>
-                          <input type="number" class="form-control" v-model="formData[field.key]"
-                            @input="calculateEmployerContribution" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="alert alert-info summary">
-                      <strong>Total Employer Contribution: {{ formatMoney(formData.employer_contribution_total)
-                      }}</strong>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 3) Grant Information -->
-              <div class="accordion-item" :class="{ active: open.grantInfo }">
-                <div class="accordion-header" @click="toggle('grantInfo')">
-                  <div class="arrow"></div>
-                  <div class="title">Grant Information</div>
-                </div>
-                <div class="accordion-content">
-                  <div class="inner" style="max-height: 400px; overflow-y: auto;">
-                    <div v-for="slice in employeeGrantAllocations" :key="slice.id" class="card mb-3">
-                      <div class="card-body">
-                        <div class="row">
-                          <!-- LEFT -->
-                          <div class="col-12 col-md-6 mb-3 mb-md-0">
-                            <h6 class="card-title">
-                              {{ slice.grant.code }} – {{ slice.grant.name }}
-                            </h6>
-                            <p class="mb-1">
-                              <strong>Subsidiary:</strong> {{ slice.grant.subsidiary }}
-                            </p>
-                            <p class="mb-1"><strong>LOE:</strong> {{ slice.loe }}%</p>
-                            <p class="mb-0">
-                              <strong>Amount:</strong> {{ currency(slice.amount) }}
-                            </p>
-                          </div>
-                          <!-- RIGHT -->
-                          <div class="col-12 col-md-6">
-                            <div class="mb-2">
-                              <label class="form-label">Funding Type</label>
-                              <select class="form-select" v-model="slice.isAdvance">
-                                <option :value="false">Normal</option>
-                                <option :value="true">Advance</option>
-                              </select>
-                            </div>
-                            <div class="border rounded p-3 bg-light" v-show="slice.isAdvance">
-                              <h6>Advance Details</h6>
-                              <div class="mb-2">
-                                <label class="form-label">From Subsidiary</label>
-                                <input type="text" class="form-control" :value="employee.subsidiary" readonly />
-                              </div>
-                              <div class="mb-2">
-                                <label class="form-label">To Subsidiary</label>
-                                <input type="text" class="form-control" :value="slice.grant.subsidiary" readonly />
-                              </div>
-                              <div class="mb-2">
-                                <label class="form-label">Via (Hub) Grant</label>
-                                <select class="form-select" v-model="slice.advance.viaGrantId">
-                                  <option v-for="hub in hubGrants" :key="hub.id" :value="hub.id">
-                                    {{ hub.code }} – {{ hub.name }}
-                                  </option>
-                                </select>
-                              </div>
-                              <div class="mb-2">
-                                <label class="form-label">Advance Amount</label>
-                                <input type="number" class="form-control" v-model.number="slice.advance.amount" />
-                              </div>
-                              <div class="mb-2">
-                                <label class="form-label">Advance Date</label>
-                                <input type="date" class="form-control" v-model="slice.advance.date" />
-                              </div>
-                              <div class="mb-2">
-                                <label class="form-label">Settlement Date</label>
-                                <input type="date" class="form-control" v-model="slice.advance.settle" />
-                              </div>
-                              <div class="mb-2">
-                                <label class="form-label">Notes</label>
-                                <textarea class="form-control" rows="2" v-model="slice.advance.notes"></textarea>
-                              </div>
-                            </div>
+                          <div>
+                            <h5 class="mb-1">
+                              {{ employeeDetails.first_name_en }}
+                              <span v-if="employeeDetails.last_name_en && employeeDetails.last_name_en !== '-'">
+                                {{ employeeDetails.last_name_en }}
+                              </span>
+                            </h5>
+                            <p class="mb-0 text-muted">Staff ID: {{ employeeDetails.staff_id }}</p>
+                            <p class="mb-0 text-muted">Subsidiary: {{ employeeDetails.subsidiary }}</p>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <!-- end v-for -->
-                  </div>
-                </div>
-              </div>
-
-              <!-- Payslip Information -->
-              <div class="accordion-item" :class="{ active: open.payslip }">
-                <div class="accordion-header" @click="toggle('payslip')">
-                  <div class="arrow"></div>
-                  <div class="title">Payslip Information</div>
-                </div>
-                <div class="accordion-content">
-                  <div class="inner">
-                    <div class="row">
-                      <div class="col-md-4 mb-3">
-                        <label class="form-label">Payslip Date <span class="text-danger"> *</span></label>
-                        <div class="input-icon-end position-relative">
-                          <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                            :clearable="false" :input-format="dateFormat" v-model="formData.payslip_date"
-                            :append-to-body="true" />
-                          <span class="input-icon-addon">
-                            <i class="ti ti-calendar text-gray-7"></i>
-                          </span>
-                        </div>
-                      </div>
-                      <div class="col-md-4 mb-3">
-                        <label class="form-label">Payslip Number</label>
-                        <input type="text" class="form-control" v-model="formData.payslip_number" />
-                      </div>
-                      <div class="col-md-4 mb-3">
-                        <label class="form-label">Staff Signature</label>
-                        <input type="text" class="form-control" v-model="formData.staff_signature" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Salary Summary -->
-              <div class="accordion-item" :class="{ active: open.summary }">
-                <div class="accordion-header" @click="toggle('summary')">
-                  <div class="arrow"></div>
-                  <div class="title text-primary">Salary Summary</div>
-                </div>
-                <div class="accordion-content">
-                  <div class="inner">
-                    <div class="row g-3">
-                      <div class="col-md-4" v-for="field in summaryFields" :key="field.key">
-                        <label class="form-label fw-bold">{{ field.label }}</label>
-                        <div class="input-group">
-                          <span class="input-group-text">&#3647;</span>
-                          <input :class="['form-control', field.bg]" type="number" v-model="formData[field.key]"
-                            readonly />
-                        </div>
-                      </div>
+                      </a-card>
                     </div>
                   </div>
                 </div>
@@ -256,11 +72,63 @@
             </div>
           </div>
 
-          <div class="modal-footer">
-            <button type="button" class="btn btn-white me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Add Employee Salary</button>
+          <!-- Add space between accordion and table -->
+          <div style="height: 24px;"></div>
+          <!-- Grant Information Title -->
+          <div class="mb-3">
+            <h5 class="fw-bold">Grant Information</h5>
           </div>
-        </form>
+
+
+          <!-- 2) Grants Editable Table -->
+          <a-table :columns="columns" :data-source="dataSource" row-key="key" bordered :scroll="{ x: 1500 }">
+            <template #bodyCell="{ column, text, record }">
+
+              <!-- LOE column (editable) -->
+              <template v-if="column.dataIndex === 'loe'">
+                <div>
+                  <template v-if="editableData[record.key]">
+                    <a-input-number v-model:value="editableData[record.key].loe" style="margin: -5px 0; width: 100%"
+                      :min="0" :max="100" />
+                  </template>
+                  <template v-else>
+                    {{ text }}%
+                  </template>
+                </div>
+              </template>
+
+              <!-- Amount column (editable) -->
+              <template v-if="column.dataIndex === 'amount'">
+                <div>
+                  <template v-if="editableData[record.key]">
+                    <a-input-number v-model:value="editableData[record.key].amount" style="margin: -5px 0; width: 100%"
+                      :min="0" />
+                  </template>
+                  <template v-else>
+                    {{ formatCurrency(text) }}
+                  </template>
+                </div>
+              </template>
+
+              <!-- Actions column -->
+              <template v-else-if="column.key === 'actions'">
+                <div class="editable-row-operations">
+                  <span v-if="editableData[record.key]">
+                    <a-typography-link @click="save(record.key)">Save</a-typography-link>
+                    <a-typography-link @click="cancel(record.key)">Cancel</a-typography-link>
+                  </span>
+                  <span v-else>
+                    <a @click="edit(record.key)">Edit</a>
+                  </span>
+                </div>
+              </template>
+            </template>
+          </a-table>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-white me-2" data-bs-dismiss="modal">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -324,33 +192,207 @@
 
 <script>
 import { employeeService } from "@/services/employee.service";
+import { payrollService } from "@/services/payroll.service";
+import { cloneDeep } from 'lodash-es';
+import { Modal } from 'ant-design-vue';
+
 
 export default {
   data() {
     return {
       // tree dat for dropdown
       employeeTreeData: [],
-
+      employeeDetails: null,
       // cache for lazy-load 
       employeeCache: new Map(),
 
+      // editable data
+      editableData: {},
+      editableCols: ['loe', 'amount'],
 
-      // select options…
-      EmpoyeName: ["Select", "Anthony Lewis", "Brian Villalobos", "Doglas Martini"],
-      EditEmpoyeName: ["Select", "Anthony Lewis", "Brian Villalobos", "Doglas Martini"],
-      employee: {
-        name: "Jane Doe",
-        email: "jane.doe@example.com",
-        position: "Senior Developer",
-        startDate: "2024-01-15",
-        subsidiary: "SMRU",
-      },
+      // table data 
+      dataSource: [],
 
-      // Sample grants data to fix the error
-      grants: [
-        { id: 1, code: "G001", name: "Research Grant", subsidiary: "Main Office" },
-        { id: 2, code: "G002", name: "Development Grant", subsidiary: "Branch Office" },
-        { id: 3, code: "G003", name: "Education Grant", subsidiary: "Regional Office" }
+      // table columns
+      columns: [
+        {
+          title: 'Staff ID',
+          dataIndex: 'staff_id',
+          fixed: 'left',
+          width: 100,
+          key: 'staff_id',
+        },
+        {
+          title: 'Initial',
+          dataIndex: 'initial_en',
+          fixed: 'left',
+          width: 80,
+          key: 'initial_en',
+        },
+        {
+          title: 'Name',
+          dataIndex: 'name',
+          fixed: 'left',
+          width: 150,
+          key: 'name',
+        },
+        {
+          title: 'Full Name',
+          dataIndex: 'full_name',
+          fixed: 'left',
+          width: 200,
+          key: 'full_name',
+        },
+        {
+          title: 'Pay Method',
+          dataIndex: 'pay_method',
+          width: 100,
+          key: 'pay_method',
+        },
+        {
+          title: 'Status',
+          dataIndex: 'status',
+          width: 150,
+          key: 'status',
+        },
+        {
+          title: 'PVD/Saving Fund',
+          dataIndex: 'pvd_saving_fund',
+          width: 150,
+          key: 'pvd_saving_fund',
+        },
+        {
+          title: 'Grant (LOE)',
+          dataIndex: 'loe',
+          width: 100,
+          key: 'loe',
+        },
+        {
+          title: 'Salary (Previous Year)',
+          dataIndex: 'salary_previous_year',
+          width: 170,
+          key: 'salary_previous_year',
+        },
+        {
+          title: '1%',
+          dataIndex: 'one_percent',
+          width: 100,
+          key: 'one_percent',
+        },
+        {
+          title: 'Basic Salary (This Year)',
+          dataIndex: 'amount',
+          width: 150,
+          key: 'amount',
+        },
+        {
+          title: 'Salary by FTE',
+          dataIndex: 'salary_by_fte',
+          width: 150,
+          key: 'salary_by_fte',
+        },
+        {
+          title: 'Compensation Refund',
+          dataIndex: 'compensation_refund',
+          width: 150,
+          key: 'compensation_refund',
+        },
+        {
+          title: '13th Month Salary',
+          dataIndex: 'thirteen_month_salary',
+          width: 150,
+          key: 'thirteen_month_salary',
+        },
+        {
+          title: 'PVD / Saving Fund 7%',
+          dataIndex: 'pvd_saving_fund',
+          width: 150,
+          key: 'pvd_saving_fund',
+        },
+        {
+          title: 'Employer S.Insu 13%',
+          dataIndex: 'employer_social_security',
+          width: 150,
+          key: 'employer_si',
+        },
+        {
+          title: 'Employee S.Insu 7%',
+          dataIndex: 'employee_social_security',
+          width: 150,
+          key: 'employee_social_security',
+        },
+        {
+          title: 'Employer H.Welfare 1%',
+          dataIndex: 'employer_health_welfare',
+          width: 150,
+          key: 'employer_health_welfare',
+        },
+        {
+          title: 'Employee H.Welfare 1%',
+          dataIndex: 'employee_health_welfare',
+          width: 150,
+          key: 'employee_health_welfare',
+        },
+        {
+          title: 'Tax',
+          dataIndex: 'tax',
+          width: 150,
+          key: 'tax',
+        },
+        {
+          title: 'Balance',
+          dataIndex: 'balance',
+          width: 150,
+          key: 'balance',
+        },
+        {
+          title: 'Sal+SC+SF+M13',
+          dataIndex: 'sal_sc_sf_m13',
+          width: 150,
+          key: 'sal_sc_sf_m13',
+        },
+        {
+          title: 'SF (2 Sides)',
+          dataIndex: 'sf_2_sides',
+          width: 150,
+          key: 'sf_2_sides',
+        },
+        {
+          title: 'Actual Position',
+          dataIndex: 'actual_position',
+          width: 150,
+          key: 'actual_position',
+        },
+        {
+          title: 'Report to',
+          dataIndex: 'report_to',
+          width: 150,
+          key: 'report_to',
+        },
+        {
+          title: 'Position Under Grant',
+          dataIndex: 'position_under_grant',
+          width: 150,
+          key: 'position_under_grant',
+        },
+        {
+          title: 'Budget Line',
+          dataIndex: 'budget_line',
+          width: 150,
+          key: 'budget_line',
+        },
+        {
+          title: 'Grant Name',
+          dataIndex: 'grant_name',
+          width: 150,
+          key: 'grant_name',
+        },
+        {
+          title: 'Actions',
+          fixed: 'right',
+          key: 'actions',
+          width: 120,
+        },
       ],
 
       // form state…
@@ -381,36 +423,6 @@ export default {
         employer_health_welfare: 0,
       },
 
-      // grants that will drive your v-for
-      employeeGrantAllocations: [
-        {
-          id: 1,
-          grant: { code: "S0031", name: "Other Fund", subsidiary: "SMRU" },
-          loe: 40,
-          amount: 4000,
-          isAdvance: false,
-          advance: { viaGrantId: null, amount: null, date: null, settle: null, notes: "" },
-        },
-        {
-          id: 2,
-          grant: { code: "S0040", name: "Core Project", subsidiary: "SMRU" },
-          loe: 75,
-          amount: 7500,
-          isAdvance: true,
-          advance: {
-            viaGrantId: 200,
-            amount: 1000,
-            date: "2025-05-01",
-            settle: "2025-05-15",
-            notes: "Quarterly advance",
-          },
-        },
-      ],
-
-      hubGrants: [
-        { id: 200, code: "H001", name: "Hub Fund SMRU" },
-        { id: 201, code: "H002", name: "Hub Fund HQ" },
-      ],
       editFormData: {
         chargeType: "normal",
         grant_id: null,
@@ -436,31 +448,6 @@ export default {
         grant_id: null,
       },
 
-      // field definitions for loops
-      earningFields: [
-        { key: "basic_salary", label: "Basic Salary" },
-        { key: "salary_by_FTE", label: "Salary by FTE" },
-        { key: "compensation_refund", label: "Compensation Refund" },
-        { key: "thirteen_month_salary", label: "13th Month Salary" },
-        { key: "pvd", label: "PVD" },
-        { key: "saving_fund", label: "Saving Fund" },
-      ],
-      deductionFields: [
-        { key: "employee_social_security", label: "Employee Social Security" },
-        { key: "employee_health_welfare", label: "Employee Health Welfare" },
-        { key: "tax", label: "Tax" },
-      ],
-      employerFields: [
-        { key: "employer_social_security", label: "Employer Social Security" },
-        { key: "employer_health_welfare", label: "Employer Health Welfare" },
-      ],
-      summaryFields: [
-        { key: "grand_total_income", label: "Grand Total Income", bg: "bg-success bg-opacity-10" },
-        { key: "grand_total_deduction", label: "Grand Total Deduction", bg: "bg-danger bg-opacity-10" },
-        { key: "net_paid", label: "Net Paid", bg: "bg-primary bg-opacity-10 fw-bold" },
-        { key: "employer_contribution_total", label: "Employer Contribution Total", bg: "bg-info bg-opacity-10" },
-        { key: "two_sides", label: "Total Cost to Company", bg: "bg-warning bg-opacity-10" },
-      ],
     };
   },
 
@@ -485,6 +472,21 @@ export default {
   },
 
   computed: {
+
+    // disable parent nodes (subsidiaries)
+    processedTreeData() {
+      return (this.employeeTreeData || []).map(node => ({
+        ...node,
+        selectable: false,
+        disabled: true,
+        children: (node.children || []).map(child => ({
+          ...child,
+          selectable: true,
+          disabled: false
+        }))
+      }));
+    },
+
     selectedGrant() {
       return this.grants.find(grant => grant.id === this.formData.grant_id);
     },
@@ -495,6 +497,104 @@ export default {
     },
   },
   methods: {
+
+    // Cancel edit
+    cancel(id) {
+      console.log("Canceling edit for row with key:", id);
+      // if it was a newly added line
+      const idx = this.dataSource.findIndex(r => r.id === id);
+      if (this.editableData[id].__isNew && idx !== -1) {
+        this.dataSource.splice(idx, 1);
+      }
+      // drop the buffer
+      delete this.editableData[id];
+    },
+
+    // Edit row
+    edit(key) {
+      console.log("Editing row with key:", key);
+      const item = this.dataSource.find(item => item.key === key);
+      if (item) {
+        this.editableData[key] = cloneDeep(item);
+      }
+    },
+
+    async onEmployeeSelect(id) {
+      // 1) Clear out old data if they un‐select
+      if (!id) {
+        this.employeeDetails = null;
+        this.dataSource = [];
+        return;
+      }
+
+      // 2) (Optionally) check cache, show loading indicator, etc.
+
+      // 3) Delegate to the actual API call
+      await this.getEmployeeDetails(id);
+    },
+
+    // If a tree select is selected, then call the api to get the employee details
+    async getEmployeeDetails(employeeId) {
+      const response = await payrollService.getEmployeeEmploymentDetails(employeeId);
+      const emp = response.data;
+
+      // check if the employment is null or not
+      if (!emp.employment || Object.keys(emp.employment).length === 0) {
+        this.$message.error('Employee employment details not found');
+        this.emptyEmployeeDetails();
+        return;
+      }
+
+      // 1) get the employee's salary details
+      this.employeeDetails = emp;
+
+      // 2) map each grant allocation to one table row 
+      this.dataSource = (emp.employee_grant_allocations || []).map(allocation => {
+        const g = allocation.grant_item_allocation.grant;
+        const grantItem = allocation.grant_item_allocation;
+        return {
+          key: allocation.id,
+          staff_id: emp.staff_id,
+          initial_en: emp.initial_en,
+          name: `${emp.first_name_en} ${emp.last_name_en}`,
+          full_name: `${emp.first_name_en} ${emp.last_name_en}`,
+          pay_method: emp.employment.employment_type,
+          status: emp.status,
+          grant_loe: allocation.level_of_effort,
+          salary_previous_year: emp.employment.position_salary,
+          one_percent: (parseFloat(emp.employment.position_salary) * 0.01).toFixed(2),
+          basic_salary_this_year: grantItem.grant_salary,
+          salary_by_fte: (parseFloat(grantItem.grant_salary) * parseFloat(emp.employment.fte)).toFixed(2),
+          compensation_refund: "0.00",
+          thirteen_month_salary: "0.00",
+          pvd_saving_fund: emp.employment.pvd === "1" ? (parseFloat(grantItem.grant_salary) * 0.07).toFixed(2) :
+            emp.employment.saving_fund === "1" ? (parseFloat(grantItem.grant_salary) * 0.07).toFixed(2) : "0.00",
+          employer_social_security: (parseFloat(grantItem.grant_salary) * 0.13).toFixed(2),
+          employee_social_security: (parseFloat(grantItem.grant_salary) * 0.07).toFixed(2),
+          employer_health_welfare: (parseFloat(grantItem.grant_salary) * 0.01).toFixed(2),
+          employee_health_welfare: (parseFloat(grantItem.grant_salary) * 0.01).toFixed(2),
+          tax: (parseFloat(grantItem.grant_salary) * (parseFloat(emp.employment.employee_tax) / 100)).toFixed(2),
+          balance: "0.00",
+          sal_sc_sf_m13: "0.00",
+          sf_2_sides: "0.00",
+          actual_position: emp.employment.department_position.position,
+          report_to: "-",
+          position_under_grant: grantItem.grant_position,
+          budget_line: grantItem.bg_line,
+          grant_name: g.name,
+          loe: parseFloat(allocation.level_of_effort),
+          amount: parseFloat(grantItem.grant_salary)
+        };
+      });
+    },
+
+    // make method that empty the employee details and datasource 
+    emptyEmployeeDetails() {
+      this.employeeDetails = null;
+      this.dataSource = [];
+    },
+
+    // load employees
     async loadEmployees() {
       try {
         const response = await employeeService.treeSearch();
@@ -553,6 +653,89 @@ export default {
     // submit handlers
     submitForm() { this.$router.push("/payroll/employee-salary"); },
     submitEditForm() { this.$router.push("/payroll/employee-salary"); },
+
+    // Save changes
+    async save(key) {
+      console.log("Saving row with key:", key);
+      if (!this.editableData[key]) return;
+
+      const itemData = this.editableData[key];
+
+      // Basic validation
+      if (
+        itemData.loe == null ||
+        itemData.amount == null
+      ) {
+        this.$message.error('Please fill in all fields');
+        return;
+      }
+
+      try {
+        // Update the item in the dataSource
+        const index = this.dataSource.findIndex(item => item.key === key);
+        if (index !== -1) {
+          this.dataSource[index] = { ...this.dataSource[index], ...itemData };
+
+          // Recalculate dependent values based on new LOE and amount
+          const item = this.dataSource[index];
+          const loe = parseFloat(item.loe) / 100;
+          const amount = parseFloat(item.amount);
+
+          // Update dependent fields
+          item.grant_loe = item.loe; // Keep both fields in sync
+          item.basic_salary_this_year = amount; // Keep both fields in sync
+          item.salary_by_fte = (amount * parseFloat(this.employeeDetails.employment.fte)).toFixed(2);
+
+          // Calculate saving fund based on employment settings
+          item.pvd_saving_fund = this.employeeDetails.employment.pvd === "1" ? (amount * 0.07).toFixed(2) :
+            this.employeeDetails.employment.saving_fund === "1" ? (amount * 0.07).toFixed(2) : "0.00";
+
+          // Calculate contributions based on salary and LOE
+          item.employer_social_security = (amount * 0.13 * loe).toFixed(2);
+          item.employee_social_security = (amount * 0.07 * loe).toFixed(2);
+          item.employer_health_welfare = (amount * 0.01 * loe).toFixed(2);
+          item.employee_health_welfare = (amount * 0.01 * loe).toFixed(2);
+
+          // Calculate tax
+          item.tax = (amount * (parseFloat(this.employeeDetails.employment.employee_tax) / 100)).toFixed(2);
+        }
+
+        // Here you would typically make an API call to save the changes
+        // await payrollService.updateEmployeeSalary(itemData);
+
+        delete this.editableData[key];
+        this.$message.success('Changes saved successfully');
+      } catch (error) {
+        console.error('Error saving changes:', error);
+        this.$message.error('Failed to save changes');
+      }
+    },
+
+
+
+    // Confirm delete grant item
+    confirmDeleteItem(record) {
+      Modal.confirm({
+        title: 'Are you sure you want to delete this grant item?',
+        content: 'This action cannot be undone.',
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: () => {
+          this.deleteItem(record);
+        }
+      });
+    },
+
+    // Format currency
+    formatCurrency(value) {
+      if (!value) return '฿0.00';
+      return new Intl.NumberFormat('th-TH', {
+        style: 'currency',
+        currency: 'THB',
+        minimumFractionDigits: 2
+      }).format(value);
+    },
   },
 };
 </script>
@@ -667,5 +850,22 @@ export default {
   min-height: 38px !important;
   display: flex;
   align-items: center;
+}
+
+.employee-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+:deep(.ant-tree-select) {
+  width: 100%;
+}
+
+.editable-row-operations a {
+  margin-right: 8px;
+}
+
+:deep(.ant-input-number) {
+  width: 100%;
 }
 </style>

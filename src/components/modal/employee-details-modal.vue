@@ -6,7 +6,7 @@
         <div class="modal-header">
           <div class="d-flex align-items-center">
             <h4 class="modal-title me-2">Edit Employee</h4>
-            <span>Employee ID : {{ editFormData.staff_id }}</span>
+            <span>Staff ID : {{ editFormData.staff_id }}</span>
           </div>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>

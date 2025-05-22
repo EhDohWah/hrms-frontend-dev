@@ -223,6 +223,9 @@ export default {
           title: 'Grant Position',
           dataIndex: 'positionName',
           key: 'positionName',
+          filters: this.getUniqueValues('positionName'),
+          filteredValue: filtered.positionName || null,
+          onFilter: (value, record) => record.positionName.includes(value),
           sorter: (a, b) => a.positionName.localeCompare(b.positionName),
           sortOrder: sorted.columnKey === 'positionName' && sorted.order,
         },
@@ -362,12 +365,12 @@ export default {
         if (this.grantStore.grantPositions) {
           // Transform the API response to match our table structure
           const positions = [];
-          let id = 1;
+
 
           this.grantStore.grantPositions.forEach(grant => {
             grant.positions.forEach(position => {
               positions.push({
-                id: id++,
+                id: position.id,
                 code: grant.grant_code,
                 grantName: grant.grant_name,
                 budgetLine: position.budget_line,

@@ -123,10 +123,10 @@
                                         </template>
                                         <template v-if="column.dataIndex === 'actions'">
                                             <div class="action-icon d-inline-flex">
-                                                <!-- <a href="javascript:void(0);" class="me-2"
+                                                <a href="javascript:void(0);" class="me-2"
                                                     @click="openEditEmployeeAllocationModal(record)">
                                                     <i class="ti ti-edit"></i>
-                                                </a> -->
+                                                </a>
                                                 <a href="javascript:void(0);"
                                                     @click="deleteEmployeeAllocation(record.allocationId)">
                                                     <i class="ti ti-trash"></i>
@@ -351,17 +351,20 @@ export default {
                 if (response.success) {
 
                     // Handle employee allocations
-                    if (response.employees && Array.isArray(response.employees)) {
-                        this.employeeAllocations = response.employees.map(employee => ({
-                            allocationId: response.data.id,
-                            employeeId: employee.id,
-                            positionId: response.data.grant_items_id || 'N/A',
-                            staffId: employee.staff_id || 'N/A',
-                            employeeName: `${employee.first_name_en || 'N/A'} ${employee.last_name_en !== '-' ? employee.last_name_en : ''}`.trim() || 'N/A',
-                            levelOfEffort: response.data.level_of_effort || 'N/A',
-                            startDate: response.data.start_date ? moment(response.data.start_date).format('DD MMM YYYY') : 'N/A',
-                            endDate: response.data.end_date ? moment(response.data.end_date).format('DD MMM YYYY') : 'N/A',
-                            active: response.data.active === '1'
+                    if (response.employee_grant_allocation && Array.isArray(response.employee_grant_allocation)) {
+                        this.employeeAllocations = response.employee_grant_allocation.map(alloc => ({
+                            allocationId: alloc.id,
+                            employeeId: alloc.employee_id,
+                            positionId: alloc.grant_items_id || 'N/A',
+                            staffId: alloc.employee_allocation?.staff_id || 'N/A',
+                            employeeName: `${alloc.employee_allocation?.first_name_en || 'N/A'} ${alloc.employee_allocation?.last_name_en !== '-' ? alloc.employee_allocation?.last_name_en : ''}`.trim() || 'N/A',
+                            levelOfEffort: alloc.level_of_effort ? (parseFloat(alloc.level_of_effort) * 100) + '%' : 'N/A',
+                            rawLevelOfEffort: alloc.level_of_effort,
+                            startDate: alloc.start_date ? moment(alloc.start_date).format('DD MMM YYYY') : 'N/A',
+                            endDate: alloc.end_date ? moment(alloc.end_date).format('DD MMM YYYY') : 'N/A',
+                            rawStartDate: alloc.start_date,
+                            rawEndDate: alloc.end_date,
+                            active: alloc.active === '1'
                         }));
                     } else {
                         this.employeeAllocations = [];
@@ -387,9 +390,15 @@ export default {
             this.$refs.grantAllocateEmployeeModal.openModal();
         },
 
-        openEditEmployeeAllocationModal(allocation) {
-            // In a real application, you would open a modal to edit an employee allocation
-            message.info(`Edit employee allocation for ${allocation.employeeName}`);
+        openEditEmployeeAllocationModal(record) {
+            // For Edit (pass full record, with employeeId, levelOfEffort, startDate, endDate)
+            this.$refs.grantAllocateEmployeeModal.openModalEdit({
+                allocationId: record.allocationId,
+                employeeId: record.employeeId,
+                levelOfEffort: record.rawLevelOfEffort,
+                startDate: record.rawStartDate,
+                endDate: record.rawEndDate
+            });
         },
 
         async deleteEmployeeAllocation(id) {

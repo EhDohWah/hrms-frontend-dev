@@ -17,6 +17,7 @@ export const usePayrollStore = defineStore('payroll', {
   },
 
   actions: {
+    
     async fetchPayrolls() {
       try {
         this.loading = true;

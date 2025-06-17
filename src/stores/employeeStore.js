@@ -12,16 +12,16 @@ export const useEmployeeStore = defineStore('employee', {
     error: null,
     pagination: {
       currentPage: 0,
-      perPage:     0,
-      lastPage:    0,
-      total:       0,
+      perPage: 0,
+      lastPage: 0,
+      total: 0,
     },
     statistics: {
       totalEmployees: 0,
-      activeCount:    0,
-      inactiveCount:  0,
+      activeCount: 0,
+      inactiveCount: 0,
       newJoinerCount: 0,
-      subsidiaryCount:{ SMRU_count: 0, BHF_count: 0 },
+      subsidiaryCount: { SMRU_count: 0, BHF_count: 0 },
     },
   }),
 
@@ -30,17 +30,17 @@ export const useEmployeeStore = defineStore('employee', {
       return state.employees.find(employee => employee.id === id);
     },
     getActiveEmployees: (state) => {
-      return state.employees.filter(employee => 
+      return state.employees.filter(employee =>
         employee.employment && employee.employment.active === 1
       );
     },
     getEmployeesByDepartment: (state) => (departmentId) => {
-      return state.employees.filter(employee => 
+      return state.employees.filter(employee =>
         employee.employment && employee.employment.department_id === departmentId
       );
     },
     getEmployeesByLocation: (state) => (locationId) => {
-      return state.employees.filter(employee => 
+      return state.employees.filter(employee =>
         employee.employment && employee.employment.work_location_id === locationId
       );
     },
@@ -50,14 +50,14 @@ export const useEmployeeStore = defineStore('employee', {
     getEmploymentById: (state) => (id) => {
       return state.employments.find(employment => employment.id === id);
     },
-    
+
     getEmploymentsByDepartment: (state) => (department) => {
-      return state.employments.filter(employment => 
+      return state.employments.filter(employment =>
         employment.department_position && employment.department_position.department === department
       );
     },
     getEmploymentsByLocation: (state) => (locationId) => {
-      return state.employments.filter(employment => 
+      return state.employments.filter(employment =>
         employment.work_location_id === locationId
       );
     },
@@ -69,8 +69,8 @@ export const useEmployeeStore = defineStore('employee', {
   actions: {
     async fetchEmployees(params = {}) {
       this.loading = true;
-      this.error   = null;
-      
+      this.error = null;
+
       try {
         const res = await employeeService.getEmployees(params);
 
@@ -81,17 +81,17 @@ export const useEmployeeStore = defineStore('employee', {
 
         // Now branch on whether body is an array vs. object
         let items = Array.isArray(body) ? body : body.data;
-        let meta  = res.meta;
+        let meta = res.meta;
         let stats = res.statistics;
 
         //console.log('🔍 items:', items);
         //console.log('🔍 meta:', meta);
         //console.log('🔍 stats:', stats);
 
-        
-      // Debugging: Log body and stats to check the structure
-      //console.log('API Response Body:', body);
-      //console.log('Statistics Object:', stats);
+
+        // Debugging: Log body and stats to check the structure
+        //console.log('API Response Body:', body);
+        //console.log('Statistics Object:', stats);
 
         // 1) set employees array
         this.employees = items;
@@ -100,9 +100,9 @@ export const useEmployeeStore = defineStore('employee', {
         // 2) pagination
         this.pagination = {
           currentPage: meta.current_page ?? this.pagination.currentPage,
-          perPage:     meta.per_page    ?? this.pagination.perPage,
-          lastPage:    meta.last_page   ?? this.pagination.lastPage,
-          total:       meta.total       ?? this.pagination.total,
+          perPage: meta.per_page ?? this.pagination.perPage,
+          lastPage: meta.last_page ?? this.pagination.lastPage,
+          total: meta.total ?? this.pagination.total,
         };
 
         // 3) statistics
@@ -122,7 +122,7 @@ export const useEmployeeStore = defineStore('employee', {
         } else {
           this.updateStatistics();
         }
-        
+
         return this.employees;
       } catch (err) {
         this.error = err.message || 'Failed to fetch employees';
@@ -136,7 +136,7 @@ export const useEmployeeStore = defineStore('employee', {
     // 2) Exact lookup by ID (show)
     async fetchSingleEmployee(staffId) {
       this.loading = true
-      this.error   = null
+      this.error = null
 
       try {
         const res = await employeeService.getSingleEmployee(staffId)
@@ -162,17 +162,17 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false
       }
     },
-    
+
     async fetchEmployments() {
       try {
         this.loading = true;
         this.error = null;
         const response = await employeeService.getEmployments();
-        
+
         // Check if response.data exists and is an array; if not, assume response is the array
         const employmentsData = response.data || [];
         this.employments = employmentsData;
-        
+
         return this.employments;
       } catch (error) {
         this.error = error.message || 'Failed to fetch employments';
@@ -182,7 +182,7 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false;
       }
     },
-    
+
     async getEmployeeDetails(id) {
       try {
         this.loading = true;
@@ -198,7 +198,7 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false;
       }
     },
-    
+
     async createEmployee(data) {
       try {
         this.loading = true;
@@ -214,7 +214,7 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false;
       }
     },
-    
+
     async updateEmployee(id, data) {
       try {
         this.loading = true;
@@ -231,7 +231,7 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false;
       }
     },
-    
+
     async deleteEmployee(id) {
       try {
         this.loading = true;
@@ -247,7 +247,7 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false;
       }
     },
-    
+
     async filterEmployees(filters) {
       try {
         this.loading = true;
@@ -256,9 +256,9 @@ export const useEmployeeStore = defineStore('employee', {
         const filteredData = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response)
-          ? response
-          : [];
-        
+            ? response
+            : [];
+
         return filteredData;
       } catch (error) {
         this.error = error.message || 'Failed to filter employees';
@@ -268,7 +268,7 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false;
       }
     },
-    
+
     async uploadProfilePicture(id, imageFile) {
       try {
         this.loading = true;
@@ -289,7 +289,7 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false;
       }
     },
-    
+
     async getSiteRecords() {
       try {
         this.loading = true;
@@ -304,11 +304,11 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = false;
       }
     },
-    
+
     setCurrentEmployee(employee) {
       this.currentEmployee = employee;
     },
-    
+
     updateStatistics() {
       const now = new Date();
       const threeMonthsAgo = new Date();
@@ -336,6 +336,20 @@ export const useEmployeeStore = defineStore('employee', {
         SMRU_count: this.employees.filter(e => e.subsidiary === 'SMRU').length,
         BHF_count: this.employees.filter(e => e.subsidiary === 'BHF').length
       };
+    },
+
+    async updateBasicInformation(id, data) {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await employeeService.updateBasicInformation(id, data);
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to update basic information';
+        throw error;
+      } finally {
+        this.loading = false;
+      }
     }
   }
 });

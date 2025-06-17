@@ -198,7 +198,7 @@
             </div>
 
             <!-- Loading Indicator -->
-            <div v-if="employeeStore.loading" class="text-center py-4"> 
+            <div v-if="employeeStore.loading" class="text-center py-4">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
@@ -261,9 +261,9 @@
                         <i class="ti ti-eye"></i>
                       </router-link>
                       <!-- Edit Employee -->
-                      <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal" data-bs-target="#edit_employee">
+                      <!-- <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal" data-bs-target="#edit_employee">
                         <i class="ti ti-edit"></i>
-                      </a>
+                      </a> -->
                       <!-- Delete Employee -->
                       <a href="javascript:void(0);" @click="confirmDeleteEmployee(record.id)">
                         <i class="ti ti-trash"></i>
@@ -297,6 +297,7 @@ import { useEmployeeStore } from '@/stores/employeeStore';
 import { mapStores } from 'pinia';
 import { Modal, Table } from 'ant-design-vue';
 import { employeeService } from '@/services/employee.service';
+import eventBus from '@/plugins/eventBus';
 
 export default {
   name: 'EmployeesList',
@@ -338,6 +339,15 @@ export default {
       this.dateRangeInput = document.getElementById('booking-date');
       this.initializeDateRangePicker();
     });
+
+    eventBus.on('notification-clicked', (notif) => {
+      console.log('Notification clicked:', notif);
+      this.fetchEmployees();
+    });
+  },
+
+  beforeUnmount() {
+    eventBus.off('notification-clicked');
   },
 
   computed: {
@@ -713,7 +723,7 @@ export default {
 
     handlePerPageChange(event) {
       const val = event.target.value;
-      // if “all”, pick up the true total; otherwise parse the number
+      // if "all", pick up the true total; otherwise parse the number
       this.perPage = val === 'totalEmployees'
         ? this.totalEmployees
         : parseInt(val, 10);
@@ -839,7 +849,9 @@ export default {
         age: emp.date_of_birth ? moment().diff(moment(emp.date_of_birth), 'years') : 'N/A',
         status: emp.status || 'N/A',
         id_type: emp.id_type || 'N/A',
-        id_number: emp.identification && emp.identification.length > 0 ? emp.identification[0].document_number || 'N/A' : 'N/A',
+        id_number: emp.employee_identification && emp.employee_identification.document_number
+          ? emp.employee_identification.document_number
+          : 'N/A',
         social_security_number: emp.social_security_number || 'N/A',
         tax_number: emp.tax_number || 'N/A',
         mobile_phone: emp.mobile_phone || 'N/A',

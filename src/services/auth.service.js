@@ -1,5 +1,6 @@
 import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
+import { getEcho } from '@/plugins/echo';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -120,7 +121,7 @@ class AuthService {
     // Extract the domain part from the API URL
     const urlObj = new URL(baseUrl);
     const domain = `${urlObj.protocol}//${urlObj.hostname}${urlObj.port ? ':' + urlObj.port : ''}`;
-    
+
     return fetch(`${domain}/sanctum/csrf-cookie`, {
       credentials: 'include'
     });
@@ -168,6 +169,7 @@ class AuthService {
         apiService.setAuthToken(`Bearer ${token}`);
         try {
           // Call the logout endpoint if available
+
           await apiService.post(API_ENDPOINTS.AUTH.LOGOUT);
         } catch (error) {
           console.warn('Logout API call failed:', error);

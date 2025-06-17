@@ -2,14 +2,14 @@ import { createApp } from 'vue';
 import { router } from './router';
 import App from "./App.vue";
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import {BootstrapVue3, BToastPlugin} from 'bootstrap-vue-3'
+import { BootstrapVue3, BToastPlugin } from 'bootstrap-vue-3'
 import Antd from 'ant-design-vue';
 import 'ant-design-vue/dist/reset.css';
 import VueFeather from 'vue-feather';
 import FlagIcon from 'vue-flag-icon';
-import VueSweetalert2 from 'vue-sweetalert2' 
+import VueSweetalert2 from 'vue-sweetalert2'
 import 'sweetalert2/dist/sweetalert2.min.css'
-import VueApexCharts from "vue3-apexcharts"; 
+import VueApexCharts from "vue3-apexcharts";
 import StarRating from 'vue-star-rating'
 import VueFormWizard from "vue3-form-wizard";
 import "vue-form-wizard/dist/vue-form-wizard.min.css";
@@ -17,7 +17,7 @@ import VueSelect from 'vue3-select2-component'
 import DatePicker from 'vue3-datepicker'
 import VCalendar from 'v-calendar';
 // Import themify icons CSS directly instead of the Vue component
-import ThemifyIcon from "vue-themify-icons";    
+import ThemifyIcon from "vue-themify-icons";
 import { IconHome } from '@tabler/icons-vue';
 import Vue3TagsInput from "vue3-tags-input";
 import VueEasyLightbox from "vue-easy-lightbox";
@@ -42,7 +42,7 @@ import layoutFooter from '@/views/layouts/layout-footer.vue';
 /************Breadcrumb********************/
 
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-  
+
 
 /************Page Components********************/
 
@@ -52,7 +52,7 @@ import employmentList from '@/views/pages/hrm/employment/employment-list.vue';
 import employeeStatus from '@/views/pages/dashboard/admin-dashboard/employee-status.vue';
 
 import employeeListModal from '@/components/modal/employee-list-modal.vue';
-import employeeDetailsModal from '@/components/modal/employee-details-modal.vue'; 
+import employeeDetailsModal from '@/components/modal/employee-details-modal.vue';
 
 import welcomeWrap from '@/views/pages/dashboard/admin-dashboard/welcome-wrap.vue';
 import welcomeHrManager from '@/views/pages/dashboard/hr-manager-dashboard/welcome-hr-manager.vue';
@@ -91,7 +91,7 @@ import GrantHeadcountReport from '@/components/reports/grant-headcount-report.vu
 import lookupList from '@/views/pages/administration/lookups/lookup-list.vue';
 
 // Admin department position
-import departmentPositionList from '@/views/pages/administration/department-position/department-position-list.vue'; 
+import departmentPositionList from '@/views/pages/administration/department-position/department-position-list.vue';
 
 // Request Components
 import travelRequestList from '@/views/pages/requests/travel/travel-list.vue';
@@ -104,7 +104,7 @@ import interviewsDetails from '@/views/pages/recruitment/interviews/interviews-d
 // Grant components
 import grantPositionModal from '@/components/modal/grant-position-modal.vue';
 import grantAllocateEmployeeModal from '@/components/modal/grant-allocate-employee-modal.vue';
-import employeeSalaryModal from '@/components/modal/employee-salary-modal.vue';             
+import employeeSalaryModal from '@/components/modal/employee-salary-modal.vue';
 // Employee Training components
 import employeeTrainingList from '@/views/pages/hrm/attendance/training/employee-training-list.vue';
 
@@ -114,7 +114,7 @@ import jobOffersModal from '@/components/modal/job-offers-modal.vue';
 import employeeTrainingModal from '@/components/modal/employee-training-modal.vue';
 import GrantModal from '@/components/modal/grant-modal.vue';
 import GrantUploadModal from '@/components/modal/grant-upload-modal.vue';
-import GrantModalUpdate from '@/components/modal/grant-modal-update.vue';     
+import GrantModalUpdate from '@/components/modal/grant-modal-update.vue';
 import EmployeeUploadModal from '@/components/modal/employee-upload-modal.vue';
 
 
@@ -191,13 +191,15 @@ const pinia = createPinia()
 app.use(pinia)
 /*Global Components */
 
+import eventBus from './plugins/eventBus';
+
 /*************Layout *****************/
-app.component('layout-header',Layout_Header)
-app.component('layout-sidebar',Layout_Sidebar)
-app.component('horizontal-header',Horizontal_Header)
-app.component('two-sidebar',Two_Sidebar)
-app.component('stacked-sidebar',Stacked_Sidebar)
-app.component('theme-settings',Theme_Settings)
+app.component('layout-header', Layout_Header)
+app.component('layout-sidebar', Layout_Sidebar)
+app.component('horizontal-header', Horizontal_Header)
+app.component('two-sidebar', Two_Sidebar)
+app.component('stacked-sidebar', Stacked_Sidebar)
+app.component('theme-settings', Theme_Settings)
 app.component('sidebar-menu', SidebarMenu)
 app.component('theme-color', themeColor)
 app.component('layout-footer', layoutFooter)
@@ -207,10 +209,10 @@ app.component('employee-salary-modal', employeeSalaryModal)
 /*************Breadcrumb *****************/
 app.component('index-breadcrumb', indexBreadcrumb)
 
-/************Reports Components********************/ 
+/************Reports Components********************/
 app.component('interview-report', InterviewReport)
 app.component('job-offer-report', JobOfferReport)
-app.component('report-row', ReportRow) 
+app.component('report-row', ReportRow)
 app.component('grant-headcount-report', GrantHeadcountReport)
 /************Page Components********************/
 
@@ -275,12 +277,12 @@ app.component('welcome-hr-assistant', welcomeHrAssistant)
 /************Modal********************/
 
 app.component('grant-allocate-employee-modal', grantAllocateEmployeeModal)
-app.component('job-offers-modal',jobOffersModal)
+app.component('job-offers-modal', jobOffersModal)
 
-app.component('payroll-deduction-modal',payrollDeductionModal)
-app.component('payroll-overtime-modal',payrollOvertimeModal)
-app.component('assets-modal',assetsModal)
-app.component('roles-modal',rolesModal)
+app.component('payroll-deduction-modal', payrollDeductionModal)
+app.component('payroll-overtime-modal', payrollOvertimeModal)
+app.component('assets-modal', assetsModal)
+app.component('roles-modal', rolesModal)
 app.component('company-details-modal', CompanyDetailsModal)
 app.component('pipeline-modal', PipelineModal)
 app.component('activity-modal', ActivityModal)
@@ -292,7 +294,7 @@ app.component('attendence-admin-modal', AttendenceAdminModal)
 app.component('attendance-employee-modal', AttendanceEmployeeModal)
 app.component('timesheets-modal', TimesheetsModal)
 app.component('leave-type-modal', leaveTypeModal)
-app.component('custom-fields-modal',customFieldsModal)
+app.component('custom-fields-modal', customFieldsModal)
 
 app.component('training-modal', TrainingModal)
 app.component('trainers-modal', TrainersModal)
@@ -316,19 +318,19 @@ app.component(VueFeather.name, VueFeather)
 app.use(VueSweetalert2)
 app.use(VueApexCharts)
 app.component('star-rating', StarRating)
-app.component('circle-progress',CircleProgress)
+app.component('circle-progress', CircleProgress)
 app.component('date-picker', DatePicker);
 app.component('vue3-tags-input', Vue3TagsInput);
 app.use(FlagIcon)
-.use(Antd)
-.use(VueEasyLightbox)
-.use(VueFormWizard)
+    .use(Antd)
+    .use(VueEasyLightbox)
+    .use(VueFormWizard)
 app.use(VCalendar)
-.use(BootstrapVue3)
-.use(BToastPlugin)
-// Removed ThemifyIcon component usage
-.use(SimpleLineIcons)
-.use(ThemifyIcon)
+    .use(BootstrapVue3)
+    .use(BToastPlugin)
+    // Removed ThemifyIcon component usage
+    .use(SimpleLineIcons)
+    .use(ThemifyIcon)
 app.component('IconHome', IconHome);
 app.use(CKEditor);
-app.use(router).mount('#app'); 
+app.use(router).mount('#app');   

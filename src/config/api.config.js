@@ -1,9 +1,9 @@
 export const API_CONFIG = {
-  BASE_URL: process.env.VUE_APP_API_BASE_URL || 'https://hrms-backend-api-v1-main-wrhlmg.laravel.cloud/api/v1',
-  HEADERS: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  }
+    BASE_URL: process.env.VUE_APP_API_BASE_URL || 'https://hrms-backend-api-v1-main-wrhlmg.laravel.cloud/api/v1',
+    HEADERS: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    }
 };
 
 // API endpoints
@@ -64,7 +64,9 @@ export const API_ENDPOINTS = {
         FILTER: '/employees/filter',
         SITE_RECORDS: '/employees/site-records',
         UPLOAD_FILE: '/employees/upload',
-        UPLOAD_PROFILE_PICTURE: '/employees/:id/profile-picture'
+        UPLOAD_PROFILE_PICTURE: '/employees/:id/profile-picture',
+        UPDATE_BASIC_INFORMATION: '/employees/:id/basic-information',
+        UPDATE_PERSONAL_INFORMATION: '/employees/:id/personal-information',
     },
 
     // Role endpoints
@@ -144,7 +146,7 @@ export const API_ENDPOINTS = {
         DETAILS: '/department-positions/:id'
     },
 
-    
+
     // Work location endpoints
     WORK_LOCATION: {
         LIST: '/worklocations',
@@ -201,7 +203,7 @@ export const API_ENDPOINTS = {
         DELETE: '/employee-references/:id',
         DETAILS: '/employee-references/:id'
     },
-    
+
     // References endpoints
     REFERENCES: {
         LIST: '/employee-references',
@@ -263,6 +265,12 @@ export const API_ENDPOINTS = {
         INTERVIEW_EXPORT_PDF: '/reports/interview-report/export-pdf',
         JOB_OFFER_EXPORT_PDF: '/reports/job-offer-report/export-pdf',
         INTERVIEW_EXPORT_EXCEL: '/reports/interview-report/export-excel',
+    },
+
+    // Notification endpoints
+    NOTIFICATION: {
+        LIST: '/notifications',
+        MARK_ALL_READ: '/notifications/mark-all-read'
     }
-    
+
 };

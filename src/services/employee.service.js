@@ -3,6 +3,21 @@ import { API_ENDPOINTS } from '../config/api.config';
 
 class EmployeeService {
 
+    /**
+    * Update personal information of an employee.
+    * 
+    */
+    async updateEmployeePersonalInformation(id, data) {
+        const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_PERSONAL_INFORMATION.replace(':id', id);
+        return await apiService.put(endpoint, data);
+    }
+
+    // Update basic information
+    async updateBasicInformation(id, data) {
+        const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_BASIC_INFORMATION.replace(':id', id);
+        return await apiService.put(endpoint, data);
+    }
+
     // Tree search
     async treeSearch(params = {}) {
         return await apiService.get(API_ENDPOINTS.EMPLOYEE.TREE_SEARCH, { params });
@@ -14,8 +29,8 @@ class EmployeeService {
      */
     async deleteSelectedEmployees(ids) {
         return apiService.delete(
-        API_ENDPOINTS.EMPLOYEE.DELETE_SELECTED, 
-        { ids }      // ← this will now become the JSON body
+            API_ENDPOINTS.EMPLOYEE.DELETE_SELECTED,
+            { ids }      // ← this will now become the JSON body
         );
     }
 
@@ -23,22 +38,22 @@ class EmployeeService {
     // Get all employees with pagination and filtering support
     async getEmployees(params = {}) {
         // Extract all possible parameters with defaults
-        const { 
-            per_page = '', 
-            staff_id = '', 
-            status = '', 
+        const {
+            per_page = '',
+            staff_id = '',
+            status = '',
             id_type = '',
-            subsidiary = '', 
+            subsidiary = '',
             gender = '',
             date_of_birth = '',
-            sort_by = '', 
-            sort_order = '' 
+            sort_by = '',
+            sort_order = ''
         } = params;
-        
+
         // Build query parameters object
         const queryParams = new URLSearchParams();
         queryParams.append('per_page', per_page);
-        
+
         // Only add non-empty filter parameters
         if (staff_id) queryParams.append('staff_id', staff_id);
         if (status) queryParams.append('status', status);
@@ -48,10 +63,10 @@ class EmployeeService {
         if (date_of_birth) queryParams.append('date_of_birth', date_of_birth);
         if (sort_by) queryParams.append('sort_by', sort_by);
         if (sort_order) queryParams.append('sort_order', sort_order);
-        
+
         // Use the base endpoint without the query parameters that are already in the URL
         const endpoint = API_ENDPOINTS.EMPLOYEE.LIST.split('?')[0];
-        
+
         return await apiService.get(`${endpoint}?${queryParams.toString()}`);
     }
 
@@ -103,11 +118,11 @@ class EmployeeService {
             if (!imageFile) {
                 throw new Error('No file selected');
             }
-            
+
             // Create FormData object
             const formData = new FormData();
             formData.append('profile_picture', imageFile);
-            
+
             // Make the API request with FormData
             const endpoint = API_ENDPOINTS.EMPLOYEE.UPLOAD_PROFILE_PICTURE.replace(':id', id);
             return await apiService.postFormData(endpoint, formData);

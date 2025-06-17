@@ -50,7 +50,7 @@
               <div class="text-center px-3 pb-3 border-bottom">
                 <div class="mb-3">
                   <h5 class="d-flex align-items-center justify-content-center mb-1">
-                    {{ employee.initial_en }} {{ employee.first_name_en }} {{ employee.last_name_en }}
+                    {{ employee.initial_en }}. {{ employee.first_name_en }} {{ employee.last_name_en }}
                   </h5>
                   <span :class="[
                     'badge badge-sm fw-bold',
@@ -105,6 +105,14 @@
                     <p class="text-dark">{{ employee.last_name_en || 'N/A' }}</p>
                   </div>
 
+                  <!-- Initial TH-->
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="d-inline-flex align-items-center">
+                      <i class="ti ti-id-badge text-info me-2"></i>
+                      Initial TH
+                    </span>
+                    <p class="text-dark">{{ employee.initial_th || 'N/A' }}</p>
+                  </div>
                   <!-- First Name – Thai -->
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
@@ -155,7 +163,17 @@
                       <i class="ti ti-hourglass me-2"></i>
                       Age
                     </span>
-                    <p class="text-dark text-end">{{ employee.age || 'N/A' }}</p>
+                    <p class="text-dark text-end">
+                      {{
+                        employee.date_of_birth
+                          ? (() => {
+                            const dob = new Date(employee.date_of_birth);
+                            const today = new Date();
+                            let age = today.getFullYear() - dob.getFullYear();
+                            const m = today.getMonth() - dob.getMonth();
+                            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; } return age;
+                          })() : 'N/A'}}
+                        </p>
                   </div>
 
 
@@ -174,8 +192,9 @@
               <div class="p-3 border-bottom">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                   <h6>Personal Information</h6>
-                  <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
-                    data-bs-target="#edit_personal"><i class="ti ti-edit"></i></a>
+                  <button class="btn btn-icon btn-sm" @click="openPersonalEditModal">
+                    <i class="ti ti-edit"></i>
+                  </button>
                 </div>
 
                 <div class="d-flex align-items-center justify-content-between mb-2">
@@ -1316,18 +1335,79 @@ export default {
   },
   methods: {
 
+    // open personal information edit modal
+    openPersonalEditModal() {
+      this.$refs.employeeDetailsModal.personalFormData = this.getPersonalFormData(this.employee);
+
+      const modalEL = document.getElementById('edit_personal');
+      const bsModal = Modal.getOrCreateInstance(modalEL);
+      bsModal.show();
+    },
+
+    // open basic information edit modal
     openEditModal() {
-      this.$refs.employeeDetailsModal.editFormData = {
-        ...this.employee,
-        date_of_birth: this.employee.date_of_birth
-          ? new Date(this.employee.date_of_birth)
-          : null
-      };
+      this.$refs.employeeDetailsModal.editFormData = this.getBasicFormData(this.employee);
+
+      // If you need to adjust date_of_birth for the date picker, do it here:
+      if (this.$refs.employeeDetailsModal.editFormData.date_of_birth) {
+        this.$refs.employeeDetailsModal.editFormData.date_of_birth =
+          new Date(this.$refs.employeeDetailsModal.editFormData.date_of_birth);
+      }
 
       const modalEL = document.getElementById('edit_employee');
       const bsModal = Modal.getOrCreateInstance(modalEL);
       bsModal.show();
     },
+
+
+    getBasicFormData(employee) {
+      return {
+        id: employee.id,
+        first_name_en: employee.first_name_en,
+        last_name_en: employee.last_name_en,
+        first_name_th: employee.first_name_th,
+        last_name_th: employee.last_name_th,
+        initial_en: employee.initial_en,
+        initial_th: employee.initial_th,
+        staff_id: employee.staff_id,
+        joining_date: employee.joining_date,
+        age: employee.age,
+        status: employee.status,
+        mobile_phone: employee.mobile_phone,
+        current_address: employee.current_address,
+        permanent_address: employee.permanent_address,
+        subsidiary: employee.subsidiary,
+        gender: employee.gender,
+        nationality: employee.nationality,
+        religion: employee.religion,
+        marital_status: employee.marital_status,
+        employee_status: employee.employee_status,
+        date_of_birth: employee.date_of_birth,
+      };
+    },
+
+    getPersonalFormData(employee) {
+      return {
+        id: employee.id,
+        staff_id: employee.staff_id,
+        mobile_phone: employee.mobile_phone,
+        nationality: employee.nationality,
+        social_security_number: employee.social_security_number,
+        tax_number: employee.tax_number,
+        religion: employee.religion,
+        marital_status: employee.marital_status,
+        languages: employee.languages ? [...employee.languages] : [],
+        current_address: employee.current_address,
+        permanent_address: employee.permanent_address,
+        employee_identification: employee.employee_identification
+          ? {
+            id_type: employee.employee_identification.id_type,
+            document_number: employee.employee_identification.document_number,
+          }
+          : { id_type: '', document_number: '' },
+      };
+    },
+
 
     handleEmployeeUpdated() {
       this.fetchEmployeeDetails();
@@ -1383,6 +1463,7 @@ export default {
       try {
         // Call the store action to get employee details
         this.employee = await employeeStore.getEmployeeDetails(id);
+        console.log("this.employee", this.employee);
         // Show success message using ant-design message
         this.$message.success('Employee details loaded successfully');
       } catch (error) {

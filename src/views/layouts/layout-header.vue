@@ -56,13 +56,19 @@
               <a href="javascript:void(0);" class="btn btn-menubar position-relative me-1" id="notification_popup"
                 data-bs-toggle="dropdown">
                 <i class="ti ti-bell"></i>
-                <span class="notification-status-dot"></span>
+                <!-- Badge with count for unread notifications -->
+                <span v-if="unreadCount > 0"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                  style="font-size: 10px; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
+                  {{ unreadCount > 99 ? '99+' : unreadCount }}
+                </span>
               </a>
               <div class="dropdown-menu dropdown-menu-end notification-dropdown p-4">
                 <div class="d-flex align-items-center justify-content-between border-bottom p-0 pb-3 mb-3">
-                  <h4 class="notification-title">Notifications (2)</h4>
+                  <h4 class="notification-title">Notifications ({{ unreadCount }})</h4>
                   <div class="d-flex align-items-center">
-                    <a href="javascript:void(0);" class="text-primary fs-15 me-3 lh-1">Mark all as read</a>
+                    <a href="javascript:void(0);" class="text-primary fs-15 me-3 lh-1" @click="markAllAsRead"
+                      v-if="unreadCount > 0">Mark all as read</a>
                     <div class="dropdown">
                       <a href="javascript:void(0);" class="bg-white dropdown-toggle" data-bs-toggle="dropdown">
                         <i class="ti ti-calendar-due me-1"></i>Today
@@ -88,81 +94,40 @@
                   </div>
                 </div>
                 <div class="noti-content">
-                  <div class="d-flex flex-column">
-                    <div class="border-bottom mb-3 pb-3">
-                      <router-link to="/crm/activity">
-                        <div class="d-flex">
-                          <span class="avatar avatar-lg me-2 flex-shrink-0">
-                            <img src="@/assets/img/profiles/avatar-27.jpg" alt="Profile" />
-                          </span>
-                          <div class="flex-grow-1">
-                            <p class="mb-1">
-                              <span class="text-dark fw-semibold">Shawn</span> performance
-                              in Math is below the threshold.
-                            </p>
-                            <span>Just Now</span>
+                  <div v-if="notifications.length" class="d-flex flex-column">
+                    <div v-for="(notification, idx) in notifications" :key="idx" class="border-bottom mb-3 pb-3"
+                      :class="{ 'bg-light': !notification.read_at }">
+                      <div class="d-flex">
+                        <div class="avatar avatar-sm me-3 flex-shrink-0">
+                          <div
+                            class="avatar-initial bg-primary rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="ti ti-bell text-white"></i>
                           </div>
                         </div>
-                      </router-link>
-                    </div>
-                    <div class="border-bottom mb-3 pb-3">
-                      <router-link to="/crm/activity" class="pb-0">
-                        <div class="d-flex">
-                          <span class="avatar avatar-lg me-2 flex-shrink-0">
-                            <img src="@/assets/img/profiles/avatar-23.jpg" alt="Profile" />
-                          </span>
-                          <div class="flex-grow-1">
-                            <p class="mb-1">
-                              <span class="text-dark fw-semibold">Sylvia</span> added
-                              appointment on 02:00 PM
-                            </p>
-                            <span>10 mins ago</span>
-                            <div class="d-flex justify-content-start align-items-center mt-1">
-                              <span class="btn btn-light btn-sm me-2">Deny</span>
-                              <span class="btn btn-primary btn-sm">Approve</span>
-                            </div>
-                          </div>
+                        <div class="flex-grow-1">
+                          <p class="mb-1 fw-medium">{{ getNotificationMessage(notification) }}</p>
+                          <small class="text-muted">{{ formatNotificationDate(notification) }}</small>
+                          <span v-if="!notification.read_at" class="badge bg-primary ms-2"
+                            style="font-size: 10px;">New</span>
                         </div>
-                      </router-link>
-                    </div>
-                    <div class="border-bottom mb-3 pb-3">
-                      <router-link to="/crm/activity">
-                        <div class="d-flex">
-                          <span class="avatar avatar-lg me-2 flex-shrink-0">
-                            <img src="@/assets/img/profiles/avatar-25.jpg" alt="Profile" />
-                          </span>
-                          <div class="flex-grow-1">
-                            <p class="mb-1">
-                              New student record
-                              <span class="text-dark fw-semibold"> George</span> is
-                              created by
-                              <span class="text-dark fw-semibold">Teressa</span>
-                            </p>
-                            <span>2 hrs ago</span>
-                          </div>
-                        </div>
-                      </router-link>
-                    </div>
-                    <div class="border-0 mb-3 pb-0">
-                      <router-link to="/crm/activity">
-                        <div class="d-flex">
-                          <span class="avatar avatar-lg me-2 flex-shrink-0">
-                            <img src="@/assets/img/profiles/avatar-01.jpg" alt="Profile" />
-                          </span>
-                          <div class="flex-grow-1">
-                            <p class="mb-1">
-                              A new teacher record for
-                              <span class="text-dark fw-semibold">Elisa</span>
-                            </p>
-                            <span>09:45 AM</span>
-                          </div>
-                        </div>
-                      </router-link>
+                      </div>
                     </div>
                   </div>
+                  <div v-else class="text-center py-4">
+                    <div class="avatar avatar-lg mx-auto mb-3">
+                      <div
+                        class="avatar-initial bg-light rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="ti ti-bell-off text-muted" style="font-size: 24px;"></i>
+                      </div>
+                    </div>
+                    <p class="text-muted mb-0">No notifications yet</p>
+                    <small class="text-muted">We'll notify you when something arrives!</small>
+                  </div>
                 </div>
-                <div class="d-flex p-0">
-                  <a href="javascript:void(0);" class="btn btn-light w-100 me-2">Cancel</a>
+
+                <div class="d-flex p-0" v-if="notifications.length">
+                  <a href="javascript:void(0);" class="btn btn-light w-100 me-2" data-bs-toggle="collapse"
+                    data-bs-target="#notification-dropdown">Close</a>
                   <router-link to="/crm/activity" class="btn btn-primary w-100">View All</router-link>
                 </div>
               </div>
@@ -228,8 +193,12 @@
 <script>
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
+import { useNotificationStore } from '@/stores/notificationStore';
 import sideBarData from "@/assets/json/sidebar-menuone.json";
-import { Modal, notification } from 'ant-design-vue';
+import { Modal, notification } from 'ant-design-vue'
+import { notification as antNotification } from 'ant-design-vue';
+import eventBus from '@/plugins/eventBus';
+import { disconnectEcho, getEcho  } from '@/plugins/echo';
 
 export default {
   data() {
@@ -239,11 +208,12 @@ export default {
       openMenuItem: null,
       openSubmenuOneItem: null,
       route_array: [],
+      notificationStore: null, // Pinia store instance
     };
   },
   setup() {
     const authStore = useAuthStore();
-
+    const notificationStore = useNotificationStore();
     // Use computed properties to reactively access user data from the store
     const username = computed(() => {
       return authStore.user && authStore.user.name ? authStore.user.name : 'User';
@@ -265,11 +235,66 @@ export default {
       authStore.updateUserData();
     }
 
-    return { username, email, profilePictureUrl, authStore };
+    return { username, email, profilePictureUrl, authStore, notificationStore };
   },
+
+  created() {
+    // Initialize notification store and fetch notifications
+    this.notificationStore.fetchNotifications();
+
+    // Setup WebSocket listener for real-time notifications
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user ? user.id : null;
+
+    if (userId && getEcho()) {
+      getEcho().private(`App.Models.User.${userId}`)
+        .notification((notif) => {
+          console.log('[Echo] Notification received:', notif);
+
+          // Ensure the notification has the proper structure for Laravel notifications
+          const formattedNotif = {
+            id: notif.id || Date.now().toString(),
+            data: notif.data || { message: notif.message },
+            read_at: null,
+            created_at: new Date().toISOString(),
+            ...notif
+          };
+
+          // Add to store
+          this.notificationStore.addNotification(formattedNotif);
+
+          // Show toast notification
+          notification.open({
+            message: 'New Notification',
+            description: this.getNotificationMessage(formattedNotif),
+            placement: 'topRight',
+            onClick: () => {
+              console.log('Notification Clicked!');
+            },
+          });
+          console.log('Notification Event Fired!');
+          eventBus.emit('notification-clicked', formattedNotif);
+        });
+    }
+  },
+
+  beforeUnmount() {
+    // Clean up Echo listener
+    const user = JSON.parse(localStorage.getItem('user'));
+    const userId = user ? user.id : null;
+    if (userId && window.Echo) {
+      window.Echo.leave(`private-App.Models.User.${userId}`);
+    }
+
+    // Clean up event listeners
+    document.removeEventListener("mouseover", this.handleMouseover);
+    document.removeEventListener("click", this.handleOutsideClick);
+  },
+
   mounted() {
     this.initMouseoverListener();
     this.handleOutsideClick = this.handleOutsideClick.bind(this);
+
     // Check the persisted flag and show notification if it's true
     if (this.authStore.justLoggedIn) {
       notification.success({
@@ -280,8 +305,81 @@ export default {
       // Reset the flag in both the store and localStorage
       this.authStore.justLoggedIn = false;
     }
+
   },
+
+  computed: {
+    // Use store getters for notifications
+    notifications() {
+      return this.notificationStore.getNotifications;
+    },
+    unreadCount() {
+      return this.notificationStore.unreadCount;
+    },
+    dashboardRoute() {
+      return '/dashboard/';
+    }
+  },
+
   methods: {
+    // Use store action for marking all as read
+    async markAllAsRead() {
+      try {
+        await this.notificationStore.markAllNotificationsRead();
+        notification.success({
+          message: 'Success',
+          description: 'All notifications marked as read',
+          placement: 'topRight',
+        });
+      } catch (error) {
+        console.error('Failed to mark all as read:', error);
+        notification.error({
+          message: 'Error',
+          description: 'Failed to mark notifications as read',
+          placement: 'topRight',
+        });
+      }
+    },
+
+    getNotificationMessage(notification) {
+      // Try different possible message fields
+      if (notification.data && notification.data.message) {
+        return notification.data.message;
+      }
+      if (notification.message) {
+        return notification.message;
+      }
+      if (notification.data && notification.data.title) {
+        return notification.data.title;
+      }
+      if (notification.type) {
+        // Convert notification type to readable format
+        return notification.type.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      }
+      return 'New notification received';
+    },
+
+    formatNotificationDate(notification) {
+      const date = notification.created_at || notification.finished_at;
+      if (!date) return 'Just now';
+
+      const notificationDate = new Date(date);
+      const now = new Date();
+      const diffInMinutes = Math.floor((now - notificationDate) / (1000 * 60));
+
+      if (diffInMinutes < 1) return 'Just now';
+      if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      if (diffInHours < 24) return `${diffInHours}h ago`;
+
+      const diffInDays = Math.floor(diffInHours / 24);
+      if (diffInDays < 7) return `${diffInDays}d ago`;
+
+      // For older notifications, show the actual date
+      return notificationDate.toLocaleDateString();
+    },
+
     handleClick(event) {
       event.stopPropagation();
 
@@ -410,6 +508,7 @@ export default {
             okText: 'Yes, logout',
             cancelText: 'Cancel',
             onOk: async () => {
+              disconnectEcho();
               const authStore = useAuthStore();
               await authStore.logout();
               localStorage.removeItem('intendedRoute');
@@ -427,15 +526,6 @@ export default {
         localStorage.removeItem('intendedRoute');
         this.$router.push('/login');
       }
-    }
-  },
-  beforeUnmount() {
-    document.removeEventListener("mouseover", this.handleMouseover);
-    document.removeEventListener("click", this.handleOutsideClick);
-  },
-  computed: {
-    dashboardRoute() {
-      return '/dashboard/';
     }
   },
 };

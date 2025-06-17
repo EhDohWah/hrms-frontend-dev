@@ -1,5 +1,5 @@
 <template>
-  <!-- Edit Employee Modal -->
+  <!-- Edit Employee Basic Information Modal -->
   <div class="modal fade" id="edit_employee">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
@@ -12,10 +12,10 @@
             <i class="ti ti-x"></i>
           </button>
         </div>
-        <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
-          {{ alertMessage }}
+        <div v-if="alertMessageBasic" class="alert" :class="alertClassBasic" role="alert">
+          {{ alertMessageBasic }}
         </div>
-        <form @submit.prevent="handleEditSubmit">
+        <form @submit.prevent="updateBasicInformation">
           <div class="modal-body pb-0">
             <div class="row">
               <div class="col-md-6">
@@ -41,17 +41,29 @@
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Initial (EN)</label>
-                  <input type="text" class="form-control" placeholder="Enter English initial" maxlength="10"
-                    v-model="editFormData.initial_en" />
+                <div class="input-block mb-3">
+                  <label class="form-label" for="edit-initial-en">Initial (EN)</label>
+                  <select id="edit-initial-en" v-model="editFormData.initial_en" class="form-control">
+                    <option value="" disabled selected>Select initial</option>
+                    <option v-for="initial in employeeInitialEN" :key="initial.id" :value="initial.value" :class="[
+                      'text-secondary'
+                    ]">
+                      {{ initial.value }}
+                    </option>
+                  </select>
                 </div>
               </div>
               <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Initial (TH)</label>
-                  <input type="text" class="form-control" placeholder="Enter Thai initial" maxlength="10"
-                    v-model="editFormData.initial_th" />
+                <div class="input-block mb-3">
+                  <label class="form-label" for="edit-initial-th">Initial (TH)</label>
+                  <select id="edit-initial-th" v-model="editFormData.initial_th" class="form-control">
+                    <option value="" disabled selected>Select initial</option>
+                    <option v-for="initial in employeeInitialTH" :key="initial.id" :value="initial.value" :class="[
+                      'text-secondary'
+                    ]">
+                      {{ initial.value }}
+                    </option>
+                  </select>
                 </div>
               </div>
               <div class="col-md-6">
@@ -155,27 +167,34 @@
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Personal Information</h4>
+          <span>Staff ID : {{ personalFormData.staff_id }}</span>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
-        <form @submit.prevent="submitForm">
+
+        <div v-if="alertMessagePersonal" class="alert" :class="alertClassPersonal" role="alert">
+          {{ alertMessagePersonal }}
+        </div>
+        <form @submit.prevent="submitPersonalInformationForm">
           <div class="modal-body pb-0">
             <div class="row">
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Phone <span class="text-danger"> *</span></label>
-                  <input type="tel" class="form-control" v-model="editFormData.mobile_phone"
+                  <input type="tel" class="form-control" v-model="personalFormData.mobile_phone"
                     placeholder="Enter phone number" required />
                 </div>
               </div>
 
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Nationality <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="editFormData.nationality">
-                    <option value="" disabled selected>Select Nationality</option>
-                    <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
+                  <label class="form-label" for="edit-nationality">Nationality <span class="text-danger">
+                      *</span></label>
+                  <select id="edit-nationality" class="form-select" v-model="personalFormData.nationality">
+                    <option value="" disabled>Select Nationality</option>
+                    <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value"
+                      :class="['text-secondary']">
                       {{ nationality.value }}
                     </option>
                   </select>
@@ -185,7 +204,7 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Social Security Number</label>
-                  <input type="text" class="form-control" v-model="editFormData.social_security_number"
+                  <input type="text" class="form-control" v-model="personalFormData.social_security_number"
                     placeholder="Enter SSN" />
                 </div>
               </div>
@@ -193,7 +212,7 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Tax Number</label>
-                  <input type="text" class="form-control" v-model="editFormData.tax_number"
+                  <input type="text" class="form-control" v-model="personalFormData.tax_number"
                     placeholder="Enter tax number" />
                 </div>
               </div>
@@ -201,7 +220,7 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Religion <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="editFormData.religion">
+                  <select class="form-select" v-model="personalFormData.religion">
                     <option value="" disabled selected>Select Religion</option>
                     <option v-for="religion in religions" :key="religion.id" :value="religion.value">
                       {{ religion.value }}
@@ -212,7 +231,7 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Marital Status <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="editFormData.marital_status">
+                  <select class="form-select" v-model="personalFormData.marital_status">
                     <option value="" disabled selected>Select Marital Status</option>
                     <option v-for="status in maritalStatuses" :key="status.id" :value="status.value">
                       {{ status.value }}
@@ -221,18 +240,18 @@
                 </div>
               </div>
 
-              <template v-if="editFormData.marital_status === 'Married'">
+              <template v-if="personalFormData.marital_status === 'Married'">
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label class="form-label">Spouse Name</label>
-                    <input type="text" class="form-control" v-model="editFormData.spouse_name"
+                    <input type="text" class="form-control" v-model="personalFormData.spouse_name"
                       placeholder="Enter spouse name" />
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label class="form-label">Spouse Mobile</label>
-                    <input type="tel" class="form-control" v-model="editFormData.spouse_mobile"
+                    <input type="tel" class="form-control" v-model="personalFormData.spouse_mobile"
                       placeholder="Enter spouse mobile number" />
                   </div>
                 </div>
@@ -241,17 +260,17 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Languages</label>
-                  <a-select v-model:value="selectedLanguages" mode="multiple" style="width: 100%"
+                  <a-select v-model:value="personalFormData.languages" mode="multiple" style="width: 100%"
                     placeholder="Select languages"
-                    :options="languages.map(language => ({ value: language.value, label: language.value }))"
-                    @change="handleLanguageChange"></a-select>
+                    :options="languages.map(language => ({ value: language.value, label: language.value }))"></a-select>
+
                 </div>
               </div>
 
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Current Address <span class="text-danger"> *</span></label>
-                  <textarea class="form-control" v-model="editFormData.current_address"
+                  <textarea class="form-control" v-model="personalFormData.current_address"
                     placeholder="Enter current address" rows="3" required></textarea>
                 </div>
               </div>
@@ -259,7 +278,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Permanent Address <span class="text-danger"> *</span></label>
-                  <textarea class="form-control" v-model="editFormData.permanent_address"
+                  <textarea class="form-control" v-model="personalFormData.permanent_address"
                     placeholder="Enter permanent address" rows="3" required></textarea>
                 </div>
               </div>
@@ -272,81 +291,24 @@
                     <div class="row">
                       <div class="col-md-6">
                         <div class="mb-3">
-                          <label class="form-label">ID Type</label>
-                          <select class="form-select" v-model="editFormData.id_type">
+                          <label class="form-label">ID Type <span class="text-danger"> *</span></label>
+                          <select class="form-select" v-model="personalFormData.employee_identification.id_type"
+                            required>
                             <option value="" disabled selected>Select ID Type</option>
-                            <option value="Passport">Passport</option>
-                            <option value="National ID">National ID</option>
-                            <option value="Driver's License">Driver's License</option>
+                            <option v-for="idType in idTypes" :key="idType.id" :value="idType.value">
+                              {{ idType.value }}
+                            </option>
                           </select>
                         </div>
                       </div>
                       <div class="col-md-6">
                         <div class="mb-3">
                           <label class="form-label">ID Number</label>
-                          <input type="text" class="form-control" v-model="editFormData.document_number"
+                          <input type="text" class="form-control"
+                            v-model="personalFormData.employee_identification.document_number"
                             placeholder="Enter ID number" />
                         </div>
                       </div>
-
-                      <!-- Passport specific fields - commented out for now
-                      <template v-if="editFormData.id_type === 'Passport'">
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">Passport Expiry Date</label>
-                            <input type="date" class="form-control" v-model="editFormData.expiry_date" />
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">Date to Renew Passport</label>
-                            <input type="date" class="form-control" v-model="editFormData.renewal_date" />
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">Arrival Date</label>
-                            <input type="date" class="form-control" v-model="editFormData.arrival_date" />
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">TM Card</label>
-                            <input type="text" class="form-control" v-model="editFormData.tm_card" />
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">90 Days</label>
-                            <input type="date" class="form-control" v-model="editFormData.ninety_days" />
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">Date to Report to Immigration</label>
-                            <input type="date" class="form-control" v-model="editFormData.immigration_report_date" />
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">Visa Expiry Date</label>
-                            <input type="date" class="form-control" v-model="editFormData.visa_expiry_date" />
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">Work Permit</label>
-                            <input type="text" class="form-control" v-model="editFormData.work_permit" />
-                          </div>
-                        </div>
-                        <div class="col-md-6">
-                          <div class="mb-3">
-                            <label class="form-label">Work Permit Expiry Date</label>
-                            <input type="date" class="form-control" v-model="editFormData.work_permit_expiry_date" />
-                          </div>
-                        </div>
-                      </template>
--->
                     </div>
                   </div>
                 </div>
@@ -368,7 +330,7 @@
   <!-- /Edit Personal Information Modal -->
 
   <!-- Edit Beneficiary Modal -->
-  <div class="modal fade" id="edit_beneficiary">
+  <!-- <div class="modal fade" id="edit_beneficiary">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -424,11 +386,11 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Edit Beneficiary Modal -->
 
   <!-- Edit Bank Modal -->
-  <div class="modal fade" id="edit_bank">
+  <!-- <div class="modal fade" id="edit_bank">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -473,11 +435,11 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Edit Bank Modal -->
 
   <!-- Add Beneficiary Modal -->
-  <div class="modal fade" id="add_beneficiary">
+  <!-- <div class="modal fade" id="add_beneficiary">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -527,11 +489,11 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Add Beneficiary Modal -->
 
   <!-- Add Child Modal -->
-  <div class="modal fade" id="add_child">
+  <!-- <div class="modal fade" id="add_child">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -574,11 +536,11 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Add Child Modal -->
 
   <!-- Add Family Modal -->
-  <div class="modal fade" id="edit_familyinformation">
+  <!-- <div class="modal fade" id="edit_familyinformation">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -629,11 +591,11 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Add Family Modal -->
 
   <!-- Add Education Modal -->
-  <div class="modal fade" id="edit_education">
+  <!-- <div class="modal fade" id="edit_education">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -690,11 +652,11 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Add Education Modal -->
 
   <!-- Add Experience Modal -->
-  <div class="modal fade" id="edit_experience">
+  <!-- <div class="modal fade" id="edit_experience">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -759,41 +721,12 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Add Experience Modal -->
 
-  <!-- Add Employee Success Modal -->
-  <div class="modal fade" id="success_modal" role="dialog">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-      <div class="modal-content">
-        <div class="modal-body">
-          <div class="text-center p-3">
-            <span class="avatar avatar-lg avatar-rounded bg-success mb-3">
-              <i class="ti ti-check fs-24"></i>
-            </span>
-            <h5 class="mb-2">Employee Added Successfully</h5>
-            <p class="mb-3">
-              Stephan Peralt has been added with Client ID :
-              <span class="text-primary">#EMP - 0001</span>
-            </p>
-            <div>
-              <div class="row g-2">
-                <div class="col-6">
-                  <router-link to="/employee/employee-list" class="btn btn-dark w-100">Back to List</router-link>
-                </div>
-                <div class="col-6">
-                  <router-link to="/employee/employee-details" class="btn btn-primary w-100">Detail Page</router-link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Add Statutory Modal -->
-  <div class="modal fade" id="add_bank_satutory">
+  <!-- <div class="modal fade" id="add_bank_satutory">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -903,11 +836,11 @@
         </form>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Add Statutory Modal -->
 
   <!-- Add Grant Position Modal -->
-  <div class="modal fade" id="add_grant_position">
+  <!-- <div class="modal fade" id="add_grant_position">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -918,12 +851,12 @@
         </div>
         <div class="modal-body">
           <form @submit.prevent="submitGrantPosition">
-            <!-- Alert Message for Grant Allocation -->
+         
             <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
               {{ alertMessage }}
             </div>
             <div class="row">
-              <!-- Grant Position Dropdown -->
+        
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Grant Position</label>
@@ -935,7 +868,7 @@
                   </select>
                 </div>
               </div>
-              <!-- Level of Effort -->
+            
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Level of Effort (%)</label>
@@ -943,7 +876,7 @@
                     placeholder="Enter level of effort" />
                 </div>
               </div>
-              <!-- Start Date -->
+              
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Start Date</label>
@@ -951,7 +884,7 @@
                     :input-format="dateFormat" />
                 </div>
               </div>
-              <!-- End Date -->
+            
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">End Date</label>
@@ -959,7 +892,7 @@
                     :input-format="dateFormat" />
                 </div>
               </div>
-              <!-- Active Checkbox -->
+             
               <div class="col-md-12">
                 <div class="form-check">
                   <input class="form-check-input" type="checkbox" v-model="form.active" id="activeCheck" />
@@ -982,7 +915,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
   <!-- /Add Grant Position Modal -->
 
   <!-- Asset Information Modal -->
@@ -1132,6 +1065,7 @@ import employmentService from "@/services/employment.service";
 import { grantService } from "@/services/grant.service";
 import { Modal } from 'bootstrap';
 import { useLookupStore } from "@/stores/lookupStore";
+import employeeService from "@/services/employee.service";
 
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
@@ -1142,6 +1076,8 @@ const currentDateFive = ref(new Date());
 const currentDateSix = ref(new Date());
 
 export default {
+  emits: ['employee-updated', 'grantPositionAdded'],
+
   props: {
     // Employee details passed from the parent
     employee: {
@@ -1155,7 +1091,11 @@ export default {
       showPassword1: false,
       isSubmitting: false,
       age: '',
+      loading: false,
+      error: null,
       alertMessage: '',
+      alertMessageBasic: '',
+      alertMessagePersonal: '',
       alertClass: '',
       subsidiaries: [],
       genders: [],
@@ -1164,6 +1104,8 @@ export default {
       religions: [],
       maritalStatuses: [],
       statuses: [],
+      employeeInitialEN: [],
+      employeeInitialTH: [],
       startdate: currentDate,
       startdateOne: currentDateOne,
       startdateTwo: currentDateTwo,
@@ -1171,7 +1113,25 @@ export default {
       startdateFour: currentDateFour,
       startdateFive: currentDateFive,
       startdateSix: currentDateSix,
+      personalFormData: {
+        id: '',
+        staff_id: '',
+        mobile_phone: '',
+        nationality: '',
+        social_security_number: '',
+        tax_number: '',
+        religion: '',
+        marital_status: '',
+        languages: [],
+        current_address: '',
+        permanent_address: '',
+        employee_identification: {
+          id_type: '',
+          document_number: ''
+        },
+      },
       editFormData: {
+        id: '',
         first_name_en: '',
         last_name_en: '',
         first_name_th: '',
@@ -1202,12 +1162,10 @@ export default {
         beneficiary_address: '',
       },
 
-      languages: [
-        { id: 1, value: 'English' },
-        { id: 2, value: 'Thai' },
-        { id: 3, value: 'Burmese' },
-        { id: 4, value: 'Karen' },
-      ],
+      idTypes: [],
+
+      languages: [],
+      selectedLanguages: [],
 
       childForm: {
         child_name: '',
@@ -1240,9 +1198,16 @@ export default {
     await this.initFetchMaritalStatus();
     await this.initFetchEmployeeStatus();
     await this.initSubsidiaries();
+    await this.initFetchEmployeeInitialEN();
+    await this.initFetchEmployeeInitialTH();
+    await this.initFetchIdTypes();
+    await this.initFetchEmployeeLanguage();
   },
 
   computed: {
+
+
+
     calculatedAge() {
       const dobVal = this.editFormData.date_of_birth;
       if (!dobVal) return '';
@@ -1271,74 +1236,102 @@ export default {
 
   },
   methods: {
+    // update employee personal information
+    async submitPersonalInformationForm() {
+      this.loading = true;
+      this.error = null;
+      // Prepare payload
+      const payload = {
+        id: this.personalFormData.id,
+        staff_id: this.personalFormData.staff_id,
+        current_address: this.personalFormData.current_address,
+        permanent_address: this.personalFormData.permanent_address,
+        marital_status: this.personalFormData.marital_status,
+        mobile_phone: this.personalFormData.mobile_phone,
+        nationality: this.personalFormData.nationality,
+        religion: this.personalFormData.religion,
+        social_security_number: this.personalFormData.social_security_number,
+        tax_number: this.personalFormData.tax_number,
+        // Add more fields as needed...
 
-    // // Get subsidiary data from lookups
-    // async fetchSubsidiaries() {
-    //   try {
-    //     // Use the lookup store to get subsidiaries
-    //     const lookupStore = useLookupStore();
-    //     const subsidiaries = lookupStore.getLookupsByType('subsidiary');
-    //     return subsidiaries || [];
-    //   } catch (error) {
-    //     console.error('Error fetching subsidiaries:', error);
-    //     return [];
-    //   }
-    // },
+        // Nested related models:
+        employee_identification: {
+          id_type: this.personalFormData.employee_identification?.id_type,
+          document_number: this.personalFormData.employee_identification?.document_number,
+          // Add other fields if your backend expects them
+        },
 
-    // async fetchGender() {
-    //   try {
-    //     const lookupStore = useLookupStore();
-    //     const genders = lookupStore.getLookupsByType('gender');
-    //     return genders || [];
-    //   } catch (error) {
-    //     console.error('Error fetching genders:', error);
-    //     return [];
-    //   }
-    // },
+        languages: Array.isArray(this.personalFormData.languages)
+          ? this.personalFormData.languages.filter(Boolean)
+          : [],
+      };
 
-    // async fetchNationality() {
-    //   try {
-    //     const lookupStore = useLookupStore();
-    //     const nationalities = lookupStore.getLookupsByType('nationality');
-    //     return nationalities || [];
-    //   } catch (error) {
-    //     console.error('Error fetching nationalities:', error);
-    //     return [];
-    //   }
-    // },
+      // Optionally, clean up undefined/null fields
+      Object.keys(payload).forEach(
+        (k) => (payload[k] == null || payload[k] === '') && delete payload[k]
+      );
 
-    // async fetchReligion() {
-    //   try {
-    //     const lookupStore = useLookupStore();
-    //     const religions = lookupStore.getLookupsByType('religion');
-    //     return religions || [];
-    //   } catch (error) {
-    //     console.error('Error fetching religions:', error);
-    //     return [];
-    //   }
-    // },
+      try {
 
-    // async fetchMaritalStatus() {
-    //   try {
-    //     const lookupStore = useLookupStore();
-    //     const maritalStatuses = lookupStore.getLookupsByType('marital_status');
-    //     return maritalStatuses || [];
-    //   } catch (error) {
-    //     console.error('Error fetching marital statuses:', error);
-    //     return [];
-    //   }
-    // },
+        const response = await employeeService.updateEmployeePersonalInformation(this.employee.id, payload);
 
-    // async fetchEmployeeStatus() {
-    //   try {
-    //     const lookupStore = useLookupStore();
-    //     const statuses = lookupStore.getLookupsByType('employee_status');
-    //     return statuses || [];
-    //   } catch (error) {
-    //     console.error('Error fetching employee statuses:', error);
-    //     return [];
-    //   }
-    // },
+        if (response && response.success) {
+          this.$emit('employee-updated', response.data);
+          this.alertMessagePersonal = response.message || "Personal information updated";
+          this.alertClassPersonal = "alert-success";
+        } else {
+          this.alertMessagePersonal = (response && response.message) || "Failed to update personal information";
+          this.alertClassPersonal = "alert-danger";
+        }
+        return response;
+      } catch (error) {
+        this.error = error.message || "Failed to update personal information";
+        this.alertMessagePersonal = this.error;
+        this.alertClassPersonal = "alert-danger";
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+
+    // update employee basic information
+    async updateBasicInformation() {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await employeeService.updateBasicInformation(this.employee.id, this.editFormData);
+
+        // The API returns: { success: true, message: "...", data: { ...employee... } }
+        if (response && response.success) {
+          this.$emit('employee-updated', response.data);
+          this.alertMessageBasic = response.message || "Employee basic information updated successfully";
+          this.alertClassBasic = "alert-success";
+        } else {
+          this.alertMessageBasic = (response && response.message) || "Failed to update basic information";
+          this.alertClassBasic = "alert-danger";
+        }
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to update basic information';
+        this.alertMessageBasic = this.error;
+        this.alertClassBasic = "alert-danger";
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+
+
+    async initFetchIdTypes() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.idTypes = lookupStore.getLookupsByType('identification_types');
+
+    },
 
     async initFetchGender() {
       const lookupStore = useLookupStore();
@@ -1392,15 +1385,42 @@ export default {
       this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
     },
 
+    async initFetchEmployeeInitialEN() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      // SET the options, not just return
+      this.employeeInitialEN = lookupStore.getLookupsByType('employee_initial_en') || [];
+    },
+
+    async initFetchEmployeeInitialTH() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      // SET the options, not just return
+      this.employeeInitialTH = lookupStore.getLookupsByType('employee_initial_th') || [];
+    },
+
+
+    async initFetchEmployeeLanguage() {
+      const lookupStore = useLookupStore();
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookups();
+      }
+      this.languages = lookupStore.getLookupsByType('employee_language');
+    },
+
+
+
     toggleShow() {
       this.showPassword = !this.showPassword;
     },
     toggleShow1() {
       this.showPassword1 = !this.showPassword1;
     },
-    submitForm() {
-      this.$router.push("/employee/employee-details");
-    },
+
     submitFormOne() {
       this.$router.push("/employee/employee-grid");
     },
@@ -1485,6 +1505,7 @@ export default {
         this.isSubmitting = false;
       }
     },
+
     formatDate(date) {
       if (!date) return "";
       const d = new Date(date);
@@ -1495,6 +1516,7 @@ export default {
       if (day.length < 2) day = "0" + day;
       return [year, month, day].join("-");
     },
+
     resetForm() {
       this.form = {
         grant_items_id: null,
@@ -1507,6 +1529,7 @@ export default {
       this.alertClass = '';
     },
   },
+
   mounted() {
     this.fetchGrantPositions();
   },

@@ -5,6 +5,9 @@ import { useVuelidate } from '@vuelidate/core';
 import { required, email, minLength } from '@vuelidate/validators';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/authStore';
+import { initEcho } from '@/plugins/echo';
+
+
 
 export default {
   name: 'LoginIndex',
@@ -21,13 +24,13 @@ export default {
     });
 
     const rules = {
-      email: { 
-        required, 
+      email: {
+        required,
         email,
-        $autoDirty: true 
+        $autoDirty: true
       },
-      password: { 
-        required, 
+      password: {
+        required,
         minLength: minLength(6),
         $autoDirty: true,
       }
@@ -73,7 +76,7 @@ export default {
 
       // Convert role to lowercase for case-insensitive comparison
       const role = user.role.toLowerCase();
-      
+
       switch (role) {
         case 'admin':
           router.push('/dashboard/admin-dashboard');
@@ -104,19 +107,27 @@ export default {
         isLoading.value = true;
         const authStore = useAuthStore();
         const response = await authStore.login(formData);
-        
+
         if (response.success) {
           // Use the redirect path from the auth store
+
+          if (window.Echo) {
+            window.Echo.disconnect();
+          }
+
+          initEcho(localStorage.getItem('token'));
+
           const redirectPath = authStore.getRedirectPath();
           router.push(redirectPath);
+
         } else if (response.error && response.error.includes('Unauthenticated.')) {
           loginError.value = 'Invalid email or password';
         } else {
-          loginError.value = response.error; 
-        } 
+          loginError.value = response.error;
+        }
       } catch (error) {
         console.error('Login error:', error);
-        
+
         // Handle error based on type
         if (error.type === 'AUTH_ERROR') {
           loginError.value = 'Invalid email or password';
@@ -153,15 +164,16 @@ export default {
   <div class="container-fuild">
     <div class="w-100 overflow-hidden position-relative flex-wrap d-block vh-100">
       <div class="row">
-        
+
         <div class="col-lg-5">
-          <div class="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100">
+          <div
+            class="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100">
             <!-- Add picture for background -->
 
             <!-- Overlay -->
           </div>
         </div>
-        
+
         <div class="col-lg-7 col-md-12 col-sm-12">
           <div class="row justify-content-center align-items-center vh-100 overflow-auto flex-wrap">
             <div class="col-md-7 mx-auto p-4 d-flex flex-column">
@@ -193,12 +205,8 @@ export default {
                     <div class="mb-3">
                       <label class="form-label">Email Address</label>
                       <div class="input-group" :class="{ 'is-invalid': v$.email.$error }">
-                        <input 
-                          type="email" 
-                          v-model="formData.email"
-                          class="form-control" 
-                          :class="{ 'is-invalid': v$.email.$error }"
-                        />
+                        <input type="email" v-model="formData.email" class="form-control"
+                          :class="{ 'is-invalid': v$.email.$error }" />
                         <span class="input-group-text">
                           <i class="ti ti-mail"></i>
                         </span>
@@ -212,22 +220,13 @@ export default {
                     <div class="mb-3">
                       <label class="form-label">Password</label>
                       <div class="input-group" :class="{ 'is-invalid': v$.password.$error }">
-                        <input
-                          :type="showPassword ? 'text' : 'password'"
-                          v-model="formData.password"
-                          class="form-control"
-                          :class="{ 'is-invalid': v$.password.$error }"
-                        />
+                        <input :type="showPassword ? 'text' : 'password'" v-model="formData.password"
+                          class="form-control" :class="{ 'is-invalid': v$.password.$error }" />
                         <span class="input-group-text">
-                          <i 
-                            @click="togglePassword"
-                            class="ti"
-                            :class="{
-                              'ti-eye': showPassword,
-                              'ti-eye-off': !showPassword,
-                            }"
-                            style="cursor: pointer;"
-                          ></i>
+                          <i @click="togglePassword" class="ti" :class="{
+                            'ti-eye': showPassword,
+                            'ti-eye-off': !showPassword,
+                          }" style="cursor: pointer;"></i>
                         </span>
                       </div>
                       <div class="invalid-feedback" v-if="v$.password.$error">
@@ -238,39 +237,26 @@ export default {
                     <!-- Remember Me & Forgot Password -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
                       <div class="form-check">
-                        <input 
-                          type="checkbox" 
-                          class="form-check-input" 
-                          id="remember"
-                          v-model="formData.remember_me"
-                        >
+                        <input type="checkbox" class="form-check-input" id="remember" v-model="formData.remember_me">
                         <label class="form-check-label" for="remember">Remember me</label>
                       </div>
                       <router-link to="/forgot-password" class="text-primary">Forgot Password?</router-link>
                     </div>
 
                     <!-- Submit Button -->
-                    <button 
-                      type="submit" 
-                      class="btn btn-primary w-100 mb-3"
-                    >
+                    <button type="submit" class="btn btn-primary w-100 mb-3">
                       <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
                       {{ isLoading ? 'Signing in...' : 'Sign In' }}
                     </button>
                   </div>
                 </form>
               </div>
-              
+
               <!-- Footer with logos -->
               <div class="footer mt-4">
                 <div class="d-flex justify-content-center align-items-center">
-                  <img src="@/assets/img/smru-logo.png" 
-                      alt="SMRU Logo" 
-                      class="me-4"
-                      style="max-height: 50px;" />
-                  <img src="@/assets/img/bhf-logo.png" 
-                      alt="BHF Logo" 
-                      style="max-height: 50px;" />
+                  <img src="@/assets/img/smru-logo.png" alt="SMRU Logo" class="me-4" style="max-height: 50px;" />
+                  <img src="@/assets/img/bhf-logo.png" alt="BHF Logo" style="max-height: 50px;" />
                 </div>
                 <div class="text-center mt-2">
                   <small class="text-muted">&copy; 2025 SMRU/BHF HR Management System</small>

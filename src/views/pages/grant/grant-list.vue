@@ -87,19 +87,7 @@
                     bordered size="small">
 
                     <template #bodyCell="{ column, text, record: itemRecord }">
-                      <template v-if="column.dataIndex === 'bg_line'">
-                        <div>
-                          <template v-if="editableData[itemRecord.id]">
-                            <a-input v-model:value="editableData[itemRecord.id][column.dataIndex]"
-                              style="margin: -5px 0" />
-                          </template>
-                          <template v-else>
-                            {{ text || ' ' }}
-                          </template>
-                        </div>
-                      </template>
-
-                      <template v-else-if="column.dataIndex === 'grant_position'">
+                      <template v-if="column.dataIndex === 'grant_position'">
                         <div>
                           <template v-if="editableData[itemRecord.id]">
                             <a-input v-model:value="editableData[itemRecord.id][column.dataIndex]"
@@ -336,12 +324,6 @@ export default {
       grantUploadModalInstance: null,
       innerColumns: [
         {
-          title: 'BG Line',
-          dataIndex: 'bg_line',
-          key: 'bg_line',
-          width: 100
-        },
-        {
           title: 'Position',
           dataIndex: 'grant_position',
           key: 'grant_position',
@@ -498,7 +480,6 @@ export default {
       const newItem = {
         id: Date.now(), // Temporary ID for the new item
         grant_id: grantId,
-        bg_line: '',
         grant_position: '',
         grant_salary: 0,
         grant_benefit: 0,
@@ -546,10 +527,8 @@ export default {
 
       // Basic validation
       if (
-        !itemData.bg_line ||
         !itemData.grant_position ||
         itemData.grant_salary == null ||
-        itemData.grant_benefit == null ||
         itemData.grant_level_of_effort == null ||
         itemData.grant_position_number == null
       ) {
@@ -706,7 +685,6 @@ export default {
 
         return {
           id: item.id || `item-${Math.random().toString(36).substr(2, 9)}`,
-          bg_line: item.bg_line,
           grant_position: item.grant_position,
           grant_salary: item.grant_salary,
           grant_benefit: item.grant_benefit,

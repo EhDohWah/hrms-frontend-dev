@@ -1,4 +1,5 @@
 import { authService } from '@/services/auth.service';
+import Echo from '@/plugins/echo';
 
 export const authGuard = (to, from, next) => {
     const isAuthenticated = authService.isAuthenticated();
@@ -6,7 +7,7 @@ export const authGuard = (to, from, next) => {
     const authRequired = !publicPages.includes(to.path);
     // Retrieve token and expiration from localStorage
     const token = localStorage.getItem('token');
-    const tokenExpiration = localStorage.getItem('tokenExpiration'); 
+    const tokenExpiration = localStorage.getItem('tokenExpiration');
     // e.g. "1741721978" (seconds since epoch)
 
     // If token and expiration exist, check whether it is expired
@@ -14,22 +15,23 @@ export const authGuard = (to, from, next) => {
         // If your tokenExpiration is in seconds, multiply by 1000 to compare with Date.now() (which is in ms)
         const expiryTimeMs = Number(tokenExpiration) * 1000;
         if (Date.now() > expiryTimeMs) {
-        // Token is expired. Clear out local storage and redirect to login.
-        localStorage.removeItem('token');
-        localStorage.removeItem('tokenExpiration');
-        localStorage.removeItem('user');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('permissions');
-        return next('/login');
+            // Token is expired. Clear out local storage and redirect to login.
+            localStorage.removeItem('token');
+            localStorage.removeItem('tokenExpiration');
+            localStorage.removeItem('user');
+            localStorage.removeItem('userRole');
+            localStorage.removeItem('permissions');
+            Echo.disconnect();
+            return next('/login');
         }
     }
 
-    
-    
+
+
     // Handle root path redirection based on role
     if (isAuthenticated && to.path === '/') {
         const userRole = localStorage.getItem('userRole')?.toLowerCase();
-        
+
         switch (userRole) {
             case 'admin':
                 return next('/dashboard/admin-dashboard');
@@ -52,7 +54,7 @@ export const authGuard = (to, from, next) => {
 
     if (isAuthenticated && publicPages.includes(to.path)) {
         const userRole = localStorage.getItem('userRole')?.toLowerCase();
-        
+
         switch (userRole) {
             case 'admin':
                 return next('/dashboard/admin-dashboard');
@@ -73,7 +75,7 @@ export const authGuard = (to, from, next) => {
 export const roleGuard = (allowedRoles) => {
     return (to, from, next) => {
         const userRole = localStorage.getItem('userRole');
-        
+
         if (!userRole) {
             return next('/login');
         }
@@ -93,7 +95,7 @@ export const roleGuard = (allowedRoles) => {
 export const permissionGuard = (requiredPermission) => {
     return (to, from, next) => {
         const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
-        
+
         if (!permissions.length) {
             return next('/login');
         }

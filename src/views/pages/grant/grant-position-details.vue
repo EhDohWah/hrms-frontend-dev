@@ -55,37 +55,47 @@
                                         </div>
                                     </div>
                                     <div class="col-md-8">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label class="form-label text-muted small">GRANT CODE</label>
-                                                    <p class="fw-medium">{{ positionDetails.code }}</p>
+                                        <div class="h-70 p-4 bg-white rounded-4 shadow-sm">
+                                            <div class="row gy-2">
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="bi bi-tag text-primary me-2"></i>
+                                                        <span class="text-muted small fw-semibold">GRANT CODE :</span>
+                                                        <span class="ms-auto fw-semibold">{{ positionDetails.code
+                                                        }}</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="bi bi-wallet2 text-info me-2"></i>
+                                                        <span class="text-muted small fw-semibold">BUDGET LINE :</span>
+                                                        <span class="ms-auto">{{ positionDetails.budgetLine }}</span>
+                                                    </div>
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label text-muted small">BUDGET LINE</label>
-                                                    <p class="fw-medium">{{ positionDetails.budgetLine }}</p>
+                                                <div class="col-md-6">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="bi bi-journal-text text-success me-2"></i>
+                                                        <span class="text-muted small fw-semibold">GRANT NAME :</span>
+                                                        <span class="ms-auto">{{ positionDetails.grantName }}</span>
+                                                    </div>
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <i class="bi bi-person-badge text-warning me-2"></i>
+                                                        <span class="text-muted small fw-semibold">POSITION NAME
+                                                            :</span>
+                                                        <span class="ms-auto">{{ positionDetails.positionName }}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label class="form-label text-muted small">GRANT NAME</label>
-                                                    <p class="fw-medium">{{ positionDetails.grantName }}</p>
+                                            <div class="d-flex align-items-center mt-3">
+                                                <span class="text-muted fw-medium me-2">STATUS:</span>
+                                                <div>
+                                                    <span class="badge px-3 py-2 fs-12"
+                                                        :class="getStatusClass(positionDetails.status)">
+                                                        {{ positionDetails.status }}
+                                                    </span>
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label text-muted small">POSITION NAME</label>
-                                                    <p class="fw-medium">{{ positionDetails.positionName }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mb-0">
-                                            <label class="form-label text-muted small">STATUS</label>
-                                            <div>
-                                                <span class="badge" :class="getStatusClass(positionDetails.status)">
-                                                    {{ positionDetails.status }}
-                                                </span>
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
                             </div>
                         </div>
@@ -329,7 +339,10 @@ export default {
                         manPower: response.data.grant_position_number || 'N/A',
                         recruited: response.employees ? response.employees.length : 0,
                         finding: response.data.grant && response.data.grant.description ? response.data.grant.description : 'N/A',
-                        status: response.data.active === '1' ? 'Active' : 'Inactive'
+                        status: (
+                            (response.data.grant && response.data.grant.end_date && response.data.grant.end_date !== '') ||
+                            (response.data.grant && response.data.grant.type === 'hub')
+                        ) ? 'Active' : 'Inactive'
                     };
                 }
 

@@ -76,7 +76,8 @@ export function initEcho(token) {
         key: '30367b7c70f149742ff9',
         cluster: 'ap1',
         forceTLS: true,
-        authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
+        // authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
+        authEndpoint: 'https://hrms-backend-api-v1-main-wrhlmg.laravel.cloud/broadcasting/auth',
         auth: {
             headers: { Authorization: `Bearer ${token}` },
         },

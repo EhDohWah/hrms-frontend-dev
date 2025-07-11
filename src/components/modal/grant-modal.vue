@@ -146,15 +146,42 @@ export default {
       this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
     },
 
+    // Format date to YYYY-MM-DD format
+    formatDateForBackend(date) {
+      if (!date) return null;
+      
+      // If date is already a string in correct format, return as is
+      if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return date;
+      }
+      
+      // Convert date to Date object if it's not already
+      const dateObj = new Date(date);
+      
+      // Check if date is valid
+      if (isNaN(dateObj.getTime())) {
+        return null;
+      }
+      
+      // Format as YYYY-MM-DD
+      return dateObj.toISOString().split('T')[0];
+    },
+
     handleSubmit() {
       // Prevent duplicate submissions
       if (this.isSubmitting) return;
       this.isSubmitting = true;
 
-      console.log(this.formData);
+      // Create a copy of form data and format the date
+      const submissionData = {
+        ...this.formData,
+        end_date: this.formatDateForBackend(this.formData.end_date)
+      };
 
-      // Emit the form data to parent component
-      this.$emit('add-grant', { ...this.formData });
+      console.log('Formatted submission data:', submissionData);
+
+      // Emit the formatted form data to parent component
+      this.$emit('add-grant', submissionData);
 
       // Reset form after submission
       this.resetForm();
@@ -165,6 +192,7 @@ export default {
       // Reset submission state
       this.isSubmitting = false;
     },
+
     resetForm() {
       this.formData = {
         name: '',

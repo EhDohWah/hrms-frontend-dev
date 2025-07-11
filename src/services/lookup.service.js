@@ -69,6 +69,7 @@ class LookupService {
    * - interview_modes
    * - interview_statuses
    * - identification_types
+   * - pay_methods
    */
   async getLookupCategories() {
     const response = await this.getAllLookups();

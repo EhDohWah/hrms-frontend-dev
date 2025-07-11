@@ -6,7 +6,13 @@ class GrantService {
 
   // Fetch a grant by code
   async getGrantByCode(code) {
-    const endpoint = API_ENDPOINTS.GRANT.GET_BY_CODE.replace(':id', code);
+    const endpoint = API_ENDPOINTS.GRANT.GET_BY_CODE.replace(':code', code);
+    return await apiService.get(endpoint);
+  }
+
+  // Fetch a grant by id
+  async getGrantById(id) {
+    const endpoint = API_ENDPOINTS.GRANT.GET_BY_ID.replace(':id', id);
     return await apiService.get(endpoint);
   }
 

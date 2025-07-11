@@ -11,7 +11,7 @@ export const useGrantStore = defineStore('grant', {
     currentGrant: null,
     loading: false,
     error: null
-  }),   
+  }),
 
   getters: {
     getGrantById: (state) => (id) => {
@@ -24,15 +24,32 @@ export const useGrantStore = defineStore('grant', {
 
   actions: {
 
-    async getGrantByCode(code) {
+    async fetchGrantById(id) {
+
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.getGrantById(id);
+        this.currentGrant = response.data || response;
+        return this.currentGrant;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch grant by id';
+        console.error('Error fetching grant by id:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchGrantByCode(code) {
       try {
         this.loading = true;
         this.error = null;
         const response = await grantService.getGrantByCode(code);
-        
+
         // Check if response.data exists; if not, assume response is the data
         const grantData = response.data || response;
-        
+
         // Update the grants array with the fetched grant if it exists
         if (grantData) {
           // Check if the grant already exists in the store
@@ -45,7 +62,7 @@ export const useGrantStore = defineStore('grant', {
             this.grants.push(grantData);
           }
         }
-        
+
         return response;
       } catch (error) {
         this.error = error.message || 'Failed to fetch grant by code';
@@ -55,20 +72,20 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async fetchGrants() {
       try {
         this.loading = true;
         this.error = null;
         const response = await grantService.getAllGrants();
-        
+
         // Check if response.data exists and is an array; if not, assume response is the array
         const grantsData = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response)
-          ? response
-          : [];
-          
+            ? response
+            : [];
+
         this.grants = grantsData;
         return this.grants;
       } catch (error) {
@@ -79,20 +96,20 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async fetchGrantItems() {
       try {
         this.loading = true;
         this.error = null;
         const response = await grantService.getAllGrantItems();
-        
+
         // Check if response.data exists and is an array; if not, assume response is the array
         const grantItemsData = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response)
-          ? response
-          : [];
-          
+            ? response
+            : [];
+
         this.grantItems = grantItemsData;
         return this.grantItems;
       } catch (error) {
@@ -103,7 +120,7 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async createGrant(grantData) {
       try {
         this.loading = true;
@@ -120,7 +137,7 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async createGrantItem(itemData) {
       try {
         this.loading = true;
@@ -137,7 +154,7 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async updateGrant(id, grantData) {
       try {
         this.loading = true;
@@ -154,7 +171,7 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async updateGrantItem(id, itemData) {
       try {
         this.loading = true;
@@ -171,7 +188,7 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async deleteGrant(id) {
       try {
         this.loading = true;
@@ -188,7 +205,7 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async deleteGrantItem(id) {
       try {
         this.loading = true;
@@ -205,7 +222,7 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async uploadGrantFile(formData) {
       // Unwrap the reactive proxy to get the native FormData instance
       const rawFormData = toRaw(formData);
@@ -224,7 +241,7 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     async getGrantDetails(id) {
       try {
         this.loading = true;
@@ -240,10 +257,10 @@ export const useGrantStore = defineStore('grant', {
         this.loading = false;
       }
     },
-    
+
     setCurrentGrant(grant) {
       this.currentGrant = grant;
-    }, 
+    },
 
     async fetchGrantPositions() {
       try {

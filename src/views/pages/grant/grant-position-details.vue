@@ -51,7 +51,8 @@
                                             <div class="display-3 fw-bold text-primary mb-0">
                                                 {{ positionDetails.manPower }}
                                             </div>
-
+                                            <small class="text-muted">Total Allocated: {{ positionDetails.recruited
+                                                }}</small>
                                         </div>
                                     </div>
                                     <div class="col-md-8">
@@ -62,7 +63,7 @@
                                                         <i class="bi bi-tag text-primary me-2"></i>
                                                         <span class="text-muted small fw-semibold">GRANT CODE :</span>
                                                         <span class="ms-auto fw-semibold">{{ positionDetails.code
-                                                        }}</span>
+                                                            }}</span>
                                                     </div>
                                                     <div class="d-flex align-items-center mb-2">
                                                         <i class="bi bi-wallet2 text-info me-2"></i>
@@ -130,6 +131,21 @@
                                             <span class="badge" :class="record.active ? 'bg-success' : 'bg-danger'">
                                                 {{ record.active ? 'Active' : 'Inactive' }}
                                             </span>
+                                        </template>
+                                        <template v-if="column.dataIndex === 'levelOfEffort'">
+                                            {{ record.levelOfEffort }}%
+                                        </template>
+                                        <template v-if="column.dataIndex === 'grantInfo'">
+                                            <div class="grant-info">
+                                                <div><strong>{{ record.grantName }}</strong></div>
+                                                <small class="text-muted">{{ record.grantCode }}</small>
+                                            </div>
+                                        </template>
+                                        <template v-if="column.dataIndex === 'budgetLine'">
+                                            <div class="budget-line-info">
+                                                <div><strong>{{ record.budgetLineCode }}</strong></div>
+                                                <small class="text-muted">{{ record.budgetLineDescription }}</small>
+                                            </div>
                                         </template>
                                         <template v-if="column.dataIndex === 'actions'">
                                             <div class="action-icon d-inline-flex">
@@ -235,29 +251,41 @@ export default {
                     sortOrder: sorted.columnKey === 'employeeName' && sorted.order,
                 },
                 {
-                    title: 'Level of Effort (%)',
+                    title: 'Grant Information',
+                    dataIndex: 'grantInfo',
+                    key: 'grantInfo',
+                    sorter: (a, b) => a.grantName.localeCompare(b.grantName),
+                    sortOrder: sorted.columnKey === 'grantInfo' && sorted.order,
+                },
+                {
+                    title: 'Budget Line',
+                    dataIndex: 'budgetLine',
+                    key: 'budgetLine',
+                    sorter: (a, b) => a.budgetLineCode.localeCompare(b.budgetLineCode),
+                    sortOrder: sorted.columnKey === 'budgetLine' && sorted.order,
+                },
+                {
+                    title: 'Level of Effort',
                     dataIndex: 'levelOfEffort',
                     key: 'levelOfEffort',
-                    sorter: (a, b) => a.levelOfEffort - b.levelOfEffort,
+                    sorter: (a, b) => a.rawLevelOfEffort - b.rawLevelOfEffort,
                     sortOrder: sorted.columnKey === 'levelOfEffort' && sorted.order,
                 },
                 {
                     title: 'Start Date',
                     dataIndex: 'startDate',
                     key: 'startDate',
-                    render: (text) => moment(text).format('DD/MM/YYYY'),
-                    sorter: (a, b) => moment(a.startDate).unix() - moment(b.startDate).unix(),
+                    sorter: (a, b) => moment(a.rawStartDate).unix() - moment(b.rawStartDate).unix(),
                     sortOrder: sorted.columnKey === 'startDate' && sorted.order,
                 },
                 {
                     title: 'End Date',
                     dataIndex: 'endDate',
                     key: 'endDate',
-                    render: (text) => text ? moment(text).format('DD/MM/YYYY') : 'N/A',
                     sorter: (a, b) => {
-                        if (!a.endDate) return 1;
-                        if (!b.endDate) return -1;
-                        return moment(a.endDate).unix() - moment(b.endDate).unix();
+                        if (!a.rawEndDate) return 1;
+                        if (!b.rawEndDate) return -1;
+                        return moment(a.rawEndDate).unix() - moment(b.rawEndDate).unix();
                     },
                     sortOrder: sorted.columnKey === 'endDate' && sorted.order,
                 },
@@ -323,6 +351,7 @@ export default {
             this.filteredInfo = null;
             this.sortedInfo = null;
         },
+
         async fetchPositionDetails() {
             try {
                 const id = this.$route.params.id;
@@ -337,7 +366,7 @@ export default {
                         grantName: response.data.grant && response.data.grant.name ? response.data.grant.name : 'N/A',
                         budgetLine: response.data.bg_line || 'N/A',
                         manPower: response.data.grant_position_number || 'N/A',
-                        recruited: response.employees ? response.employees.length : 0,
+                        recruited: 0, // Will be updated when allocations are fetched
                         finding: response.data.grant && response.data.grant.description ? response.data.grant.description : 'N/A',
                         status: (
                             (response.data.grant && response.data.grant.end_date && response.data.grant.end_date !== '') ||
@@ -358,42 +387,57 @@ export default {
         async fetchEmployeeAllocations() {
             try {
                 this.loading = true;
-                const id = this.$route.params.id;
-                const response = await employeeGrantAllocationService.getEmployeeGrantAllocationDetails(id);
 
-                if (response.success) {
+                // Fetch all allocations and filter by grant item
+                const response = await employeeGrantAllocationService.getAllEmployeeGrantAllocations();
 
-                    // Handle employee allocations
-                    if (response.employee_grant_allocation && Array.isArray(response.employee_grant_allocation)) {
-                        this.employeeAllocations = response.employee_grant_allocation.map(alloc => ({
-                            allocationId: alloc.id,
-                            employeeId: alloc.employee_id,
-                            positionId: alloc.grant_items_id || 'N/A',
-                            staffId: alloc.employee_allocation?.staff_id || 'N/A',
-                            employeeName: `${alloc.employee_allocation?.first_name_en || 'N/A'} ${alloc.employee_allocation?.last_name_en !== '-' ? alloc.employee_allocation?.last_name_en : ''}`.trim() || 'N/A',
-                            levelOfEffort: alloc.level_of_effort ? (parseFloat(alloc.level_of_effort) * 100) + '%' : 'N/A',
-                            rawLevelOfEffort: alloc.level_of_effort,
-                            startDate: alloc.start_date ? moment(alloc.start_date).format('DD MMM YYYY') : 'N/A',
-                            endDate: alloc.end_date ? moment(alloc.end_date).format('DD MMM YYYY') : 'N/A',
-                            rawStartDate: alloc.start_date,
-                            rawEndDate: alloc.end_date,
-                            active: alloc.active === '1'
-                        }));
-                    } else {
-                        this.employeeAllocations = [];
+                if (response.success && response.data) {
+                    const grantItemId = this.$route.params.id;
+
+                    // Filter allocations for this specific grant item
+                    const filteredAllocations = response.data.filter(allocation =>
+                        allocation.position_slot &&
+                        allocation.position_slot.grant_item_id == grantItemId
+                    );
+
+                    this.employeeAllocations = filteredAllocations.map(alloc => ({
+                        id: alloc.id,
+                        allocationId: alloc.id,
+                        employeeId: alloc.employee_id,
+                        employmentId: alloc.employment_id,
+                        positionSlotId: alloc.position_slot_id,
+                        staffId: alloc.employee?.staff_id || 'N/A',
+                        employeeName: `${alloc.employee?.first_name_en || ''} ${alloc.employee?.last_name_en || ''}`.trim() || 'N/A',
+                        grantName: alloc.position_slot?.grant_item?.grant?.name || 'N/A',
+                        grantCode: alloc.position_slot?.grant_item?.grant?.code || 'N/A',
+                        budgetLineCode: alloc.position_slot?.budget_line?.budget_line_code || 'N/A',
+                        budgetLineDescription: alloc.position_slot?.budget_line?.description || 'N/A',
+                        levelOfEffort: alloc.level_of_effort ? Math.round(parseFloat(alloc.level_of_effort) * 100) : 0,
+                        rawLevelOfEffort: alloc.level_of_effort,
+                        startDate: alloc.start_date ? moment(alloc.start_date).format('DD MMM YYYY') : 'N/A',
+                        endDate: alloc.end_date ? moment(alloc.end_date).format('DD MMM YYYY') : 'N/A',
+                        rawStartDate: alloc.start_date,
+                        rawEndDate: alloc.end_date,
+                        active: alloc.active
+                    }));
+
+                    // Update position details with recruited count
+                    if (this.positionDetails) {
+                        this.positionDetails.recruited = this.employeeAllocations.filter(alloc => alloc.active).length;
                     }
 
-                    // Use total_allocations from the response
-                    this.total = response.total_allocations || 0;
-                    message.success(response.message || 'Employee allocations loaded successfully');
+                    this.total = this.employeeAllocations.length;
+
                 } else {
-                    throw new Error(response.message || 'Failed to fetch data');
+                    this.employeeAllocations = [];
+                    this.total = 0;
                 }
+
             } catch (error) {
-                console.error('Error fetching position and employee allocations:', error);
-                message.error('Failed to load position and employee allocations');
-                this.positionDetails = null;
+                console.error('Error fetching employee allocations:', error);
+                message.error('Failed to load employee allocations');
                 this.employeeAllocations = [];
+                this.total = 0;
             } finally {
                 this.loading = false;
             }
@@ -431,10 +475,15 @@ export default {
                                 console.log(response);
                                 if (response.success) {
                                     // Remove the deleted allocation from the local array
-                                    this.employeeAllocations = this.employeeAllocations.filter(allocation => allocation.id !== id);
+                                    this.employeeAllocations = this.employeeAllocations.filter(allocation => allocation.allocationId !== id);
                                     this.total = this.employeeAllocations.length;
+
+                                    // Update recruited count
+                                    if (this.positionDetails) {
+                                        this.positionDetails.recruited = this.employeeAllocations.filter(alloc => alloc.active).length;
+                                    }
+
                                     message.success(response.message || 'Employee allocation deleted successfully');
-                                    this.fetchEmployeeAllocations();
 
                                 } else {
                                     throw new Error(response.message || 'Failed to delete employee allocation');
@@ -464,17 +513,17 @@ export default {
                 // Check if the submission was successful
                 if (response.success) {
                     // Display success message
-                    message.success(response.message || 'Grant position saved successfully');
+                    message.success(response.message || 'Employee allocation saved successfully');
 
-                    // Refresh the grant positions list to show the updated data
+                    // Refresh the employee allocations list to show the updated data
                     try {
                         await this.fetchEmployeeAllocations();
                     } catch (fetchError) {
-                        message.warning('Position saved but could not refresh the list');
+                        message.warning('Allocation saved but could not refresh the list');
                     }
                 } else {
                     // Log the failure and display an error message to the user
-                    message.error(response.message || 'Failed to save grant position');
+                    message.error(response.message || 'Failed to save employee allocation');
                 }
             } catch (error) {
                 message.error('An unexpected error occurred while processing your request');
@@ -498,6 +547,14 @@ export default {
 
 .table-operations>button {
     margin-right: 8px;
+}
+
+.grant-info {
+    min-width: 150px;
+}
+
+.budget-line-info {
+    min-width: 120px;
 }
 
 :deep(.ant-select-selector) {

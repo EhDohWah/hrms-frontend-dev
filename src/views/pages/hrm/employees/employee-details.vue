@@ -269,7 +269,9 @@
                     Languages
                   </span>
                   <p class="text-dark text-end">
-                    {{ employee.languages ? employee.languages.join(', ') : 'N/A' }}
+                    {{employee.employee_languages && employee.employee_languages.length > 0 ?
+                      employee.employee_languages.map(lang =>
+                        lang.language).join(', ') : 'N/A'}}
                   </p>
                 </div>
 
@@ -317,7 +319,7 @@
                         employee.employee_identification.document_number : 'N/A' }}</p>
                     </div>
 
-                    <template
+                    <!-- <template
                       v-if="employee.employee_identification && employee.employee_identification.id_type === 'Passport'">
                       <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="d-inline-flex align-items-center">
@@ -400,7 +402,7 @@
                         <p class="text-dark mb-0">{{ employee.employee_identification.work_permit_expiry_date || 'N/A'
                         }}</p>
                       </div>
-                    </template>
+                    </template> -->
                   </div>
                 </div>
 
@@ -459,8 +461,8 @@
           <div class="d-flex align-items-center justify-content-between mb-2">
             <h6>Employee Children Information</h6>
             <div class="d-flex align-items-center">
-              <a href="javascript:void(0);" class="bt btn-sm d-flex align-items-center me-2" data-bs-toggle="modal"
-                data-bs-target="#add_child">
+              <a href="javascript:void(0);" class="bt btn-sm d-flex align-items-center me-2"
+                @click="$refs.employeeDetailsModal.openAddChildModal()">
                 <i class="ti ti-circle-plus me-1"></i>
                 <span>Add</span>
               </a>
@@ -472,15 +474,35 @@
                 <div v-for="(child, index) in employee.employee_children" :key="index" class="p-3 border-bottom">
                   <div class="d-flex align-items-center justify-content-between">
                     <div>
-                      <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
+                      <span class="d-inline-flex align-items-center">Child {{ index + 1 }}</span>
                       <h6 class="d-flex align-items-center fw-medium mt-1">
-                        {{ child.child_name }}
+                        {{ child.name }}
                         <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
+                        <span class="text-muted">{{ calculateAge(child.date_of_birth) }} years old</span>
                       </h6>
                     </div>
-                    <p class="text-dark">{{ child.date_of_birth }}</p>
-                    <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
-                      data-bs-target="#edit_child"><i class="ti ti-edit"></i></a>
+                    <div class="d-flex align-items-center">
+                      <p class="text-dark me-3">{{ formatDate(child.date_of_birth) }}</p>
+                      <div class="dropdown">
+                        <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="dropdown">
+                          <i class="ti ti-dots-vertical"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                          <li>
+                            <a href="javascript:void(0);" class="dropdown-item"
+                              @click="$refs.employeeDetailsModal.openEditChildModal(child)">
+                              <i class="ti ti-edit me-2"></i>Edit
+                            </a>
+                          </li>
+                          <li>
+                            <a href="javascript:void(0);" class="dropdown-item text-danger"
+                              @click="$refs.employeeDetailsModal.deleteChild(child.id)">
+                              <i class="ti ti-trash me-2"></i>Delete
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -537,13 +559,13 @@
                     <div class="row">
                       <div class="col-md-12">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                          <p class="mb-0">Grant Allocations Details</p>
+                          <p class="mb-0">Funding Allocations Details</p>
                         </div>
 
                         <div
-                          v-if="employee.employee_grant_allocations && employee.employee_grant_allocations.length > 0">
+                          v-if="employee.employee_funding_allocations && employee.employee_funding_allocations.length > 0">
 
-                          <div v-for="(allocation, index) in employee.employee_grant_allocations" :key="index"
+                          <div v-for="(allocation, index) in employee.employee_funding_allocations" :key="index"
                             class="card mb-3">
 
                             <div class="card mb-3 position-relative"
@@ -556,63 +578,48 @@
                                 EXPIRED
                               </div>
 
-                              <!-- Grant allocation details start -->
+                              <!-- Funding allocation details start -->
                               <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
-                                  <h6 class="mb-0">Grant Allocation #{{ index + 1 }} ({{ allocation.level_of_effort }}%
-                                    LOE)</h6>
-
-                                  <!-- <button class="btn btn-danger btn-sm rounded d-inline-flex align-items-center" @click="$confirm({
-                                    title: 'Are you sure you want to delete this grant allocation?',
-                                    content: 'This action cannot be undone.',
-                                    okText: 'Yes, Delete',
-                                    centered: true,
-                                    okType: 'danger',
-                                    cancelText: 'Cancel',
-                                    async onOk() {
-                                      await deleteGrantAllocation(allocation.id);
-                                    },
-                                    onCancel() {
-                                      // Do nothing when canceled
-                                    },
-                                  })">
-                                    <i class="ti ti-trash me-1"></i>Delete
-                                  </button> -->
+                                  <h6 class="mb-0">
+                                    <span class="badge me-2"
+                                      :class="allocation.allocation_type === 'grant' ? 'badge-primary' : 'badge-secondary'">
+                                      {{ allocation.allocation_type === 'grant' ? 'Grant' : 'Org Funded' }}
+                                    </span>
+                                    Allocation #{{ index + 1 }} ({{ (parseFloat(allocation.level_of_effort) *
+                                      100).toFixed(0)
+                                    }}% LOE)
+                                  </h6>
                                 </div>
+
+                                <!-- Common allocation details -->
                                 <div class="row">
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
-                                      Subsidiary
+                                      Allocation Type
                                     </span>
                                     <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.grant_item_allocation?.grant?.subsidiary || 'N/A' }}
+                                      {{ allocation.allocation_type || 'N/A' }}
                                     </h6>
                                   </div>
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
-                                      Grant Code
+                                      Level of Effort
                                     </span>
                                     <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.grant_item_allocation?.grant?.code || 'N/A' }}
+                                      {{ allocation.level_of_effort ? `${(parseFloat(allocation.level_of_effort) *
+                                        100).toFixed(0)}%` : 'N/A' }}
                                     </h6>
                                   </div>
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
-                                      Grant Name
+                                      Start Date
                                     </span>
                                     <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.grant_item_allocation?.grant?.name || 'N/A' }}
+                                      {{ formatDate(allocation.start_date) || 'N/A' }}
                                     </h6>
                                   </div>
                                   <div class="col-md-3">
-                                    <span class="d-inline-flex align-items-center">
-                                      Budget Line
-                                    </span>
-                                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.grant_item_allocation?.bg_line || 'N/A' }}
-                                    </h6>
-                                  </div>
-                                  <!-- <div class="col-md-4">
                                     <span class="d-inline-flex align-items-center">
                                       End Date
                                     </span>
@@ -620,52 +627,109 @@
                                       :class="{ 'text-danger': isGrantExpired(allocation.end_date) }">
                                       {{ formatDate(allocation.end_date) || 'N/A' }}
                                     </h6>
-                                  </div> -->
+                                  </div>
                                 </div>
-                                <div class="row mt-3">
+
+                                <!-- Grant specific details -->
+                                <div v-if="allocation.allocation_type === 'grant' && allocation.position_slot"
+                                  class="row mt-3">
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Grant Code
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.position_slot?.grant_item?.grant?.code || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Grant Name
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.position_slot?.grant_item?.grant?.name || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Subsidiary
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.position_slot?.grant_item?.grant?.subsidiary || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Grant End Date
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ formatDate(allocation.position_slot?.grant_item?.grant?.end_date) || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                </div>
+
+                                <!-- Grant position and salary details -->
+                                <div v-if="allocation.allocation_type === 'grant' && allocation.position_slot"
+                                  class="row mt-3">
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       Grant Position
                                     </span>
                                     <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.grant_item_allocation?.grant_position || 'N/A' }}
+                                      {{ allocation.position_slot?.grant_item?.grant_position || 'N/A' }}
                                     </h6>
                                   </div>
-
-                                  <div class="col-md-3">
-                                    <span class="d-inline-flex align-items-center">
-                                      Level of Effort
-                                    </span>
-                                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.grant_item_allocation?.grant_level_of_effort ?
-                                        `${allocation.grant_item_allocation?.grant_level_of_effort}%` :
-                                        'N/A' }}
-                                    </h6>
-                                  </div>
-
-                                  <!-- Grant Salary -->
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       Grant Salary
                                     </span>
                                     <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.grant_item_allocation?.grant_salary ?
-                                        `${Number(allocation.grant_item_allocation?.grant_salary).toLocaleString()}
+                                      {{ allocation.position_slot?.grant_item?.grant_salary ?
+                                        `${Number(allocation.position_slot?.grant_item?.grant_salary).toLocaleString()}
                                       THB` :
                                         'N/A' }}
                                     </h6>
                                   </div>
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Grant Benefit
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.position_slot?.grant_item?.grant_benefit ?
+                                        `${Number(allocation.position_slot?.grant_item?.grant_benefit).toLocaleString()}
+                                      THB` :
+                                        'N/A' }}
+                                    </h6>
+                                  </div>
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Slot Number
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.position_slot?.slot_number || 'N/A' }}
+                                    </h6>
+                                  </div>
+                                </div>
 
+                                <!-- Org funded specific details -->
+                                <div v-if="allocation.allocation_type === 'org_funded'" class="row mt-3">
+                                  <div class="col-md-6">
+                                    <span class="d-inline-flex align-items-center">
+                                      Org Funded ID
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.org_funded_id || 'N/A' }}
+                                    </h6>
+                                  </div>
                                 </div>
                               </div>
-                              <!-- Grant allocation details end -->
+                              <!-- Funding allocation details end -->
                             </div>
 
                           </div>
                         </div>
                         <div v-else class="card">
                           <div class="card-body text-center py-3">
-                            <p>No grant allocations available for this employee</p>
+                            <p>No funding allocations available for this employee</p>
                           </div>
                         </div>
                       </div>
@@ -908,22 +972,20 @@
                                 <ul class="list-group list-group-flush">
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-building me-2"></i>Department</span>
-                                      <span class="fw-medium">{{ employee.employment?.department?.name || 'N/A'
-                                      }}</span>
+                                      <span class="text-muted"><i class="ti ti-id me-2"></i>Employee ID</span>
+                                      <span class="fw-medium">{{ employee.employment?.employee_id || 'N/A' }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-user-star me-2"></i>Position</span>
-                                      <span class="fw-medium">{{ employee.employment?.position?.title || 'N/A' }}</span>
+                                      <span class="text-muted"><i class="ti ti-id me-2"></i>Employment Type</span>
+                                      <span class="fw-medium">{{ employee.employment?.employment_type || 'N/A' }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-user-check me-2"></i>Reports To</span>
-                                      <span class="fw-medium">{{ employee.employment?.supervisor?.first_name || 'N/A'
-                                      }}</span>
+                                      <span class="text-muted"><i class="ti ti-cash-banknote me-2"></i>Pay Method</span>
+                                      <span class="fw-medium">{{ employee.employment?.pay_method || 'N/A' }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -942,22 +1004,36 @@
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-status-change me-2"></i>Probation
-                                        End</span>
-                                      <span class="fw-medium">{{ formatDate(employee.employment?.probation_end_date) ||
-                                        'N/A' }}</span>
+                                      <span class="text-muted"><i class="ti ti-calendar-check me-2"></i>Probation Pass
+                                        Date</span>
+                                      <span class="fw-medium">{{ formatDate(employee.employment?.probation_pass_date) ||
+                                        'N/A'
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-id me-2"></i>Employment Type</span>
-                                      <span class="fw-medium">{{ employee.employment?.employment_type || 'N/A' }}</span>
+                                      <span class="text-muted"><i class="ti ti-toggle-left me-2"></i>Active
+                                        Status</span>
+                                      <span>
+                                        <span v-if="employee.employment?.active === '1'"
+                                          class="badge badge-soft-success">
+                                          <i class="ti ti-check me-1"></i>Active
+                                        </span>
+                                        <span v-else-if="employee.employment?.active === '0'"
+                                          class="badge badge-soft-danger">
+                                          <i class="ti ti-x me-1"></i>Inactive
+                                        </span>
+                                        <span v-else class="fw-medium">N/A</span>
+                                      </span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-location me-2"></i>Site Location</span>
-                                      <span class="fw-medium">{{ employee.employment?.site?.name || 'N/A' }}</span>
+                                      <span class="text-muted"><i class="ti ti-building me-2"></i>Department Position
+                                        ID</span>
+                                      <span class="fw-medium">{{ employee.employment?.department_position_id || 'N/A'
+                                      }}</span>
                                     </div>
                                   </li>
                                 </ul>
@@ -968,29 +1044,40 @@
                                 <ul class="list-group list-group-flush">
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-cash-banknote me-2"></i>Pay Method</span>
-                                      <span class="fw-medium">{{ employee.employment?.pay_method || 'N/A' }}</span>
+                                      <span class="text-muted"><i class="ti ti-location me-2"></i>Work Location</span>
+                                      <span class="fw-medium">{{ employee.employment?.work_location?.name || 'N/A'
+                                      }}</span>
+                                    </div>
+                                  </li>
+                                  <li class="list-group-item px-0 py-2 border-0">
+                                    <div class="d-flex justify-content-between">
+                                      <span class="text-muted"><i class="ti ti-map-pin me-2"></i>Location Type</span>
+                                      <span class="fw-medium">{{ employee.employment?.work_location?.type || 'N/A'
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-cash-banknote me-2"></i>Position
                                         Salary</span>
-                                      <span class="fw-medium">{{ employee.employment?.position_salary || 'N/A' }}</span>
-                                    </div>
-                                  </li>
-                                  <li class="list-group-item px-0 py-2 border-0">
-                                    <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-id me-2"></i>Probation Salary</span>
-                                      <span class="fw-medium">{{ employee.employment?.probation_salary || 'N/A'
+                                      <span class="fw-medium">{{ employee.employment?.position_salary ?
+                                        `${Number(employee.employment.position_salary).toLocaleString()} THB` : 'N/A'
                                       }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-cash-banknote me-2"></i>Employee
-                                        Tax</span>
-                                      <span class="fw-medium">{{ employee.employment?.employee_tax || 'N/A' }}</span>
+                                      <span class="text-muted"><i class="ti ti-cash me-2"></i>Probation Salary</span>
+                                      <span class="fw-medium">{{ employee.employment?.probation_salary ?
+                                        `${Number(employee.employment.probation_salary).toLocaleString()} THB` : 'N/A'
+                                      }}</span>
+                                    </div>
+                                  </li>
+                                  <li class="list-group-item px-0 py-2 border-0">
+                                    <div class="d-flex justify-content-between">
+                                      <span class="text-muted"><i class="ti ti-percentage me-2"></i>Employee Tax</span>
+                                      <span class="fw-medium">{{ employee.employment?.employee_tax ?
+                                        `${employee.employment.employee_tax}%` : 'N/A' }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1004,11 +1091,11 @@
                                       <span class="text-muted"><i
                                           class="ti ti-heart-handshake me-2"></i>Health-Welfare</span>
                                       <span>
-                                        <span v-if="employee.employment?.health_welfare === true"
+                                        <span v-if="employee.employment?.health_welfare === '1'"
                                           class="badge badge-soft-success">
                                           <i class="ti ti-check me-1"></i>Yes
                                         </span>
-                                        <span v-else-if="employee.employment?.health_welfare === false"
+                                        <span v-else-if="employee.employment?.health_welfare === '0'"
                                           class="badge badge-soft-danger">
                                           <i class="ti ti-x me-1"></i>No
                                         </span>
@@ -1020,10 +1107,10 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-piggy-bank me-2"></i>PVD</span>
                                       <span>
-                                        <span v-if="employee.employment?.pvd === true" class="badge badge-soft-success">
+                                        <span v-if="employee.employment?.pvd === '1'" class="badge badge-soft-success">
                                           <i class="ti ti-check me-1"></i>Yes
                                         </span>
-                                        <span v-else-if="employee.employment?.pvd === false"
+                                        <span v-else-if="employee.employment?.pvd === '0'"
                                           class="badge badge-soft-danger">
                                           <i class="ti ti-x me-1"></i>No
                                         </span>
@@ -1035,11 +1122,11 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-coin me-2"></i>Saving Fund</span>
                                       <span>
-                                        <span v-if="employee.employment?.saving_fund === true"
+                                        <span v-if="employee.employment?.saving_fund === '1'"
                                           class="badge badge-soft-success">
                                           <i class="ti ti-check me-1"></i>Yes
                                         </span>
-                                        <span v-else-if="employee.employment?.saving_fund === false"
+                                        <span v-else-if="employee.employment?.saving_fund === '0'"
                                           class="badge badge-soft-danger">
                                           <i class="ti ti-x me-1"></i>No
                                         </span>
@@ -1048,6 +1135,30 @@
                                     </div>
                                   </li>
                                 </ul>
+                              </div>
+                            </div>
+
+                            <!-- Additional Employment Details -->
+                            <div class="row mt-3">
+                              <div class="col-md-6">
+                                <div class="card border-0 bg-light">
+                                  <div class="card-body p-3">
+                                    <h6 class="mb-2"><i class="ti ti-user me-2"></i>Created By</h6>
+                                    <p class="mb-0">{{ employee.employment?.created_by || 'N/A' }}</p>
+                                    <small class="text-muted">{{ formatDate(employee.employment?.created_at) || 'N/A'
+                                    }}</small>
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-md-6">
+                                <div class="card border-0 bg-light">
+                                  <div class="card-body p-3">
+                                    <h6 class="mb-2"><i class="ti ti-user-edit me-2"></i>Updated By</h6>
+                                    <p class="mb-0">{{ employee.employment?.updated_by || 'N/A' }}</p>
+                                    <small class="text-muted">{{ formatDate(employee.employment?.updated_at) || 'N/A'
+                                    }}</small>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1317,6 +1428,9 @@
 import { useEmployeeStore } from '@/stores/employeeStore';
 import { employmentService } from '@/services/employment.service';
 import { Modal } from 'bootstrap';
+import { useLookupStore } from "@/stores/lookupStore";
+import employeeService from "@/services/employee.service";
+import employeeChildrenService from "@/services/employee-children.service";
 
 
 export default {
@@ -1328,6 +1442,14 @@ export default {
 
       showEditModal: false,
       selectedEmployee: null,
+      childForm: {
+        id: null,
+        employee_id: '',
+        name: '',
+        date_of_birth: '',
+      },
+      editingChild: null,
+      isEditingChild: false,
     };
   },
   created() {
@@ -1396,7 +1518,7 @@ export default {
         tax_number: employee.tax_number,
         religion: employee.religion,
         marital_status: employee.marital_status,
-        languages: employee.languages ? [...employee.languages] : [],
+        languages: employee.employee_languages ? employee.employee_languages.map(lang => lang.language) : [],
         current_address: employee.current_address,
         permanent_address: employee.permanent_address,
         employee_identification: employee.employee_identification
@@ -1456,6 +1578,20 @@ export default {
       return new Date(date).toLocaleDateString('th-TH', options);
     },
 
+    calculateAge(dateOfBirth) {
+      if (!dateOfBirth) return 0;
+      const today = new Date();
+      const birthDate = new Date(dateOfBirth);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      return age;
+    },
+
     async fetchEmployeeDetails() {
       const employeeStore = useEmployeeStore();
       // Grab the employee ID from the route parameters
@@ -1489,6 +1625,140 @@ export default {
         this.$message.error('Failed to delete grant allocation: ' + (error.message || 'Unknown error'));
       }
     },
+
+    // ===== CHILD CRUD METHODS =====
+
+    // Create or Update Child
+    async submitChildForm() {
+      try {
+        this.isSubmitting = true;
+
+        // Validate required fields
+        if (!this.childForm.name) {
+          this.$message.error('Child name is required');
+          return;
+        }
+
+        // Prepare payload
+        const payload = {
+          employee_id: this.employee.id,
+          name: this.childForm.name,
+          date_of_birth: this.formatDate(this.childForm.date_of_birth),
+        };
+
+        let response;
+        if (this.isEditingChild && this.childForm.id) {
+          // Update existing child
+          response = await employeeChildrenService.updateEmployeeChild(this.childForm.id, payload);
+        } else {
+          // Create new child
+          response = await employeeChildrenService.createEmployeeChild(payload);
+        }
+
+        if (response && response.success) {
+          this.$message.success(response.message || `Child ${this.isEditingChild ? 'updated' : 'added'} successfully`);
+
+          // Emit event to parent to reload employee details
+          this.$emit('employee-updated');
+
+          // Reset form and close modal
+          this.resetChildForm();
+          this.closeChildModal();
+        } else {
+          this.$message.error(response?.message || `Failed to ${this.isEditingChild ? 'update' : 'add'} child`);
+        }
+      } catch (error) {
+        console.error('Error submitting child form:', error);
+        this.$message.error(`Error ${this.isEditingChild ? 'updating' : 'adding'} child: ` + (error.message || 'Unknown error'));
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    // Open Add Child Modal
+    openAddChildModal() {
+      this.resetChildForm();
+      this.isEditingChild = false;
+      const modalEl = document.getElementById('add_child');
+      const modal = Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    },
+
+    // Open Edit Child Modal
+    openEditChildModal(child) {
+      this.isEditingChild = true;
+      this.editingChild = child;
+
+      // Populate form with child data
+      this.childForm = {
+        id: child.id,
+        employee_id: child.employee_id,
+        name: child.name,
+        date_of_birth: child.date_of_birth ? new Date(child.date_of_birth) : null,
+      };
+
+      const modalEl = document.getElementById('add_child');
+      const modal = Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    },
+
+    // Delete Child
+    async deleteChild(childId) {
+      try {
+        // Show confirmation dialog
+        const confirmed = await this.$confirm({
+          title: 'Confirm Delete',
+          content: 'Are you sure you want to delete this child record? This action cannot be undone.',
+          okText: 'Yes, Delete',
+          okType: 'danger',
+          cancelText: 'Cancel',
+          centered: true,
+        });
+
+        if (confirmed) {
+          const response = await employeeChildrenService.deleteEmployeeChild(childId);
+
+          if (response && response.success) {
+            this.$message.success(response.message || 'Child deleted successfully');
+
+            // Emit event to parent to reload employee details
+            this.$emit('employee-updated');
+          } else {
+            this.$message.error(response?.message || 'Failed to delete child');
+          }
+        }
+      } catch (error) {
+        if (error === 'cancel') {
+          // User cancelled, do nothing
+          return;
+        }
+        console.error('Error deleting child:', error);
+        this.$message.error('Error deleting child: ' + (error.message || 'Unknown error'));
+      }
+    },
+
+    // Reset Child Form
+    resetChildForm() {
+      this.childForm = {
+        id: null,
+        employee_id: '',
+        name: '',
+        date_of_birth: '',
+      };
+      this.editingChild = null;
+      this.isEditingChild = false;
+    },
+
+    // Close Child Modal
+    closeChildModal() {
+      const modalEl = document.getElementById('add_child');
+      const modal = Modal.getInstance(modalEl);
+      if (modal) {
+        modal.hide();
+      }
+    },
+
+    // ===== END CHILD CRUD METHODS =====
   },
 };
 </script>

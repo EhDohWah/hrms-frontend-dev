@@ -18,7 +18,7 @@
             "active_link": "/dashboard/admin-dashboard"
           },
           {
-            "menuValue": "HR Manager Dashboard", 
+            "menuValue": "HR Manager Dashboard",
             "route": "/dashboard/hr-manager-dashboard",
             "active_link": "/dashboard/hr-manager-dashboard"
           },
@@ -33,10 +33,9 @@
             "active_link": "/dashboard/employee-dashboard"
           }
         ]
-      }  
+      }
     ]
   },
-
   {
     "tittle": "Grant",
     "showAsTab": false,
@@ -56,6 +55,11 @@
             "active_link": "/grant/list"
           },
           {
+            "menuValue": "Budget Lines",
+            "route": "/grant/budget-line-list",
+            "active_link": "/grant/budget-line-list"
+          },
+          {
             "menuValue": "Grant Position",
             "route": "/grant/grant-position",
             "active_link": "/grant/grant-position"
@@ -64,7 +68,6 @@
       }
     ]
   },
-
   {
     "tittle": "Recruitment",
     "showAsTab": false,
@@ -94,7 +97,7 @@
             "active_link": "/recruitment/job-list"
           },
           {
-            "menuValue": "Candidates", 
+            "menuValue": "Candidates",
             "route": "/recruitment/candidates-list",
             "active_link": "/recruitment/candidates-list"
           },
@@ -483,7 +486,7 @@
             "active_link": "/crm/activity"
           }
         ]
-      }, 
+      },
       {
         "menuValue": "Lookups",
         "route": "/lookups/lookup-list",
@@ -499,7 +502,6 @@
           }
         ]
       },
-
       {
         "menuValue": "Department Positions",
         "route": "/department-positions/department-position-list",
@@ -515,7 +517,6 @@
           }
         ]
       },
-
       {
         "menuValue": "User Management",
         "active_link": "user-management",
@@ -843,7 +844,7 @@
   {
     "tittle": "Authentication",
     "showAsTab": false,
-    "separateRoute": false,    
+    "separateRoute": false,
     "menu": [
       {
         "menuValue": "Login",
@@ -1020,14 +1021,14 @@
             "route": "/baseui/ui-accordion",
             "active_link": "/baseui/ui-accordion"
           },
-          { 
-            "menuValue": "Avatar", 
-            "route": "/baseui/ui-avatar", 
+          {
+            "menuValue": "Avatar",
+            "route": "/baseui/ui-avatar",
             "active_link": "/baseui/ui-avatar"
           },
-          { 
-            "menuValue": "Badges", 
-            "route": "/baseui/ui-badges", 
+          {
+            "menuValue": "Badges",
+            "route": "/baseui/ui-badges",
             "active_link": "/baseui/ui-badges"
           },
           {
@@ -1045,9 +1046,9 @@
             "route": "/baseui/ui-breadcrumb",
             "active_link": "/baseui/ui-breadcrumb"
           },
-          { 
-            "menuValue": "Cards", 
-            "route": "/baseui/ui-cards", 
+          {
+            "menuValue": "Cards",
+            "route": "/baseui/ui-cards",
             "active_link": "/baseui/ui-cards"
           },
           {
@@ -1060,14 +1061,14 @@
             "route": "/baseui/ui-dropdowns",
             "active_link": "/baseui/ui-dropdowns"
           },
-          { 
-            "menuValue": "Grid", 
-            "route": "/baseui/ui-grid", 
+          {
+            "menuValue": "Grid",
+            "route": "/baseui/ui-grid",
             "active_link": "/baseui/ui-grid"
           },
-          { 
-            "menuValue": "Images", 
-            "route": "/baseui/ui-images", 
+          {
+            "menuValue": "Images",
+            "route": "/baseui/ui-images",
             "active_link": "/baseui/ui-images"
           },
           {
@@ -1075,14 +1076,14 @@
             "route": "/baseui/ui-lightbox",
             "active_link": "/baseui/ui-lightbox"
           },
-          { 
-            "menuValue": "Media", 
-            "route": "/baseui/ui-media", 
+          {
+            "menuValue": "Media",
+            "route": "/baseui/ui-media",
             "active_link": "/baseui/ui-media"
           },
-          { 
-            "menuValue": "Modals", 
-            "route": "/baseui/ui-modals", 
+          {
+            "menuValue": "Modals",
+            "route": "/baseui/ui-modals",
             "active_link": "/baseui/ui-modals"
           },
           {
@@ -1120,9 +1121,9 @@
             "route": "/baseui/ui-typography",
             "active_link": "/baseui/ui-typography"
           },
-          { 
-            "menuValue": "Videos", 
-            "route": "/baseui/ui-video", 
+          {
+            "menuValue": "Videos",
+            "route": "/baseui/ui-video",
             "active_link": "/baseui/ui-video"
           }
         ]
@@ -1134,9 +1135,9 @@
         "icon": "hierarchy-3",
         "active_link": "advancedui",
         "subMenus": [
-          { 
-            "menuValue": "Ribbon", 
-            "route": "/advancedui/ui-ribbon", 
+          {
+            "menuValue": "Ribbon",
+            "route": "/advancedui/ui-ribbon",
             "active_link": "/advancedui/ui-ribbon"
           },
           {
@@ -1356,9 +1357,9 @@
             "route": "/icons/icon-material",
             "active_link": "/icons/icon-material"
           },
-          { 
-            "menuValue": "pe7 Icons", 
-            "route": "/icons/icon-pe7", 
+          {
+            "menuValue": "pe7 Icons",
+            "route": "/icons/icon-pe7",
             "active_link": "/icons/icon-pe7"
           },
           {
@@ -1381,13 +1382,13 @@
             "route": "/icons/icon-typicon",
             "active_link": "/icons/icon-typicon"
           },
-          { 
-            "menuValue": "Flag Icons", 
-            "route": "/icons/icon-flag", 
+          {
+            "menuValue": "Flag Icons",
+            "route": "/icons/icon-flag",
             "active_link": "/icons/icon-flag"
           }
         ]
-      }      
+      }
     ]
   }
 ]

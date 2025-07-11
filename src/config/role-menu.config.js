@@ -1,7 +1,7 @@
 // Role hierarchy (higher index = lower priority)
 export const ROLE_HIERARCHY = {
     'admin': 1,
-    'hr-manager': 2, 
+    'hr-manager': 2,
     'hr-assistant': 3,
     'manager': 4,
     'employee': 5
@@ -10,7 +10,7 @@ export const ROLE_HIERARCHY = {
 // Default routes for each role
 export const DEFAULT_ROUTES = {
     'admin': '/dashboard/admin-dashboard',
-    'hr-manager': '/dashboard/hr-manager-dashboard', 
+    'hr-manager': '/dashboard/hr-manager-dashboard',
     'hr-assistant': '/dashboard/hr-assistant-dashboard',
     'employee': '/dashboard/employee-dashboard'
 };
@@ -32,7 +32,7 @@ export const ROLE_MENU_ACCESS = {
         },
         permissions: [
             'view_all',
-            'manage_all', 
+            'manage_all',
             'access_all_dashboards',
         ]
     },
@@ -42,7 +42,7 @@ export const ROLE_MENU_ACCESS = {
             'Recruitment',
             'Jobs',
             'Candidates',
-            'Referrals', 
+            'Referrals',
             'Employee',
             'Tickets',
             'Holidays',
@@ -65,9 +65,9 @@ export const ROLE_MENU_ACCESS = {
             'Recruitment': ['Interviews', 'Job Offers'],
             'Employee': ['Employee Lists', 'Employment List', 'Site Location', 'Policies'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
-            'Training': ['Training List', 'Training Type', 'Trainers', 'Employee Training'  ],
+            'Training': ['Training List', 'Training Type', 'Trainers', 'Employee Training'],
             'Reports': ['Report List'],
-            'Grants': ['Grants List', 'Grant Position']
+            'Grants': ['Grants List', 'Grant Position', 'Budget Lines']
         },
         permissions: [
             'view_hr',
@@ -75,7 +75,7 @@ export const ROLE_MENU_ACCESS = {
             'view_employees',
             'manage_employees',
             'manage_grants',
-            'manage_requests', 
+            'manage_requests',
             'manage_leave',
             'manage_recruitment'
         ]
@@ -86,7 +86,7 @@ export const ROLE_MENU_ACCESS = {
             'Recruitment',
             'Candidates',
             'Employee',
-            'Holidays', 
+            'Holidays',
             'Attendance',
             'Grants',
             'Training',
@@ -108,7 +108,7 @@ export const ROLE_MENU_ACCESS = {
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
             'Training': ['Training List', 'Training Type', 'Trainers', 'Employee Training'],
             'Reports': ['Report List'],
-            'Grants': ['Grants List', 'Grant Position']
+            'Grants': ['Grants List', 'Grant Position', 'Budget Lines']
         },
         permissions: [
             'view_hr',

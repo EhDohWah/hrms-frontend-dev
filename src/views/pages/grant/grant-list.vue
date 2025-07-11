@@ -80,8 +80,8 @@
               <template #expandedRowRender="{ record }">
                 <div>
                   <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 8px;">
-                    <p style="margin-bottom: 0; font-weight: bold">Grant Items</p>
-                    <a-button class="editable-add-btn" @click="handleAddItem(record.id)">Add Item</a-button>
+                    <p style="margin-bottom: 0; font-weight: bold">Grant Position</p>
+                    <a-button class="editable-add-btn" @click="handleAddItem(record.id)">Add Position</a-button>
                   </div>
                   <a-table :columns="innerColumns" :data-source="record.items || []" :pagination="false" row-key="id"
                     bordered size="small">
@@ -345,7 +345,7 @@ export default {
           title: 'Effort',
           dataIndex: 'grant_level_of_effort',
           key: 'grant_level_of_effort',
-          width: 100
+          width: 130
         },
         {
           title: 'Position Number',

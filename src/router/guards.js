@@ -1,5 +1,5 @@
 import { authService } from '@/services/auth.service';
-import Echo from '@/plugins/echo';
+import { initEcho, disconnectEcho, isEchoInitialized } from '@/plugins/echo';
 
 export const authGuard = (to, from, next) => {
     const isAuthenticated = authService.isAuthenticated();
@@ -21,11 +21,15 @@ export const authGuard = (to, from, next) => {
             localStorage.removeItem('user');
             localStorage.removeItem('userRole');
             localStorage.removeItem('permissions');
-            Echo.disconnect();
+            disconnectEcho();
             return next('/login');
         }
     }
 
+    // ----> Echo initialization logic here
+    if (isAuthenticated && token && !isEchoInitialized()) {
+        initEcho(token);
+    }
 
 
     // Handle root path redirection based on role

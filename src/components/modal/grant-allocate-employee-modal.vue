@@ -16,37 +16,40 @@
                             {{ alertMessage }}
                         </div>
                         <div class="row">
+                            <!-- Employee Selection TreeSelect -->
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Select Employee</label>
+                                    <a-tree-select v-model:value="employeeSelection" show-search style="width: 100%;"
+                                        :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+                                        placeholder="Select employee" allow-clear tree-default-expand-all
+                                        :tree-data="employeeTreeData" tree-node-filter-prop="title"
+                                        :getPopupContainer="getPopupContainer" required :disabled="isEdit" />
+                                </div>
+                            </div>
+
                             <!-- Level of Effort -->
                             <div class="col-md-12">
                                 <div class="mb-3">
                                     <label class="form-label">Level of Effort (%)</label>
                                     <input type="number" v-model.number="formData.levelOfEffort" class="form-control"
-                                        placeholder="Enter level of effort" />
+                                        placeholder="Enter level of effort" min="0" max="100" step="0.1" required />
                                 </div>
                             </div>
+
                             <!-- Start Date -->
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Start Date</label>
-                                    <input type="date" v-model="formData.startDate" class="form-control" />
+                                    <input type="date" v-model="formData.startDate" class="form-control" required />
                                 </div>
                             </div>
+
                             <!-- End Date -->
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">End Date</label>
                                     <input type="date" v-model="formData.endDate" class="form-control" />
-                                </div>
-                            </div>
-                            <!-- Employee Selection TreeSelect -->
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label class="form-label">Select Employees</label>
-                                    <a-tree-select v-model:value="employeeSelection" show-search style="width: 100%;"
-                                        :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
-                                        placeholder="Select employees" allow-clear tree-default-expand-all
-                                        :tree-data="employeeTreeData" tree-node-filter-prop="title"
-                                        :getPopupContainer="getPopupContainer" required :disabled="isEdit" />
                                 </div>
                             </div>
                         </div>
@@ -67,7 +70,6 @@
         </div>
     </div>
 </template>
-
 
 <script>
 import * as bootstrap from 'bootstrap';
@@ -102,40 +104,45 @@ export default {
                 ? window.document.body
                 : trigger.parentNode;
         },
+
         async loadEmployees() {
             try {
                 const response = await employeeService.treeSearch();
                 this.employeeTreeData = response.data || [];
             } catch (error) {
                 console.error('Error loading employees:', error);
-                this.$message?.error?.('Failed to load employees');
+                this.showAlert('Failed to load employees', 'alert-danger');
             }
         },
+
         // Call this for ADD
-        openModal() {
+        async openModal() {
             this.isEdit = false;
             this.allocationId = null;
             this.resetForm();
-            this.loadEmployees();
+            await this.loadEmployees();
             this.showModal();
         },
+
         // Call this for EDIT, pass in allocation data (from parent record)
-        openModalEdit(editData) {
+        async openModalEdit(editData) {
             this.isEdit = true;
             this.allocationId = editData.allocationId;
             this.resetForm();
-            this.loadEmployees().then(() => {
-                this.formData = {
-                    levelOfEffort: editData.levelOfEffort
-                        ? Math.round(parseFloat(editData.levelOfEffort) * 100)
-                        : 100,
-                    startDate: editData.startDate,
-                    endDate: editData.endDate
-                };
-                this.employeesSelection = [String(editData.employeeId)];
-                this.showModal();
-            });
+
+            await this.loadEmployees();
+
+            // Populate form with edit data
+            this.formData = {
+                levelOfEffort: editData.levelOfEffort ? parseFloat(editData.levelOfEffort) * 100 : 100,
+                startDate: editData.startDate,
+                endDate: editData.endDate
+            };
+            this.employeeSelection = String(editData.employeeId);
+
+            this.showModal();
         },
+
         showModal() {
             const modalEl = document.getElementById("grantAllocateEmployeeModal");
             if (modalEl) {
@@ -144,102 +151,131 @@ export default {
                 bsModal.show();
             }
         },
+
         async handleSubmit() {
             try {
                 this.isSubmitting = true;
-                if (this.employeeSelection.length === 0) {
-                    this.alertMessage = 'Please select at least one employee';
-                    this.alertClass = 'alert-danger';
-                    this.isSubmitting = false;
-                    return;
-                }
-                if (!this.formData.startDate || !this.formData.endDate) {
-                    this.alertMessage = 'Please select start and end dates';
-                    this.alertClass = 'alert-danger';
-                    this.isSubmitting = false;
-                    return;
-                }
-                const employee_id = this.employeeSelection ? parseInt(this.employeeSelection) : null;
-                console.log('employeeSelection before show:', this.employeeSelection);
+                this.clearAlert();
 
+                // Validation
+                if (!this.employeeSelection) {
+                    this.showAlert('Please select an employee', 'alert-danger');
+                    return;
+                }
+
+                if (!this.formData.startDate) {
+                    this.showAlert('Please select a start date', 'alert-danger');
+                    return;
+                }
+
+                const employee_id = parseInt(this.employeeSelection);
+
+                // Simple payload for basic allocation (compatible with current system)
                 const payload = {
-                    grant_items_id: this.grantPositionId,
-                    level_of_effort: this.formData.levelOfEffort / 100,
+                    employee_id: employee_id,
+                    employment_id: 1, // Default employment ID - will be handled by backend
                     start_date: this.formData.startDate,
-                    end_date: this.formData.endDate,
+                    end_date: this.formData.endDate || null,
                     active: true,
-                    employee_id: employee_id
+                    allocations: [{
+                        grant_id: 1, // Will be determined by backend based on grant_items_id
+                        grant_items_id: parseInt(this.grantPositionId),
+                        budgetline_id: 1, // Default budget line - will be handled by backend
+                        level_of_effort: this.formData.levelOfEffort / 100
+                    }]
                 };
+
                 const response = await employeeGrantAllocationService.createEmployeeGrantAllocation(payload);
-                if (response.data && response.success) {
-                    this.alertMessage = response.message || 'Employee allocated successfully';
-                    this.alertClass = 'alert-success';
+
+                if (response.success) {
+                    this.showAlert(response.message || 'Employee allocated successfully', 'alert-success');
                     this.$emit('childSubmit', {
-                        success: true, message: this.alertMessage, data: response.data
+                        success: true,
+                        message: response.message || 'Employee allocated successfully',
+                        data: response.data
                     });
-                    this.hideModal();
-                    this.resetForm();
+
+                    setTimeout(() => {
+                        this.hideModal();
+                        this.resetForm();
+                    }, 1500);
                 } else {
-                    this.alertMessage = response.data?.message || 'Failed to allocate employee';
-                    this.alertClass = 'alert-danger';
+                    this.showAlert(response.message || 'Failed to allocate employee', 'alert-danger');
                 }
             } catch (error) {
                 console.error('Error allocating employee:', error);
-                this.alertMessage = error.response?.data?.message || 'Failed to allocate employee';
-                this.alertClass = 'alert-danger';
+                this.showAlert(error.response?.data?.message || 'Failed to allocate employee', 'alert-danger');
             } finally {
                 this.isSubmitting = false;
             }
         },
-        // New: Edit submit
+
+        // Edit submit
         async submitEdit() {
             try {
                 this.isSubmitting = true;
-                if (!this.formData.startDate || !this.formData.endDate) {
-                    this.alertMessage = 'Please select start and end dates';
-                    this.alertClass = 'alert-danger';
-                    this.isSubmitting = false;
+                this.clearAlert();
+
+                if (!this.formData.startDate) {
+                    this.showAlert('Please select a start date', 'alert-danger');
                     return;
                 }
-                const employee_id = this.employeesSelection ? parseInt(this.employeesSelection) : null;
+
                 const payload = {
-                    grant_items_id: this.grantPositionId,
                     level_of_effort: this.formData.levelOfEffort / 100,
                     start_date: this.formData.startDate,
-                    end_date: this.formData.endDate,
-                    active: true,
-                    employee_id: employee_id
+                    end_date: this.formData.endDate || null,
+                    active: true
                 };
+
                 const response = await employeeGrantAllocationService.updateEmployeeGrantAllocation(this.allocationId, payload);
-                if (response.data && response.success) {
-                    this.alertMessage = response.message || 'Employee allocation updated successfully';
-                    this.alertClass = 'alert-success';
-                    this.$emit('childSubmit', { success: true, message: this.alertMessage, data: response.data, edit: true });
-                    this.hideModal();
-                    this.resetForm();
+
+                if (response.success) {
+                    this.showAlert(response.message || 'Employee allocation updated successfully', 'alert-success');
+                    this.$emit('childSubmit', {
+                        success: true,
+                        message: response.message || 'Employee allocation updated successfully',
+                        data: response.data,
+                        edit: true
+                    });
+
+                    setTimeout(() => {
+                        this.hideModal();
+                        this.resetForm();
+                    }, 1500);
                 } else {
-                    this.alertMessage = response.data?.message || 'Failed to update allocation';
-                    this.alertClass = 'alert-danger';
+                    this.showAlert(response.message || 'Failed to update allocation', 'alert-danger');
                 }
             } catch (error) {
                 console.error('Error updating allocation:', error);
-                this.alertMessage = error.response?.data?.message || 'Failed to update allocation';
-                this.alertClass = 'alert-danger';
+                this.showAlert(error.response?.data?.message || 'Failed to update allocation', 'alert-danger');
             } finally {
                 this.isSubmitting = false;
             }
         },
+
         resetForm() {
             this.formData = { levelOfEffort: 100, startDate: null, endDate: null };
-            this.employeesSelection = [];
-            this.alertMessage = '';
+            this.employeeSelection = '';
+            this.clearAlert();
         },
+
         hideModal() {
             const modalEl = document.getElementById("grantAllocateEmployeeModal");
             if (modalEl) {
                 const bsModal = bootstrap.Modal.getInstance(modalEl);
                 if (bsModal) bsModal.hide();
             }
+        },
+
+        showAlert(message, className) {
+            this.alertMessage = message;
+            this.alertClass = className;
+        },
+
+        clearAlert() {
+            this.alertMessage = '';
+            this.alertClass = '';
         }
     }
 };

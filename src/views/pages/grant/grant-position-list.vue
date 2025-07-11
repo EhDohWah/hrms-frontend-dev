@@ -53,7 +53,7 @@
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
-              <p class="mt-2">Loading grants...</p>
+              <p class="mt-2">Loading grant positions...</p>
             </div>
             <div v-else>
               <a-table :columns="columns" :data-source="tableData" :pagination="pagination"

@@ -103,7 +103,8 @@ export const API_ENDPOINTS = {
     // Grant endpoints
     GRANT: {
         LIST: '/grants',
-        GET_BY_CODE: '/grants/:id',
+        GET_BY_ID: '/grants/by-id/:id',
+        GET_BY_CODE: '/grants/by-code/:code',
         CREATE: '/grants',
         UPDATE: '/grants/:id',
         DELETE: '/grants/:id',
@@ -117,6 +118,24 @@ export const API_ENDPOINTS = {
             UPDATE: '/grants/items/:id'
         },
         GRANT_POSITIONS: '/grants/grant-positions'
+    },
+
+    // Budget Line endpoints
+    BUDGET_LINE: {
+        LIST: '/budget-lines',
+        CREATE: '/budget-lines',
+        UPDATE: '/budget-lines/:id',
+        DELETE: '/budget-lines/:id',
+        DETAILS: '/budget-lines/:id'
+    },
+
+    // Position Slot endpoints
+    POSITION_SLOT: {
+        LIST: '/position-slots',
+        CREATE: '/position-slots',
+        UPDATE: '/position-slots/:id',
+        DELETE: '/position-slots/:id',
+        DETAILS: '/position-slots/:id'
     },
 
     // Interview endpoints
@@ -247,7 +266,20 @@ export const API_ENDPOINTS = {
         CREATE: '/employee-grant-allocations',
         DETAILS: '/employee-grant-allocations/:id',
         UPDATE: '/employee-grant-allocations/:id',
-        DELETE: '/employee-grant-allocations/:id'
+        DELETE: '/employee-grant-allocations/:id',
+        GRANT_STRUCTURE: '/employee-grant-allocations/grant-structure',
+        BULK_DEACTIVATE: '/employee-grant-allocations/bulk-deactivate',
+        EMPLOYEE_ALLOCATIONS: '/employee-grant-allocations/employee/:employee_id',
+        UPDATE_EMPLOYEE_ALLOCATIONS: '/employee-grant-allocations/employee/:employee_id'
+    },
+
+    // Employee funding allocations endpoints
+    EMPLOYEE_FUNDING_ALLOCATION: {
+        LIST: '/employee-funding-allocations',
+        CREATE: '/employee-funding-allocations',
+        DETAILS: '/employee-funding-allocations/:id',
+        UPDATE: '/employee-funding-allocations/:id',
+        DELETE: '/employee-funding-allocations/:id'
     },
 
     // JobOffer endpoints 
@@ -271,6 +303,15 @@ export const API_ENDPOINTS = {
     NOTIFICATION: {
         LIST: '/notifications',
         MARK_ALL_READ: '/notifications/mark-all-read'
+    },
+
+    // Employee children endpoints
+    EMPLOYEE_CHILDREN: {
+        LIST: '/employee-children',
+        CREATE: '/employee-children',
+        UPDATE: '/employee-children/:id',
+        DELETE: '/employee-children/:id',
+        DETAILS: '/employee-children/:id'
     }
 
 };

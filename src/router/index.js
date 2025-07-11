@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory} from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import { authGuard, roleGuard } from './guards';
 import LoginIndex from '@/views/pages/authentication/login-index.vue';
 
@@ -13,7 +13,7 @@ const routes = [
     name: 'login',
     component: LoginIndex,
     meta: {
-        title: 'Login'
+      title: 'Login'
     }
   },
   {
@@ -21,7 +21,7 @@ const routes = [
     name: 'forgot-password',
     component: lazyView('pages/authentication/forgot-password'),
     meta: {
-        title: 'Forgot Password'
+      title: 'Forgot Password'
     }
   },
   {
@@ -29,7 +29,7 @@ const routes = [
     name: 'reset-password',
     component: lazyView('pages/authentication/reset-password'),
     meta: {
-        title: 'Reset Password'
+      title: 'Reset Password'
     }
   },
   {
@@ -37,7 +37,7 @@ const routes = [
     name: 'unauthorized',
     component: lazyView('pages/authentication/unauthorized'),
     meta: {
-        title: 'Unauthorized Access'
+      title: 'Unauthorized Access'
     }
   },
 
@@ -88,7 +88,7 @@ const routes = [
     path: '/dashboard/hr-assistant-dashboard',
     name: 'hr-assistant-dashboard',
     component: lazyView('pages/dashboard/hr-assistant-dashboard/hr-assistant-dashboard'),
-    beforeEnter: roleGuard(['hr-assistant', 'hr-manager' ,'admin']),
+    beforeEnter: roleGuard(['hr-assistant', 'hr-manager', 'admin']),
     meta: {
       requiresAuth: true,
       title: 'HR Assistant Dashboard'
@@ -101,7 +101,7 @@ const routes = [
     redirect: () => {
       const user = JSON.parse(localStorage.getItem('user'));
       const userRole = localStorage.getItem('userRole')?.toLowerCase();
-      
+
       if (user && userRole) {
         switch (userRole) {
           case 'admin':
@@ -226,8 +226,8 @@ const routes = [
       { path: '', redirect: '/department-positions/department-position-list' },
       { path: "department-position-list", component: lazyView('pages/administration/department-position/department-position-list') }
     ]
-  }, 
-  
+  },
+
   {
     path: '/user-management',
     component: lazyView('pages/administration/user-management/user-management'),
@@ -307,8 +307,8 @@ const routes = [
     component: lazyView('pages/finance-accounts/payroll/payroll-index'),
     children: [
       { path: '', redirect: '/payroll/employee-salary' },
-      { 
-        path: "employee-salary", 
+      {
+        path: "employee-salary",
         component: lazyView('pages/finance-accounts/payroll/employee-salary'),
         meta: {
           title: 'Employee Salary'
@@ -398,7 +398,7 @@ const routes = [
     ]
   },
   {
-    path: '/recruitment', 
+    path: '/recruitment',
     component: lazyView('pages/recruitment/recruitment-index'),
     beforeEnter: roleGuard(['hr-assistant', 'hr-manager', 'admin']),
     meta: {
@@ -413,40 +413,41 @@ const routes = [
       { path: "candidates-list", component: lazyView('pages/recruitment/candidates/candidates-list') },
       { path: "candidates-kanban", component: lazyView('pages/recruitment/candidates/candidates-kanban') },
       { path: "refferals", component: lazyView('pages/recruitment/refferals/refferals-list') },
-      { 
-        path: "interviews-list", 
+      {
+        path: "interviews-list",
         component: lazyView('pages/recruitment/interviews/interviews-list'),
         meta: {
           title: 'Interview List '
         }
       },
-      { path: "job-offers-list", component: lazyView('pages/recruitment/job-offers/job-offers-list'),
-        meta: { 
+      {
+        path: "job-offers-list", component: lazyView('pages/recruitment/job-offers/job-offers-list'),
+        meta: {
           title: 'Job Offer List '
         }
       },
       { path: "interviews-details/:id", component: lazyView('pages/recruitment/interviews/interviews-details') },
     ]
   },
-  {    
+  {
     path: '/hrm',
     component: lazyView('pages/hrm/hrm-index'),
     children: [
       { path: '', redirect: '/hrm/holidays' },
       { path: "holidays", component: lazyView('pages/hrm/holidays/holidays-list') },
-      { path: "promotion", component: lazyView('pages/hrm/promotion/promotion-list') }, 
-      { path: "resignation", component: lazyView('pages/hrm/resignation/resignation-list') }, 
-      { path: "termination", component: lazyView('pages/hrm/termination/termination-list') }, 
+      { path: "promotion", component: lazyView('pages/hrm/promotion/promotion-list') },
+      { path: "resignation", component: lazyView('pages/hrm/resignation/resignation-list') },
+      { path: "termination", component: lazyView('pages/hrm/termination/termination-list') },
     ]
   },
-  {    
+  {
     path: '/training',
     component: lazyView('pages/hrm/attendance/training/training-index'),
     children: [
       { path: 'employee-training-list', component: lazyView('pages/hrm/attendance/training/employee-training-list') },
       { path: '', redirect: '/training/training-list' },
-      { 
-        path: "training-list", 
+      {
+        path: "training-list",
         component: lazyView('pages/hrm/attendance/training/training-list'),
         meta: {
           title: 'Training List'
@@ -456,7 +457,7 @@ const routes = [
       { path: "training-type", component: lazyView('pages/hrm/attendance/training/training-type') },
     ]
   },
-  {    
+  {
     path: '/performance',
     component: lazyView('pages/hrm/attendance/performance/performance-index'),
     children: [
@@ -472,16 +473,16 @@ const routes = [
     path: '/attendance',
     component: lazyView('pages/hrm/attendance/attendance-index'),
     children: [
-      { 
-        path: '', 
+      {
+        path: '',
         meta: {
           title: 'Attendance Admin'
         },
-        redirect: '/attendance/attendance-admin' 
-        
+        redirect: '/attendance/attendance-admin'
+
       },
-      { 
-        path: "attendance-admin", 
+      {
+        path: "attendance-admin",
         component: lazyView('pages/hrm/attendance/attendance-admin'),
         meta: {
           title: 'Attendance Admin'
@@ -490,7 +491,7 @@ const routes = [
       { path: "attendance-employee", component: lazyView('pages/hrm/attendance/attendance-employee') },
       { path: "timesheets", component: lazyView('pages/hrm/attendance/timesheets-list') },
       { path: "schedule-timing", component: lazyView('pages/hrm/attendance/schedule-timing') },
-      { path: "overtime", component: lazyView('pages/hrm/attendance/overtime-list') }      
+      { path: "overtime", component: lazyView('pages/hrm/attendance/overtime-list') }
     ]
   },
   {
@@ -499,7 +500,7 @@ const routes = [
     beforeEnter: roleGuard(['hr-assistant', 'hr-manager', 'admin']),
     meta: {
       requiresAuth: true,
-      title: 'Leave Admin' 
+      title: 'Leave Admin'
     },
     children: [
       { path: '', redirect: '/leave/admin/leaves-admin' },
@@ -508,7 +509,7 @@ const routes = [
     ]
   },
   {
-    path: '/leave/employee', 
+    path: '/leave/employee',
     component: lazyView('pages/hrm/attendance/leaves/leave-index'),
     beforeEnter: roleGuard(['employee']),
     meta: {
@@ -541,7 +542,8 @@ const routes = [
     },
     children: [
       { path: '', redirect: '/employee/employee-list' },
-      { path: "employee-list", 
+      {
+        path: "employee-list",
         component: lazyView('pages/hrm/employees/employees-list'),
         meta: {
           title: 'Employee List'
@@ -550,7 +552,8 @@ const routes = [
       { path: "employee-grid", component: lazyView('pages/hrm/employees/employees-grid') },
       // Updated route with dynamic parameter
       { path: "employee-details/:id", component: lazyView('pages/hrm/employees/employee-details') },
-      { path: "employment-list", 
+      {
+        path: "employment-list",
         component: lazyView('pages/hrm/employment/employment-list'),
         meta: {
           title: 'Employment List'
@@ -619,11 +622,11 @@ const routes = [
       { path: '', redirect: '/super-admin/dashboard' },
       { path: "dashboard", component: lazyView('pages/superadmin/dashboard/dashboard') },
       { path: "companies", component: lazyView('pages/superadmin/companies/companies-list') },
-      { path: "subscription" , component: lazyView('pages/superadmin/subscription/super-subscription') },
-      { path: "packages" , component: lazyView('pages/superadmin/packages/packages-list') },
-      { path: "packages-grid" , component: lazyView('pages/superadmin/packages/packages-grid') },
-      { path: "domain" , component: lazyView('pages/superadmin/domain/domain-list') },
-      { path: "purchase-transaction" , component: lazyView('pages/superadmin/purchase-transaction/purchase-transaction') }
+      { path: "subscription", component: lazyView('pages/superadmin/subscription/super-subscription') },
+      { path: "packages", component: lazyView('pages/superadmin/packages/packages-list') },
+      { path: "packages-grid", component: lazyView('pages/superadmin/packages/packages-grid') },
+      { path: "domain", component: lazyView('pages/superadmin/domain/domain-list') },
+      { path: "purchase-transaction", component: lazyView('pages/superadmin/purchase-transaction/purchase-transaction') }
     ]
   },
   {
@@ -706,37 +709,37 @@ const routes = [
       { path: "ui-dropdowns", component: lazyView('pages/baseui/ui-dropdowns') },
       { path: "ui-grid", component: lazyView('pages/baseui/ui-grid') },
       { path: "ui-images", component: lazyView('pages/baseui/ui-images') },
-      { path: "ui-lightbox", component: lazyView('pages/baseui/ui-lightbox')},
-      { path: "ui-media", component: lazyView('pages/baseui/ui-media')},
-      { path: "ui-modals", component: lazyView('pages/baseui/ui-modals')},
-      { path: "ui-offcanvas", component: lazyView('pages/baseui/ui-offcanvas')},
-      { path: "ui-pagination", component: lazyView('pages/baseui/ui-pagination')},
-      { path: "ui-popovers", component: lazyView('pages/baseui/ui-popovers')},
-      { path: "ui-progress", component: lazyView('pages/baseui/ui-progress')},
-      { path: "ui-placeholders", component: lazyView('pages/baseui/ui-placeholders')},
-      { path: "ui-nav-tabs", component: lazyView('pages/baseui/ui-nav-tabs')},
-      { path: "ui-spinner", component: lazyView('pages/baseui/ui-spinner')},
-      { path: "ui-sweetalerts", component: lazyView('pages/baseui/ui-sweetalerts')},
-      { path: "ui-tooltips", component: lazyView('pages/baseui/ui-tooltips')},
-      { path: "ui-typography", component: lazyView('pages/baseui/ui-typography')},
-      { path: "ui-video", component: lazyView('pages/baseui/ui-video')},
+      { path: "ui-lightbox", component: lazyView('pages/baseui/ui-lightbox') },
+      { path: "ui-media", component: lazyView('pages/baseui/ui-media') },
+      { path: "ui-modals", component: lazyView('pages/baseui/ui-modals') },
+      { path: "ui-offcanvas", component: lazyView('pages/baseui/ui-offcanvas') },
+      { path: "ui-pagination", component: lazyView('pages/baseui/ui-pagination') },
+      { path: "ui-popovers", component: lazyView('pages/baseui/ui-popovers') },
+      { path: "ui-progress", component: lazyView('pages/baseui/ui-progress') },
+      { path: "ui-placeholders", component: lazyView('pages/baseui/ui-placeholders') },
+      { path: "ui-nav-tabs", component: lazyView('pages/baseui/ui-nav-tabs') },
+      { path: "ui-spinner", component: lazyView('pages/baseui/ui-spinner') },
+      { path: "ui-sweetalerts", component: lazyView('pages/baseui/ui-sweetalerts') },
+      { path: "ui-tooltips", component: lazyView('pages/baseui/ui-tooltips') },
+      { path: "ui-typography", component: lazyView('pages/baseui/ui-typography') },
+      { path: "ui-video", component: lazyView('pages/baseui/ui-video') },
     ]
   },
   {
     path: '/advancedui',
-    component: lazyView('pages/advancedui/advancedui-index'),     
+    component: lazyView('pages/advancedui/advancedui-index'),
     children: [
       { path: '', redirect: '/advancedui/ui-ribbon' },
-      { path: "ui-ribbon", component: lazyView('pages/advancedui/ui-ribbon')},
-      { path: "ui-clipboard", component: lazyView('pages/advancedui/ui-clipboard')},
-      { path: "ui-drag-drop", component: lazyView('pages/advancedui/ui-drag-drop')},
-      { path: "ui-text-editor", component: lazyView('pages/advancedui/ui-text-editor')},
-      { path: "ui-counter", component: lazyView('pages/advancedui/ui-counter')},
-      { path: "ui-scrollbar", component: lazyView('pages/advancedui/ui-scrollbar')},
-      { path: "ui-rating", component: lazyView('pages/advancedui/ui-rating')},
-      { path: "ui-stickynote", component: lazyView('pages/advancedui/ui-stickynote')},
-      { path: "ui-rangeslider", component: lazyView('pages/advancedui/ui-rangeslider')},
-      { path: "ui-timeline", component: lazyView('pages/advancedui/ui-timeline')},
+      { path: "ui-ribbon", component: lazyView('pages/advancedui/ui-ribbon') },
+      { path: "ui-clipboard", component: lazyView('pages/advancedui/ui-clipboard') },
+      { path: "ui-drag-drop", component: lazyView('pages/advancedui/ui-drag-drop') },
+      { path: "ui-text-editor", component: lazyView('pages/advancedui/ui-text-editor') },
+      { path: "ui-counter", component: lazyView('pages/advancedui/ui-counter') },
+      { path: "ui-scrollbar", component: lazyView('pages/advancedui/ui-scrollbar') },
+      { path: "ui-rating", component: lazyView('pages/advancedui/ui-rating') },
+      { path: "ui-stickynote", component: lazyView('pages/advancedui/ui-stickynote') },
+      { path: "ui-rangeslider", component: lazyView('pages/advancedui/ui-rangeslider') },
+      { path: "ui-timeline", component: lazyView('pages/advancedui/ui-timeline') },
     ]
   },
   {
@@ -744,8 +747,8 @@ const routes = [
     component: lazyView('pages/tables/tables-index'),
     children: [
       { path: '', redirect: '/tables/data-tables' },
-      { path: "data-tables", component: lazyView('pages/tables/data-tables')},
-      { path: "tables-basic", component: lazyView('pages/tables/tables-basic')}
+      { path: "data-tables", component: lazyView('pages/tables/data-tables') },
+      { path: "tables-basic", component: lazyView('pages/tables/tables-basic') }
     ]
   },
   {
@@ -753,11 +756,11 @@ const routes = [
     component: lazyView('pages/charts/charts-index'),
     children: [
       { path: '', redirect: '/charts/chart-apex' },
-      { path: "chart-apex", component: lazyView('pages/charts/chart-apex')},
-      { path: "chart-c3", component: lazyView('pages/charts/chart-c3')},
-      { path: "chart-flot", component: lazyView('pages/charts/chart-flot')},
-      { path: "chart-js", component: lazyView('pages/charts/chart-js')},
-      { path: "chart-morris", component: lazyView('pages/charts/chart-morris')}
+      { path: "chart-apex", component: lazyView('pages/charts/chart-apex') },
+      { path: "chart-c3", component: lazyView('pages/charts/chart-c3') },
+      { path: "chart-flot", component: lazyView('pages/charts/chart-flot') },
+      { path: "chart-js", component: lazyView('pages/charts/chart-js') },
+      { path: "chart-morris", component: lazyView('pages/charts/chart-morris') }
     ]
   },
   {
@@ -765,13 +768,13 @@ const routes = [
     component: lazyView('pages/forms/form-elements'),
     children: [
       { path: '', redirect: '/form-elements/form-basic-inputs' },
-      { path: "form-basic-inputs", component: lazyView('pages/forms/form-basic-inputs')},
-      { path: "form-checkbox-radios", component: lazyView('pages/forms/form-checkbox-radios')},
-      { path: "form-grid-gutters", component: lazyView('pages/forms/form-grid-gutters')},
-      { path: "form-input-groups", component: lazyView('pages/forms/form-input-groups')},
-      { path: "form-select", component: lazyView('pages/forms/form-select')},
-      { path: "form-mask", component: lazyView('pages/forms/form-mask')},
-      { path: "form-fileupload", component: lazyView('pages/forms/form-fileupload')},
+      { path: "form-basic-inputs", component: lazyView('pages/forms/form-basic-inputs') },
+      { path: "form-checkbox-radios", component: lazyView('pages/forms/form-checkbox-radios') },
+      { path: "form-grid-gutters", component: lazyView('pages/forms/form-grid-gutters') },
+      { path: "form-input-groups", component: lazyView('pages/forms/form-input-groups') },
+      { path: "form-select", component: lazyView('pages/forms/form-select') },
+      { path: "form-mask", component: lazyView('pages/forms/form-mask') },
+      { path: "form-fileupload", component: lazyView('pages/forms/form-fileupload') },
     ]
   },
   {
@@ -779,9 +782,9 @@ const routes = [
     component: lazyView('pages/forms/form-layouts'),
     children: [
       { path: '', redirect: '/form-layouts/form-horizontal' },
-      { path: "form-horizontal", component: lazyView('pages/forms/form-horizontal')},
-      { path: "form-vertical", component: lazyView('pages/forms/form-vertical')},
-      { path: "form-floating-labels", component: lazyView('pages/forms/form-floating-labels')},
+      { path: "form-horizontal", component: lazyView('pages/forms/form-horizontal') },
+      { path: "form-vertical", component: lazyView('pages/forms/form-vertical') },
+      { path: "form-floating-labels", component: lazyView('pages/forms/form-floating-labels') },
     ]
   },
   {
@@ -789,9 +792,9 @@ const routes = [
     component: lazyView('pages/forms/forms-index'),
     children: [
       { path: '', redirect: '/forms/form-validation' },
-      { path: "form-validation", component: lazyView('pages/forms/form-validation')},
-      { path: "form-select2", component: lazyView('pages/forms/form-select2')},
-      { path: "form-wizard", component: lazyView('pages/forms/form-wizard')},
+      { path: "form-validation", component: lazyView('pages/forms/form-validation') },
+      { path: "form-select2", component: lazyView('pages/forms/form-select2') },
+      { path: "form-wizard", component: lazyView('pages/forms/form-wizard') },
     ]
   },
   {
@@ -800,43 +803,50 @@ const routes = [
     beforeEnter: roleGuard(['admin', 'hr-manager', 'hr-assistant']),
     children: [
       { path: '', redirect: '/grant/list' },
-      { 
+      {
         path: 'list',
         component: lazyView('pages/grant/grant-list'),
-        meta: { 
+        meta: {
           title: 'Grants',
           requiresAuth: true,
           roles: ['admin', 'hr-manager']
         }
       },
-      { 
+      {
         path: 'details/:id',
         component: lazyView('pages/grant/grant-details'),
-        meta: { 
+        meta: {
           title: 'Grant Details',
           requiresAuth: true,
           roles: ['admin', 'hr-manager']
         }
-      }, 
+      },
       {
         path: 'grant-position',
         component: lazyView('pages/grant/grant-position-list'),
-        meta: { 
+        meta: {
           title: 'Grant Position',
         }
       },
       {
         path: 'grant-position-details/:id',
         component: lazyView('pages/grant/grant-position-details'),
-        meta: { 
+        meta: {
           title: 'Grant Position Details',
         }
       },
       {
         path: 'grant-allocate-employee/:id',
         component: lazyView('pages/grant/grant-allocate-employee-modal'),
-        meta: { 
+        meta: {
           title: 'Grant Allocate Employee',
+        }
+      },
+      {
+        path: 'budget-line-list',
+        component: lazyView('pages/grant/budget-line-list'),
+        meta: {
+          title: 'Budget Line List',
         }
       }
     ]
@@ -850,8 +860,8 @@ const routes = [
       title: 'Travel Request Management'
     },
     children: [
-      { 
-        path: '', 
+      {
+        path: '',
         component: lazyView('pages/requests/travel/travel-admin'),
         meta: {
           title: 'Travel Request Admin'
@@ -862,7 +872,7 @@ const routes = [
   },
   {
     path: '/requests/travel',
-    component: lazyView('pages/requests/travel/travel-index'), 
+    component: lazyView('pages/requests/travel/travel-index'),
     beforeEnter: roleGuard(['employee', 'hr-manager', 'hr-assistant']),
     meta: {
       requiresAuth: true,
@@ -877,37 +887,37 @@ const routes = [
 ];
 
 export const router = createRouter({
-    history: createWebHistory(process.env.BASE_URL),
-    linkActiveClass: 'active',
-    routes,
-}); 
+  history: createWebHistory(process.env.BASE_URL),
+  linkActiveClass: 'active',
+  routes,
+});
 
 // Title handling
 router.afterEach((to) => {
-    // Handle RTL layout
-    if (to.name === "layout-rtl") {
-        document.body.classList.add("layout-mode-rtl");
-    } else {
-        document.body.classList.remove("layout-mode-rtl");
-    }
+  // Handle RTL layout
+  if (to.name === "layout-rtl") {
+    document.body.classList.add("layout-mode-rtl");
+  } else {
+    document.body.classList.remove("layout-mode-rtl");
+  }
 
-    // Update page title
-    const defaultTitle = 'HRMS';
-    let title = to.meta.title || defaultTitle;
-    
-    // If you want to always include the default title
-    if (to.meta.title) {
-        document.title = `${title} - ${defaultTitle}`;
-    } else {
-        document.title = defaultTitle;
-    }
+  // Update page title
+  const defaultTitle = 'HRMS';
+  let title = to.meta.title || defaultTitle;
+
+  // If you want to always include the default title
+  if (to.meta.title) {
+    document.title = `${title} - ${defaultTitle}`;
+  } else {
+    document.title = defaultTitle;
+  }
 });
 
 // Scroll behavior
 router.beforeEach((to, from, next) => {
-    // Scroll to the top of the page
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    next();
+  // Scroll to the top of the page
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  next();
 });
 
 // Global navigation guard

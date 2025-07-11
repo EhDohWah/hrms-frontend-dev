@@ -439,7 +439,7 @@
   <!-- /Edit Bank Modal -->
 
   <!-- Add Beneficiary Modal -->
-  <!-- <div class="modal fade" id="add_beneficiary">
+  <div class="modal fade" id="add_beneficiary">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -489,15 +489,15 @@
         </form>
       </div>
     </div>
-  </div> -->
+  </div>
   <!-- /Add Beneficiary Modal -->
 
   <!-- Add Child Modal -->
-  <!-- <div class="modal fade" id="add_child">
+  <div class="modal fade" id="add_child">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">Add Child</h4>
+          <h4 class="modal-title">{{ isEditingChild ? 'Edit Child' : 'Add Child' }}</h4>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
@@ -508,7 +508,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Child Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" v-model="childForm.child_name" required />
+                  <input type="text" class="form-control" v-model="childForm.name" required />
                 </div>
               </div>
               <div class="col-md-12">
@@ -530,17 +530,17 @@
             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
-              Save
+              {{ isEditingChild ? 'Update' : 'Save' }}
             </button>
           </div>
         </form>
       </div>
     </div>
-  </div> -->
+  </div>
   <!-- /Add Child Modal -->
 
   <!-- Add Family Modal -->
-  <!-- <div class="modal fade" id="edit_familyinformation">
+  <div class="modal fade" id="edit_familyinformation">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
@@ -591,7 +591,7 @@
         </form>
       </div>
     </div>
-  </div> -->
+  </div>
   <!-- /Add Family Modal -->
 
   <!-- Add Education Modal -->
@@ -1066,6 +1066,7 @@ import { grantService } from "@/services/grant.service";
 import { Modal } from 'bootstrap';
 import { useLookupStore } from "@/stores/lookupStore";
 import employeeService from "@/services/employee.service";
+import employeeChildrenService from "@/services/employee-children.service";
 
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
@@ -1168,9 +1169,13 @@ export default {
       selectedLanguages: [],
 
       childForm: {
-        child_name: '',
+        id: null,
+        employee_id: '',
+        name: '',
         date_of_birth: '',
       },
+      editingChild: null,
+      isEditingChild: false,
       dateFormat: "dd-MM-yyyy",
       EpsRate: ["Select", "EPS", "ESI", "EPF"],
       OneEpsRate: ["Select", "EPS", "ESI", "EPF"],
@@ -1528,6 +1533,142 @@ export default {
       this.alertMessage = '';
       this.alertClass = '';
     },
+
+    // ===== CHILD CRUD METHODS =====
+
+    // Create or Update Child
+    async submitChildForm() {
+      try {
+        this.isSubmitting = true;
+
+        // Validate required fields
+        if (!this.childForm.name) {
+          this.$message.error('Child name is required');
+          return;
+        }
+
+        // Prepare payload
+        const payload = {
+          employee_id: this.employee.id,
+          name: this.childForm.name,
+          date_of_birth: this.formatDate(this.childForm.date_of_birth),
+        };
+
+        let response;
+        if (this.isEditingChild && this.childForm.id) {
+          // Update existing child
+          response = await employeeChildrenService.updateEmployeeChild(this.childForm.id, payload);
+        } else {
+          // Create new child
+          response = await employeeChildrenService.createEmployeeChild(payload);
+        }
+
+        // Check for both possible success indicators
+        if (response && (response.success === true || response.status === "success")) {
+          this.$message.success(response.message || `Child ${this.isEditingChild ? 'updated' : 'added'} successfully`);
+
+          // Emit event to parent to reload employee details
+          this.$emit('employee-updated');
+
+          // Reset form and close modal
+          this.resetChildForm();
+          this.closeChildModal();
+        } else {
+          this.$message.error(response?.message || `Failed to ${this.isEditingChild ? 'update' : 'add'} child`);
+        }
+      } catch (error) {
+        console.error('Error submitting child form:', error);
+        this.$message.error(`Error ${this.isEditingChild ? 'updating' : 'adding'} child: ` + (error.message || 'Unknown error'));
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    // Open Add Child Modal
+    openAddChildModal() {
+      this.resetChildForm();
+      this.isEditingChild = false;
+      const modalEl = document.getElementById('add_child');
+      const modal = Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    },
+
+    // Open Edit Child Modal
+    openEditChildModal(child) {
+      this.isEditingChild = true;
+      this.editingChild = child;
+
+      // Populate form with child data
+      this.childForm = {
+        id: child.id,
+        employee_id: child.employee_id,
+        name: child.name,
+        date_of_birth: child.date_of_birth ? new Date(child.date_of_birth) : null,
+      };
+
+      const modalEl = document.getElementById('add_child');
+      const modal = Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    },
+
+    // Delete Child
+    async deleteChild(childId) {
+      try {
+        // Show confirmation dialog
+        const confirmed = await this.$confirm({
+          title: 'Confirm Delete',
+          content: 'Are you sure you want to delete this child record? This action cannot be undone.',
+          okText: 'Yes, Delete',
+          okType: 'danger',
+          cancelText: 'Cancel',
+          centered: true,
+        });
+
+        if (confirmed) {
+          const response = await employeeChildrenService.deleteEmployeeChild(childId);
+
+          // Check for both possible success indicators
+          if (response && (response.success === true || response.status === "success")) {
+            this.$message.success(response.message || 'Child deleted successfully');
+
+            // Emit event to parent to reload employee details
+            this.$emit('employee-updated');
+          } else {
+            this.$message.error(response?.message || 'Failed to delete child');
+          }
+        }
+      } catch (error) {
+        if (error === 'cancel') {
+          // User cancelled, do nothing
+          return;
+        }
+        console.error('Error deleting child:', error);
+        this.$message.error('Error deleting child: ' + (error.message || 'Unknown error'));
+      }
+    },
+
+    // Reset Child Form
+    resetChildForm() {
+      this.childForm = {
+        id: null,
+        employee_id: '',
+        name: '',
+        date_of_birth: '',
+      };
+      this.editingChild = null;
+      this.isEditingChild = false;
+    },
+
+    // Close Child Modal
+    closeChildModal() {
+      const modalEl = document.getElementById('add_child');
+      const modal = Modal.getInstance(modalEl);
+      if (modal) {
+        modal.hide();
+      }
+    },
+
+    // ===== END CHILD CRUD METHODS =====
   },
 
   mounted() {

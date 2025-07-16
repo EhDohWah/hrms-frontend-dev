@@ -767,6 +767,25 @@ export default {
 
       return age;
     },
+
+    editCalculatedAge() {
+      const dobVal = this.editFormData.date_of_birth;
+      if (!dobVal) return '';
+
+      const dob = dobVal instanceof Date
+        ? dobVal
+        : new Date(dobVal);
+      const today = new Date();
+
+      let age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+
+      return age;
+    },
+
     buttonLabel() {
       return this.showPassword ? "Hide" : "Show";
     },
@@ -775,39 +794,48 @@ export default {
     },
   },
   methods: {
+    // Add this utility method for date formatting
+    formatDateOnly(dateValue) {
+      if (!dateValue) return null;
+      return new Date(dateValue).toISOString().split('T')[0];
+    },
+
     async handleSubmit() {
       this.isSubmitting = true;
       this.alertMessage = ''; // Reset alert message
 
       try {
         console.log(this.formData);
-        // I wanna add the age to the formData
-        this.formData.age = this.calculatedAge;
+        
+        // Format the data before sending to backend
+        const formDataToSend = {
+          ...this.formData,
+          date_of_birth: this.formatDateOnly(this.formData.date_of_birth),
+          age: this.calculatedAge
+        };
+
+        console.log('Formatted submission data:', formDataToSend);
+
         const employeeStore = useEmployeeStore();
-        const response = await employeeStore.createEmployee(this.formData);
+        const response = await employeeStore.createEmployee(formDataToSend);
 
         if (response && response.success) {
-          this.lastAddedEmployee = response.data; // ← new
+          this.lastAddedEmployee = response.data;
           message.success('Employee added successfully');
           this.$emit('employee-added');
           if (this.modalInstance) {
             this.modalInstance.hide();
           }
 
-
-
           //Show success modal
           const successModal = new Modal(document.getElementById('success_modal'));
           successModal.show();
 
-          // 4. When the success modal closes, reset the form
+          // When the success modal closes, reset the form
           successModal._element.addEventListener('hidden.bs.modal', () => {
-            // reset the form
             this.resetForm();
-            this.lastAddedEmployee = null; // clear the snapshot
+            this.lastAddedEmployee = null;
           }, { once: true });
-
-
 
         } else {
           this.showAlert(response?.message || 'Failed to add employee', 'alert-danger');
@@ -823,6 +851,74 @@ export default {
       }
     },
 
+    async handleEditSubmit() {
+      this.isSubmitting = true;
+      this.alertMessage = '';
+
+      try {
+        // Format the date for edit submission as well
+        const editDataToSend = {
+          ...this.editFormData,
+          date_of_birth: this.formatDateOnly(this.editFormData.date_of_birth)
+        };
+
+        console.log('Edit formatted submission data:', editDataToSend);
+
+        const employeeStore = useEmployeeStore();
+        const response = await employeeStore.updateEmployee(editDataToSend.id, editDataToSend);
+
+        if (response && response.success) {
+          message.success('Employee updated successfully');
+          this.$emit('employee-updated');
+          
+          // Close the edit modal
+          const editModal = Modal.getInstance(document.getElementById('edit_employee'));
+          if (editModal) {
+            editModal.hide();
+          }
+          
+          this.resetEditForm();
+        } else {
+          this.showAlert(response?.message || 'Failed to update employee', 'alert-danger');
+          if (response?.errors) {
+            this.showAlert(response?.message + ' ' + Object.values(response.errors).flat().join(' '), 'alert-danger');
+          }
+        }
+      } catch (error) {
+        console.error('Error updating employee:', error);
+        this.showAlert(error.message || 'An error occurred while updating the employee.', 'alert-danger');
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    // Add resetEditForm method if it doesn't exist
+    resetEditForm() {
+      this.editFormData = {
+        first_name_en: '',
+        last_name_en: '',
+        first_name_th: '',
+        last_name_th: '',
+        initial_en: '',
+        initial_th: '',
+        staff_id: '',
+        joining_date: '',
+        age: '',
+        status: '',
+        mobile_phone: '',
+        current_address: '',
+        permanent_address: '',
+        subsidiary: '',
+        gender: '',
+        nationality: '',
+        religion: '',
+        marital_status: '',
+        employee_status: '',
+        date_of_birth: '',
+      };
+    },
+
+    // ...existing methods...
     showAlert(message, alertClass, duration = 5000) {
       // Clear any existing timeout
       if (this.alertTimeout) {

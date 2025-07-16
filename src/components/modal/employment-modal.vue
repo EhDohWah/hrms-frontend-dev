@@ -44,10 +44,7 @@
                 <h6 class="card-title">Selected Employee</h6>
                 <p class="card-text">
                   <strong>{{ selectedEmployeeInfo.name }}</strong><br>
-                  <small class="text-muted">Staff ID: {{ selectedEmployeeInfo.staff_id }}</small><br>
-                  <small class="text-muted">
-                    {{ selectedEmployeeInfo.total_employments || 0 }} employment(s)
-                  </small>
+                  <small class="text-muted">Subsidiary: {{ selectedEmployeeInfo.subsidiary }}</small><br>
                 </p>
               </div>
             </div>
@@ -224,6 +221,13 @@
                       {{ allocationErrors.department_position_id }}
                     </div>
                   </div>
+                  <div class="form-group">
+                    <input type="number" v-model.number="currentAllocation.org_funded_salary" class="form-control"
+                      min="0" placeholder="Org Funded Salary" :disabled="isLoadingData" />
+                    <div v-if="allocationErrors.org_funded_salary" class="invalid-feedback">
+                      {{ allocationErrors.org_funded_salary }}
+                    </div>
+                  </div>
                 </template>
                 <template v-else>
                   <div class="form-group">
@@ -249,6 +253,12 @@
                     <div v-if="allocationErrors.position_slot_id" class="invalid-feedback">
                       {{ allocationErrors.position_slot_id }}
                     </div>
+                  </div>
+                  <!-- Display Grant Salary (read-only) -->
+                  <div class="form-group">
+                    <input type="text" class="form-control"
+                      :value="getGrantSalary(currentAllocation.grant_id, currentAllocation.grant_items_id)"
+                      placeholder="Grant Salary" readonly style="background-color: #f8f9fa;" />
                   </div>
                 </template>
                 <div class="form-group">
@@ -276,6 +286,7 @@
                   <th>Department Position</th>
                   <th>Grant Position</th>
                   <th>Position Slot</th>
+                  <th>Salary</th>
                   <th>Effort (%)</th>
                   <th>Action</th>
                 </tr>
@@ -328,6 +339,12 @@
                       <span v-else class="text-muted">-</span>
                     </td>
                     <td>
+                      <input v-if="isOrgFundGrant(editData.grant_id)" type="number"
+                        v-model.number="editData.org_funded_salary" class="edit-field" min="0">
+                      <span v-else class="text-muted">{{ getGrantSalary(editData.grant_id, editData.grant_items_id)
+                      }}</span>
+                    </td>
+                    <td>
                       <input type="number" v-model.number="editData.level_of_effort" class="edit-field" min="0"
                         max="100">
                     </td>
@@ -358,6 +375,11 @@
                       <span v-if="row.allocation_type !== 'org_funded'">{{ getPositionSlotName(row.grant_id,
                         row.grant_items_id, row.position_slot_id, row._original) }}</span>
                       <span v-else class="text-muted">-</span>
+                    </td>
+                    <td>
+                      <span v-if="row.allocation_type === 'org_funded'">{{ formatCurrency(row.org_funded_salary)
+                      }}</span>
+                      <span v-else>{{ getGrantSalary(row.grant_id, row.grant_items_id, row._original) }}</span>
                     </td>
                     <td>{{ row.level_of_effort }}%</td>
                     <td>
@@ -469,7 +491,8 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        level_of_effort: 100,
+        org_funded_salary: ''
       },
       editData: {
         allocation_type: '',
@@ -477,7 +500,8 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        level_of_effort: 100,
+        org_funded_salary: ''
       },
       fundingAllocations: [],
       editingIndex: null,
@@ -660,6 +684,11 @@ export default {
           this.allocationErrors.department_position_id = 'Please select a department position';
           isValid = false;
         }
+        // Validate org_funded_salary (optional but if provided should be valid)
+        if (this.currentAllocation.org_funded_salary && this.currentAllocation.org_funded_salary < 0) {
+          this.allocationErrors.org_funded_salary = 'Org funded salary must be a positive number';
+          isValid = false;
+        }
       } else {
         if (!this.currentAllocation.grant_items_id) {
           this.allocationErrors.grant_items_id = 'Please select a grant position';
@@ -732,6 +761,9 @@ export default {
               return {
                 id: item.id,
                 name: item.name,
+                grant_salary: item.grant_salary, // Include grant_salary
+                grant_benefit: item.grant_benefit, // Include grant_benefit
+                grant_level_of_effort: item.grant_level_of_effort, // Include grant_level_of_effort
                 position_slots: positionSlots
               };
             });
@@ -826,10 +858,13 @@ export default {
         console.log('Employee selected:', this.formData.employee_id);
         const employee = this.findEmployeeInTree(this.employeeTreeData, this.formData.employee_id);
         if (employee) {
+          // Get subsidiary from parent node in tree structure
+          const subsidiary = this.getEmployeeSubsidiary(this.employeeTreeData, this.formData.employee_id);
+
           this.selectedEmployeeInfo = {
             name: employee.title,
             staff_id: employee.staff_id || 'N/A',
-            total_employments: 0 // TODO: Load from API
+            subsidiary: subsidiary || 'N/A'
           };
         }
       } else {
@@ -845,6 +880,19 @@ export default {
         if (node.children && node.children.length > 0) {
           const found = this.findEmployeeInTree(node.children, id);
           if (found) return found;
+        }
+      }
+      return null;
+    },
+
+    // Helper method to get subsidiary from parent node
+    getEmployeeSubsidiary(tree, employeeId) {
+      for (const subsidiaryNode of tree) {
+        if (subsidiaryNode.children && subsidiaryNode.children.length > 0) {
+          const employee = subsidiaryNode.children.find(emp => emp.value === employeeId);
+          if (employee) {
+            return subsidiaryNode.title; // Parent node title is the subsidiary name
+          }
         }
       }
       return null;
@@ -869,6 +917,7 @@ export default {
         this.currentAllocation.allocation_type = 'grant';
         // Clear org-funded fields
         this.currentAllocation.department_position_id = '';
+        this.currentAllocation.org_funded_salary = '';
         // Set options for grant position dropdown
         this.grantPositionOptions = this.grantPositions[this.currentAllocation.grant_id] || [];
         this.positionSlotOptions = [];
@@ -890,6 +939,7 @@ export default {
       this.editData.grant_items_id = '';
       this.editData.position_slot_id = '';
       this.editData.department_position_id = '';
+      this.editData.org_funded_salary = '';
 
       if (this.isOrgFundGrant(this.editData.grant_id)) {
         this.editData.allocation_type = 'org_funded';
@@ -963,7 +1013,8 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        level_of_effort: 100,
+        org_funded_salary: ''
       };
       this.grantPositionOptions = [];
       this.positionSlotOptions = [];
@@ -1044,6 +1095,41 @@ export default {
       }
       const orgFunded = this.orgFundedOptions.find(o => o.id == orgFundedId);
       return orgFunded ? orgFunded.name : 'Unknown Org Funding';
+    },
+
+    // Helper method to get grant salary from grant position
+    getGrantSalary(grantId, grantItemsId, originalData = null) {
+      // If we have original data from API response, use it
+      if (originalData && originalData.grant_salary) {
+        return this.formatCurrency(originalData.grant_salary);
+      }
+
+      // Otherwise, find it from our loaded grant structure
+      if (!grantId || !grantItemsId) {
+        return '-';
+      }
+
+      const positions = this.grantPositions[grantId] || [];
+      const position = positions.find(p => p.id == grantItemsId);
+
+      if (position && position.grant_salary) {
+        return this.formatCurrency(position.grant_salary);
+      }
+
+      return '-';
+    },
+
+    // Helper method to format currency
+    formatCurrency(value) {
+      if (value === null || value === undefined || value === '') {
+        return '-';
+      }
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(value);
     },
 
     openModal() {
@@ -1139,14 +1225,16 @@ export default {
             const isOrgFunded = this.isOrgFundGrant(allocation.grant_id);
 
             if (isOrgFunded) {
-              // For org_funded allocations, send grant_id (backend will create OrgFundedAllocation)
+              // For org_funded allocations, send grant_id and department_position_id and org_funded_salary
               return {
                 allocation_type: 'org_funded',
                 grant_id: allocation.grant_id,
+                department_position_id: allocation.department_position_id,
+                org_funded_salary: allocation.org_funded_salary || null,
                 level_of_effort: allocation.level_of_effort
               };
             } else {
-              // For grant allocations, send position_slot_id
+              // For grant allocations, send position_slot_id (do not include grant_salary)
               return {
                 allocation_type: 'grant',
                 position_slot_id: allocation.position_slot_id,
@@ -1241,7 +1329,8 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        level_of_effort: 100,
+        org_funded_salary: ''
       };
       this.fundingAllocations = [];
       this.selectedEmployeeInfo = null;

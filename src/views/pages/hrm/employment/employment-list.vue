@@ -89,7 +89,19 @@
                 :scroll="{ x: 'max-content' }" row-key="id" @change="handleTableChange"
                 :rowSelection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }">
                 <template #bodyCell="{ column, record }">
-                  <template v-if="column.dataIndex === 'actions'">
+                  <!-- Subsidiary column -->
+                  <template v-if="column.key === 'subsidiary'">
+                    <span :class="[
+                      'badge badge-sm fw-normal',
+                      record.subsidiary === 'SMRU' ? 'badge-primary' :
+                        record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                          'badge-secondary'
+                    ]">
+                      {{ record.subsidiary }}
+                    </span>
+                  </template>
+                  
+                  <template v-else-if="column.dataIndex === 'actions'">
                     <div class="action-icon d-inline-flex">
                       <a href="javascript:void(0);" class="me-2" @click="openEditEmploymentModal(record)">
                         <i class="ti ti-edit"></i>
@@ -211,6 +223,20 @@ export default {
       const sorted = this.sortedInfo || {};
       return [
         {
+          title: 'Subsidiary',
+          dataIndex: 'subsidiary',
+          key: 'subsidiary',
+          filters: [
+            { text: 'SMRU', value: 'SMRU' },
+            { text: 'BHF', value: 'BHF' },
+          ],
+          filteredValue: filtered.subsidiary || null,
+          onFilter: (value, record) => record.subsidiary === value,
+          sorter: (a, b) => a.subsidiary.localeCompare(b.subsidiary),
+          sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
+          width: 120,
+        },
+        {
           title: 'Staff ID',
           dataIndex: 'staff_id',
           key: 'staff_id',
@@ -315,6 +341,7 @@ export default {
       return this.employments.map(emp => ({
         ...emp,
         key: emp.id,
+        subsidiary: emp.employee ? emp.employee.subsidiary : 'N/A',
         staff_id: emp.employee ? emp.employee.staff_id : 'N/A',
         employee_name: emp.employee ? emp.employee.first_name_en + ' ' + emp.employee.last_name_en : 'N/A',
         department_position: emp.department_position ? emp.department_position.department + ' | ' + emp.department_position.position : 'N/A',
@@ -377,6 +404,8 @@ export default {
     },
     getUniqueValues(field) {
       const values = [...new Set(this.employments.map(item => {
+        if (field === 'subsidiary')
+          return item.employee ? item.employee.subsidiary : '';
         if (field === 'staff_id')
           return item.employee ? item.employee.staff_id : '';
         if (field === 'employee_name')

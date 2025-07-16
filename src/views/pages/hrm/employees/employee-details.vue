@@ -712,12 +712,41 @@
 
                                 <!-- Org funded specific details -->
                                 <div v-if="allocation.allocation_type === 'org_funded'" class="row mt-3">
-                                  <div class="col-md-6">
+                                  <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       Org Funded ID
                                     </span>
                                     <h6 class="d-flex align-items-center fw-medium mt-1">
                                       {{ allocation.org_funded_id || 'N/A' }}
+                                    </h6>
+                                  </div>
+
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Org Funded Salary
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.org_funded.org_funded_salary ?
+                                        `${Number(allocation.org_funded.org_funded_salary).toLocaleString()} THB` :
+                                        'N/A' }}
+                                    </h6>
+                                  </div>
+
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Department Position
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.org_funded.department_position.position || 'N/A' }}
+                                    </h6>
+                                  </div>
+
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Subsidiary
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.org_funded.grant.subsidiary || 'N/A' }}
                                     </h6>
                                   </div>
                                 </div>

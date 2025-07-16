@@ -88,7 +88,6 @@ export const ROLE_MENU_ACCESS = {
             'Employee',
             'Holidays',
             'Attendance',
-            'Grants',
             'Training',
             'Reports',
             'Requests',
@@ -108,7 +107,6 @@ export const ROLE_MENU_ACCESS = {
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
             'Training': ['Training List', 'Training Type', 'Trainers', 'Employee Training'],
             'Reports': ['Report List'],
-            'Grants': ['Grants List', 'Grant Position', 'Budget Lines']
         },
         permissions: [
             'view_hr',

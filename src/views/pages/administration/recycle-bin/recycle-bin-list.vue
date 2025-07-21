@@ -499,6 +499,8 @@ export default {
                     restoreData = {
                         model_class: this.selectedRecord.model_class,
                         original_id: this.selectedRecord.original_id
+
+                        
                     };
                 }
 

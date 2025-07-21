@@ -368,10 +368,10 @@ export default {
             try {
                 await new Promise((resolve) => {
                     AntModal.confirm({
-                        title: 'Are you sure?',
-                        content: 'You are about to delete this job offer. This action cannot be undone.',
+                        title: 'Move to Recycle Bin?',
+                        content: 'You are about to move this job offer to the recycle bin. You can restore it later from the recycle bin.',
                         centered: true,
-                        okText: 'Yes, delete',
+                        okText: 'Yes, move to recycle bin',
                         cancelText: 'Cancel',
                         onOk: async () => {
                             this.loading = true;
@@ -379,11 +379,11 @@ export default {
                                 await this.jobOfferStore.deleteJobOffer(id);
                                 this.jobOffers = this.jobOffers.filter(jobOffer => jobOffer.id !== id);
                                 this.total = this.jobOffers.length;
-                                this.$message.success('Job offer deleted successfully');
+                                this.$message.success('Job offer moved to recycle bin successfully');
                                 resolve();
                             } catch (error) {
-                                console.error('Error deleting job offer:', error);
-                                this.$message.error('Failed to delete job offer');
+                                console.error('Error moving job offer to recycle bin:', error);
+                                this.$message.error('Failed to move job offer to recycle bin');
                                 resolve();
                             } finally {
                                 this.loading = false;

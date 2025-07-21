@@ -701,7 +701,7 @@ export default {
     async handleGrantCodeSearch() {
       this.loading = true;
       try {
-        const response = await this.grantStore.getGrantByCode(this.searchGrantCode);
+        const response = await this.grantStore.fetchGrantByCode(this.searchGrantCode);
 
         if (response && (response.data || response)) {
           const grantData = response.data || response;

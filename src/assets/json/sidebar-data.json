@@ -606,6 +606,21 @@
         ]
       },
       {
+        "menuValue": "Recycle Bin",
+        "route": "/recycle-bin",
+        "active_link": "/recycle-bin",
+        "hasSubRoute": true,
+        "showSubRoute": false,
+        "icon": "recycle",
+        "subMenus": [
+          {
+            "menuValue": "Recycle Bin List",
+            "route": "/recycle-bin/recycle-bin-list",
+            "active_link": "/recycle-bin/recycle-bin-list"
+          }
+        ]
+      },
+      {
         "menuValue": "Settings",
         "hasSubRouteTwo": true,
         "showSubRoute": false,

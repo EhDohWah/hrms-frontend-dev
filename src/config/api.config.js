@@ -312,6 +312,15 @@ export const API_ENDPOINTS = {
         UPDATE: '/employee-children/:id',
         DELETE: '/employee-children/:id',
         DETAILS: '/employee-children/:id'
+    },
+
+    // Recycle Bin endpoints
+    RECYCLE_BIN: {
+        LIST: '/recycle-bin',
+        STATS: '/recycle-bin/stats',
+        RESTORE: '/recycle-bin/restore',
+        BULK_RESTORE: '/recycle-bin/bulk-restore',
+        PERMANENT_DELETE: '/recycle-bin/:deletedRecordId'
     }
 
 };

@@ -43,6 +43,9 @@ import layoutFooter from '@/views/layouts/layout-footer.vue';
 
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 
+// Recycle Bin components
+import RecycleBinList from '@/views/pages/administration/recycle-bin/recycle-bin-list.vue';
+
 
 /************Page Components********************/
 
@@ -214,19 +217,18 @@ app.component('interview-report', InterviewReport)
 app.component('job-offer-report', JobOfferReport)
 app.component('report-row', ReportRow)
 app.component('grant-headcount-report', GrantHeadcountReport)
+
 /************Page Components********************/
 
 
 
 /************Virtual Scroller********************/
-
-
 app.component('job-offers-list', jobOffersList)
 app.component('report-list', reportList)
 app.component('employment-list', employmentList)
 app.component('employee-list-modal', employeeListModal)
 app.component('employee-details-modal', employeeDetailsModal)
-
+app.component('recycle-bin-list', RecycleBinList)
 app.component('trining-table', TrainingTable)
 app.component('trainers-table', TrainersTable)
 app.component('training-type-table', TrainingTypeTable)

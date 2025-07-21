@@ -76,8 +76,8 @@ export function initEcho(token) {
         key: '30367b7c70f149742ff9',
         cluster: 'ap1',
         forceTLS: true,
-        //authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
-        authEndpoint: process.env.VUE_APP_API_AUTH_URL || 'https://hrms.kanyawtech.io/broadcasting/auth',
+        authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
+        //authEndpoint: process.env.VUE_APP_API_AUTH_URL || 'https://hrms.kanyawtech.io/broadcasting/auth',
         auth: {
             headers: { Authorization: `Bearer ${token}` },
         },

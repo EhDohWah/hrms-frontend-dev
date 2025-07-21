@@ -22,7 +22,7 @@ export const ROLE_MENU_ACCESS = {
             'Dashboard',
             'User Management',
             'Lookups',
-            'Department Positions'
+            'Department Positions',
         ],
         allowedSubMenus: {
             'Dashboard': ['Admin Dashboard'],
@@ -55,7 +55,8 @@ export const ROLE_MENU_ACCESS = {
             'Leaves',
             'Travel',
             'Training',
-            'Reports'
+            'Reports',
+            'Recycle Bin'
         ],
         allowedSubMenus: {
             'Dashboard': ['HR Manager Dashboard'],
@@ -67,7 +68,8 @@ export const ROLE_MENU_ACCESS = {
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items'],
             'Training': ['Training List', 'Training Type', 'Trainers', 'Employee Training'],
             'Reports': ['Report List'],
-            'Grants': ['Grants List', 'Grant Position', 'Budget Lines']
+            'Grants': ['Grants List', 'Grant Position', 'Budget Lines'],
+            'Recycle Bin': ['Recycle Bin List']
         },
         permissions: [
             'view_hr',

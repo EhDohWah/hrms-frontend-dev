@@ -566,6 +566,19 @@ const routes = [
     ]
   },
   {
+    path: '/recycle-bin',
+    component: lazyView('pages/administration/recycle-bin/recycle-bin'),
+    beforeEnter: roleGuard(['admin', 'hr-manager']),
+    meta: {
+      requiresAuth: true,
+      title: 'Recycle Bin'
+    },
+    children: [
+      { path: '', redirect: '/recycle-bin/recycle-bin-list' },
+      { path: "recycle-bin-list", component: lazyView('pages/administration/recycle-bin/recycle-bin-list') }
+    ]
+  },
+  {
     path: '/crm',
     component: lazyView('pages/crm/crm-index'),
     children: [
@@ -884,6 +897,7 @@ const routes = [
       { path: ':id', component: lazyView('pages/requests/travel/travel-details') }
     ]
   },
+
 ];
 
 export const router = createRouter({

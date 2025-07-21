@@ -385,10 +385,10 @@ export default {
       try {
         await new Promise((resolve) => {
           AntModal.confirm({
-            title: 'Are you sure?',
-            content: 'You are about to delete this interview. This action cannot be undone.',
+            title: 'Move to Recycle Bin?',
+            content: 'You are about to move this interview to the recycle bin. You can restore it later from the recycle bin.',
             centered: true,
-            okText: 'Yes, delete',
+            okText: 'Yes, move to recycle bin',
             cancelText: 'Cancel',
             onOk: async () => {
               this.loading = true;
@@ -396,11 +396,11 @@ export default {
                 await this.interviewStore.deleteInterview(id);
                 this.interviews = this.interviews.filter(interview => interview.id !== id);
                 this.total = this.interviews.length;
-                this.$message.success('Interview deleted successfully');
+                this.$message.success('Interview moved to recycle bin successfully');
                 resolve();
               } catch (error) {
-                console.error('Error deleting interview:', error);
-                this.$message.error('Failed to delete interview');
+                console.error('Error moving interview to recycle bin:', error);
+                this.$message.error('Failed to move interview to recycle bin');
                 resolve();
               } finally {
                 this.loading = false;

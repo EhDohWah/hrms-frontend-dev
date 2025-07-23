@@ -360,7 +360,7 @@ export default {
           width: 150
         },
         {
-          title: 'Total Amount (Year)',
+          title: 'Total Cost (Year)',
           dataIndex: 'grant_total_amount',
           key: 'grant_total_amount',
           width: 150

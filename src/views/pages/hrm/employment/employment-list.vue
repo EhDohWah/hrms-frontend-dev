@@ -100,7 +100,7 @@
                       {{ record.subsidiary }}
                     </span>
                   </template>
-                  
+
                   <template v-else-if="column.dataIndex === 'actions'">
                     <div class="action-icon d-inline-flex">
                       <a href="javascript:void(0);" class="me-2" @click="openEditEmploymentModal(record)">

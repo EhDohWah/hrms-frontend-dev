@@ -8,10 +8,20 @@
             <h4 class="modal-title me-2">Edit Employee</h4>
             <span>Staff ID : {{ editFormData.staff_id }}</span>
           </div>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_employee')"
+            aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
+
+        <!-- Restored Data Notification -->
+        <div v-if="restoredDataNotification.editForm" class="alert alert-info alert-dismissible fade show mx-3 mt-2"
+          role="alert">
+          <i class="ti ti-info-circle me-2"></i>
+          Restored your previous unsaved changes from {{ formatRestoredTime(restoredDataNotification.editFormTime) }}
+          <button type="button" class="btn-close" @click="restoredDataNotification.editForm = false"></button>
+        </div>
+
         <div v-if="alertMessageBasic" class="alert" :class="alertClassBasic" role="alert">
           {{ alertMessageBasic }}
         </div>
@@ -21,7 +31,8 @@
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="edit-subsidiary">Subsidiary</label>
-                  <select id="edit-subsidiary" v-model="editFormData.subsidiary" class="form-control" required>
+                  <select id="edit-subsidiary" v-model="editFormData.subsidiary" class="form-control" required
+                    @change="saveFormState('editFormData')">
                     <option value="" disabled selected>Select a subsidiary</option>
                     <option v-for="subsidiary in subsidiaries" :key="subsidiary.id" :value="subsidiary.value" :class="[
                       subsidiary.value === 'SMRU' ? 'text-primary' :
@@ -36,14 +47,15 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Staff ID <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" placeholder="Enter staff ID"
-                    v-model="editFormData.staff_id" />
+                  <input type="text" class="form-control" placeholder="Enter staff ID" v-model="editFormData.staff_id"
+                    @input="saveFormState('editFormData')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="edit-initial-en">Initial (EN)</label>
-                  <select id="edit-initial-en" v-model="editFormData.initial_en" class="form-control">
+                  <select id="edit-initial-en" v-model="editFormData.initial_en" class="form-control"
+                    @change="saveFormState('editFormData')">
                     <option value="" disabled selected>Select initial</option>
                     <option v-for="initial in employeeInitialEN" :key="initial.id" :value="initial.value" :class="[
                       'text-secondary'
@@ -56,7 +68,8 @@
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="edit-initial-th">Initial (TH)</label>
-                  <select id="edit-initial-th" v-model="editFormData.initial_th" class="form-control">
+                  <select id="edit-initial-th" v-model="editFormData.initial_th" class="form-control"
+                    @change="saveFormState('editFormData')">
                     <option value="" disabled selected>Select initial</option>
                     <option v-for="initial in employeeInitialTH" :key="initial.id" :value="initial.value" :class="[
                       'text-secondary'
@@ -70,34 +83,35 @@
                 <div class="mb-3">
                   <label class="form-label">First Name (EN) <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" maxlength="255" placeholder="Enter English first name"
-                    v-model="editFormData.first_name_en" />
+                    v-model="editFormData.first_name_en" @input="saveFormState('editFormData')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Last Name (EN)</label>
                   <input type="text" class="form-control" maxlength="255" placeholder="Enter English last name"
-                    v-model="editFormData.last_name_en" />
+                    v-model="editFormData.last_name_en" @input="saveFormState('editFormData')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">First Name (TH)</label>
                   <input type="text" class="form-control" maxlength="255" placeholder="Enter Thai first name"
-                    v-model="editFormData.first_name_th" />
+                    v-model="editFormData.first_name_th" @input="saveFormState('editFormData')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Last Name (TH)</label>
                   <input type="text" class="form-control" maxlength="255" placeholder="Enter Thai last name"
-                    v-model="editFormData.last_name_th" />
+                    v-model="editFormData.last_name_th" @input="saveFormState('editFormData')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="edit-gender">Gender <span class="text-danger"> *</span></label>
-                  <select id="edit-gender" v-model="editFormData.gender" class="form-control" required>
+                  <select id="edit-gender" v-model="editFormData.gender" class="form-control" required
+                    @change="saveFormState('editFormData')">
                     <option value="" disabled selected>Select gender</option>
                     <option v-for="gender in genders" :key="gender.id" :value="gender.value" :class="[
                       gender.value === 'Male' ? 'text-primary' :
@@ -114,7 +128,8 @@
                   <label class="form-label">Date of Birth <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
                     <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                      :clearable="false" :input-format="dateFormat" v-model="editFormData.date_of_birth" />
+                      :clearable="false" :input-format="dateFormat" v-model="editFormData.date_of_birth"
+                      @update:model-value="handleDateChange('editFormData', 'date_of_birth', $event)" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -131,7 +146,8 @@
                 <div class="input-block mb-3">
                   <label class="form-label" for="edit-employee-status">Status <span class="text-danger">
                       *</span></label>
-                  <select id="edit-employee-status" v-model="editFormData.status" class="form-control" required>
+                  <select id="edit-employee-status" v-model="editFormData.status" class="form-control" required
+                    @change="saveFormState('editFormData')">
                     <option value="" disabled selected>Select status</option>
                     <option v-for="status in statuses" :key="status.id" :value="status.value" :class="[
                       status.value === 'Active' ? 'text-primary' :
@@ -146,7 +162,7 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
+            <button type="button" class="btn btn-outline-light border me-2" @click="handleModalClose('edit_employee')">
               Cancel
             </button>
             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
@@ -168,9 +184,19 @@
         <div class="modal-header">
           <h4 class="modal-title">Personal Information</h4>
           <span>Staff ID : {{ personalFormData.staff_id }}</span>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_personal')"
+            aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
+        </div>
+
+        <!-- Restored Data Notification -->
+        <div v-if="restoredDataNotification.personalForm" class="alert alert-info alert-dismissible fade show mx-3 mt-2"
+          role="alert">
+          <i class="ti ti-info-circle me-2"></i>
+          Restored your previous unsaved changes from {{ formatRestoredTime(restoredDataNotification.personalFormTime)
+          }}
+          <button type="button" class="btn-close" @click="restoredDataNotification.personalForm = false"></button>
         </div>
 
         <div v-if="alertMessagePersonal" class="alert" :class="alertClassPersonal" role="alert">
@@ -183,7 +209,7 @@
                 <div class="mb-3">
                   <label class="form-label">Phone <span class="text-danger"> *</span></label>
                   <input type="tel" class="form-control" v-model="personalFormData.mobile_phone"
-                    placeholder="Enter phone number" required />
+                    placeholder="Enter phone number" required @input="saveFormState('personalFormData')" />
                 </div>
               </div>
 
@@ -191,7 +217,8 @@
                 <div class="mb-3">
                   <label class="form-label" for="edit-nationality">Nationality <span class="text-danger">
                       *</span></label>
-                  <select id="edit-nationality" class="form-select" v-model="personalFormData.nationality">
+                  <select id="edit-nationality" class="form-select" v-model="personalFormData.nationality"
+                    @change="saveFormState('personalFormData')">
                     <option value="" disabled>Select Nationality</option>
                     <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value"
                       :class="['text-secondary']">
@@ -205,7 +232,7 @@
                 <div class="mb-3">
                   <label class="form-label">Social Security Number</label>
                   <input type="text" class="form-control" v-model="personalFormData.social_security_number"
-                    placeholder="Enter SSN" />
+                    placeholder="Enter SSN" @input="saveFormState('personalFormData')" />
                 </div>
               </div>
 
@@ -213,14 +240,15 @@
                 <div class="mb-3">
                   <label class="form-label">Tax Number</label>
                   <input type="text" class="form-control" v-model="personalFormData.tax_number"
-                    placeholder="Enter tax number" />
+                    placeholder="Enter tax number" @input="saveFormState('personalFormData')" />
                 </div>
               </div>
 
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Religion <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="personalFormData.religion">
+                  <select class="form-select" v-model="personalFormData.religion"
+                    @change="saveFormState('personalFormData')">
                     <option value="" disabled selected>Select Religion</option>
                     <option v-for="religion in religions" :key="religion.id" :value="religion.value">
                       {{ religion.value }}
@@ -231,7 +259,8 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Marital Status <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="personalFormData.marital_status">
+                  <select class="form-select" v-model="personalFormData.marital_status"
+                    @change="saveFormState('personalFormData')">
                     <option value="" disabled selected>Select Marital Status</option>
                     <option v-for="status in maritalStatuses" :key="status.id" :value="status.value">
                       {{ status.value }}
@@ -245,14 +274,14 @@
                   <div class="mb-3">
                     <label class="form-label">Spouse Name</label>
                     <input type="text" class="form-control" v-model="personalFormData.spouse_name"
-                      placeholder="Enter spouse name" />
+                      placeholder="Enter spouse name" @input="saveFormState('personalFormData')" />
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label class="form-label">Spouse Mobile</label>
                     <input type="tel" class="form-control" v-model="personalFormData.spouse_mobile"
-                      placeholder="Enter spouse mobile number" />
+                      placeholder="Enter spouse mobile number" @input="saveFormState('personalFormData')" />
                   </div>
                 </div>
               </template>
@@ -262,7 +291,8 @@
                   <label class="form-label">Languages</label>
                   <a-select v-model:value="personalFormData.languages" mode="multiple" style="width: 100%"
                     placeholder="Select languages"
-                    :options="languages.map(language => ({ value: language.value, label: language.value }))"></a-select>
+                    :options="languages.map(language => ({ value: language.value, label: language.value }))"
+                    @change="saveFormState('personalFormData')"></a-select>
 
                 </div>
               </div>
@@ -271,7 +301,8 @@
                 <div class="mb-3">
                   <label class="form-label">Current Address <span class="text-danger"> *</span></label>
                   <textarea class="form-control" v-model="personalFormData.current_address"
-                    placeholder="Enter current address" rows="3" required></textarea>
+                    placeholder="Enter current address" rows="3" required
+                    @input="saveFormState('personalFormData')"></textarea>
                 </div>
               </div>
 
@@ -279,7 +310,8 @@
                 <div class="mb-3">
                   <label class="form-label">Permanent Address <span class="text-danger"> *</span></label>
                   <textarea class="form-control" v-model="personalFormData.permanent_address"
-                    placeholder="Enter permanent address" rows="3" required></textarea>
+                    placeholder="Enter permanent address" rows="3" required
+                    @input="saveFormState('personalFormData')"></textarea>
                 </div>
               </div>
               <div class="col-md-12">
@@ -293,7 +325,7 @@
                         <div class="mb-3">
                           <label class="form-label">ID Type <span class="text-danger"> *</span></label>
                           <select class="form-select" v-model="personalFormData.employee_identification.id_type"
-                            required>
+                            required @change="saveFormState('personalFormData')">
                             <option value="" disabled selected>Select ID Type</option>
                             <option v-for="idType in idTypes" :key="idType.id" :value="idType.value">
                               {{ idType.value }}
@@ -306,7 +338,7 @@
                           <label class="form-label">ID Number</label>
                           <input type="text" class="form-control"
                             v-model="personalFormData.employee_identification.document_number"
-                            placeholder="Enter ID number" />
+                            placeholder="Enter ID number" @input="saveFormState('personalFormData')" />
                         </div>
                       </div>
                     </div>
@@ -316,7 +348,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-outline-light border me-2"
+              @click="handleModalClose('edit_personal')">Cancel</button>
             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
@@ -329,138 +362,41 @@
   </div>
   <!-- /Edit Personal Information Modal -->
 
-  <!-- Edit Beneficiary Modal -->
-  <!-- <div class="modal fade" id="edit_beneficiary">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Beneficiary Details</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitBeneficiaryForm">
-          <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_name" required />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Relationship <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="beneficiaryForm.beneficiary_relationship" required>
-                    <option value="" disabled selected>Select Relationship</option>
-                    <option value="Spouse">Spouse</option>
-                    <option value="Child">Child</option>
-                    <option value="Parent">Parent</option>
-                    <option value="Sibling">Sibling</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Phone Number <span class="text-danger"> *</span></label>
-                  <input type="tel" class="form-control" v-model="beneficiaryForm.phone_number" required />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Email</label>
-                  <input type="email" class="form-control" v-model="beneficiaryForm.beneficiary_email" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
-                aria-hidden="true"></span>
-              Save
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div> -->
-  <!-- /Edit Beneficiary Modal -->
-
-  <!-- Edit Bank Modal -->
-  <!-- <div class="modal fade" id="edit_bank">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Bank Details</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Bank Details <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Bank account No</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">IFSC Code</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Branch Address</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div> -->
-  <!-- /Edit Bank Modal -->
-
   <!-- Add Beneficiary Modal -->
   <div class="modal fade" id="add_beneficiary">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Add Beneficiary</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('add_beneficiary')"
+            aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
+
+        <!-- Restored Data Notification -->
+        <div v-if="restoredDataNotification.beneficiaryForm"
+          class="alert alert-info alert-dismissible fade show mx-3 mt-2" role="alert">
+          <i class="ti ti-info-circle me-2"></i>
+          Restored your previous unsaved changes
+          <button type="button" class="btn-close" @click="restoredDataNotification.beneficiaryForm = false"></button>
+        </div>
+
         <form @submit.prevent="submitBeneficiaryForm">
           <div class="modal-body pb-0">
             <div class="row">
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Beneficiary Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_name" required />
+                  <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_name" required
+                    @input="saveFormState('beneficiaryForm')" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Relationship <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="beneficiaryForm.beneficiary_relationship" required>
+                  <select class="form-select" v-model="beneficiaryForm.beneficiary_relationship" required
+                    @change="saveFormState('beneficiaryForm')">
                     <option value="" disabled selected>Select Relationship</option>
                     <option value="Spouse">Spouse</option>
                     <option value="Child">Child</option>
@@ -473,13 +409,15 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Phone Number <span class="text-danger"> *</span></label>
-                  <input type="tel" class="form-control" v-model="beneficiaryForm.phone_number" required />
+                  <input type="tel" class="form-control" v-model="beneficiaryForm.phone_number" required
+                    @input="saveFormState('beneficiaryForm')" />
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-outline-light border me-2"
+              @click="handleModalClose('add_beneficiary')">Cancel</button>
             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
@@ -498,17 +436,28 @@
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">{{ isEditingChild ? 'Edit Child' : 'Add Child' }}</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('add_child')"
+            aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
+
+        <!-- Restored Data Notification -->
+        <div v-if="restoredDataNotification.childForm && !isEditingChild"
+          class="alert alert-info alert-dismissible fade show mx-3 mt-2" role="alert">
+          <i class="ti ti-info-circle me-2"></i>
+          Restored your previous unsaved changes
+          <button type="button" class="btn-close" @click="restoredDataNotification.childForm = false"></button>
+        </div>
+
         <form @submit.prevent="submitChildForm">
           <div class="modal-body pb-0">
             <div class="row">
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Child Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" v-model="childForm.name" required />
+                  <input type="text" class="form-control" v-model="childForm.name" required
+                    @input="saveFormState('childForm')" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -516,7 +465,8 @@
                   <label class="form-label">Date of Birth</label>
                   <div class="input-icon-end position-relative">
                     <date-picker v-model="childForm.date_of_birth" class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
+                      @update:model-value="handleDateChange('childForm', 'date_of_birth', $event)" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -526,7 +476,8 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-outline-light border me-2"
+              @click="handleModalClose('add_child')">Cancel</button>
             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
@@ -538,385 +489,6 @@
     </div>
   </div>
   <!-- /Add Child Modal -->
-
-  <!-- Add Family Modal -->
-  <div class="modal fade" id="edit_familyinformation">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Family Information</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Relationship</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Phone</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Passport Expiry Date <span class="text-danger"> *</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateTwo" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                      :editable="true" :clearable="false" :input-format="dateFormat" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <!-- /Add Family Modal -->
-
-  <!-- Add Education Modal -->
-  <!-- <div class="modal fade" id="edit_education">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Education Information</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Institution Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Course <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Start Date <span class="text-danger"> *</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateThree" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                      :editable="true" :clearable="false" :input-format="dateFormat" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">End Date <span class="text-danger"> *</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateFour" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                      :editable="true" :clearable="false" :input-format="dateFormat" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div> -->
-  <!-- /Add Education Modal -->
-
-  <!-- Add Experience Modal -->
-  <!-- <div class="modal fade" id="edit_experience">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Company Information</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Previous Company Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Designation <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Start Date <span class="text-danger"> *</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateFive" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                      :editable="true" :clearable="false" :input-format="dateFormat" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">End Date <span class="text-danger"> *</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateSix" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                      :editable="true" :clearable="false" :input-format="dateFormat" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-check-label d-flex align-items-center mt-0">
-                    <input class="form-check-input mt-0 me-2" type="checkbox" checked />
-                    <span class="text-dark">Check if you working present</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div> -->
-  <!-- /Add Experience Modal -->
-
-
-  <!-- Add Statutory Modal -->
-  <!-- <div class="modal fade" id="add_bank_satutory">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Bank & Statutory</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="border-bottom mb-4">
-              <h5 class="mb-3">Basic Salary Information</h5>
-              <div class="row mb-2">
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label class="form-label">Salary basis <span class="text-danger"> *</span></label>
-                    <vue-select :options="SaralyBas" id="saralybas" placeholder="Select" />
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label class="form-label">Salary basis</label>
-                    <input type="text" class="form-control" value="$" />
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label class="form-label">Payment type</label>
-                    <vue-select :options="PayType" id="paytype" placeholder="Select" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="border-bottom mb-4">
-              <h5 class="mb-3">PF Information</h5>
-              <div class="row mb-2">
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label class="form-label">PF contribution <span class="text-danger"> *</span></label>
-                    <vue-select :options="FundInt" id="fundint" placeholder="Select" />
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label class="form-label">PF No</label>
-                    <input type="text" class="form-control" />
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="mb-3">
-                    <label class="form-label">Employee PF rate</label>
-                    <input type="text" class="form-control" />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Additional rate</label>
-                    <vue-select :options="EpsRate" id="epsrate" placeholder="Select" />
-                  </div>
-                </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Total rate</label>
-                    <input type="text" class="form-control" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <h5 class="mb-3">ESI Information</h5>
-            <div class="row">
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">ESI contribution<span class="text-danger"> *</span></label>
-                  <vue-select :options="OneFundInt" id="onefundint" placeholder="Select" />
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">ESI Number</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">Employee ESI rate<span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Additional rate</label>
-                  <vue-select :options="OneEpsRate" id="oneepsrate" placeholder="Select" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Total rate</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div> -->
-  <!-- /Add Statutory Modal -->
-
-  <!-- Add Grant Position Modal -->
-  <!-- <div class="modal fade" id="add_grant_position">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Add Grant Position</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form @submit.prevent="submitGrantPosition">
-         
-            <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
-              {{ alertMessage }}
-            </div>
-            <div class="row">
-        
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Grant Position</label>
-                  <select class="form-select" v-model="form.grant_items_id" required>
-                    <option disabled value="">Select Grant Position</option>
-                    <option v-for="position in grantPositions" :key="position.id" :value="position.id">
-                      {{ position.bg_line + ' | ' + position.grant_name + ' | ' + position.grant_position }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-            
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Level of Effort (%)</label>
-                  <input type="number" v-model.number="form.level_of_effort" class="form-control"
-                    placeholder="Enter level of effort" />
-                </div>
-              </div>
-              
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Start Date</label>
-                  <date-picker v-model="form.start_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                    :input-format="dateFormat" />
-                </div>
-              </div>
-            
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">End Date</label>
-                  <date-picker v-model="form.end_date" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                    :input-format="dateFormat" />
-                </div>
-              </div>
-             
-              <div class="col-md-12">
-                <div class="form-check">
-                  <input class="form-check-input" type="checkbox" v-model="form.active" id="activeCheck" />
-                  <label class="form-check-label" for="activeCheck">
-                    Active
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-                <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"
-                  aria-hidden="true"></span>
-                <span v-if="isSubmitting">Saving...</span>
-                <span v-else>Save</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div> -->
-  <!-- /Add Grant Position Modal -->
 
   <!-- Asset Information Modal -->
   <div class="modal fade" id="asset_info">
@@ -1005,37 +577,6 @@
   </div>
   <!-- /Asset Information Modal -->
 
-  <!-- Refuse Modal -->
-  <div class="modal fade" id="refuse_msg">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Raise Issue</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Description<span class="text-danger"> *</span></label>
-                  <textarea class="form-control" rows="4"></textarea>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-white border me-2" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <!-- /Refuse Modal -->
-
   <!-- Delete Modal -->
   <div class="modal fade" id="delete_modal">
     <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -1060,10 +601,14 @@
 </template>
 
 <script>
-import { ref } from "vue";
+import { ref, nextTick, createVNode } from "vue";
+import { mapState, mapActions } from 'pinia';
+import { useFormPersistenceStore } from '@/stores/formPersistenceStore';
 import employmentService from "@/services/employment.service";
 import { grantService } from "@/services/grant.service";
 import { Modal } from 'bootstrap';
+import { Modal as AntModal } from 'ant-design-vue'; // Add Ant Design Modal import
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'; // Add icon import
 import { useLookupStore } from "@/stores/lookupStore";
 import employeeService from "@/services/employee.service";
 import employeeChildrenService from "@/services/employee-children.service";
@@ -1086,6 +631,7 @@ export default {
       default: null,
     },
   },
+
   data() {
     return {
       showPassword: false,
@@ -1098,6 +644,8 @@ export default {
       alertMessageBasic: '',
       alertMessagePersonal: '',
       alertClass: '',
+      alertClassBasic: '',
+      alertClassPersonal: '',
       subsidiaries: [],
       genders: [],
       date_of_birth: '',
@@ -1107,6 +655,8 @@ export default {
       statuses: [],
       employeeInitialEN: [],
       employeeInitialTH: [],
+      idTypes: [],
+      languages: [],
       startdate: currentDate,
       startdateOne: currentDateOne,
       startdateTwo: currentDateTwo,
@@ -1114,6 +664,22 @@ export default {
       startdateFour: currentDateFour,
       startdateFive: currentDateFive,
       startdateSix: currentDateSix,
+      isDestroyed: false, // Track component destruction
+      isComponentReady: false, // Track component readiness
+
+      // Track which modal is being closed
+      closingModal: null,
+
+      // Track if forms have been restored
+      restoredDataNotification: {
+        editForm: false,
+        personalForm: false,
+        beneficiaryForm: false,
+        childForm: false,
+        editFormTime: null,
+        personalFormTime: null,
+      },
+
       personalFormData: {
         id: '',
         staff_id: '',
@@ -1123,6 +689,8 @@ export default {
         tax_number: '',
         religion: '',
         marital_status: '',
+        spouse_name: '',
+        spouse_mobile: '',
         languages: [],
         current_address: '',
         permanent_address: '',
@@ -1131,6 +699,7 @@ export default {
           document_number: ''
         },
       },
+
       editFormData: {
         id: '',
         first_name_en: '',
@@ -1152,28 +721,26 @@ export default {
         religion: '',
         marital_status: '',
         employee_status: '',
-        date_of_birth: '',
+        date_of_birth: null, // Initialize as null instead of empty string
       },
 
       beneficiaryForm: {
         beneficiary_name: '',
         beneficiary_relationship: '',
-        beneficiary_phone: '',
+        phone_number: '',
         beneficiary_email: '',
         beneficiary_address: '',
       },
 
-      idTypes: [],
-
-      languages: [],
       selectedLanguages: [],
 
       childForm: {
         id: null,
         employee_id: '',
         name: '',
-        date_of_birth: '',
+        date_of_birth: null, // Initialize as null instead of empty string
       },
+
       editingChild: null,
       isEditingChild: false,
       dateFormat: "dd-MM-yyyy",
@@ -1196,35 +763,40 @@ export default {
       },
     };
   },
+
   async created() {
-    await this.initFetchGender();
-    await this.initFetchNationality();
-    await this.initFetchReligion();
-    await this.initFetchMaritalStatus();
-    await this.initFetchEmployeeStatus();
-    await this.initSubsidiaries();
-    await this.initFetchEmployeeInitialEN();
-    await this.initFetchEmployeeInitialTH();
-    await this.initFetchIdTypes();
-    await this.initFetchEmployeeLanguage();
+    try {
+      // Use single store initialization with error handling
+      await this.initializeLookupData();
+
+      // Mark component as ready
+      this.isComponentReady = true;
+
+      // Check for saved form data after data is loaded
+      if (this.employee?.id && !this.isDestroyed) {
+        await this.checkAndRestoreFormData();
+      }
+    } catch (error) {
+      console.error('Error during component initialization:', error);
+    }
   },
 
   computed: {
-
-
+    ...mapState(useFormPersistenceStore, ['hasEmployeeUnsavedChanges']),
 
     calculatedAge() {
       const dobVal = this.editFormData.date_of_birth;
       if (!dobVal) return '';
 
-      // if dobVal is a string in ISO or Date object, normalize:
       const dob = dobVal instanceof Date
         ? dobVal
         : new Date(dobVal);
+
+      if (isNaN(dob.getTime())) return '';
+
       const today = new Date();
 
       let age = today.getFullYear() - dob.getFullYear();
-      // subtract 1 if we haven't hit their birthday this year yet:
       const m = today.getMonth() - dob.getMonth();
       if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
         age--;
@@ -1232,20 +804,442 @@ export default {
 
       return age;
     },
+
     buttonLabel() {
       return this.showPassword ? "Hide" : "Show";
     },
+
     buttonLabel1() {
       return this.showPassword1 ? "Hide" : "Show";
     },
-
   },
+
   methods: {
-    // update employee personal information
+    ...mapActions(useFormPersistenceStore, [
+      'saveFormSection',
+      'clearFormSection',
+      'clearFormData',
+      'markAsSaved',
+      'checkForSavedData',
+      'getEmployeeFormData'
+    ]),
+
+    // Safe date conversion helper
+    safeConvertToDate(dateValue) {
+      if (!dateValue) return null;
+
+      try {
+        // If it's already a Date object, return it
+        if (dateValue instanceof Date) {
+          return isNaN(dateValue.getTime()) ? null : dateValue;
+        }
+
+        // If it's a string, try to parse it
+        if (typeof dateValue === 'string') {
+          const parsedDate = new Date(dateValue);
+          return isNaN(parsedDate.getTime()) ? null : parsedDate;
+        }
+
+        return null;
+      } catch (error) {
+        console.error('Error converting date:', error);
+        return null;
+      }
+    },
+
+    // Handle date picker changes
+    handleDateChange(formName, fieldName, newValue) {
+      if (this.isDestroyed || !this.isComponentReady) return;
+
+      try {
+        const safeDate = this.safeConvertToDate(newValue);
+        this[formName][fieldName] = safeDate;
+        this.saveFormState(formName);
+      } catch (error) {
+        console.error('Error handling date change:', error);
+      }
+    },
+
+    // Initialize all lookup data in a single call
+    async initializeLookupData() {
+      if (this.isDestroyed) return;
+
+      try {
+        const lookupStore = useLookupStore();
+
+        // Fetch all lookups once
+        if (!lookupStore.lookups.length) {
+          await lookupStore.fetchAllLookups();
+        }
+
+        if (this.isDestroyed) return;
+
+        // Set all lookup data synchronously
+        this.genders = lookupStore.getLookupsByType('gender') || [];
+        this.nationalities = lookupStore.getLookupsByType('nationality') || [];
+        this.religions = lookupStore.getLookupsByType('religion') || [];
+        this.maritalStatuses = lookupStore.getLookupsByType('marital_status') || [];
+        this.statuses = lookupStore.getLookupsByType('employee_status') || [];
+        this.subsidiaries = lookupStore.getLookupsByType('subsidiary') || [];
+        this.employeeInitialEN = lookupStore.getLookupsByType('employee_initial_en') || [];
+        this.employeeInitialTH = lookupStore.getLookupsByType('employee_initial_th') || [];
+        this.idTypes = lookupStore.getLookupsByType('identification_types') || [];
+        this.languages = lookupStore.getLookupsByType('employee_language') || [];
+
+      } catch (error) {
+        console.error('Error initializing lookup data:', error);
+      }
+    },
+
+    // Save form state to Pinia store
+    saveFormState(formName) {
+      if (!this.employee?.id || this.isDestroyed || !this.isComponentReady) return;
+
+      try {
+        this.saveFormSection(this.employee.id, formName, this[formName]);
+      } catch (error) {
+        console.error('Error saving form state:', error);
+      }
+    },
+
+    // Check and restore saved form data
+    async checkAndRestoreFormData() {
+      if (this.isDestroyed || !this.isComponentReady) return;
+
+      try {
+        const savedData = await this.checkForSavedData(this.employee.id);
+
+        if (savedData.hasSavedData && !this.isDestroyed) {
+          // Ask user if they want to restore
+          const shouldRestore = await this.confirmRestoreData(savedData.timestamp);
+
+          if (shouldRestore && !this.isDestroyed) {
+            this.restoreFormData(savedData.data);
+          } else if (!this.isDestroyed) {
+            // Clear saved data if user doesn't want to restore
+            this.clearFormData(this.employee.id);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking for saved data:', error);
+      }
+    },
+
+    // Confirm if user wants to restore saved data - UPDATED to use Ant Design
+    async confirmRestoreData(timestamp) {
+      const timeAgo = this.getTimeAgo(timestamp);
+
+      return new Promise((resolve) => {
+        AntModal.confirm({
+          title: 'Restore Unsaved Changes',
+          icon: createVNode(ExclamationCircleOutlined),
+          content: createVNode('div', { style: 'margin-top: 16px;' }, [
+            createVNode('p', { style: 'margin-bottom: 8px; color: #666;' }, `You have unsaved changes from ${timeAgo}.`),
+            createVNode('p', { style: 'margin-bottom: 0; font-weight: 500;' }, 'Would you like to restore them?')
+          ]),
+          okText: 'Restore Changes',
+          okType: 'primary',
+          cancelText: 'Start Fresh',
+          centered: true,
+          width: 420,
+          maskClosable: false,
+          keyboard: false,
+          onOk: () => {
+            resolve(true);
+          },
+          onCancel: () => {
+            resolve(false);
+          }
+        });
+      });
+    },
+
+    // Restore form data from saved state
+    restoreFormData(savedData) {
+      if (this.isDestroyed || !this.isComponentReady) return;
+
+      try {
+        if (savedData.editFormData) {
+          const editData = { ...savedData.editFormData };
+          // Safely convert date field
+          if (editData.date_of_birth) {
+            editData.date_of_birth = this.safeConvertToDate(editData.date_of_birth);
+          }
+          Object.assign(this.editFormData, editData);
+          this.restoredDataNotification.editForm = true;
+          this.restoredDataNotification.editFormTime = savedData.editFormData.timestamp || Date.now();
+        }
+
+        if (savedData.personalFormData) {
+          Object.assign(this.personalFormData, savedData.personalFormData);
+          this.restoredDataNotification.personalForm = true;
+          this.restoredDataNotification.personalFormTime = savedData.personalFormData.timestamp || Date.now();
+        }
+
+        if (savedData.beneficiaryForm) {
+          Object.assign(this.beneficiaryForm, savedData.beneficiaryForm);
+          this.restoredDataNotification.beneficiaryForm = true;
+        }
+
+        if (savedData.childForm && !this.isEditingChild) {
+          const childData = { ...savedData.childForm };
+          // Safely convert date field
+          if (childData.date_of_birth) {
+            childData.date_of_birth = this.safeConvertToDate(childData.date_of_birth);
+          }
+          Object.assign(this.childForm, childData);
+          this.restoredDataNotification.childForm = true;
+        }
+      } catch (error) {
+        console.error('Error restoring form data:', error);
+      }
+    },
+
+    // Format restored time for display
+    formatRestoredTime(timestamp) {
+      if (!timestamp) return 'earlier';
+      return this.getTimeAgo(timestamp);
+    },
+
+    // Get human-readable time ago
+    getTimeAgo(timestamp) {
+      const seconds = Math.floor((Date.now() - timestamp) / 1000);
+
+      if (seconds < 60) return 'just now';
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      return `${Math.floor(hours / 24)} day${Math.floor(hours / 24) > 1 ? 's' : ''} ago`;
+    },
+
+    // Safe modal show helper
+    safeShowModal(modalId) {
+      return new Promise((resolve) => {
+        if (this.isDestroyed || !this.isComponentReady) {
+          resolve(false);
+          return;
+        }
+
+        nextTick(() => {
+          if (this.isDestroyed) {
+            resolve(false);
+            return;
+          }
+
+          const modalEl = document.getElementById(modalId);
+          if (!modalEl) {
+            console.warn(`Modal ${modalId} not found`);
+            resolve(false);
+            return;
+          }
+
+          try {
+            let modal = Modal.getInstance(modalEl);
+            if (!modal) {
+              modal = new Modal(modalEl);
+            }
+
+            modalEl.addEventListener('shown.bs.modal', () => {
+              resolve(true);
+            }, { once: true });
+
+            modal.show();
+          } catch (error) {
+            console.error(`Error showing modal ${modalId}:`, error);
+            resolve(false);
+          }
+        });
+      });
+    },
+
+    // Safe modal hide helper
+    safeHideModal(modalId) {
+      return new Promise((resolve) => {
+        if (this.isDestroyed) {
+          resolve(true);
+          return;
+        }
+
+        nextTick(() => {
+          if (this.isDestroyed) {
+            resolve(true);
+            return;
+          }
+
+          const modalEl = document.getElementById(modalId);
+          if (!modalEl) {
+            resolve(true);
+            return;
+          }
+
+          try {
+            const modal = Modal.getInstance(modalEl);
+            if (modal) {
+              modalEl.addEventListener('hidden.bs.modal', () => {
+                this.cleanupModalBackdrops();
+                resolve(true);
+              }, { once: true });
+
+              modal.hide();
+            } else {
+              resolve(true);
+            }
+          } catch (error) {
+            console.error(`Error hiding modal ${modalId}:`, error);
+            resolve(false);
+          }
+        });
+      });
+    },
+
+    // Clean up stray modal backdrops
+    cleanupModalBackdrops() {
+      if (this.isDestroyed) return;
+
+      nextTick(() => {
+        if (this.isDestroyed) return;
+
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        const activeModals = document.querySelectorAll('.modal.show');
+
+        if (activeModals.length === 0 && backdrops.length > 0) {
+          backdrops.forEach(backdrop => backdrop.remove());
+        }
+      });
+    },
+
+    // Handle modal close with unsaved changes check - UPDATED to single-tier
+    async handleModalClose(modalId) {
+      if (this.isDestroyed || !this.isComponentReady) return;
+
+      if (!this.employee?.id) {
+        await this.safeHideModal(modalId);
+        return;
+      }
+
+      const hasUnsaved = this.hasEmployeeUnsavedChanges(this.employee.id);
+
+      if (hasUnsaved) {
+        // Use single-tier Ant Design confirm
+        this.showUnsavedChangesConfirm(modalId);
+      } else {
+        await this.safeHideModal(modalId);
+      }
+    },
+
+    // Show single-tier Ant Design confirm dialog for unsaved changes
+    showUnsavedChangesConfirm(modalId) {
+      AntModal.confirm({
+        title: 'Unsaved Changes',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: createVNode('div', { style: 'margin-top: 16px;' }, [
+          createVNode('p', { style: 'margin-bottom: 12px; color: #666;' }, 'You have unsaved changes in the employee form.'),
+          createVNode('p', { style: 'margin-bottom: 0; font-weight: 500;' }, 'What would you like to do?')
+        ]),
+        centered: true,
+        width: 440,
+        maskClosable: false,
+        keyboard: false,
+
+        okText: 'Continue Editing',
+        okType: 'default',
+        cancelText: 'Discard Changes',
+        cancelButtonProps: {
+          danger: true
+        },
+
+        onOk: () => {
+          console.log('User chose to continue editing');
+          return Promise.resolve();
+        },
+
+        onCancel: () => {
+          console.log('User chose to discard changes');
+          this.discardChangesAndClose(modalId);
+          return Promise.resolve();
+        }
+      });
+    },
+
+    // Discard changes and close specific modal
+    async discardChangesAndClose(modalId) {
+      if (this.isDestroyed) return;
+
+      try {
+        // Clear saved data for this employee
+        this.clearFormData(this.employee.id);
+
+        // Reset forms
+        this.resetAllForms();
+
+        // Close the specific modal
+        await this.safeHideModal(modalId);
+
+        console.log('✅ Discarded changes and closed modal');
+      } catch (error) {
+        console.error('❌ Error discarding changes:', error);
+      }
+    },
+
+    // Reset all forms
+    resetAllForms() {
+      if (this.isDestroyed) return;
+
+      try {
+        // Reset to original employee data or empty
+        if (this.employee) {
+          this.editFormData = {
+            id: this.employee.id,
+            first_name_en: this.employee.first_name_en || '',
+            last_name_en: this.employee.last_name_en || '',
+            first_name_th: this.employee.first_name_th || '',
+            last_name_th: this.employee.last_name_th || '',
+            initial_en: this.employee.initial_en || '',
+            initial_th: this.employee.initial_th || '',
+            staff_id: this.employee.staff_id || '',
+            status: this.employee.status || '',
+            subsidiary: this.employee.subsidiary || '',
+            gender: this.employee.gender || '',
+            date_of_birth: this.safeConvertToDate(this.employee.date_of_birth),
+          };
+
+          this.personalFormData = {
+            id: this.employee.id,
+            staff_id: this.employee.staff_id || '',
+            mobile_phone: this.employee.mobile_phone || '',
+            nationality: this.employee.nationality || '',
+            social_security_number: this.employee.social_security_number || '',
+            tax_number: this.employee.tax_number || '',
+            religion: this.employee.religion || '',
+            marital_status: this.employee.marital_status || '',
+            spouse_name: this.employee.spouse_name || '',
+            spouse_mobile: this.employee.spouse_mobile || '',
+            languages: this.employee.languages || [],
+            current_address: this.employee.current_address || '',
+            permanent_address: this.employee.permanent_address || '',
+            employee_identification: this.employee.employee_identification || {
+              id_type: '',
+              document_number: ''
+            },
+          };
+        }
+
+        // Reset other forms
+        this.resetBeneficiaryForm();
+        this.resetChildForm();
+      } catch (error) {
+        console.error('Error resetting forms:', error);
+      }
+    },
+
+    // Update employee personal information
     async submitPersonalInformationForm() {
+      if (this.isDestroyed) return;
+
       this.loading = true;
       this.error = null;
-      // Prepare payload
+
       const payload = {
         id: this.personalFormData.id,
         staff_id: this.personalFormData.staff_id,
@@ -1257,39 +1251,42 @@ export default {
         religion: this.personalFormData.religion,
         social_security_number: this.personalFormData.social_security_number,
         tax_number: this.personalFormData.tax_number,
-        // Add more fields as needed...
-
-        // Nested related models:
+        spouse_name: this.personalFormData.spouse_name,
+        spouse_mobile: this.personalFormData.spouse_mobile,
         employee_identification: {
           id_type: this.personalFormData.employee_identification?.id_type,
           document_number: this.personalFormData.employee_identification?.document_number,
-          // Add other fields if your backend expects them
         },
-
         languages: Array.isArray(this.personalFormData.languages)
           ? this.personalFormData.languages.filter(Boolean)
           : [],
       };
 
-      // Optionally, clean up undefined/null fields
       Object.keys(payload).forEach(
         (k) => (payload[k] == null || payload[k] === '') && delete payload[k]
       );
 
       try {
-
         const response = await employeeService.updateEmployeePersonalInformation(this.employee.id, payload);
+
+        if (this.isDestroyed) return;
 
         if (response && response.success) {
           this.$emit('employee-updated', response.data);
           this.alertMessagePersonal = response.message || "Personal information updated";
           this.alertClassPersonal = "alert-success";
+
+          // Clear saved form data and mark as saved
+          this.clearFormSection(this.employee.id, 'personalFormData');
+          this.markAsSaved(this.employee.id);
         } else {
           this.alertMessagePersonal = (response && response.message) || "Failed to update personal information";
           this.alertClassPersonal = "alert-danger";
         }
         return response;
       } catch (error) {
+        if (this.isDestroyed) return;
+
         this.error = error.message || "Failed to update personal information";
         this.alertMessagePersonal = this.error;
         this.alertClassPersonal = "alert-danger";
@@ -1299,25 +1296,33 @@ export default {
       }
     },
 
-
-    // update employee basic information
+    // Update employee basic information
     async updateBasicInformation() {
+      if (this.isDestroyed) return;
+
       try {
         this.loading = true;
         this.error = null;
         const response = await employeeService.updateBasicInformation(this.employee.id, this.editFormData);
 
-        // The API returns: { success: true, message: "...", data: { ...employee... } }
+        if (this.isDestroyed) return;
+
         if (response && response.success) {
           this.$emit('employee-updated', response.data);
           this.alertMessageBasic = response.message || "Employee basic information updated successfully";
           this.alertClassBasic = "alert-success";
+
+          // Clear saved form data and mark as saved
+          this.clearFormSection(this.employee.id, 'editFormData');
+          this.markAsSaved(this.employee.id);
         } else {
           this.alertMessageBasic = (response && response.message) || "Failed to update basic information";
           this.alertClassBasic = "alert-danger";
         }
         return response;
       } catch (error) {
+        if (this.isDestroyed) return;
+
         this.error = error.message || 'Failed to update basic information';
         this.alertMessageBasic = this.error;
         this.alertClassBasic = "alert-danger";
@@ -1327,101 +1332,193 @@ export default {
       }
     },
 
+    // Submit beneficiary form
+    async submitBeneficiaryForm() {
+      if (this.isDestroyed) return;
 
+      try {
+        this.isSubmitting = true;
 
-    async initFetchIdTypes() {
-      const lookupStore = useLookupStore();
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
+        // Add your beneficiary submission logic here
+
+        // Clear saved form data after successful submission
+        this.clearFormSection(this.employee.id, 'beneficiaryForm');
+        this.markAsSaved(this.employee.id);
+
+        // Reset form
+        this.resetBeneficiaryForm();
+
+        // Close modal
+        this.closeModal('add_beneficiary');
+      } catch (error) {
+        console.error('Error submitting beneficiary form:', error);
+        throw error;
+      } finally {
+        this.isSubmitting = false;
       }
-      this.idTypes = lookupStore.getLookupsByType('identification_types');
-
     },
 
-    async initFetchGender() {
-      const lookupStore = useLookupStore();
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
-      }
-      this.genders = lookupStore.getLookupsByType('gender');
+    // Reset beneficiary form
+    resetBeneficiaryForm() {
+      if (this.isDestroyed) return;
+
+      this.beneficiaryForm = {
+        beneficiary_name: '',
+        beneficiary_relationship: '',
+        phone_number: '',
+        beneficiary_email: '',
+        beneficiary_address: '',
+      };
     },
 
-    async initFetchNationality() {
-      const lookupStore = useLookupStore();
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
+    // Create or Update Child
+    async submitChildForm() {
+      if (this.isDestroyed) return;
+
+      try {
+        this.isSubmitting = true;
+
+        if (!this.childForm.name) {
+          this.$message.error('Child name is required');
+          return;
+        }
+
+        const payload = {
+          employee_id: this.employee.id,
+          name: this.childForm.name,
+          date_of_birth: this.formatDate(this.childForm.date_of_birth),
+        };
+
+        let response;
+        if (this.isEditingChild && this.childForm.id) {
+          response = await employeeChildrenService.updateEmployeeChild(this.childForm.id, payload);
+        } else {
+          response = await employeeChildrenService.createEmployeeChild(payload);
+        }
+
+        if (this.isDestroyed) return;
+
+        if (response && (response.success === true || response.status === "success")) {
+          this.$message.success(response.message || `Child ${this.isEditingChild ? 'updated' : 'added'} successfully`);
+
+          // Clear saved form data
+          this.clearFormSection(this.employee.id, 'childForm');
+          this.markAsSaved(this.employee.id);
+
+          this.$emit('employee-updated');
+          this.resetChildForm();
+          this.closeChildModal();
+        } else {
+          this.$message.error(response?.message || `Failed to ${this.isEditingChild ? 'update' : 'add'} child`);
+        }
+      } catch (error) {
+        if (this.isDestroyed) return;
+
+        console.error('Error submitting child form:', error);
+        this.$message.error(`Error ${this.isEditingChild ? 'updating' : 'adding'} child: ` + (error.message || 'Unknown error'));
+      } finally {
+        this.isSubmitting = false;
       }
-      this.nationalities = lookupStore.getLookupsByType('nationality');
     },
 
-    async initFetchReligion() {
-      const lookupStore = useLookupStore();
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
+    // Open Add Child Modal
+    async openAddChildModal() {
+      if (this.isDestroyed) return;
+
+      this.resetChildForm();
+      this.isEditingChild = false;
+
+      // Check for saved data
+      const savedData = this.getEmployeeFormData(this.employee.id);
+      if (savedData?.childForm && !this.isEditingChild) {
+        const childData = { ...savedData.childForm };
+        if (childData.date_of_birth) {
+          childData.date_of_birth = this.safeConvertToDate(childData.date_of_birth);
+        }
+        Object.assign(this.childForm, childData);
+        this.restoredDataNotification.childForm = true;
       }
-      this.religions = lookupStore.getLookupsByType('religion');
+
+      await this.safeShowModal('add_child');
     },
 
-    async initFetchMaritalStatus() {
-      const lookupStore = useLookupStore();
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
-      }
-      this.maritalStatuses = lookupStore.getLookupsByType('marital_status');
+    // Open Edit Child Modal
+    async openEditChildModal(child) {
+      if (this.isDestroyed) return;
+
+      this.isEditingChild = true;
+      this.editingChild = child;
+
+      this.childForm = {
+        id: child.id,
+        employee_id: child.employee_id,
+        name: child.name,
+        date_of_birth: this.safeConvertToDate(child.date_of_birth),
+      };
+
+      await this.safeShowModal('add_child');
     },
 
-    async initFetchEmployeeStatus() {
-      const lookupStore = useLookupStore();
+    // Delete Child
+    async deleteChild(childId) {
+      if (this.isDestroyed) return;
 
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
+      try {
+        const confirmed = await this.$confirm({
+          title: 'Confirm Delete',
+          content: 'Are you sure you want to delete this child record? This action cannot be undone.',
+          okText: 'Yes, Delete',
+          okType: 'danger',
+          cancelText: 'Cancel',
+          centered: true,
+        });
+
+        if (confirmed && !this.isDestroyed) {
+          const response = await employeeChildrenService.deleteEmployeeChild(childId);
+
+          if (this.isDestroyed) return;
+
+          if (response && (response.success === true || response.status === "success")) {
+            this.$message.success(response.message || 'Child deleted successfully');
+            this.$emit('employee-updated');
+          } else {
+            this.$message.error(response?.message || 'Failed to delete child');
+          }
+        }
+      } catch (error) {
+        if (error === 'cancel' || this.isDestroyed) {
+          return;
+        }
+        console.error('Error deleting child:', error);
+        this.$message.error('Error deleting child: ' + (error.message || 'Unknown error'));
       }
-      this.statuses = lookupStore.getLookupsByType('employee_status');
     },
 
-    // Initialize subsidiary data when component is created
-    async initSubsidiaries() {
-      const lookupStore = useLookupStore();
-      // If lookups aren't loaded yet, fetch them first
-      // Only fetch if not already loaded
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
-      }
-      this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
+    // Reset Child Form
+    resetChildForm() {
+      if (this.isDestroyed) return;
+
+      this.childForm = {
+        id: null,
+        employee_id: '',
+        name: '',
+        date_of_birth: null,
+      };
+      this.editingChild = null;
+      this.isEditingChild = false;
     },
 
-    async initFetchEmployeeInitialEN() {
-      const lookupStore = useLookupStore();
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
-      }
-      // SET the options, not just return
-      this.employeeInitialEN = lookupStore.getLookupsByType('employee_initial_en') || [];
+    // Close Child Modal
+    async closeChildModal() {
+      if (this.isDestroyed) return;
+
+      await this.safeHideModal('add_child');
     },
-
-    async initFetchEmployeeInitialTH() {
-      const lookupStore = useLookupStore();
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
-      }
-      // SET the options, not just return
-      this.employeeInitialTH = lookupStore.getLookupsByType('employee_initial_th') || [];
-    },
-
-
-    async initFetchEmployeeLanguage() {
-      const lookupStore = useLookupStore();
-      if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
-      }
-      this.languages = lookupStore.getLookupsByType('employee_language');
-    },
-
-
 
     toggleShow() {
       this.showPassword = !this.showPassword;
     },
+
     toggleShow1() {
       this.showPassword1 = !this.showPassword1;
     },
@@ -1429,38 +1526,40 @@ export default {
     submitFormOne() {
       this.$router.push("/employee/employee-grid");
     },
+
     async fetchGrantPositions() {
+      if (this.isDestroyed) return;
+
       try {
         const response = await grantService.getAllGrantItems();
-        if (response.data) {
+        if (response.data && !this.isDestroyed) {
           this.grantPositions = response.data;
         }
       } catch (error) {
         console.error("Error fetching grant positions:", error);
       }
     },
+
     async submitGrantPosition() {
+      if (this.isDestroyed) return;
+
       try {
         this.isSubmitting = true;
         this.alertMessage = '';
         this.alertClass = '';
 
-        // Validate employment ID
         if (!this.employee || !this.employee.employment || !this.employee.employment.id) {
           throw new Error("No employment record found for this employee");
         }
 
-        // Validate grant item selection
         if (!this.form.grant_items_id) {
           throw new Error("Please select a grant position");
         }
 
-        // Validate dates
         if (!this.form.start_date) {
           throw new Error("Start date is required");
         }
 
-        // Prepare payload with employmentId from parent
         const payload = {
           employment_id: this.employee.employment.id,
           grant_items_id: this.form.grant_items_id,
@@ -1472,25 +1571,23 @@ export default {
 
         await employmentService.addGrantAllocation(payload);
 
-        // Show success message
+        if (this.isDestroyed) return;
+
         this.alertMessage = "Grant position successfully added!";
         this.alertClass = "alert-success";
 
-        // Emit event to parent to reload employee detail
         this.$emit("grantPositionAdded");
 
-        // Reset form after short delay to allow user to see success message
-        setTimeout(() => {
-          this.resetForm();
-
-          const modalEl = document.getElementById("add_grant_position");
-          if (modalEl) {
-            const modal = Modal.getInstance(modalEl);
-            modal.hide();
+        setTimeout(async () => {
+          if (!this.isDestroyed) {
+            this.resetForm();
+            await this.safeHideModal("add_grant_position");
           }
         }, 1500);
 
       } catch (error) {
+        if (this.isDestroyed) return;
+
         this.alertClass = "alert-danger";
 
         if (error.message.includes("employment")) {
@@ -1513,16 +1610,26 @@ export default {
 
     formatDate(date) {
       if (!date) return "";
-      const d = new Date(date);
-      let month = "" + (d.getMonth() + 1);
-      let day = "" + d.getDate();
-      const year = d.getFullYear();
-      if (month.length < 2) month = "0" + month;
-      if (day.length < 2) day = "0" + day;
-      return [year, month, day].join("-");
+
+      try {
+        const d = date instanceof Date ? date : new Date(date);
+        if (isNaN(d.getTime())) return "";
+
+        let month = "" + (d.getMonth() + 1);
+        let day = "" + d.getDate();
+        const year = d.getFullYear();
+        if (month.length < 2) month = "0" + month;
+        if (day.length < 2) day = "0" + day;
+        return [year, month, day].join("-");
+      } catch (error) {
+        console.error('Error formatting date:', error);
+        return "";
+      }
     },
 
     resetForm() {
+      if (this.isDestroyed) return;
+
       this.form = {
         grant_items_id: null,
         level_of_effort: 100,
@@ -1533,146 +1640,177 @@ export default {
       this.alertMessage = '';
       this.alertClass = '';
     },
-
-    // ===== CHILD CRUD METHODS =====
-
-    // Create or Update Child
-    async submitChildForm() {
-      try {
-        this.isSubmitting = true;
-
-        // Validate required fields
-        if (!this.childForm.name) {
-          this.$message.error('Child name is required');
-          return;
-        }
-
-        // Prepare payload
-        const payload = {
-          employee_id: this.employee.id,
-          name: this.childForm.name,
-          date_of_birth: this.formatDate(this.childForm.date_of_birth),
-        };
-
-        let response;
-        if (this.isEditingChild && this.childForm.id) {
-          // Update existing child
-          response = await employeeChildrenService.updateEmployeeChild(this.childForm.id, payload);
-        } else {
-          // Create new child
-          response = await employeeChildrenService.createEmployeeChild(payload);
-        }
-
-        // Check for both possible success indicators
-        if (response && (response.success === true || response.status === "success")) {
-          this.$message.success(response.message || `Child ${this.isEditingChild ? 'updated' : 'added'} successfully`);
-
-          // Emit event to parent to reload employee details
-          this.$emit('employee-updated');
-
-          // Reset form and close modal
-          this.resetChildForm();
-          this.closeChildModal();
-        } else {
-          this.$message.error(response?.message || `Failed to ${this.isEditingChild ? 'update' : 'add'} child`);
-        }
-      } catch (error) {
-        console.error('Error submitting child form:', error);
-        this.$message.error(`Error ${this.isEditingChild ? 'updating' : 'adding'} child: ` + (error.message || 'Unknown error'));
-      } finally {
-        this.isSubmitting = false;
-      }
-    },
-
-    // Open Add Child Modal
-    openAddChildModal() {
-      this.resetChildForm();
-      this.isEditingChild = false;
-      const modalEl = document.getElementById('add_child');
-      const modal = Modal.getOrCreateInstance(modalEl);
-      modal.show();
-    },
-
-    // Open Edit Child Modal
-    openEditChildModal(child) {
-      this.isEditingChild = true;
-      this.editingChild = child;
-
-      // Populate form with child data
-      this.childForm = {
-        id: child.id,
-        employee_id: child.employee_id,
-        name: child.name,
-        date_of_birth: child.date_of_birth ? new Date(child.date_of_birth) : null,
-      };
-
-      const modalEl = document.getElementById('add_child');
-      const modal = Modal.getOrCreateInstance(modalEl);
-      modal.show();
-    },
-
-    // Delete Child
-    async deleteChild(childId) {
-      try {
-        // Show confirmation dialog
-        const confirmed = await this.$confirm({
-          title: 'Confirm Delete',
-          content: 'Are you sure you want to delete this child record? This action cannot be undone.',
-          okText: 'Yes, Delete',
-          okType: 'danger',
-          cancelText: 'Cancel',
-          centered: true,
-        });
-
-        if (confirmed) {
-          const response = await employeeChildrenService.deleteEmployeeChild(childId);
-
-          // Check for both possible success indicators
-          if (response && (response.success === true || response.status === "success")) {
-            this.$message.success(response.message || 'Child deleted successfully');
-
-            // Emit event to parent to reload employee details
-            this.$emit('employee-updated');
-          } else {
-            this.$message.error(response?.message || 'Failed to delete child');
-          }
-        }
-      } catch (error) {
-        if (error === 'cancel') {
-          // User cancelled, do nothing
-          return;
-        }
-        console.error('Error deleting child:', error);
-        this.$message.error('Error deleting child: ' + (error.message || 'Unknown error'));
-      }
-    },
-
-    // Reset Child Form
-    resetChildForm() {
-      this.childForm = {
-        id: null,
-        employee_id: '',
-        name: '',
-        date_of_birth: '',
-      };
-      this.editingChild = null;
-      this.isEditingChild = false;
-    },
-
-    // Close Child Modal
-    closeChildModal() {
-      const modalEl = document.getElementById('add_child');
-      const modal = Modal.getInstance(modalEl);
-      if (modal) {
-        modal.hide();
-      }
-    },
-
-    // ===== END CHILD CRUD METHODS =====
   },
 
   mounted() {
+    if (this.isDestroyed) return;
+
     this.fetchGrantPositions();
+
+    // Clean up expired data when component mounts
+    const formStore = useFormPersistenceStore();
+    formStore.cleanupExpiredData();
+
+    // Store modal instances to prevent memory leaks
+    this.modalInstances = {};
+
+    // Listen for modal show events to check for saved data
+    nextTick(() => {
+      if (this.isDestroyed) return;
+
+      const modalElements = document.querySelectorAll('.modal');
+
+      modalElements.forEach(modalEl => {
+        // Create modal instance if it doesn't exist
+        if (!this.modalInstances[modalEl.id]) {
+          this.modalInstances[modalEl.id] = new Modal(modalEl, {
+            backdrop: 'static',
+            keyboard: false
+          });
+        }
+
+        modalEl.addEventListener('show.bs.modal', async (event) => {
+          if (!this.employee?.id || this.isDestroyed || !this.isComponentReady) return;
+
+          const modalId = event.target.id;
+          const savedData = await this.checkForSavedData(this.employee.id);
+
+          if (savedData.hasSavedData && !this.isDestroyed) {
+            // Map modal IDs to form data keys
+            const modalFormMap = {
+              'edit_employee': 'editFormData',
+              'edit_personal': 'personalFormData',
+              'add_beneficiary': 'beneficiaryForm',
+              'add_child': 'childForm'
+            };
+
+            const formKey = modalFormMap[modalId];
+            if (formKey && savedData.data[formKey]) {
+              // Only restore data for the specific form being opened
+              const formData = { ...savedData.data[formKey] };
+
+              // Handle date fields safely
+              if (formKey === 'editFormData' && formData.date_of_birth) {
+                formData.date_of_birth = this.safeConvertToDate(formData.date_of_birth);
+              }
+              if (formKey === 'childForm' && formData.date_of_birth) {
+                formData.date_of_birth = this.safeConvertToDate(formData.date_of_birth);
+              }
+
+              Object.assign(this[formKey], formData);
+
+              // Show notification
+              if (formKey === 'editFormData') {
+                this.restoredDataNotification.editForm = true;
+                this.restoredDataNotification.editFormTime = savedData.timestamp;
+              } else if (formKey === 'personalFormData') {
+                this.restoredDataNotification.personalForm = true;
+                this.restoredDataNotification.personalFormTime = savedData.timestamp;
+              } else if (formKey === 'beneficiaryForm') {
+                this.restoredDataNotification.beneficiaryForm = true;
+              } else if (formKey === 'childForm' && !this.isEditingChild) {
+                this.restoredDataNotification.childForm = true;
+              }
+            }
+          }
+        });
+
+        // Clean up modal backdrop issues
+        modalEl.addEventListener('hidden.bs.modal', () => {
+          // Remove any lingering backdrops
+          nextTick(() => {
+            if (this.isDestroyed) return;
+
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+              if (!document.querySelector('.modal.show')) {
+                backdrop.remove();
+              }
+            });
+          });
+        });
+      });
+    });
+  },
+
+  watch: {
+    // Watch for employee prop changes
+    employee: {
+      handler(newVal) {
+        if (newVal && !this.isDestroyed && this.isComponentReady) {
+          // Initialize form data with employee data
+          this.editFormData = {
+            id: newVal.id,
+            first_name_en: newVal.first_name_en || '',
+            last_name_en: newVal.last_name_en || '',
+            first_name_th: newVal.first_name_th || '',
+            last_name_th: newVal.last_name_th || '',
+            initial_en: newVal.initial_en || '',
+            initial_th: newVal.initial_th || '',
+            staff_id: newVal.staff_id || '',
+            status: newVal.status || '',
+            subsidiary: newVal.subsidiary || '',
+            gender: newVal.gender || '',
+            date_of_birth: this.safeConvertToDate(newVal.date_of_birth),
+          };
+
+          this.personalFormData = {
+            id: newVal.id,
+            staff_id: newVal.staff_id || '',
+            mobile_phone: newVal.mobile_phone || '',
+            nationality: newVal.nationality || '',
+            social_security_number: newVal.social_security_number || '',
+            tax_number: newVal.tax_number || '',
+            religion: newVal.religion || '',
+            marital_status: newVal.marital_status || '',
+            spouse_name: newVal.spouse_name || '',
+            spouse_mobile: newVal.spouse_mobile || '',
+            languages: newVal.languages || [],
+            current_address: newVal.current_address || '',
+            permanent_address: newVal.permanent_address || '',
+            employee_identification: newVal.employee_identification || {
+              id_type: '',
+              document_number: ''
+            },
+          };
+        }
+      },
+      immediate: true,
+      deep: true
+    }
+  },
+
+  beforeUnmount() {
+    // Mark component as destroyed
+    this.isDestroyed = true;
+    this.isComponentReady = false;
+
+    // Clean up modal instances
+    if (this.modalInstances) {
+      Object.values(this.modalInstances).forEach(modal => {
+        if (modal && typeof modal.dispose === 'function') {
+          try {
+            modal.dispose();
+          } catch (error) {
+            console.error('Error disposing modal:', error);
+          }
+        }
+      });
+    }
+
+    // Remove any lingering backdrops
+    try {
+      const backdrops = document.querySelectorAll('.modal-backdrop');
+      backdrops.forEach(backdrop => backdrop.remove());
+    } catch (error) {
+      console.error('Error cleaning up backdrops:', error);
+    }
+
+    // Save current state if there are unsaved changes
+    if (this.employee?.id && this.hasEmployeeUnsavedChanges(this.employee.id)) {
+      // The data is already being saved in real-time, so we don't need to do anything here
+      // But you could show a warning or perform other cleanup if needed
+    }
   },
 };
 </script>
@@ -1684,5 +1822,65 @@ export default {
 
 .alert {
   margin-bottom: 15px;
+}
+
+.alert-dismissible .btn-close {
+  padding: 0.5rem;
+}
+
+/* Highlight restored data notification */
+.alert-info {
+  background-color: #e7f3ff;
+  border-color: #b3d9ff;
+  color: #004085;
+}
+
+/* Add transition for notifications */
+.fade {
+  transition: opacity 0.15s linear;
+}
+
+.fade.show {
+  opacity: 1;
+}
+
+/* Add visual indicator for forms with unsaved changes */
+.has-unsaved-changes {
+  border-left: 3px solid #ffc107;
+  padding-left: 10px;
+}
+
+/* Custom styles for Ant Design confirm dialogs */
+:deep(.ant-modal-confirm .ant-modal-body) {
+  padding: 24px 24px 16px 24px;
+}
+
+:deep(.ant-modal-confirm .ant-modal-confirm-title) {
+  font-weight: 600;
+  font-size: 16px;
+  color: #262626;
+}
+
+:deep(.ant-modal-confirm .ant-modal-confirm-content) {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #595959;
+}
+
+:deep(.ant-modal-confirm .ant-btn) {
+  height: 32px;
+  padding: 4px 15px;
+  font-size: 14px;
+  border-radius: 6px;
+}
+
+:deep(.ant-modal-confirm .ant-btn-primary) {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+:deep(.ant-modal-confirm .ant-btn-danger) {
+  background: #ff4d4f;
+  border-color: #ff4d4f;
 }
 </style>

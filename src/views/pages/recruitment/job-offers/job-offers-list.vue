@@ -166,6 +166,14 @@ export default {
             const sorted = this.sortedInfo || {};
 
             return [
+
+                {
+                    title: '#ID',
+                    dataIndex: 'id',
+                    key: 'id',
+                    sorter: (a, b) => a.id - b.id,
+                    sortOrder: sorted.columnKey === 'id' && sorted.order,
+                },
                 {
                     title: 'Job Offer ID',
                     dataIndex: 'custom_offer_id',

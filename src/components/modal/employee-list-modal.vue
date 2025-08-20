@@ -806,7 +806,7 @@ export default {
 
       try {
         console.log(this.formData);
-        
+
         // Format the data before sending to backend
         const formDataToSend = {
           ...this.formData,
@@ -838,14 +838,39 @@ export default {
           }, { once: true });
 
         } else {
-          this.showAlert(response?.message || 'Failed to add employee', 'alert-danger');
+          // Prioritize the 'error' field if available, then 'message', then default
+          let errorMessage = response?.error || response?.message || 'Failed to add employee';
+
+          // If there are validation errors in the 'errors' object, append them
           if (response?.errors) {
-            this.showAlert(response?.message + ' ' + Object.values(response.errors).flat().join(' '), 'alert-danger');
+            const validationErrors = Object.values(response.errors).flat().join(', ');
+            errorMessage = validationErrors || errorMessage;
           }
+
+          this.showAlert(errorMessage, 'alert-danger');
         }
       } catch (error) {
         console.error('Error submitting form:', error);
-        this.showAlert(error.message || 'An error occurred while saving the employee.', 'alert-danger');
+
+        // Handle different types of errors
+        let errorMessage = 'An error occurred while saving the employee.';
+
+        if (error.response && error.response.data) {
+          // API returned an error response
+          const data = error.response.data;
+          errorMessage = data.error || data.message || errorMessage;
+
+          // Handle validation errors
+          if (data.errors) {
+            const validationErrors = Object.values(data.errors).flat().join(', ');
+            errorMessage = validationErrors || errorMessage;
+          }
+        } else if (error.message) {
+          // Network or other error
+          errorMessage = error.message;
+        }
+
+        this.showAlert(errorMessage, 'alert-danger');
       } finally {
         this.isSubmitting = false;
       }
@@ -870,23 +895,48 @@ export default {
         if (response && response.success) {
           message.success('Employee updated successfully');
           this.$emit('employee-updated');
-          
+
           // Close the edit modal
           const editModal = Modal.getInstance(document.getElementById('edit_employee'));
           if (editModal) {
             editModal.hide();
           }
-          
+
           this.resetEditForm();
         } else {
-          this.showAlert(response?.message || 'Failed to update employee', 'alert-danger');
+          // Prioritize the 'error' field if available, then 'message', then default
+          let errorMessage = response?.error || response?.message || 'Failed to update employee';
+
+          // If there are validation errors in the 'errors' object, append them
           if (response?.errors) {
-            this.showAlert(response?.message + ' ' + Object.values(response.errors).flat().join(' '), 'alert-danger');
+            const validationErrors = Object.values(response.errors).flat().join(', ');
+            errorMessage = validationErrors || errorMessage;
           }
+
+          this.showAlert(errorMessage, 'alert-danger');
         }
       } catch (error) {
         console.error('Error updating employee:', error);
-        this.showAlert(error.message || 'An error occurred while updating the employee.', 'alert-danger');
+
+        // Handle different types of errors
+        let errorMessage = 'An error occurred while updating the employee.';
+
+        if (error.response && error.response.data) {
+          // API returned an error response
+          const data = error.response.data;
+          errorMessage = data.error || data.message || errorMessage;
+
+          // Handle validation errors
+          if (data.errors) {
+            const validationErrors = Object.values(data.errors).flat().join(', ');
+            errorMessage = validationErrors || errorMessage;
+          }
+        } else if (error.message) {
+          // Network or other error
+          errorMessage = error.message;
+        }
+
+        this.showAlert(errorMessage, 'alert-danger');
       } finally {
         this.isSubmitting = false;
       }

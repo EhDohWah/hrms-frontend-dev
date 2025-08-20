@@ -325,17 +325,17 @@
                         <span class="d-inline-flex align-items-center">
                           <i class="ti ti-passport me-2"></i>
                           Passport Number
-                        </span>
+                      </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.document_number || 'N/A' }}</p>
-                      </div>
+                    </div>
 
                       <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="d-inline-flex align-items-center">
                           <i class="ti ti-calendar-event me-2"></i>
                           Passport expiry date
-                        </span>
+                      </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.expiry_date || 'N/A' }}</p>
-                      </div>
+                    </div>
 
                       <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="d-inline-flex align-items-center">
@@ -343,7 +343,7 @@
                           Date to renew passport
                         </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.renewal_date || 'N/A' }}</p>
-                      </div>
+                  </div>
 
                       <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="d-inline-flex align-items-center">
@@ -351,7 +351,7 @@
                           Arrival date
                         </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.arrival_date || 'N/A' }}</p>
-                      </div>
+                </div>
 
                       <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="d-inline-flex align-items-center">
@@ -359,13 +359,13 @@
                           TM Card
                         </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.tm_card || 'N/A' }}</p>
-                      </div>
+                  </div>
 
                       <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="d-inline-flex align-items-center">
                           <i class="ti ti-calendar-time me-2"></i>
                           90 Days
-                        </span>
+                      </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.ninety_days || 'N/A' }}</p>
                       </div>
 
@@ -373,16 +373,16 @@
                         <span class="d-inline-flex align-items-center">
                           <i class="ti ti-building-bank me-2"></i>
                           Date to report to immigration
-                        </span>
+                      </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.immigration_report_date || 'N/A'
                         }}</p>
-                      </div>
+                    </div>
 
                       <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="d-inline-flex align-items-center">
                           <i class="ti ti-calendar-off me-2"></i>
                           Visa expiry date
-                        </span>
+                      </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.visa_expiry_date || 'N/A' }}</p>
                       </div>
 
@@ -390,18 +390,18 @@
                         <span class="d-inline-flex align-items-center">
                           <i class="ti ti-file-certificate me-2"></i>
                           Work Permit
-                        </span>
+                      </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.work_permit || 'N/A' }}</p>
-                      </div>
+                    </div>
 
                       <div class="d-flex align-items-center justify-content-between mb-2">
                         <span class="d-inline-flex align-items-center">
                           <i class="ti ti-calendar-x me-2"></i>
                           Work permit expiry date
-                        </span>
+                      </span>
                         <p class="text-dark mb-0">{{ employee.employee_identification.work_permit_expiry_date || 'N/A'
                         }}</p>
-                      </div>
+                    </div>
                     </template> -->
                   </div>
                 </div>
@@ -410,7 +410,7 @@
                   <span class="d-inline-flex align-items-center">
                     <i class="ti ti-baby-bottle me-2"></i>
                     Parents
-                  </span>
+                      </span>
                   <p class="text-dark text-end">
                     {{ employee.father_name ? 'Father: ' + employee.father_name : '' }}
                     {{ employee.mother_name ? ', Mother: ' + employee.mother_name : '' }}
@@ -424,8 +424,8 @@
           <div class="d-flex align-items-center justify-content-between mb-2">
             <h6>Beneficiary Information</h6>
             <div class="d-flex align-items-center">
-              <a href="javascript:void(0);" class="bt btn-sm d-flex align-items-center me-2" data-bs-toggle="modal"
-                data-bs-target="#add_beneficiary">
+              <a href="javascript:void(0);" class="bt btn-sm d-flex align-items-center me-2"
+                @click="openAddBeneficiaryModal">
                 <i class="ti ti-circle-plus me-1"></i>
                 <span>Add</span>
               </a>
@@ -433,28 +433,64 @@
           </div>
           <div class="card">
             <div class="card-body p-0">
-              <div v-if="employee.beneficiaries && employee.beneficiaries.length > 0">
-                <div v-for="(beneficiary, index) in employee.beneficiaries" :key="index" class="p-3 border-bottom">
+              <div v-if="employee.employee_beneficiaries && employee.employee_beneficiaries.length > 0">
+                <div v-for="(beneficiary, index) in employee.employee_beneficiaries" :key="beneficiary.id || index"
+                  class="p-3 border-bottom">
                   <div class="d-flex align-items-center justify-content-between">
-                    <div>
-                      <span class="d-inline-flex align-items-center">{{ index === 0 ? 'Person 1' : 'Person 2' }}</span>
-                      <h6 class="d-flex align-items-center fw-medium mt-1">
+                    <div class="flex-grow-1">
+                      <span class="d-inline-flex align-items-center text-muted">
+                        <i class="ti ti-user me-1"></i>
+                        Beneficiary {{ index + 1 }}
+                      </span>
+                      <h6 class="d-flex align-items-center fw-medium mt-1 mb-1">
                         {{ beneficiary.beneficiary_name }}
                         <span class="d-inline-flex mx-1"><i class="ti ti-point-filled text-danger"></i></span>
                         {{ beneficiary.beneficiary_relationship }}
                       </h6>
+                      <div class="d-flex flex-column text-sm text-muted">
+                        <span v-if="beneficiary.phone_number"><i class="ti ti-phone me-1"></i>{{
+                          beneficiary.phone_number
+                          }}</span>
+                        <span v-if="beneficiary.beneficiary_email"><i class="ti ti-mail me-1"></i>{{
+                          beneficiary.beneficiary_email
+                          }}</span>
+                      </div>
                     </div>
-                    <p class="text-dark">{{ beneficiary.phone_number }}</p>
-                    <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
-                      data-bs-target="#edit_beneficiary"><i class="ti ti-edit"></i></a>
+                    <div class="dropdown">
+                      <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="dropdown">
+                        <i class="ti ti-dots-vertical"></i>
+                      </a>
+                      <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                          <a href="javascript:void(0);" class="dropdown-item"
+                            @click="openEditBeneficiaryModal(beneficiary)">
+                            <i class="ti ti-edit me-2"></i>Edit
+                          </a>
+                        </li>
+                        <li>
+                          <a href="javascript:void(0);" class="dropdown-item text-danger"
+                            @click="deleteBeneficiary(beneficiary.id, beneficiary.beneficiary_name)">
+                            <i class="ti ti-trash me-2"></i>Delete
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
               <div v-else class="p-3">
-                <p class="text-center">No beneficiary information available</p>
+                <div class="text-center py-3">
+                  <i class="ti ti-users text-muted mb-2" style="font-size: 2rem;"></i>
+                  <p class="text-muted mb-2">No beneficiary information available</p>
+                  <a href="javascript:void(0);" class="btn btn-sm btn-outline-primary" @click="openAddBeneficiaryModal">
+                    <i class="ti ti-plus me-1"></i>Add First Beneficiary
+                  </a>
+                </div>
               </div>
             </div>
           </div>
+          <!-- End of Beneficiary Information -->
+
           <!-- End of Beneficiary Information -->
 
           <!--Employee Children Information -->
@@ -507,7 +543,14 @@
                 </div>
               </div>
               <div v-else class="p-3">
-                <p class="text-center">No employee children information available</p>
+                <div class="text-center py-3">
+                  <i class="ti ti-users text-muted mb-2" style="font-size: 2rem;"></i>
+                  <p class="text-muted mb-2">No employee children information available</p>
+                  <a href="javascript:void(0);" class="btn btn-sm btn-outline-primary"
+                    @click="$refs.employeeDetailsModal.openAddChildModal()">
+                    <i class="ti ti-plus me-1"></i>Add First Child
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -602,6 +645,7 @@
                                       {{ allocation.allocation_type || 'N/A' }}
                                     </h6>
                                   </div>
+
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       Level of Effort
@@ -611,6 +655,7 @@
                                         100).toFixed(0)}%` : 'N/A' }}
                                     </h6>
                                   </div>
+
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       Start Date
@@ -619,6 +664,7 @@
                                       {{ formatDate(allocation.start_date) || 'N/A' }}
                                     </h6>
                                   </div>
+
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       End Date
@@ -628,6 +674,17 @@
                                       {{ formatDate(allocation.end_date) || 'N/A' }}
                                     </h6>
                                   </div>
+
+
+                                  <!-- <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Allocated Amount
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.allocated_amount ?
+                                        `${Number(allocation.allocated_amount).toLocaleString()} ฿` : 'N/A' }}
+                                    </h6>
+                                  </div> -->
                                 </div>
 
                                 <!-- Grant specific details -->
@@ -641,6 +698,7 @@
                                       {{ allocation.position_slot?.grant_item?.grant?.code || 'N/A' }}
                                     </h6>
                                   </div>
+
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       Grant Name
@@ -649,6 +707,7 @@
                                       {{ allocation.position_slot?.grant_item?.grant?.name || 'N/A' }}
                                     </h6>
                                   </div>
+
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       Subsidiary
@@ -657,14 +716,18 @@
                                       {{ allocation.position_slot?.grant_item?.grant?.subsidiary || 'N/A' }}
                                     </h6>
                                   </div>
+
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
-                                      Grant End Date
+                                      Allocated Amount
                                     </span>
                                     <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ formatDate(allocation.position_slot?.grant_item?.grant?.end_date) || 'N/A' }}
+                                      {{ allocation.allocated_amount ?
+                                        `${Number(allocation.allocated_amount).toLocaleString()} ฿` : 'N/A' }}
                                     </h6>
                                   </div>
+
+
                                 </div>
 
                                 <!-- Grant position and salary details -->
@@ -750,6 +813,17 @@
                                     </h6>
                                   </div>
                                 </div>
+                                <div v-if="allocation.allocation_type === 'org_funded'" class="row mt-3">
+                                  <div class="col-md-3">
+                                    <span class="d-inline-flex align-items-center">
+                                      Allocated Amount
+                                    </span>
+                                    <h6 class="d-flex align-items-center fw-medium mt-1">
+                                      {{ allocation.allocated_amount ?
+                                        `${Number(allocation.allocated_amount).toLocaleString()} ฿` : 'N/A' }}
+                                    </h6>
+                                  </div>
+                                </div>
                               </div>
                               <!-- Funding allocation details end -->
                             </div>
@@ -804,7 +878,7 @@
                                                 ></i></span
                                               >Assigned on 22 Nov, 2022 10:32AM
                                             </p>
-                                          </div>
+                          </div>
                                         </div>
                                       </div>
                                     </div>
@@ -1021,14 +1095,14 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-calendar-plus me-2"></i>Start Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.start_date) || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-calendar-event me-2"></i>End Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.end_date) || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1037,7 +1111,7 @@
                                         Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.probation_pass_date) ||
                                         'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1062,7 +1136,7 @@
                                       <span class="text-muted"><i class="ti ti-building me-2"></i>Department Position
                                         ID</span>
                                       <span class="fw-medium">{{ employee.employment?.department_position_id || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                 </ul>
@@ -1075,14 +1149,14 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-location me-2"></i>Work Location</span>
                                       <span class="fw-medium">{{ employee.employment?.work_location?.name || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-map-pin me-2"></i>Location Type</span>
                                       <span class="fw-medium">{{ employee.employment?.work_location?.type || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1091,7 +1165,7 @@
                                         Salary</span>
                                       <span class="fw-medium">{{ employee.employment?.position_salary ?
                                         `${Number(employee.employment.position_salary).toLocaleString()} THB` : 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1099,7 +1173,7 @@
                                       <span class="text-muted"><i class="ti ti-cash me-2"></i>Probation Salary</span>
                                       <span class="fw-medium">{{ employee.employment?.probation_salary ?
                                         `${Number(employee.employment.probation_salary).toLocaleString()} THB` : 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1175,7 +1249,7 @@
                                     <h6 class="mb-2"><i class="ti ti-user me-2"></i>Created By</h6>
                                     <p class="mb-0">{{ employee.employment?.created_by || 'N/A' }}</p>
                                     <small class="text-muted">{{ formatDate(employee.employment?.created_at) || 'N/A'
-                                    }}</small>
+                                      }}</small>
                                   </div>
                                 </div>
                               </div>
@@ -1185,7 +1259,7 @@
                                     <h6 class="mb-2"><i class="ti ti-user-edit me-2"></i>Updated By</h6>
                                     <p class="mb-0">{{ employee.employment?.updated_by || 'N/A' }}</p>
                                     <small class="text-muted">{{ formatDate(employee.employment?.updated_at) || 'N/A'
-                                    }}</small>
+                                      }}</small>
                                   </div>
                                 </div>
                               </div>
@@ -1457,9 +1531,8 @@
 import { useEmployeeStore } from '@/stores/employeeStore';
 import { employmentService } from '@/services/employment.service';
 import { Modal } from 'bootstrap';
-import { useLookupStore } from "@/stores/lookupStore";
-import employeeService from "@/services/employee.service";
 import employeeChildrenService from "@/services/employee-children.service";
+import employeeBeneficiaryService from "@/services/employeeBeneficiary.service";
 
 
 export default {
@@ -1479,6 +1552,18 @@ export default {
       },
       editingChild: null,
       isEditingChild: false,
+
+      // Beneficiary form data
+      beneficiaryForm: {
+        id: null,
+        employee_id: '',
+        beneficiary_name: '',
+        beneficiary_relationship: '',
+        phone_number: '',
+      },
+      editingBeneficiary: null,
+      isEditingBeneficiary: false,
+      isSubmitting: false,
     };
   },
   created() {
@@ -1732,38 +1817,32 @@ export default {
     },
 
     // Delete Child
-    async deleteChild(childId) {
-      try {
-        // Show confirmation dialog
-        const confirmed = await this.$confirm({
-          title: 'Confirm Delete',
-          content: 'Are you sure you want to delete this child record? This action cannot be undone.',
-          okText: 'Yes, Delete',
-          okType: 'danger',
-          cancelText: 'Cancel',
-          centered: true,
-        });
+    deleteChild(childId) {
+      this.$confirm({
+        title: 'Confirm Delete',
+        content: 'Are you sure you want to delete this child record? This action cannot be undone.',
+        okText: 'Yes, Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        centered: true,
+        onOk: async () => {
+          try {
+            const response = await employeeChildrenService.deleteEmployeeChild(childId);
 
-        if (confirmed) {
-          const response = await employeeChildrenService.deleteEmployeeChild(childId);
+            if (response && response.success) {
+              this.$message.success(response.message || 'Child deleted successfully');
 
-          if (response && response.success) {
-            this.$message.success(response.message || 'Child deleted successfully');
-
-            // Emit event to parent to reload employee details
-            this.$emit('employee-updated');
-          } else {
-            this.$message.error(response?.message || 'Failed to delete child');
+              // Reload employee details to get updated children
+              await this.fetchEmployeeDetails();
+            } else {
+              this.$message.error(response?.message || 'Failed to delete child');
+            }
+          } catch (error) {
+            console.error('Error deleting child:', error);
+            this.$message.error('Error deleting child: ' + (error.message || 'Unknown error'));
           }
         }
-      } catch (error) {
-        if (error === 'cancel') {
-          // User cancelled, do nothing
-          return;
-        }
-        console.error('Error deleting child:', error);
-        this.$message.error('Error deleting child: ' + (error.message || 'Unknown error'));
-      }
+      });
     },
 
     // Reset Child Form
@@ -1788,6 +1867,163 @@ export default {
     },
 
     // ===== END CHILD CRUD METHODS =====
+
+    // ===== BENEFICIARY CRUD METHODS =====
+
+    // Create or Update Beneficiary
+    async submitBeneficiaryForm() {
+      try {
+        this.isSubmitting = true;
+
+        // Validate using service validation
+        const validation = employeeBeneficiaryService.validateBeneficiaryData({
+          employee_id: this.employee.id,
+          beneficiary_name: this.beneficiaryForm.beneficiary_name,
+          beneficiary_relationship: this.beneficiaryForm.beneficiary_relationship,
+          phone_number: this.beneficiaryForm.phone_number,
+        });
+
+        if (!validation.isValid) {
+          this.$message.error(validation.errors[0]);
+          return;
+        }
+
+        // Prepare payload
+        const payload = {
+          employee_id: this.employee.id,
+          beneficiary_name: this.beneficiaryForm.beneficiary_name,
+          beneficiary_relationship: this.beneficiaryForm.beneficiary_relationship,
+          phone_number: this.beneficiaryForm.phone_number,
+          created_by: this.$store?.state?.auth?.user?.username || 'system',
+          updated_by: this.$store?.state?.auth?.user?.username || 'system'
+        };
+
+        let response;
+        if (this.isEditingBeneficiary && this.beneficiaryForm.id) {
+          // Update existing beneficiary
+          response = await employeeBeneficiaryService.updateBeneficiary(this.beneficiaryForm.id, payload);
+        } else {
+          // Create new beneficiary
+          response = await employeeBeneficiaryService.createBeneficiary(payload);
+        }
+
+        if (response && response.status === 'success') {
+          this.$message.success(response.message || `Beneficiary ${this.isEditingBeneficiary ? 'updated' : 'added'} successfully`);
+
+          // Reload employee details to get updated beneficiaries
+          await this.fetchEmployeeDetails();
+
+          // Reset form and close modal
+          this.resetBeneficiaryForm();
+          this.closeBeneficiaryModal();
+        } else {
+          this.$message.error(response?.message || `Failed to ${this.isEditingBeneficiary ? 'update' : 'add'} beneficiary`);
+        }
+      } catch (error) {
+        console.error('Error submitting beneficiary form:', error);
+
+        // Handle validation errors from backend
+        if (error.response && error.response.status === 422 && error.response.data.errors) {
+          const errorMessages = Object.values(error.response.data.errors).flat();
+          this.$message.error(errorMessages[0] || 'Validation error occurred');
+        } else if (error.response && error.response.data && error.response.data.message) {
+          this.$message.error(error.response.data.message);
+        } else {
+          this.$message.error(`Error ${this.isEditingBeneficiary ? 'updating' : 'adding'} beneficiary: ` + (error.message || 'Unknown error'));
+        }
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    // Open Add Beneficiary Modal
+    openAddBeneficiaryModal() {
+      this.resetBeneficiaryForm();
+      this.isEditingBeneficiary = false;
+      const modalEl = document.getElementById('add_beneficiary');
+      const modal = Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    },
+
+    // Open Edit Beneficiary Modal
+    openEditBeneficiaryModal(beneficiary) {
+      this.isEditingBeneficiary = true;
+      this.editingBeneficiary = beneficiary;
+
+      // Populate form with beneficiary data
+      this.beneficiaryForm = {
+        id: beneficiary.id,
+        employee_id: beneficiary.employee_id,
+        beneficiary_name: beneficiary.beneficiary_name || '',
+        beneficiary_relationship: beneficiary.beneficiary_relationship || '',
+        phone_number: beneficiary.phone_number || '',
+      };
+
+      const modalEl = document.getElementById('add_beneficiary');
+      const modal = Modal.getOrCreateInstance(modalEl);
+      modal.show();
+    },
+
+    // Delete Beneficiary
+    deleteBeneficiary(beneficiaryId, beneficiaryName = '') {
+      this.$confirm({
+        title: 'Confirm Delete',
+        content: `Are you sure you want to delete beneficiary "${beneficiaryName}"? This action cannot be undone.`,
+        okText: 'Yes, Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        centered: true,
+        onOk: async () => {
+          try {
+            const response = await employeeBeneficiaryService.deleteBeneficiary(beneficiaryId);
+
+            if (response && response.status === 'success') {
+              this.$message.success(response.message || 'Beneficiary deleted successfully');
+
+              // Reload employee details to get updated beneficiaries
+              await this.fetchEmployeeDetails();
+            } else {
+              this.$message.error(response?.message || 'Failed to delete beneficiary');
+            }
+          } catch (error) {
+            console.error('Error deleting beneficiary:', error);
+
+            // Handle specific error responses
+            if (error.response && error.response.status === 404) {
+              this.$message.error('Beneficiary not found or already deleted');
+            } else if (error.response && error.response.data && error.response.data.message) {
+              this.$message.error(error.response.data.message);
+            } else {
+              this.$message.error('Error deleting beneficiary: ' + (error.message || 'Unknown error'));
+            }
+          }
+        }
+      });
+    },
+
+    // Reset Beneficiary Form
+    resetBeneficiaryForm() {
+      this.beneficiaryForm = {
+        id: null,
+        employee_id: '',
+        beneficiary_name: '',
+        beneficiary_relationship: '',
+        phone_number: '',
+      };
+      this.editingBeneficiary = null;
+      this.isEditingBeneficiary = false;
+    },
+
+    // Close Beneficiary Modal
+    closeBeneficiaryModal() {
+      const modalEl = document.getElementById('add_beneficiary');
+      const modal = Modal.getInstance(modalEl);
+      if (modal) {
+        modal.hide();
+      }
+    },
+
+    // ===== END BENEFICIARY CRUD METHODS =====
   },
 };
 </script>

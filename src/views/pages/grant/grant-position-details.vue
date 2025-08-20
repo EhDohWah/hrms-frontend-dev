@@ -51,39 +51,28 @@
                                             <div class="display-3 fw-bold text-primary mb-0">
                                                 {{ positionDetails.manPower }}
                                             </div>
-                                            <small class="text-muted">Total Allocated: {{ positionDetails.recruited
+                                            <small class="text-muted">Total Allocated: {{ positionDetails.recruited || 0
+                                                }}</small>
+                                            <br>
+                                            <small class="text-success">Active Allocations: {{ totalActiveAllocations
                                                 }}</small>
                                         </div>
                                     </div>
-                                    <div class="col-md-8">
-                                        <div class="h-70 p-4 bg-white rounded-4 shadow-sm">
-                                            <div class="row gy-2">
-                                                <div class="col-md-6">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="bi bi-tag text-primary me-2"></i>
-                                                        <span class="text-muted small fw-semibold">GRANT CODE :</span>
-                                                        <span class="ms-auto fw-semibold">{{ positionDetails.code
-                                                            }}</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="bi bi-wallet2 text-info me-2"></i>
-                                                        <span class="text-muted small fw-semibold">BUDGET LINE :</span>
-                                                        <span class="ms-auto">{{ positionDetails.budgetLine }}</span>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="bi bi-journal-text text-success me-2"></i>
-                                                        <span class="text-muted small fw-semibold">GRANT NAME :</span>
-                                                        <span class="ms-auto">{{ positionDetails.grantName }}</span>
-                                                    </div>
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="bi bi-person-badge text-warning me-2"></i>
-                                                        <span class="text-muted small fw-semibold">POSITION NAME
-                                                            :</span>
-                                                        <span class="ms-auto">{{ positionDetails.positionName }}</span>
-                                                    </div>
-                                                </div>
+
+                                    <div class="col-md-4">
+                                        <div class="h-100 p-4 bg-white rounded-4 shadow-sm">
+                                            <h6 class="text-primary mb-3 fw-bold">
+                                                <i class="bi bi-journal-text me-2"></i>Grant Information
+                                            </h6>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-tag text-primary me-2"></i>
+                                                <span class="text-muted small fw-semibold">GRANT CODE :</span>
+                                                <span class="ms-auto fw-semibold">{{ positionDetails.code }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-journal-text text-success me-2"></i>
+                                                <span class="text-muted small fw-semibold">GRANT NAME :</span>
+                                                <span class="ms-auto">{{ positionDetails.grantName }}</span>
                                             </div>
                                             <div class="d-flex align-items-center mt-3">
                                                 <span class="text-muted fw-medium me-2">STATUS:</span>
@@ -93,6 +82,39 @@
                                                         {{ positionDetails.status }}
                                                     </span>
                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="h-100 p-4 bg-white rounded-4 shadow-sm">
+                                            <h6 class="text-info mb-3 fw-bold">
+                                                <i class="bi bi-person-badge me-2"></i>Grant Position Details
+                                            </h6>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-person-badge text-warning me-2"></i>
+                                                <span class="text-muted small fw-semibold">POSITION NAME :</span>
+                                                <span class="ms-auto">{{ positionDetails.positionName }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-cash-coin text-success me-2"></i>
+                                                <span class="text-muted small fw-semibold">SALARY :</span>
+                                                <span class="ms-auto">฿{{ positionDetails.salary }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-gift text-info me-2"></i>
+                                                <span class="text-muted small fw-semibold">BENEFIT :</span>
+                                                <span class="ms-auto">฿{{ positionDetails.benefit }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-percent text-primary me-2"></i>
+                                                <span class="text-muted small fw-semibold">EFFORT :</span>
+                                                <span class="ms-auto">{{ positionDetails.effort }}%</span>
+                                            </div>
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-hash text-secondary me-2"></i>
+                                                <span class="text-muted small fw-semibold">POSITION NUMBER :</span>
+                                                <span class="ms-auto">{{ positionDetails.positionNumber }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -125,7 +147,7 @@
                             </div>
                             <div v-else>
                                 <a-table :columns="columns" :data-source="employeeAllocations" :pagination="pagination"
-                                    :scroll="{ x: 'max-content' }" row-key="id" @change="handleTableChange">
+                                    :scroll="{ x: 2000, y: 600 }" row-key="id" @change="handleTableChange">
                                     <template #bodyCell="{ column, record }">
                                         <template v-if="column.dataIndex === 'active'">
                                             <span class="badge" :class="record.active ? 'bg-success' : 'bg-danger'">
@@ -134,6 +156,9 @@
                                         </template>
                                         <template v-if="column.dataIndex === 'levelOfEffort'">
                                             {{ record.levelOfEffort }}%
+                                        </template>
+                                        <template v-if="column.dataIndex === 'allocatedAmount'">
+                                            ฿{{ record.allocatedAmount }}
                                         </template>
                                         <template v-if="column.dataIndex === 'grantInfo'">
                                             <div class="grant-info">
@@ -182,7 +207,7 @@ import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useGrantStore } from '@/stores/grantStore';
 import { ref, computed } from 'vue';
 import moment from 'moment';
-import { employeeGrantAllocationService } from '@/services/employee-grant-allocation.service';
+import { employeeFundingAllocationService } from '@/services/employee-funding-allocation.service';
 import { grantService } from '@/services/grant.service';
 
 
@@ -227,7 +252,9 @@ export default {
             text1: 'Grant Position Details',
             positionDetails: null,
             employeeAllocations: [],
-            loading: false
+            loading: false,
+            totalActiveAllocations: 0,
+            totalAllocations: 0
         };
     },
     computed: {
@@ -268,8 +295,15 @@ export default {
                     title: 'Level of Effort',
                     dataIndex: 'levelOfEffort',
                     key: 'levelOfEffort',
-                    sorter: (a, b) => a.rawLevelOfEffort - b.rawLevelOfEffort,
+                    sorter: (a, b) => parseFloat(a.rawLevelOfEffort || 0) - parseFloat(b.rawLevelOfEffort || 0),
                     sortOrder: sorted.columnKey === 'levelOfEffort' && sorted.order,
+                },
+                {
+                    title: 'Allocated Amount (THB)',
+                    dataIndex: 'allocatedAmount',
+                    key: 'allocatedAmount',
+                    sorter: (a, b) => parseFloat(a.allocatedAmount || 0) - parseFloat(b.allocatedAmount || 0),
+                    sortOrder: sorted.columnKey === 'allocatedAmount' && sorted.order,
                 },
                 {
                     title: 'Start Date',
@@ -366,6 +400,11 @@ export default {
                         grantName: response.data.grant && response.data.grant.name ? response.data.grant.name : 'N/A',
                         budgetLine: response.data.bg_line || 'N/A',
                         manPower: response.data.grant_position_number || 'N/A',
+                        // New grant position fields
+                        salary: response.data.grant_salary ? parseFloat(response.data.grant_salary).toFixed(2) : '0.00',
+                        benefit: response.data.grant_benefit ? parseFloat(response.data.grant_benefit).toFixed(2) : '0.00',
+                        effort: response.data.grant_level_of_effort ? Math.round(parseFloat(response.data.grant_level_of_effort) * 100) : 0,
+                        positionNumber: response.data.grant_position_number || 'N/A',
                         recruited: 0, // Will be updated when allocations are fetched
                         finding: response.data.grant && response.data.grant.description ? response.data.grant.description : 'N/A',
                         status: (
@@ -388,19 +427,14 @@ export default {
             try {
                 this.loading = true;
 
-                // Fetch all allocations and filter by grant item
-                const response = await employeeGrantAllocationService.getAllEmployeeGrantAllocations();
+                // Fetch allocations using the employee funding allocation service
+                const response = await employeeFundingAllocationService.getByGrantItem(this.$route.params.id);
+
+                console.log('Employee allocations response:', response);
 
                 if (response.success && response.data) {
-                    const grantItemId = this.$route.params.id;
-
-                    // Filter allocations for this specific grant item
-                    const filteredAllocations = response.data.filter(allocation =>
-                        allocation.position_slot &&
-                        allocation.position_slot.grant_item_id == grantItemId
-                    );
-
-                    this.employeeAllocations = filteredAllocations.map(alloc => ({
+                    // Map the allocations data according to the new API response structure
+                    this.employeeAllocations = response.data.map(alloc => ({
                         id: alloc.id,
                         allocationId: alloc.id,
                         employeeId: alloc.employee_id,
@@ -418,19 +452,30 @@ export default {
                         endDate: alloc.end_date ? moment(alloc.end_date).format('DD MMM YYYY') : 'N/A',
                         rawStartDate: alloc.start_date,
                         rawEndDate: alloc.end_date,
-                        active: alloc.active
+                        allocationType: alloc.allocation_type || 'N/A',
+                        allocatedAmount: alloc.allocated_amount ? parseFloat(alloc.allocated_amount).toFixed(2) : '0.00',
+                        active: true // Assume active since it's returned in the response
                     }));
 
-                    // Update position details with recruited count
+                    // Update position details with recruited count using response metadata
                     if (this.positionDetails) {
-                        this.positionDetails.recruited = this.employeeAllocations.filter(alloc => alloc.active).length;
+                        this.positionDetails.recruited = response.total_allocations || this.employeeAllocations.length;
                     }
 
-                    this.total = this.employeeAllocations.length;
+                    this.total = response.total_allocations || this.employeeAllocations.length;
+                    this.totalActiveAllocations = response.active_allocations || this.employeeAllocations.filter(alloc => alloc.active).length;
+                    this.totalAllocations = response.total_allocations || this.employeeAllocations.length;
 
                 } else {
                     this.employeeAllocations = [];
                     this.total = 0;
+                    this.totalActiveAllocations = 0;
+                    this.totalAllocations = 0;
+
+                    // Update position details with zero count
+                    if (this.positionDetails) {
+                        this.positionDetails.recruited = 0;
+                    }
                 }
 
             } catch (error) {
@@ -438,6 +483,13 @@ export default {
                 message.error('Failed to load employee allocations');
                 this.employeeAllocations = [];
                 this.total = 0;
+                this.totalActiveAllocations = 0;
+                this.totalAllocations = 0;
+
+                // Update position details with zero count on error
+                if (this.positionDetails) {
+                    this.positionDetails.recruited = 0;
+                }
             } finally {
                 this.loading = false;
             }
@@ -471,16 +523,18 @@ export default {
                             this.loading = true;
                             try {
                                 // Call the API to delete the allocation
-                                const response = await employeeGrantAllocationService.deleteEmployeeGrantAllocation(id);
+                                const response = await employeeFundingAllocationService.delete(id);
                                 console.log(response);
                                 if (response.success) {
                                     // Remove the deleted allocation from the local array
                                     this.employeeAllocations = this.employeeAllocations.filter(allocation => allocation.allocationId !== id);
                                     this.total = this.employeeAllocations.length;
+                                    this.totalAllocations = this.employeeAllocations.length;
+                                    this.totalActiveAllocations = this.employeeAllocations.filter(alloc => alloc.active).length;
 
                                     // Update recruited count
                                     if (this.positionDetails) {
-                                        this.positionDetails.recruited = this.employeeAllocations.filter(alloc => alloc.active).length;
+                                        this.positionDetails.recruited = this.totalAllocations;
                                     }
 
                                     message.success(response.message || 'Employee allocation deleted successfully');
@@ -563,5 +617,31 @@ export default {
     justify-content: center;
     font-size: 14px;
     min-width: 80px;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 8px !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb {
+    background: #888 !important;
+    border-radius: 8px !important;
+    border: 2px solid #f1f1f1 !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
+    background: #555 !important;
+}
+
+/* Ensure table container allows scrollbar display */
+:deep(.ant-table-container) {
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
 }
 </style>

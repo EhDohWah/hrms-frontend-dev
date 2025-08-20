@@ -8,30 +8,22 @@
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <!-- Add Employee Button -->
           <div class="mb-2 me-2">
-            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_employee"
-              class="btn btn-primary d-flex align-items-center">
+            <button class="btn btn-primary d-flex align-items-center" @click="openAddEmployeeModal">
               <i class="ti ti-circle-plus me-2"></i>Add New Employee
-            </a>
+            </button>
           </div>
-
-          <!-- Upload Employee Excel File Button -->
           <div class="mb-2 me-2">
-            <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal"
-              data-bs-target="#employeeUploadModal">
+            <button class="btn btn-primary d-flex align-items-center" @click="openEmployeeUploadModal">
               <i class="ti ti-upload me-2"></i>Upload Employee Excel File
-            </a>
+            </button>
           </div>
-
-          <!-- Delete Selected Employees Button -->
           <div class="mb-2 me-2">
-            <a href="javascript:void(0);" class="btn btn-danger d-flex align-items-center"
-              @click="confirmDeleteSelectedEmployees" :class="{ 'disabled': selectedRowKeys.length === 0 }">
+            <button class="btn btn-danger d-flex align-items-center" @click="confirmDeleteSelectedEmployees"
+              :class="{ 'disabled': selectedRowKeys.length === 0 }">
               <i class="ti ti-trash me-2"></i>Delete Selected
-            </a>
+            </button>
           </div>
-
           <div class="head-icons ms-2">
             <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
               data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
@@ -43,10 +35,10 @@
       <!-- /Breadcrumb -->
 
       <!-- Employee Statistics -->
-      <div class="row">
+      <div class="row statistics-row">
         <!-- SMRU Employees -->
         <div class="col-lg-3 col-md-6 d-flex">
-          <div class="card flex-fill">
+          <div class="card flex-fill statistics-card">
             <div class="card-body d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center overflow-hidden">
                 <div>
@@ -54,14 +46,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">SMRU Employees</p>
-                  <h4>{{ employeeStore.statistics.subsidiaryCount.SMRU_count }}</h4>
+                  <h4>{{ statistics.subsidiaryCount.SMRU_count }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-purple badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((employeeStore.statistics.activeCount / employeeStore.statistics.totalEmployees) * 100).toFixed(1)
-                  }}% Active
+                  {{ ((statistics.activeCount / statistics.totalEmployees) * 100).toFixed(1) }}% Active
                 </span>
               </div>
             </div>
@@ -71,7 +62,7 @@
 
         <!-- BHF Employees -->
         <div class="col-lg-3 col-md-6 d-flex">
-          <div class="card flex-fill">
+          <div class="card flex-fill statistics-card">
             <div class="card-body d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center overflow-hidden">
                 <div>
@@ -79,14 +70,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">BHF Employees</p>
-                  <h4>{{ employeeStore.statistics.subsidiaryCount.BHF_count }}</h4>
+                  <h4>{{ statistics.subsidiaryCount.BHF_count }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-primary badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((employeeStore.statistics.activeCount / employeeStore.statistics.totalEmployees) * 100).toFixed(1)
-                  }}% of Total
+                  {{ ((statistics.activeCount / statistics.totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -96,7 +86,7 @@
 
         <!-- New Joiners -->
         <div class="col-lg-3 col-md-6 d-flex">
-          <div class="card flex-fill">
+          <div class="card flex-fill statistics-card">
             <div class="card-body d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center overflow-hidden">
                 <div>
@@ -104,14 +94,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">New Joiners</p>
-                  <h4>{{ employeeStore.statistics.newJoinerCount }}</h4>
+                  <h4>{{ statistics.newJoinerCount }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-secondary badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((employeeStore.statistics.newJoinerCount / employeeStore.statistics.totalEmployees) *
-                    100).toFixed(1) }}% of Total
+                  {{ ((statistics.newJoinerCount / statistics.totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -121,7 +110,7 @@
 
         <!-- Resigned Employees -->
         <div class="col-lg-3 col-md-6 d-flex">
-          <div class="card flex-fill">
+          <div class="card flex-fill statistics-card">
             <div class="card-body d-flex align-items-center justify-content-between">
               <div class="d-flex align-items-center overflow-hidden">
                 <div>
@@ -129,14 +118,13 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">Resigned</p>
-                  <h4>{{ employeeStore.statistics.inactiveCount }}</h4>
+                  <h4>{{ statistics.inactiveCount }}</h4>
                 </div>
               </div>
               <div>
                 <span class="badge badge-soft-dark badge-sm fw-normal">
                   <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((employeeStore.statistics.inactiveCount / employeeStore.statistics.totalEmployees) *
-                    100).toFixed(1) }}% of Total
+                  {{ ((statistics.inactiveCount / statistics.totalEmployees) * 100).toFixed(1) }}% of Total
                 </span>
               </div>
             </div>
@@ -146,138 +134,90 @@
       </div>
       <!-- /Employee Statistics -->
 
-      <!-- Employee List Table -->
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Employee List</h5>
-          <!-- Table Operations -->
-          <div class="table-operations d-flex align-items-center">
-            <span v-if="selectedRowKeys.length > 0" class="me-3">
-              <strong>{{ selectedRowKeys.length }}</strong> {{ selectedRowKeys.length === 1 ? 'item' : 'items' }}
-              selected
-            </span>
-            <a-button @click="clearFilters">Clear filters</a-button>
-            <a-button @click="clearAll">Clear filters and sorters</a-button>
+          <div class="d-flex align-items-center flex-wrap row-gap-2">
+            <div class="me-2">
+              <a-button class="me-2" @click="clearFilters">Clear filters</a-button>
+              <a-button @click="clearAll">Clear filters and sorters</a-button>
+            </div>
+            <div class="input-icon-end">
+              <a-input-search v-model:value="searchStaffId" placeholder="Enter staff ID..." :loading="searchLoading"
+                enter-button="Search" @search="handleStaffIdSearch" style="width: 250px;"
+                class="search-input-primary" />
+            </div>
           </div>
-          <!-- /Table Operations -->
         </div>
-
-        <!-- Table -->
-        <div class="card-body p-0">
-          <div class="custom-datatable-filter table-responsive">
-            <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
-              <div class="row">
-                <div class="col-sm-12 col-md-6">
-                  <div class="dataTables_length" id="DataTables_Table_0_length">
-                    <label>
-                      Row Per Page
-                      <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0"
-                        class="form-select form-select-sm" v-model.number="perPage"
-                        @change="handlePerPageChange($event)">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                        <option :value="totalEmployees">All</option>
-                      </select>
-                      Entries
-                    </label>
-                  </div>
-                </div>
-                <div class="col-sm-12 col-md-6">
-                  <div id="DataTables_Table_0_filter" class="dataTables_filter text-end me-3">
-                    <label>
-                      STAFF ID SEARCH:
-                      <input type="search" class="form-control form-control-sm d-inline-block w-auto"
-                        placeholder="Search" aria-controls="DataTables_Table_0" v-model="searchStaffId">
-                      <button class="btn btn-sm btn-primary ms-2" @click="handleStaffIdSearch">Search</button>
-                    </label>
-                  </div>
-                </div>
-              </div>
+        <div class="card-body">
+          <div v-if="loading" class="text-center my-3">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
             </div>
-
-            <!-- Loading Indicator -->
-            <div v-if="employeeStore.loading" class="text-center py-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-2">Loading employees...</p>
-            </div>
-
-            <!-- Employee Table -->
-            <div v-else>
-              <a-table :rowKey="id" :columns="columns" :scroll="{ x: 1500 }" :data-source="employees"
-                :row-selection="rowSelection" :pagination="pagination" @change="handleChange"
-                class="table datatable thead-light">
-                <!-- Name column with highlighting -->
-                <template #bodyCell="{ column, record }">
-                  <template v-if="column.key === 'fullName'">
-                    <div class="d-flex align-items-center file-name-icon">
-                      <a href="javascript:void(0);" class="avatar avatar-md">
-                        <!-- <img :src="require(`@/assets/img/users/${record.Image}`)" class="img-fluid rounded-circle" alt="img" /> -->
-                      </a>
-                      <div class="ms-2">
-                        <h6 class="fw-medium">
-                          <router-link :to="`/employee/employee-details/${record.id}`">
-                            {{ record.first_name_en }} {{ record.last_name_en }}
-                          </router-link>
-                        </h6>
-                        <router-link :to="`/employee/employee-details/${record.id}`">
-                          <span class="d-block mt-1">{{ record.staff_id }}</span>
-                        </router-link>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- Status column -->
-                  <template v-if="column.key === 'status'">
-                    <a-badge :status="record.status === 'Local ID'
-                      ? 'success'
-                      : record.status === 'Expats'
-                        ? 'processing'
-                        : record.status === 'Local non ID'
-                          ? 'warning'
-                          : 'default'" :text="record.status" />
-                  </template>
-
-                  <!-- Subsidiary column -->
-                  <template v-if="column.key === 'subsidiary'">
-                    <span :class="[
-                      'badge badge-sm fw-normal',
-                      record.subsidiary === 'SMRU' ? 'badge-primary' :
-                        record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
-                          'badge-secondary'
-                    ]">
-                      {{ record.subsidiary }}
-                    </span>
-                  </template>
-
-                  <!-- Action column -->
-                  <template v-if="column.key === 'action'">
-                    <div class="action-icon d-inline-flex">
-                      <!-- View Employee -->
-                      <router-link :to="`/employee/employee-details/${record.id}`" class="me-2">
-                        <i class="ti ti-eye"></i>
-                      </router-link>
-                      <!-- Edit Employee -->
-                      <!-- <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal" data-bs-target="#edit_employee">
-                        <i class="ti ti-edit"></i>
-                      </a> -->
-                      <!-- Delete Employee -->
-                      <a href="javascript:void(0);" @click="confirmDeleteEmployee(record.id)">
-                        <i class="ti ti-trash"></i>
-                      </a>
-                    </div>
-                  </template>
+            <p class="mt-2">Loading employees...</p>
+          </div>
+          <div v-else class="resize-observer-fix">
+            <!-- TABLE WITHOUT PAGINATION -->
+            <a-table :columns="columns" :data-source="tableData" :pagination="false"
+              :scroll="{ x: 1000, y: 'max-content' }" row-key="id" @change="handleTableChange"
+              :row-selection="rowSelection">
+              <!-- Custom cell rendering -->
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'action'">
+                  <div class="action-icon d-inline-flex">
+                    <!-- View Employee -->
+                    <router-link :to="`/employee/employee-details/${record.id}`" class="me-2">
+                      <i class="ti ti-eye"></i>
+                    </router-link>
+                    <!-- Delete Employee -->
+                    <a href="javascript:void(0);" @click="confirmDeleteEmployee(record.id)">
+                      <i class="ti ti-trash"></i>
+                    </a>
+                  </div>
                 </template>
-              </a-table>
+
+                <!-- Subsidiary column -->
+                <template v-if="column.key === 'subsidiary'">
+                  <span :class="[
+                    'badge badge-sm fw-normal',
+                    record.subsidiary === 'SMRU' ? 'badge-primary' :
+                      record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                        'badge-secondary'
+                  ]">
+                    {{ record.subsidiary }}
+                  </span>
+                </template>
+
+                <!-- Status column -->
+                <template v-if="column.key === 'status'">
+                  <a-badge :status="record.status === 'Local ID'
+                    ? 'success'
+                    : record.status === 'Expats'
+                      ? 'processing'
+                      : record.status === 'Local non ID'
+                        ? 'warning'
+                        : 'default'" :text="record.status" />
+                </template>
+              </template>
+            </a-table>
+
+            <!-- SEPARATE PAGINATION COMPONENT -->
+            <div class="pagination-wrapper">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                  <!-- Optional: Additional info can go here -->
+                </div>
+                <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
+                  :show-size-changer="true" :show-quick-jumper="true" :page-size-options="['10', '20', '50', '100']"
+                  :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                  @change="handlePaginationChange" @show-size-change="handleSizeChange" />
+              </div>
             </div>
           </div>
         </div>
-        <!-- /Table -->
       </div>
     </div>
+    <layout-footer></layout-footer>
   </div>
 
   <!-- Add Employee Modal -->
@@ -287,92 +227,59 @@
   <employee-upload-modal @refresh-employee-list="fetchEmployees"></employee-upload-modal>
 </template>
 
-
 <script>
-import "daterangepicker/daterangepicker.css";
-import "daterangepicker/daterangepicker.js";
-import moment from "moment";
-import DateRangePicker from "daterangepicker";
-import { useEmployeeStore } from '@/stores/employeeStore';
-import { mapStores } from 'pinia';
-import { Modal, Table } from 'ant-design-vue';
+import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
+import EmployeeListModal from '@/components/modal/employee-list-modal.vue';
+import EmployeeUploadModal from '@/components/modal/employee-upload-modal.vue';
+import LayoutHeader from '@/views/layouts/layout-header.vue';
+import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
+import LayoutFooter from '@/views/layouts/layout-footer.vue';
 import { employeeService } from '@/services/employee.service';
-import eventBus from '@/plugins/eventBus';
+import moment from 'moment';
+import { Modal, Table } from 'ant-design-vue';
+import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 export default {
   name: 'EmployeesList',
+  components: {
+    indexBreadcrumb,
+    EmployeeListModal,
+    EmployeeUploadModal,
+    LayoutHeader,
+    LayoutSidebar,
+    LayoutFooter,
+  },
   data() {
     return {
       title: 'Employees',
       text: 'Employees',
       text1: 'Employees List',
-      employees: [],
-      selectedSite: null,
-      selectedDepartment: null,
-      selectedPosition: null,
-      siteId: null,
-      departmentId: null,
-      positionId: null,
-      dateRangeInput: null,
-      employeeToDelete: null,
-      selectedRowKeys: [],
+      searchStaffId: '',
 
-      // Pagination
-      page: 1,
-      perPage: 10,
-      currentPage: 1,
-      pageSize: 10,
-
-      searchTerm: '',
-
-      // Column visibility control
-      visibleColumns: ['subsidiary', 'staff_id', 'initials', 'first_name_en', 'last_name_en', 'gender', 'date_of_birth', 'age', 'status', 'id_type', 'id_number', 'social_security_number', 'tax_number', 'mobile_phone', 'action'],
-
-      // Filter and sort info
+      // Data properties (no store dependencies)
       filteredInfo: {},
       sortedInfo: {},
+      employees: [],
+      loading: false,
+      searchLoading: false,
+      selectedRowKeys: [],
+
+      // Statistics (local instead of store)
+      statistics: {
+        totalEmployees: 0,
+        activeCount: 0,
+        inactiveCount: 0,
+        newJoinerCount: 0,
+        subsidiaryCount: { SMRU_count: 0, BHF_count: 0 },
+      },
+
+      // SEPARATE PAGINATION PROPERTIES
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
     };
   },
-  mounted() {
-    this.fetchEmployees();
-    this.$nextTick(() => {
-      this.dateRangeInput = document.getElementById('booking-date');
-      this.initializeDateRangePicker();
-    });
-
-    eventBus.on('notification-clicked', (notif) => {
-      console.log('Notification clicked:', notif);
-      this.fetchEmployees();
-    });
-  },
-
-  beforeUnmount() {
-    eventBus.off('notification-clicked');
-  },
-
   computed: {
-    ...mapStores(useEmployeeStore),
-
-    totalEmployees() {
-      return this.employeeStore.statistics.totalEmployees;
-    },
-
-    // Get staff IDs based on selected subsidiary
-    filteredStaffIds() {
-      if (!this.filteredInfo || !this.filteredInfo.subsidiary || this.filteredInfo.subsidiary.length === 0) {
-        return this.getUniqueValues('staff_id');
-      }
-
-      const selectedSubsidiaries = this.filteredInfo.subsidiary;
-      const filteredEmployees = this.employees.filter(emp =>
-        selectedSubsidiaries.includes(emp.subsidiary)
-      );
-
-      const uniqueStaffIds = [...new Set(filteredEmployees.map(item => item.staff_id))].filter(Boolean);
-      return uniqueStaffIds.map(value => ({ text: value, value }));
-    },
-
-    // Define columns with filters and sorters
     columns() {
       const filtered = this.filteredInfo || {};
       const sorted = this.sortedInfo || {};
@@ -384,121 +291,89 @@ export default {
           key: 'subsidiary',
           width: 150,
           fixed: 'left',
-          filters: this.getUniqueValues('subsidiary'),
+          filters: [
+            {
+              text: 'SMRU',
+              value: 'SMRU',
+            },
+            {
+              text: 'BHF',
+              value: 'BHF',
+            },
+          ],
           filteredValue: filtered.subsidiary || null,
-          onFilter: (value, record) => record.subsidiary === value,
-          sorter: (a, b) => {
-            a = (a.subsidiary || '').toLowerCase();
-            b = (b.subsidiary || '').toLowerCase();
-            return a.localeCompare(b);
-          },
+          sorter: true, // Enable server-side sorting
           sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
+          filterSearch: true
         },
         {
           title: 'Staff ID',
           dataIndex: 'staff_id',
           key: 'staff_id',
           width: 120,
-          filters: this.filteredStaffIds,
-          filteredValue: filtered.staff_id || null,
-          onFilter: (value, record) => record.staff_id === value,
-          sorter: (a, b) => {
-            a = a.staff_id.toLowerCase();
-            b = b.staff_id.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'staff_id' && sorted.order,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'staff_id' && sorted.order
         },
-
         {
           title: 'Initials',
           dataIndex: 'initials',
           key: 'initials',
           width: 150,
-          filters: this.getUniqueValues('initials'),
-          filteredValue: filtered.initials || null,
-          onFilter: (value, record) => record.initials === value,
-          sorter: (a, b) => {
-            a = a.initials.toLowerCase();
-            b = b.initials.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'initials' && sorted.order,
+          // No filtering - backend doesn't support filter_initials
+          sorter: false, // Backend doesn't support sorting by initials
         },
         {
           title: 'First Name',
           dataIndex: 'first_name_en',
           key: 'first_name_en',
           width: 150,
-          filters: this.getUniqueValues('first_name_en'),
-          filteredValue: filtered.first_name_en || null,
-          onFilter: (value, record) => record.first_name_en === value,
-          sorter: (a, b) => {
-            a = a.first_name_en.toLowerCase();
-            b = b.first_name_en.toLowerCase();
-            return a.localeCompare(b);
-          },
+          // No filtering - backend doesn't support filter_first_name_en
+          sorter: true, // Backend supports sorting by first_name_en
           sortOrder: sorted.columnKey === 'first_name_en' && sorted.order,
         },
-
         {
           title: 'Last Name',
           dataIndex: 'last_name_en',
           key: 'last_name_en',
           width: 150,
-          filters: this.getUniqueValues('last_name_en'),
-          filteredValue: filtered.last_name_en || null,
-          onFilter: (value, record) => record.last_name_en === value,
-          sorter: (a, b) => {
-            a = a.last_name_en.toLowerCase();
-            b = b.last_name_en.toLowerCase();
-            return a.localeCompare(b);
-          },
+          // No filtering - backend doesn't support filter_last_name_en
+          sorter: true, // Backend supports sorting by last_name_en
           sortOrder: sorted.columnKey === 'last_name_en' && sorted.order,
         },
-
         {
           title: 'Gender',
           dataIndex: 'gender',
           key: 'gender',
           width: 120,
-          filters: this.getUniqueValues('gender'),
+          filters: [
+            {
+              text: 'Male',
+              value: 'Male',
+            },
+            {
+              text: 'Female',
+              value: 'Female',
+            },
+          ],
           filteredValue: filtered.gender || null,
-          onFilter: (value, record) => record.gender === value,
-          sorter: (a, b) => {
-            a = a.gender.toLowerCase();
-            b = b.gender.toLowerCase();
-            return a.localeCompare(b);
-          },
+          sorter: true,
           sortOrder: sorted.columnKey === 'gender' && sorted.order,
         },
-
         {
           title: 'Date of Birth',
           dataIndex: 'date_of_birth',
           key: 'date_of_birth',
           width: 120,
-          sorter: (a, b) => {
-            a = a.date_of_birth.toLowerCase();
-            b = b.date_of_birth.toLowerCase();
-            return a.localeCompare(b);
-          },
+          sorter: true,
           sortOrder: sorted.columnKey === 'date_of_birth' && sorted.order,
         },
-
         {
           title: 'Age',
           dataIndex: 'age',
           key: 'age',
           width: 100,
-          filters: this.getUniqueValues('age'),
-          filteredValue: filtered.age || null,
-          onFilter: (value, record) => record.age === value,
-          sorter: (a, b) => {
-            a = a.age.toLowerCase();
-            b = b.age.toLowerCase();
-            return a.localeCompare(b);
-          },
+          // No client-side filtering - backend expects single integer filter_age
+          sorter: true, // Backend supports sorting by age
           sortOrder: sorted.columnKey === 'age' && sorted.order,
         },
         {
@@ -506,30 +381,37 @@ export default {
           dataIndex: 'status',
           key: 'status',
           width: 150,
-          filters: this.getUniqueValues('status'),
+          filters: [
+            {
+              text: 'Expats',
+              value: 'Expats',
+            },
+            {
+              text: 'Local ID',
+              value: 'Local ID',
+            },
+            {
+              text: 'Local non ID',
+              value: 'Local non ID',
+            },
+          ],
           filteredValue: filtered.status || null,
-          onFilter: (value, record) => record.status === value,
-          sorter: (a, b) => {
-            a = a.status.toLowerCase();
-            b = b.status.toLowerCase();
-            return a.localeCompare(b);
-          },
+          sorter: true,
           sortOrder: sorted.columnKey === 'status' && sorted.order,
         },
-
         {
           title: 'ID Type',
           dataIndex: 'id_type',
           key: 'id_type',
           width: 200,
-          filters: this.getUniqueValues('id_type'),
+          filters: [
+            { text: 'Passport', value: 'Passport' },
+            { text: 'ThaiID', value: 'ThaiID' },
+            { text: 'National ID Card', value: 'National ID Card' },
+            { text: 'Work Permit', value: 'Work Permit' },
+          ],
           filteredValue: filtered.id_type || null,
-          onFilter: (value, record) => record.id_type === value,
-          sorter: (a, b) => {
-            a = a.id_type.toLowerCase();
-            b = b.id_type.toLowerCase();
-            return a.localeCompare(b);
-          },
+          sorter: true, // Backend supports sorting by id_type
           sortOrder: sorted.columnKey === 'id_type' && sorted.order,
         },
         {
@@ -537,93 +419,68 @@ export default {
           dataIndex: 'id_number',
           key: 'id_number',
           width: 150,
-          filters: this.getUniqueValues('id_number'),
-          filteredValue: filtered.id_number || null,
-          onFilter: (value, record) => record.id_number === value,
-          sorter: (a, b) => {
-            a = a.id_number.toLowerCase();
-            b = b.id_number.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'id_number' && sorted.order,
+          // No filtering or sorting - backend doesn't support these
+          sorter: false,
         },
-
         {
           title: 'Social Security Number',
           dataIndex: 'social_security_number',
           key: 'social_security_number',
           width: 180,
-          filters: this.getUniqueValues('social_security_number'),
-          filteredValue: filtered.social_security_number || null,
-          onFilter: (value, record) => record.social_security_number === value,
-          sorter: (a, b) => {
-            a = a.social_security_number.toLowerCase();
-            b = b.social_security_number.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'social_security_number' && sorted.order,
+          // No filtering or sorting - backend doesn't support these
+          sorter: false,
         },
-
         {
           title: 'Tax Number',
           dataIndex: 'tax_number',
           key: 'tax_number',
           width: 200,
-          filters: this.getUniqueValues('tax_number'),
-          filteredValue: filtered.tax_number || null,
-          onFilter: (value, record) => record.tax_number === value,
-          sorter: (a, b) => {
-            a = a.tax_number.toLowerCase();
-            b = b.tax_number.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'tax_number' && sorted.order,
+          // No filtering or sorting - backend doesn't support these
+          sorter: false,
         },
-
         {
           title: 'Phone',
           dataIndex: 'mobile_phone',
           key: 'mobile_phone',
           width: 120,
-          sorter: (a, b) => {
-            a = a.mobile_phone.toLowerCase();
-            b = b.mobile_phone.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'mobile_phone' && sorted.order,
+          // No filtering or sorting - backend doesn't support these
+          sorter: false,
         },
-        {
-          title: 'Active',
-          dataIndex: 'active',
-          key: 'active',
-          width: 100,
-          filters: [
-            { text: 'Active', value: true },
-            { text: 'Inactive', value: false },
-          ],
-          filteredValue: filtered.active || null,
-          onFilter: (value, record) => record.active === value,
-          sorter: (a, b) => a.active - b.active,
-          sortOrder: sorted.columnKey === 'active' && sorted.order,
-        },
+        // {
+        //   title: 'Active',
+        //   dataIndex: 'active',
+        //   key: 'active',
+        //   width: 100,
+        //   filters: [
+        //     { text: 'Active', value: true },
+        //     { text: 'Inactive', value: false },
+        //   ],
+        //   filteredValue: filtered.active || null,
+        //   // No sorting - backend doesn't support sorting by active
+        //   sorter: false,
+        // },
         {
           title: 'Actions',
           key: 'action',
           fixed: 'right',
-          width: 150,
+          width: 100,
           sorter: false,
         },
-      ].filter(col => this.visibleColumns.includes(col.key));
+      ];
     },
-
+    tableData() {
+      // With server-side pagination, just return the employees as-is
+      return this.employees.map(employee => ({
+        ...employee,
+        key: employee.id,
+      }));
+    },
     rowSelection() {
       return {
         // fix the column to the left
         fixed: 'left',
-
-        // give it a custom width
-        columnWidth: 100,
-
+        // give it a more appropriate width for checkboxes
+        columnWidth: 60,
         // your existing config
         selectedRowKeys: this.selectedRowKeys,
         onChange: this.onSelectChange,
@@ -655,183 +512,257 @@ export default {
       }
     },
   },
+  mounted() {
+    this.fetchEmployees();
+  },
   methods: {
-    async handleStaffIdSearch() {
-      if (!this.searchStaffId) {
-        await this.fetchEmployees()
-        return
-      }
+    // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING
+    handlePaginationChange(page, pageSize) {
+      console.log('Pagination change:', page, pageSize);
+      this.currentPage = page;
+      this.pageSize = pageSize || this.pageSize;
 
-      try {
-        await this.employeeStore.fetchSingleEmployee(this.searchStaffId)
-        // At this point `this.employeeStore.employees` has either [ employee ] or []
-        // console.log('🔍 this.employeeStore.employees:', this.employeeStore.employees);
-        console.log('🔍 this.employees:', this.employeeStore.employees);
-        this.employees = this.mapEmployeeData(this.employeeStore.employees)
-        // this.totalEmployees = this.employeeStore.pagination.total
-
-
-        if (this.employees.length === 0) {
-          this.$message.info('No employee found with that Staff ID')
-        }
-      } catch {
-        this.$message.error('Error searching for employee')
-        this.employees = []
-
-      }
-    },
-    handleChange(pagination, filters, sorter) {
-      // Update pagination state
-      this.page = pagination.current;
-      this.pageSize = pagination.pageSize;
-
-      // Update filtered info state
-      this.filteredInfo = filters;
-
-      // Update sorted info state
-      this.sortedInfo = sorter;
-
-      // Apply filters and sorting to the existing data without making API calls
-      let filteredData = [...this.employeeStore.employees];
-
-      // Apply filters
-      Object.entries(filters).forEach(([key, values]) => {
-        if (values && values.length) {
-          filteredData = filteredData.filter(record => {
-            return values.includes(record[key]);
-          });
-        }
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: page,
+        per_page: this.pageSize
       });
 
-      // Apply sorting
-      if (sorter.columnKey && sorter.order) {
-        filteredData.sort((a, b) => {
-          const valueA = a[sorter.columnKey];
-          const valueB = b[sorter.columnKey];
+      this.fetchEmployees(params);
+    },
 
-          if (sorter.order === 'ascend') {
-            return valueA > valueB ? 1 : -1;
-          } else {
-            return valueA < valueB ? 1 : -1;
-          }
-        });
+    handleSizeChange(current, size) {
+      console.log('Size change:', current, size);
+      this.currentPage = 1; // Reset to first page when changing page size
+      this.pageSize = size;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: size
+      });
+
+      this.fetchEmployees(params);
+    },
+
+    // Helper method to build complete API parameters
+    buildApiParams(baseParams = {}) {
+      const params = {
+        page: this.currentPage,
+        per_page: this.pageSize,
+        ...baseParams
+      };
+
+      // Add sorting parameters ONLY when user has explicitly clicked on a column to sort
+      if (this.sortedInfo && this.sortedInfo.field && this.sortedInfo.order) {
+        const sortField = this.mapSortField(this.sortedInfo.field);
+        params.sort_by = sortField;
+        params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
       }
 
-      // Update the displayed data
-      this.employees = this.mapEmployeeData(filteredData);
-    },
-
-    handlePerPageChange(event) {
-      const val = event.target.value;
-      // if "all", pick up the true total; otherwise parse the number
-      this.perPage = val === 'totalEmployees'
-        ? this.totalEmployees
-        : parseInt(val, 10);
-
-      // reset back to page 1
-      this.page = 1;
-
-      this.fetchEmployees();
-    },
-
-    async fetchEmployees(page = this.page, perPage = this.perPage) {
-      console.group('fetchEmployees');
-      console.log('this.page =', this.page, 'this.perPage =', this.perPage);
-      console.trace();
-      console.groupEnd();
-      try {
-        // Prepare parameters for API request
-        const params = {
-          page: page,
-          per_page: perPage,
-          sort_by: this.sortedInfo?.columnKey,
-          sort_order: this.sortedInfo?.order === 'ascend' ? 'asc' : this.sortedInfo?.order === 'descend' ? 'desc' : ''
-        };
-
-        // Add any active filters
-        if (this.searchTerm) params.search = this.searchTerm;
-
-        // Add filter parameters from filteredInfo
-        Object.entries(this.filteredInfo).forEach(([key, value]) => {
-          if (value && value.length) {
-            params[key] = value[0];
-          }
-        });
-
-        // Get current page and page size from table if available
-        const currentPage = page || this.page;
-        const pageSize = perPage || this.perPage;
-
-        // Fetch employees from store
-        await this.employeeStore.fetchEmployees(params);
-        console.log('🔍 this.employeeStore.employees:', this.employeeStore.employees);
-        // Map the employee data
-        this.employees = this.mapEmployeeData(this.employeeStore.employees);
-
-        // Update pagination info if available
-        if (this.employeeStore.pagination) {
-          this.totalEmployees = this.employeeStore.pagination.total;
-          this.currentPage = currentPage;
-          this.pageSize = pageSize;
+      // Add filter parameters
+      if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
+        if (this.filteredInfo.subsidiary && this.filteredInfo.subsidiary.length > 0) {
+          params.filter_subsidiary = this.filteredInfo.subsidiary.join(',');
         }
-
-        this.$message.success('Employees loaded successfully');
-      } catch (error) {
-        this.$message.error('Failed to fetch employees');
-        console.error("Error fetching employees:", error);
+        if (this.filteredInfo.status && this.filteredInfo.status.length > 0) {
+          params.filter_status = this.filteredInfo.status.join(',');
+        }
+        if (this.filteredInfo.gender && this.filteredInfo.gender.length > 0) {
+          params.filter_gender = this.filteredInfo.gender.join(',');
+        }
+        if (this.filteredInfo.id_type && this.filteredInfo.id_type.length > 0) {
+          params.filter_id_type = this.filteredInfo.id_type.join(',');
+        }
       }
+
+      return params;
     },
 
-    // Clear all filters
+    // TABLE CHANGE HANDLER (for sorting/filtering only)
+    handleTableChange(pagination, filters, sorter) {
+      console.log('Table change (sorting/filtering):', filters, sorter);
+
+      // Check if there's actually a meaningful change
+      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
+      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
+
+      // Only proceed if there's an actual filter or sort change
+      if (!hasFilterChange && !hasSorterChange) {
+        console.log('No meaningful change detected, skipping reload');
+        return;
+      }
+
+      // Update filter state
+      this.filteredInfo = filters;
+
+      // Only update sorter if it's a real sort operation (has field and order)
+      // Don't preserve old sorting when only filtering
+      if (sorter && sorter.field && sorter.order) {
+        console.log('Applying sort:', sorter);
+        this.sortedInfo = sorter;
+      } else if (!sorter || (!sorter.field && !sorter.order)) {
+        console.log('Clearing sort (filtering only or no sort)');
+        this.sortedInfo = {};
+      }
+
+      // Reset to first page when filter/sort changes
+      this.currentPage = 1;
+
+      // Build complete parameters
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      // Fetch employees with new parameters
+      this.fetchEmployees(params);
+    },
+
+    // Map frontend table field names to backend field names
+    mapSortField(field) {
+      const fieldMapping = {
+        'subsidiary': 'subsidiary',
+        'staff_id': 'staff_id',
+        'fullName': 'first_name_en',
+        'first_name_en': 'first_name_en',
+        'last_name_en': 'last_name_en',
+        'gender': 'gender',
+        'age': 'age',
+        'date_of_birth': 'date_of_birth',
+        'status': 'status',
+        'id_type': 'id_type'
+      };
+      return fieldMapping[field] || field;
+    },
+
     clearFilters() {
       this.filteredInfo = {};
-      this.page = 1;
-      this.fetchEmployees();
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchEmployees(params);
     },
 
-    // Clear all filters and sorters
     clearAll() {
       this.filteredInfo = {};
       this.sortedInfo = {};
-      this.page = 1;
-      this.fetchEmployees();
+      this.searchStaffId = '';
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchEmployees(params);
     },
 
-    toggleHeader() {
-      document.getElementById("collapse-header").classList.toggle("active");
-      document.body.classList.toggle("header-collapse");
+    async handleStaffIdSearch() {
+      // Validation: Check if search input is empty
+      if (!this.searchStaffId || this.searchStaffId.trim() === '') {
+        this.$message.warning('Please enter a staff ID to search');
+        return;
+      }
+
+      this.searchLoading = true;
+      try {
+        const response = await employeeService.getSingleEmployee(this.searchStaffId);
+
+        // Check if the API returned success
+        if (response.success === true && response.data) {
+          // Handle the case where response.data is an array
+          const employeeArray = Array.isArray(response.data) ? response.data : [response.data];
+
+          // Format the employee data similar to fetchEmployees method
+          const formattedEmployees = this.mapEmployeeData(employeeArray);
+
+          // Debug: Log the formatted data
+          console.log('🔍 Raw employee data:', employeeArray);
+          console.log('🔍 Formatted employees:', formattedEmployees);
+
+          // Update the employees array with the formatted employees
+          this.employees = formattedEmployees;
+          this.total = 1;
+          this.currentPage = 1;
+          this.$message.success(response.message || 'Employee found successfully');
+        } else {
+          // Handle API response with success: false (404 - Employee not found)
+          this.$message.warning(response.message || 'No employee found with this staff ID');
+        }
+
+        return response;
+      } catch (error) {
+        // Only network errors, auth errors, or parsing errors reach here
+        console.error('Error fetching employee by staff ID:', error);
+        this.$message.error('Network error: Failed to fetch employee by staff ID');
+        // Clear employees on error
+        this.employees = [];
+        this.total = 0;
+      } finally {
+        this.searchLoading = false;
+      }
     },
 
-    booking_range(start, end) {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
-    },
+    async fetchEmployees(params = {}) {
+      this.loading = true;
+      try {
+        const queryParams = {
+          page: params.page || this.currentPage || 1,
+          per_page: params.per_page || this.pageSize,
+          ...params
+        };
 
-    initializeDateRangePicker() {
-      if (this.dateRangeInput) {
-        const start = moment().subtract(6, "days");
-        const end = moment();
+        const response = await employeeService.getEmployees(queryParams);
 
-        this.daterangepicker = new DateRangePicker(
-          this.dateRangeInput,
-          {
-            startDate: start,
-            endDate: end,
-            ranges: {
-              Today: [moment(), moment()],
-              Yesterday: [moment().subtract(1, "days"), moment().subtract(1, "days")],
-              "Last 7 Days": [moment().subtract(6, "days"), moment()],
-              "Last 30 Days": [moment().subtract(29, "days"), moment()],
-              "This Month": [moment().startOf("month"), moment().endOf("month")],
-              "Last Month": [
-                moment().subtract(1, "month").startOf("month"),
-                moment().subtract(1, "month").endOf("month"),
-              ],
-            },
-          },
-          this.booking_range
-        );
+        if (response.success && response.data) {
+          const employeesData = response.data;
 
-        this.booking_range(start, end);
+          this.employees = this.mapEmployeeData(employeesData);
+
+          // Update pagination properties from server response
+          if (response.pagination) {
+            this.total = response.pagination.total;
+            this.currentPage = response.pagination.current_page;
+            this.pageSize = response.pagination.per_page;
+          } else {
+            this.total = response.data.length;
+            this.currentPage = 1;
+          }
+
+          // Update statistics from server response
+          if (response.statistics) {
+            this.statistics = {
+              totalEmployees: response.statistics.totalEmployees || 0,
+              activeCount: response.statistics.activeCount || 0,
+              inactiveCount: response.statistics.inactiveCount || 0,
+              newJoinerCount: response.statistics.newJoinerCount || 0,
+              subsidiaryCount: {
+                SMRU_count: response.statistics.subsidiaryCount?.SMRU_count || 0,
+                BHF_count: response.statistics.subsidiaryCount?.BHF_count || 0
+              }
+            };
+          } else {
+            this.updateLocalStatistics();
+          }
+
+          this.$message.success('Employees loaded successfully');
+        } else {
+          this.employees = [];
+          this.total = 0;
+          this.$message.error('No employees data received');
+        }
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        this.employees = [];
+        this.total = 0;
+        this.$message.error('Failed to load employees');
+      } finally {
+        this.loading = false;
       }
     },
 
@@ -859,6 +790,30 @@ export default {
         created_at: moment(emp.created_at).format("DD MMM YYYY"),
         active: emp.employment?.active === 1
       }));
+    },
+
+    updateLocalStatistics() {
+      const now = new Date();
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(now.getMonth() - 3);
+
+      // Calculate statistics from current employees array
+      this.statistics.totalEmployees = this.total;
+      this.statistics.activeCount = this.employees.filter(e => e.active).length;
+      this.statistics.inactiveCount = this.employees.filter(e => !e.active).length;
+      this.statistics.newJoinerCount = this.employees.filter(e => {
+        const joiningDate = e.joiningDate && new Date(e.joiningDate);
+        return joiningDate && joiningDate >= threeMonthsAgo && joiningDate <= now;
+      }).length;
+      this.statistics.subsidiaryCount = {
+        SMRU_count: this.employees.filter(e => e.subsidiary === 'SMRU').length,
+        BHF_count: this.employees.filter(e => e.subsidiary === 'BHF').length
+      };
+    },
+
+    toggleHeader() {
+      document.getElementById("collapse-header").classList.toggle("active");
+      document.body.classList.toggle("header-collapse");
     },
 
     // Row selection change handler
@@ -890,10 +845,6 @@ export default {
     // Delete selected employees
     async deleteSelectedEmployees() {
       try {
-        // Use the employee service directly instead of going through the store
-        console.log('🔍 this.selectedRowKeys:', this.selectedRowKeys);
-        // Convert selectedRowKeys array to the expected format for the API
-
         console.log('Sending IDs to delete:', this.selectedRowKeys);
         await employeeService.deleteSelectedEmployees(this.selectedRowKeys);
         this.$message.success(`${this.selectedRowKeys.length} employee(s) deleted successfully`);
@@ -923,7 +874,7 @@ export default {
     // Delete single employee
     async deleteEmployee(id) {
       try {
-        await this.employeeStore.deleteEmployee(id);
+        await employeeService.deleteEmployee(id);
         this.$message.success('Employee deleted successfully');
         this.fetchEmployees();
       } catch (error) {
@@ -932,20 +883,16 @@ export default {
       }
     },
 
-    // Handle table change (pagination, filters, sorter)
-    handleTableChange(pagination, filters, sorter) {
-      console.log('Table params changed:', { pagination, filters, sorter });
+    openAddEmployeeModal() {
+      // Open Bootstrap modal for adding new employee
+      const modal = new bootstrap.Modal(document.getElementById('add_employee'));
+      modal.show();
+    },
 
-      // Update page and perPage
-      this.page = pagination.current;
-      this.perPage = pagination.pageSize;
-
-      // Update filter and sort info
-      this.filteredInfo = filters || {};
-      this.sortedInfo = sorter || {};
-
-      // Fetch employees with the updated parameters
-      this.fetchEmployees(this.page, this.perPage);
+    openEmployeeUploadModal() {
+      // Open Bootstrap modal for uploading employee excel file
+      const modal = new bootstrap.Modal(document.getElementById('employeeUploadModal'));
+      modal.show();
     },
 
     // Get unique values for filter dropdowns
@@ -955,11 +902,24 @@ export default {
       const uniqueValues = [...new Set(this.employees.map(item => item[field]))].filter(Boolean);
       return uniqueValues.map(value => ({ text: value, value }));
     },
-  },
+  }
 };
 </script>
 
 <style scoped>
+.highlight {
+  background-color: rgb(255, 192, 105);
+  padding: 0px;
+}
+
+.table-operations {
+  margin-bottom: 16px;
+}
+
+.table-operations>button {
+  margin-right: 8px;
+}
+
 :deep(.ant-select-selector) {
   display: flex;
   align-items: center;
@@ -968,50 +928,227 @@ export default {
   min-width: 80px;
 }
 
+/* Primary color styling for search input button */
+.search-input-primary :deep(.ant-input-search-button) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
 
-.table-operations>button {
+.search-input-primary :deep(.ant-input-search-button:hover) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:focus) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Pagination wrapper styling */
+.pagination-wrapper {
+  margin-top: 20px;
+  padding: 20px 16px;
+  border-top: 1px solid #e8e8e8;
+  position: relative;
+  z-index: 100;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Ensure pagination is not overlapping */
+.resize-observer-fix {
+  position: relative;
+  min-height: 100px;
+}
+
+/* Ant Design pagination customization */
+:deep(.ant-pagination) {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+:deep(.ant-pagination-total-text) {
+  margin-right: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.ant-pagination-options) {
+  margin-left: 16px;
+}
+
+:deep(.ant-pagination-options-size-changer) {
   margin-right: 8px;
 }
 
-/* :deep(.ant-table-bordered .ant-table-thead > tr > th),
-:deep(.ant-table-bordered .ant-table-tbody > tr > td) {
-  border-right: 1px solid #8d8c8c;
-} */
+:deep(.ant-pagination-options-quick-jumper) {
+  margin-left: 8px;
+}
 
-/* :deep(.ant-table-bordered .ant-table-thead > tr > th) {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
-} */
+/* Fix dropdown placement - force dropdown to appear above */
+:deep(.ant-pagination-options-size-changer .ant-select) {
+  z-index: 1000;
+}
 
-/* Make scrollbar bigger and more visible */
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+  z-index: 1050 !important;
+  top: auto !important;
+  bottom: calc(100% + 4px) !important;
+}
+
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+  z-index: 1050 !important;
+}
+
+/* Ensure pagination dropdowns appear above */
+.pagination-wrapper {
+  position: relative;
+  z-index: 100;
+}
+
+/* Override Ant Design dropdown placement */
+:deep(.ant-pagination .ant-select-dropdown) {
+  position: absolute !important;
+  bottom: calc(100% + 4px) !important;
+  top: auto !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Container overflow fixes - only apply to table cards, not statistics */
+.card:not(.statistics-card) {
+  overflow: visible !important;
+  margin-bottom: 20px;
+}
+
+.card:not(.statistics-card) .card-body {
+  overflow: visible !important;
+  padding-bottom: 0;
+}
+
+/* Statistics cards styling */
+.statistics-card {
+  margin-bottom: 0.75rem;
+}
+
+.statistics-card .card-body {
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: auto;
+}
+
+/* Ensure statistics row has proper spacing */
+.statistics-row {
+  margin-bottom: 1rem;
+}
+
+.statistics-row .col-lg-3 {
+  margin-bottom: 0.5rem;
+}
+
+/* Make statistics cards more compact */
+.statistics-card .avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.statistics-card h4 {
+  margin-bottom: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.statistics-card .fs-12 {
+  font-size: 0.75rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.statistics-card .badge {
+  font-size: 0.65rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Enhanced scrollbar styling - Match Ant Design Vue docs */
 :deep(.ant-table-body)::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
+  width: 16px !important;
+  height: 16px !important;
 }
 
 :deep(.ant-table-body)::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 7px;
+  background: #f1f1f1 !important;
+  border-radius: 8px !important;
 }
 
 :deep(.ant-table-body)::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 7px;
-  border: 1px solid #f1f1f1;
+  background: #888 !important;
+  border-radius: 8px !important;
+  border: 2px solid #f1f1f1 !important;
 }
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
+  background: #555 !important;
+}
+
+/* Ensure table container allows scrollbar display */
+/* :deep(.ant-table-container) {
+  border: 1px solid #e0e0e0;
+  border-radius: 0;
+} */
 
 /* Fix for bleeding edges and selection column */
-:deep(.ant-table) {
+/* :deep(.ant-table) {
   border-radius: 0;
   overflow: hidden;
+} */
+
+/* Fix for fixed columns - comprehensive solution */
+:deep(.ant-table-fixed-left),
+:deep(.ant-table-fixed-right) {
+  background-color: #ffffff !important;
 }
 
-/* Fix for fixed columns */
-:deep(.ant-table-cell-fix-left),
-:deep(.ant-table-cell-fix-right) {
+:deep(.ant-table-fixed-left .ant-table-thead > tr > th),
+:deep(.ant-table-fixed-right .ant-table-thead > tr > th) {
+  background-color: #fafafa !important;
+  color: #595959 !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-tbody > tr > td),
+:deep(.ant-table-fixed-right .ant-table-tbody > tr > td) {
   background-color: #ffffff !important;
-  z-index: 2 !important;
-  box-shadow: 0 0 0 1px #e0e0e0;
+}
+
+/* Fix for main table headers to match fixed headers */
+:deep(.ant-table-thead > tr > th) {
+  background-color: #fafafa !important;
+  color: #595959 !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+/* Ensure all table cells have consistent background */
+:deep(.ant-table-tbody > tr > td) {
+  background-color: #ffffff !important;
+}
+
+/* Fix for table rows hover state - all tables */
+:deep(.ant-table-tbody > tr:hover > td),
+:deep(.ant-table-fixed-left .ant-table-tbody > tr:hover > td),
+:deep(.ant-table-fixed-right .ant-table-tbody > tr:hover > td) {
+  background-color: #fafafa !important;
 }
 
 /* Fix for selection column */
@@ -1024,7 +1161,22 @@ export default {
   padding-right: 0 !important;
 }
 
-/* Fix for selected rows with fixed columns */
+/* Fix for selection column header */
+:deep(.ant-table-thead .ant-table-selection-column) {
+  background-color: #fafafa !important;
+}
+
+/* Fix for fixed table selection columns */
+:deep(.ant-table-fixed-left .ant-table-selection-column) {
+  background-color: #ffffff !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-thead .ant-table-selection-column) {
+  background-color: #fafafa !important;
+}
+
+/* Fix for selected rows - ensure all selected cells have same background */
+:deep(.ant-table-row-selected > td),
 :deep(.ant-table-row-selected > td.ant-table-cell-fix-left),
 :deep(.ant-table-row-selected > td.ant-table-cell-fix-right),
 :deep(.ant-table-row-selected > td.ant-table-selection-column) {
@@ -1032,20 +1184,26 @@ export default {
   z-index: 3 !important;
 }
 
-/* Fix for table borders */
+/* Fix for table container and layout */
 :deep(.ant-table-container) {
   border: 1px solid #e0e0e0;
   border-radius: 0;
 }
 
-/* Fix for table header */
-:deep(.ant-table-thead > tr > th) {
-  font-weight: 600;
-  border-bottom: 2px solid #e0e0e0;
+/* Ensure proper table layout for fixed columns */
+:deep(.ant-table-layout-fixed table) {
+  table-layout: auto !important;
 }
 
-/* Fix for table cell padding */
-:deep(.ant-table-cell) {
-  padding: 8px 8px !important;
+/* Fix for table wrapper */
+:deep(.ant-table-wrapper) {
+  background-color: #ffffff;
 }
+
+
+
+/* Fix for table cell padding */
+/* :deep(.ant-table-cell) {
+  padding: 8px 8px !important;
+} */
 </style>

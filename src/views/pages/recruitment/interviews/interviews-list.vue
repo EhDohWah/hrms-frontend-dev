@@ -8,13 +8,11 @@
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-
           <div class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openAddInterviewModal">
               <i class="ti ti-circle-plus me-2"></i>Add Interview
             </button>
           </div>
-
           <div class="ms-2 head-icons">
             <a href="javascript:void(0);" :class="{ active: isCollapsed }" @click="toggleCollapse"
               data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Collapse" id="collapse-header">
@@ -28,9 +26,16 @@
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Interviews List</h5>
-          <div class="table-operations">
-            <a-button @click="clearFilters">Clear filters</a-button>
-            <a-button @click="clearAll">Clear filters and sorters</a-button>
+          <div class="d-flex align-items-center flex-wrap row-gap-2">
+            <div class="me-2">
+              <a-button class="me-2" @click="clearFilters">Clear filters</a-button>
+              <a-button @click="clearAll">Clear filters and sorters</a-button>
+            </div>
+            <div class="input-icon-end">
+              <a-input-search v-model:value="searchCandidate" placeholder="Enter full candidate name..."
+                :loading="searchLoading" enter-button="Search" @search="handleCandidateSearch" style="width: 250px;"
+                class="search-input-primary" />
+            </div>
           </div>
         </div>
         <div class="card-body">
@@ -40,14 +45,12 @@
             </div>
             <p class="mt-2">Loading interviews...</p>
           </div>
-          <div v-else>
-            <a-table :columns="columns" :data-source="tableData" :pagination="pagination" :scroll="{ x: 'max-content' }"
+          <div v-else class="resize-observer-fix">
+            <!-- TABLE WITHOUT PAGINATION -->
+            <a-table :columns="columns" :data-source="tableData" :pagination="false" :scroll="{ x: 'max-content' }"
               row-key="id" @change="handleTableChange">
 
-
-
               <template #bodyCell="{ column, record }">
-
                 <template v-if="column.dataIndex === 'interview_status'">
                   <span
                     :class="`badge ${record.interview_status === 'Scheduled' ? 'bg-primary' : record.interview_status === 'Completed' ? 'bg-success' : 'bg-danger'}`">
@@ -61,8 +64,6 @@
                     {{ record.hired_status }}
                   </span>
                 </template>
-
-
 
                 <template v-if="column.dataIndex === 'actions'">
                   <div class="action-icon d-inline-flex">
@@ -79,6 +80,19 @@
                 </template>
               </template>
             </a-table>
+
+            <!-- SEPARATE PAGINATION COMPONENT -->
+            <div class="pagination-wrapper">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                  <!-- Optional: Additional info can go here -->
+                </div>
+                <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
+                  :show-size-changer="true" :show-quick-jumper="true" :page-size-options="['10', '20', '50', '100']"
+                  :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                  @change="handlePaginationChange" @show-size-change="handleSizeChange" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -87,7 +101,7 @@
   </div>
 
   <!-- Interview Modal -->
-  <interview-modal ref="interviewModal" @interview-added="fetchInterviews" @interview-updated="fetchInterviews" />
+  <interview-modal ref="interviewModal" @interview-added="refreshInterviews" @interview-updated="refreshInterviews" />
 
   <!-- Notification Toast -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
@@ -109,7 +123,7 @@ import { Modal as AntModal } from 'ant-design-vue';
 import InterviewModal from '@/components/modal/interview-modal.vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useInterviewStore } from '@/stores/interviewStore';
-import { ref, computed } from 'vue';
+import { interviewService } from '@/services/interview.service';
 import moment from 'moment';
 
 export default {
@@ -118,33 +132,6 @@ export default {
     InterviewModal,
     indexBreadcrumb
   },
-  setup() {
-    const filteredInfo = ref({});
-    const sortedInfo = ref({});
-    const currentPage = ref(1);
-    const pageSize = ref(10);
-    const total = ref(0);
-    const interviewStore = useInterviewStore();
-
-    const pagination = computed(() => ({
-      total: total.value,
-      current: currentPage.value,
-      pageSize: pageSize.value,
-      showSizeChanger: true,
-      pageSizeOptions: ['10', '20', '50', '100'],
-      showTotal: (total) => `Total ${total} items`
-    }));
-
-    return {
-      filteredInfo,
-      sortedInfo,
-      currentPage,
-      pageSize,
-      total,
-      pagination,
-      interviewStore
-    };
-  },
   data() {
     return {
       title: 'Interviews',
@@ -152,10 +139,25 @@ export default {
       text1: 'Interviews',
       interviews: [],
       loading: false,
-      searchTerm: '',
+      searchLoading: false,
+      searchCandidate: '',
       notificationTitle: '',
       notificationMessage: '',
-      notificationClass: ''
+      notificationClass: '',
+
+      // Server-side pagination, filtering, and sorting state
+      filteredInfo: {},
+      sortedInfo: {},
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
+
+      // Field mapping for server-side sorting
+      fieldMapping: {
+        candidate_name: 'candidate_name',
+        job_position: 'job_position',
+        interview_date: 'interview_date'
+      }
     };
   },
   computed: {
@@ -164,40 +166,35 @@ export default {
       const sorted = this.sortedInfo || {};
 
       return [
-
         {
           title: '#ID',
           dataIndex: 'id',
           key: 'id',
-          sorter: (a, b) => a.id - b.id,
-          sortOrder: sorted.columnKey === 'id' && sorted.order,
+          width: 80,
         },
         {
           title: 'Candidate Name',
           dataIndex: 'candidate_name',
           key: 'candidate_name',
-          filters: this.getUniqueValues('candidate_name'),
-          filteredValue: filtered.candidate_name || null,
-          onFilter: (value, record) => record.candidate_name.includes(value),
-          sorter: (a, b) => a.candidate_name.localeCompare(b.candidate_name),
+          width: 180,
+          sorter: true, // Enable server-side sorting
           sortOrder: sorted.columnKey === 'candidate_name' && sorted.order,
-          filterSearch: true,
         },
         {
           title: 'Phone',
           dataIndex: 'phone',
           key: 'phone',
-          sorter: (a, b) => a.phone.localeCompare(b.phone),
-          sortOrder: sorted.columnKey === 'phone' && sorted.order,
+          width: 120,
         },
         {
           title: 'Job Position',
           dataIndex: 'job_position',
           key: 'job_position',
-          filters: this.getUniqueValues('job_position'),
+          width: 180,
+          filters: this.getJobPositionFilters(),
           filteredValue: filtered.job_position || null,
-          onFilter: (value, record) => record.job_position.includes(value),
-          sorter: (a, b) => a.job_position.localeCompare(b.job_position),
+          // Remove onFilter for server-side filtering
+          sorter: true, // Enable server-side sorting
           sortOrder: sorted.columnKey === 'job_position' && sorted.order,
           filterSearch: true,
         },
@@ -205,54 +202,21 @@ export default {
           title: 'Interviewer',
           dataIndex: 'interviewer_name',
           key: 'interviewer_name',
-          filters: this.getUniqueValues('interviewer_name'),
-          filteredValue: filtered.interviewer_name || null,
-          onFilter: (value, record) => record.interviewer_name.includes(value),
-          sorter: (a, b) => a.interviewer_name.localeCompare(b.interviewer_name),
-          sortOrder: sorted.columnKey === 'interviewer_name' && sorted.order,
-          filterSearch: true,
+          width: 150,
         },
         {
           title: 'Date',
           dataIndex: 'interview_date',
           key: 'interview_date',
-          sorter: (a, b) => moment(a.interview_date).unix() - moment(b.interview_date).unix(),
+          width: 120,
+          sorter: true, // Enable server-side sorting
           sortOrder: sorted.columnKey === 'interview_date' && sorted.order,
         },
-        // {
-        //   title: 'Time',
-        //   dataIndex: 'start_time',
-        //   key: 'start_time',
-        //   render: (text, record) => {
-        //     const startTime = record.start_time ? this.formatTime(record.start_time) : '';
-        //     const endTime = record.end_time ? this.formatTime(record.end_time) : '';
-        //     return startTime && endTime ? `${startTime} - ${endTime}` : startTime || endTime || '';
-        //   },
-        //   sorter: (a, b) => {
-        //     const aTime = a.start_time || '';
-        //     const bTime = b.start_time || '';
-        //     return aTime.localeCompare(bTime);
-        //   },
-        //   sortOrder: sorted.columnKey === 'start_time' && sorted.order,
-        // },
-        // {
-        //   title: 'Mode',
-        //   dataIndex: 'interview_mode',
-        //   key: 'interview_mode',
-        //   filters: [
-        //     { text: 'In-person', value: 'In-person' },
-        //     { text: 'Virtual', value: 'Virtual' },
-        //     { text: 'Phone', value: 'Phone' },
-        //   ],
-        //   filteredValue: filtered.interview_mode || null,
-        //   onFilter: (value, record) => record.interview_mode === value,
-        //   sorter: (a, b) => a.interview_mode.localeCompare(b.interview_mode),
-        //   sortOrder: sorted.columnKey === 'interview_mode' && sorted.order,
-        // },
         {
           title: 'Status',
           dataIndex: 'interview_status',
           key: 'interview_status',
+          width: 120,
           filters: [
             { text: 'Scheduled', value: 'Scheduled' },
             { text: 'Completed', value: 'Completed' },
@@ -260,66 +224,277 @@ export default {
             { text: 'In Progress', value: 'In Progress' },
           ],
           filteredValue: filtered.interview_status || null,
-          onFilter: (value, record) => record.interview_status === value,
-          sorter: (a, b) => a.interview_status.localeCompare(b.interview_status),
-          sortOrder: sorted.columnKey === 'interview_status' && sorted.order,
+          // Remove onFilter for server-side filtering
         },
         {
           title: 'Hired Status',
           dataIndex: 'hired_status',
           key: 'hired_status',
-          filters: this.getUniqueValues('hired_status'),
+          width: 120,
+          filters: this.getHiredStatusFilters(),
           filteredValue: filtered.hired_status || null,
-          onFilter: (value, record) => record.hired_status === value,
-          sorter: (a, b) => {
-            if (!a.hired_status && !b.hired_status) return 0;
-            if (!a.hired_status) return 1;
-            if (!b.hired_status) return -1;
-            return a.hired_status.localeCompare(b.hired_status);
-          },
-          sortOrder: sorted.columnKey === 'hired_status' && sorted.order,
+          // Remove onFilter for server-side filtering
         },
-        // {
-        //   title: 'Score',
-        //   dataIndex: 'score',
-        //   key: 'score',
-        //   sorter: (a, b) => a.score - b.score,
-        //   sortOrder: sorted.columnKey === 'score' && sorted.order,
-        // },
         {
           title: 'Actions',
           dataIndex: 'actions',
           key: 'actions',
+          fixed: 'right',
+          width: 120,
         },
       ];
     },
     tableData() {
+      // With server-side pagination, just return the interviews as-is
       return this.interviews.map(interview => ({
         ...interview,
         key: interview.id
       }));
     }
   },
+  setup() {
+    const interviewStore = useInterviewStore();
+    return {
+      interviewStore
+    };
+  },
   mounted() {
     this.fetchInterviews();
   },
   methods: {
-    formatTime(timeString) {
-      if (!timeString) return '';
+    // Helper method to build complete API parameters
+    buildApiParams(baseParams = {}) {
+      const params = {
+        page: this.currentPage,
+        per_page: this.pageSize,
+        ...baseParams
+      };
 
-      // Handle time strings with milliseconds
-      const timeParts = timeString.split('.');
-      const baseTime = timeParts[0];
+      // Add sorting parameters
+      if (this.sortedInfo && this.sortedInfo.field) {
+        const sortField = this.mapSortField(this.sortedInfo.field);
+        params.sort_by = sortField;
+        params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
+      }
 
-      // Convert to 12-hour format
-      const [hours, minutes] = baseTime.split(':');
-      if (!hours || !minutes) return timeString;
+      // Add filter parameters
+      if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
+        if (this.filteredInfo.job_position && this.filteredInfo.job_position.length > 0) {
+          params.filter_job_position = this.filteredInfo.job_position.join(',');
+        }
+        if (this.filteredInfo.hired_status && this.filteredInfo.hired_status.length > 0) {
+          params.filter_hired_status = this.filteredInfo.hired_status.join(',');
+        }
+      }
 
-      const hour = parseInt(hours, 10);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const hour12 = hour % 12 || 12;
+      return params;
+    },
 
-      return `${hour12}:${minutes} ${ampm}`;
+    // Map frontend table field names to backend field names
+    mapSortField(field) {
+      return this.fieldMapping[field] || field;
+    },
+
+    // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING
+    handlePaginationChange(page, pageSize) {
+      console.log('Pagination change:', page, pageSize);
+      this.currentPage = page;
+      this.pageSize = pageSize || this.pageSize;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: page,
+        per_page: this.pageSize
+      });
+
+      this.fetchInterviews(params);
+    },
+
+    handleSizeChange(current, size) {
+      console.log('Size change:', current, size);
+      this.currentPage = 1; // Reset to first page when changing page size
+      this.pageSize = size;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: size
+      });
+
+      this.fetchInterviews(params);
+    },
+
+    // TABLE CHANGE HANDLER (for sorting/filtering only)
+    handleTableChange(pagination, filters, sorter) {
+      console.log('Table change (sorting/filtering):', filters, sorter);
+
+      // Check if there's actually a meaningful change
+      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
+      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
+
+      // Only proceed if there's an actual filter or sort change
+      if (!hasFilterChange && !hasSorterChange) {
+        console.log('No meaningful change detected, skipping reload');
+        return;
+      }
+
+      // Update filter and sort state
+      this.filteredInfo = filters;
+      this.sortedInfo = sorter;
+
+      // Reset to first page when filter/sort changes
+      this.currentPage = 1;
+
+      // Build complete parameters
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      // Fetch interviews with new parameters
+      this.fetchInterviews(params);
+    },
+
+    // Clear filters
+    clearFilters() {
+      this.filteredInfo = {};
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchInterviews(params);
+    },
+
+    // Clear all filters and sorters
+    clearAll() {
+      this.filteredInfo = {};
+      this.sortedInfo = {};
+      this.searchCandidate = '';
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchInterviews(params);
+    },
+
+    // Search by candidate name
+    async handleCandidateSearch() {
+      // Validation: Check if search input is empty
+      if (!this.searchCandidate || this.searchCandidate.trim() === '') {
+        this.$message.warning('Please enter a candidate name to search');
+        return;
+      }
+
+      this.searchLoading = true;
+      try {
+        const response = await interviewService.getByCandidateName(this.searchCandidate.trim());
+
+        // Check if the API returned success
+        if (response.success === true && response.data) {
+          const interviewData = response.data;
+
+          // Format the interview data similar to fetchInterviews method
+          const formattedInterview = {
+            ...interviewData,
+            interview_date: interviewData.interview_date ? moment(interviewData.interview_date).format('DD MMM YYYY') : '',
+          };
+
+          // Update the interviews array with just this interview
+          this.interviews = [formattedInterview];
+          this.total = 1;
+          this.currentPage = 1;
+          this.$message.success(response.message || 'Interview found successfully');
+        } else {
+          // Handle API response with success: false (404 - Interview not found)
+          this.$message.warning(response.message || 'No interview found for this candidate');
+        }
+
+        return response;
+      } catch (error) {
+        // Only network errors, auth errors, or parsing errors reach here
+        console.error('Error fetching interview by candidate name:', error);
+        this.$message.error('Network error: Failed to fetch interview by candidate name');
+        // Clear interviews on error
+        this.interviews = [];
+        this.total = 0;
+      } finally {
+        this.searchLoading = false;
+      }
+    },
+
+
+
+    // Fetch interviews with server-side pagination, filtering, and sorting
+    async fetchInterviews(params = {}) {
+      this.loading = true;
+      try {
+        const queryParams = {
+          page: params.page || this.currentPage || 1,
+          per_page: params.per_page || this.pageSize,
+          ...params
+        };
+
+        const response = await this.interviewStore.fetchInterviews(queryParams);
+
+        if (response.success && response.data) {
+          const interviewsData = response.data;
+
+          this.interviews = interviewsData.map(interview => ({
+            ...interview,
+            interview_date: interview.interview_date ? moment(interview.interview_date).format('DD MMM YYYY') : '',
+          }));
+
+          // Update pagination properties from server response
+          if (response.pagination) {
+            this.total = response.pagination.total;
+            this.currentPage = response.pagination.current_page;
+            this.pageSize = response.pagination.per_page;
+          } else {
+            this.total = response.data.length;
+            this.currentPage = 1;
+          }
+
+          this.$message.success('Interviews loaded successfully');
+        } else {
+          this.interviews = [];
+          this.total = 0;
+          this.$message.error('No interviews data received');
+        }
+      } catch (error) {
+        console.error('Error fetching interviews:', error);
+        this.interviews = [];
+        this.total = 0;
+        this.$message.error('Failed to load interviews');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Refresh interviews after modal operations
+    refreshInterviews() {
+      // Refresh with current pagination/filters
+      const params = this.buildApiParams();
+      this.fetchInterviews(params);
+    },
+
+    // Get unique job position filters from current data
+    getJobPositionFilters() {
+      if (!this.interviews || !this.interviews.length) return [];
+      const uniqueValues = [...new Set(this.interviews.map(item => item.job_position))].filter(Boolean);
+      return uniqueValues.map(value => ({ text: value, value }));
+    },
+
+    // Get unique hired status filters from current data
+    getHiredStatusFilters() {
+      if (!this.interviews || !this.interviews.length) return [];
+      const uniqueValues = [...new Set(this.interviews.map(item => item.hired_status))].filter(Boolean);
+      return uniqueValues.map(value => ({ text: value, value }));
     },
 
     toggleCollapse() {
@@ -328,50 +503,6 @@ export default {
         document.body.classList.add("header-collapse");
       } else {
         document.body.classList.remove("header-collapse");
-      }
-    },
-    getUniqueValues(field) {
-      const values = [...new Set(this.interviews.map(item => item[field]))].filter(Boolean);
-      return values.map(value => ({ text: value, value }));
-    },
-
-    handleTableChange(pagination, filters, sorter) {
-      console.log('Various parameters', pagination, filters, sorter);
-      this.currentPage = pagination.current;
-      this.pageSize = pagination.pageSize;
-      this.filteredInfo = filters;
-      this.sortedInfo = sorter;
-    },
-
-    clearFilters() {
-      this.filteredInfo = null;
-    },
-
-    clearAll() {
-      this.filteredInfo = null;
-      this.sortedInfo = null;
-    },
-
-    async fetchInterviews() {
-      this.loading = true;
-
-      try {
-        await this.interviewStore.fetchInterviews();
-
-        if (this.interviewStore.interviews) {
-          this.interviews = this.interviewStore.interviews.map(interview => ({
-            ...interview,
-            interview_date: interview.interview_date ? moment(interview.interview_date).format('DD MMM YYYY') : '',
-
-          }));
-          this.total = this.interviews.length;
-          this.$message.success('Interviews loaded successfully');
-        }
-      } catch (error) {
-        console.error('Error fetching interviews:', error);
-        this.$message.error('Failed to load interviews');
-      } finally {
-        this.loading = false;
       }
     },
 
@@ -402,9 +533,9 @@ export default {
               this.loading = true;
               try {
                 await this.interviewStore.deleteInterview(id);
-                this.interviews = this.interviews.filter(interview => interview.id !== id);
-                this.total = this.interviews.length;
                 this.$message.success('Interview moved to recycle bin successfully');
+                // Refresh the list
+                this.refreshInterviews();
                 resolve();
               } catch (error) {
                 console.error('Error moving interview to recycle bin:', error);
@@ -457,5 +588,110 @@ export default {
   justify-content: center;
   font-size: 14px;
   min-width: 80px;
+}
+
+/* Primary color styling for search input button */
+.search-input-primary :deep(.ant-input-search-button) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:hover) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:focus) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Pagination wrapper styling */
+.pagination-wrapper {
+  margin-top: 20px;
+  padding: 20px 16px;
+  border-top: 1px solid #e8e8e8;
+  position: relative;
+  z-index: 100;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Ensure pagination is not overlapping */
+.resize-observer-fix {
+  position: relative;
+  min-height: 100px;
+}
+
+/* Ant Design pagination customization */
+:deep(.ant-pagination) {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+:deep(.ant-pagination-total-text) {
+  margin-right: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.ant-pagination-options) {
+  margin-left: 16px;
+}
+
+:deep(.ant-pagination-options-size-changer) {
+  margin-right: 8px;
+}
+
+:deep(.ant-pagination-options-quick-jumper) {
+  margin-left: 8px;
+}
+
+/* Fix dropdown placement - force dropdown to appear above */
+:deep(.ant-pagination-options-size-changer .ant-select) {
+  z-index: 1000;
+}
+
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+  z-index: 1050 !important;
+  top: auto !important;
+  bottom: calc(100% + 4px) !important;
+}
+
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+  z-index: 1050 !important;
+}
+
+/* Ensure pagination dropdowns appear above */
+.pagination-wrapper {
+  position: relative;
+  z-index: 100;
+}
+
+/* Override Ant Design dropdown placement */
+:deep(.ant-pagination .ant-select-dropdown) {
+  position: absolute !important;
+  bottom: calc(100% + 4px) !important;
+  top: auto !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Container overflow fixes */
+.card-body {
+  overflow: visible !important;
+  padding-bottom: 0;
+}
+
+.card {
+  overflow: visible !important;
+  margin-bottom: 20px;
 }
 </style>

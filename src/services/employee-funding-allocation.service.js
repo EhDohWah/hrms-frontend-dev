@@ -28,5 +28,11 @@ export const employeeFundingAllocationService = {
     delete(id) {
         const url = API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.DELETE.replace(':id', id);
         return apiService.delete(url);
+    },
+
+    // Get employee funding allocation by grant item ID
+    getByGrantItem(grantItemId) {
+        const url = API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.BY_GRANT_ITEM.replace(':grantItemId', grantItemId);
+        return apiService.get(url);
     }
 };

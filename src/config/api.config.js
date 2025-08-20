@@ -83,6 +83,7 @@ export const API_ENDPOINTS = {
     // Employment endpoints
     EMPLOYMENT: {
         LIST: '/employments',
+        SEARCH_BY_STAFF_ID: '/employments/search/staff-id/:staffId',
         CREATE: '/employments',
         UPDATE: '/employments/:id',
         DELETE: '/employments/:id',
@@ -117,12 +118,14 @@ export const API_ENDPOINTS = {
             DELETE: '/grants/items/:id',
             UPDATE: '/grants/items/:id'
         },
-        GRANT_POSITIONS: '/grants/grant-positions'
+        GRANT_POSITIONS: '/grants/grant-positions',
+        PAGINATED_GRANTS: '/grants/paginated',
     },
 
     // Budget Line endpoints
     BUDGET_LINE: {
         LIST: '/budget-lines',
+        SEARCH_BY_CODE: '/budget-lines/by-code/:code',
         CREATE: '/budget-lines',
         UPDATE: '/budget-lines/:id',
         DELETE: '/budget-lines/:id',
@@ -144,7 +147,8 @@ export const API_ENDPOINTS = {
         CREATE: '/interviews',
         UPDATE: '/interviews/:id',
         DELETE: '/interviews/:id',
-        DETAILS: '/interviews/:id'
+        DETAILS: '/interviews/:id',
+        BY_CANDIDATE_NAME: '/interviews/by-candidate/:candidateName'
     },
 
     // Lookup endpoints
@@ -279,7 +283,8 @@ export const API_ENDPOINTS = {
         CREATE: '/employee-funding-allocations',
         DETAILS: '/employee-funding-allocations/:id',
         UPDATE: '/employee-funding-allocations/:id',
-        DELETE: '/employee-funding-allocations/:id'
+        DELETE: '/employee-funding-allocations/:id',
+        BY_GRANT_ITEM: '/employee-funding-allocations/by-grant-item/:grantItemId'
     },
 
     // JobOffer endpoints 
@@ -289,7 +294,8 @@ export const API_ENDPOINTS = {
         DETAILS: '/job-offers/:id',
         UPDATE: '/job-offers/:id',
         DELETE: '/job-offers/:id',
-        GENERATE_PDF: '/job-offers/:id/pdf'
+        GENERATE_PDF: '/job-offers/:id/pdf',
+        BY_CANDIDATE: '/job-offers/by-candidate/:candidateName'
     },
 
     // Report endpoints
@@ -314,6 +320,15 @@ export const API_ENDPOINTS = {
         DETAILS: '/employee-children/:id'
     },
 
+    // Employee beneficiaries endpoints
+    EMPLOYEE_BENEFICIARIES: {
+        LIST: '/employee-beneficiaries',
+        CREATE: '/employee-beneficiaries',
+        UPDATE: '/employee-beneficiaries/:id',
+        DELETE: '/employee-beneficiaries/:id',
+        DETAILS: '/employee-beneficiaries/:id'
+    },
+
     // Recycle Bin endpoints
     RECYCLE_BIN: {
         LIST: '/recycle-bin',
@@ -321,6 +336,46 @@ export const API_ENDPOINTS = {
         RESTORE: '/recycle-bin/restore',
         BULK_RESTORE: '/recycle-bin/bulk-restore',
         PERMANENT_DELETE: '/recycle-bin/:deletedRecordId'
+    },
+
+    // Tax Settings endpoints
+    TAX_SETTINGS: {
+        LIST: '/tax-settings',
+        CREATE: '/tax-settings',
+        UPDATE: '/tax-settings/:id',
+        DELETE: '/tax-settings/:id',
+        DETAILS: '/tax-settings/:id',
+        BY_YEAR: '/tax-settings/by-year/:year',
+        VALUE: '/tax-settings/value/:key',
+        BULK_UPDATE: '/tax-settings/bulk-update',
+        EXPORT_EXCEL: '/tax-settings/export/excel',
+        EXPORT_PDF: '/tax-settings/export/pdf'
+    },
+
+    // Tax Brackets endpoints
+    TAX_BRACKETS: {
+        LIST: '/tax-brackets',
+        CREATE: '/tax-brackets',
+        UPDATE: '/tax-brackets/:id',
+        DELETE: '/tax-brackets/:id',
+        DETAILS: '/tax-brackets/:id',
+        BY_YEAR: '/tax-brackets/by-year/:year',
+        CALCULATE: '/tax-brackets/calculate/:income',
+        BREAKDOWN: '/tax-brackets/breakdown/:income',
+        EXPORT_EXCEL: '/tax-brackets/export/excel',
+        EXPORT_PDF: '/tax-brackets/export/pdf'
+    },
+
+    // Tax Calculations endpoints
+    TAX_CALCULATIONS: {
+        PAYROLL: '/tax-calculations/payroll',
+        INCOME_TAX: '/tax-calculations/income-tax',
+        SOCIAL_SECURITY: '/tax-calculations/social-security',
+        PROVIDENT_FUND: '/tax-calculations/provident-fund',
+        HISTORY: '/tax-calculations/history/:employeeId',
+        SAVE: '/tax-calculations/save',
+        DETAILS: '/tax-calculations/:id',
+        EXPORT_PDF: '/tax-calculations/:id/export/pdf'
     }
 
 };

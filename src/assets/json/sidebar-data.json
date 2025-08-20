@@ -431,6 +431,11 @@
             "active_link": "/payroll/employee-salary"
           },
           {
+            "menuValue": "Tax Settings",
+            "route": "/payroll/tax-settings",
+            "active_link": "/payroll/tax-settings"
+          },
+          {
             "menuValue": "Payslip",
             "route": "/payroll/payslip",
             "active_link": "/payroll/payslip"

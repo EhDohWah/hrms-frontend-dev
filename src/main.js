@@ -137,6 +137,7 @@ import AttendanceEmployeeModal from '@/components/modal/attendance-employee-moda
 import TimesheetsModal from '@/components/modal/timesheets-modal.vue';
 import leaveTypeModal from '@/components/modal/leave-type-modal.vue';
 import customFieldsModal from '@/components/modal/custom-fields-modal.vue';
+import taxSettingsModal from '@/components/modal/tax-settings-modal.vue';
 
 import TrainingModal from '@/components/modal/training-modal.vue';
 import TrainersModal from '@/components/modal/trainers-modal.vue';
@@ -297,6 +298,7 @@ app.component('attendance-employee-modal', AttendanceEmployeeModal)
 app.component('timesheets-modal', TimesheetsModal)
 app.component('leave-type-modal', leaveTypeModal)
 app.component('custom-fields-modal', customFieldsModal)
+app.component('tax-settings-modal', taxSettingsModal)
 
 app.component('training-modal', TrainingModal)
 app.component('trainers-modal', TrainersModal)

@@ -21,14 +21,14 @@ export const useJobOfferStore = defineStore('jobOffer', {
         this.loading = true;
         this.error = null;
         const response = await jobOfferService.getAllJobOffers();
-        
+
         // Check if response.data exists and is an array; if not, assume response is the array
         const jobOffersData = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response)
-          ? response
-          : [];
-          
+            ? response
+            : [];
+
         this.jobOffers = jobOffersData;
         return this.jobOffers;
       } catch (error) {

@@ -491,6 +491,7 @@
                       <li><router-link to="/payroll/employee-salary">Employee Salary</router-link></li>
                       <li><router-link to="/payroll/payslip">Payslip</router-link></li>
                       <li><router-link to="/payroll/payroll">Payroll Items</router-link></li>
+                      <li><router-link to="/payroll/tax-settings">Tax Settings</router-link></li>
                     </ul>
                   </li>
                 </ul>

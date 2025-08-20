@@ -314,10 +314,25 @@ const routes = [
           title: 'Employee Salary'
         }
       },
+      {
+        path: "add-employee-salary",
+        component: lazyView('pages/finance-accounts/payroll/add-employee-salary'),
+        meta: {
+          title: 'Add Employee Salary'
+        }
+      },
       { path: "payslip", component: lazyView('pages/finance-accounts/payroll/payslip-index') },
       { path: "payroll", component: lazyView('pages/finance-accounts/payroll/payroll-additions') },
       { path: "payroll-overtime", component: lazyView('pages/finance-accounts/payroll/payroll-overtime') },
       { path: "payroll-deduction", component: lazyView('pages/finance-accounts/payroll/payroll-deduction') },
+      {
+        path: "tax-settings",
+        component: lazyView('pages/finance-accounts/payroll/tax-settings'),
+        meta: {
+          title: 'Tax Settings',
+          requiresAuth: true
+        }
+      },
     ]
   },
   {

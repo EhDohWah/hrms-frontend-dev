@@ -25,13 +25,19 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="candidateName" class="form-label">Candidate Name</label>
-                  <input type="text" class="form-control" id="candidateName" v-model="formData.candidate_name" required
-                    @input="handleFormChange" />
+                  <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.candidate_name }"
+                    id="candidateName" v-model="formData.candidate_name" required @input="handleFormChange" />
+                  <div v-if="validationErrors.candidate_name" class="invalid-feedback">
+                    {{ validationErrors.candidate_name }}
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label for="jobPosition" class="form-label">Job Position</label>
-                  <input type="text" class="form-control" id="jobPosition" v-model="formData.job_position" required
-                    @input="handleFormChange" />
+                  <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.job_position }"
+                    id="jobPosition" v-model="formData.job_position" required @input="handleFormChange" />
+                  <div v-if="validationErrors.job_position" class="invalid-feedback">
+                    {{ validationErrors.job_position }}
+                  </div>
                 </div>
 
                 <div class="mb-3">
@@ -66,8 +72,16 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="phone" class="form-label">Phone</label>
-                  <input type="text" class="form-control" id="phone" v-model="formData.phone" required
-                    @input="handleFormChange" />
+                  <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.phone }" id="phone"
+                    v-model="formData.phone" required @input="handlePhoneInput" @blur="validatePhone"
+                    placeholder="Enter 10 digits (Thai) or 11 digits (Myanmar)" />
+                  <div v-if="validationErrors.phone" class="invalid-feedback">
+                    {{ validationErrors.phone }}
+                  </div>
+                  <div class="form-text">
+                    <small>Thai numbers: 10 digits (e.g., 0812345678) | Myanmar numbers: 11 digits (e.g.,
+                      09123456789)</small>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label for="startTime" class="form-label">Start Time</label>
@@ -87,8 +101,15 @@
                 </div>
                 <div class="mb-3">
                   <label for="score" class="form-label">Score</label>
-                  <input type="number" class="form-control" id="score" v-model="formData.score" min="0" max="100"
-                    @input="handleFormChange" />
+                  <input type="number" class="form-control" :class="{ 'is-invalid': validationErrors.score }" id="score"
+                    v-model="formData.score" min="0" max="100" step="0.01" @input="handleScoreInput"
+                    @blur="validateScore" placeholder="Enter score between 0-100" />
+                  <div v-if="validationErrors.score" class="invalid-feedback">
+                    {{ validationErrors.score }}
+                  </div>
+                  <div class="form-text">
+                    <small>Enter a numeric score between 0 and 100 (decimals allowed)</small>
+                  </div>
                 </div>
                 <div class="mb-3">
                   <label for="hiredStatus" class="form-label">Hired Status</label>
@@ -141,7 +162,7 @@
 
 <script>
 import { Modal } from 'bootstrap';
-import { ref, createVNode, nextTick } from 'vue';
+import { createVNode, nextTick } from 'vue';
 import { message, Modal as AntModal } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { useInterviewStore } from '@/stores/interviewStore';
@@ -149,21 +170,19 @@ import { useFormPersistenceStore } from '@/stores/formPersistenceStore';
 
 export default {
   name: 'InterviewModal',
-  setup() {
-    const editMode = ref(false);
-    const interviewData = ref(null);
-    const alertMessage = ref('');
-    const alertClass = ref('');
-
-    return {
-      editMode,
-      interviewData,
-      alertMessage,
-      alertClass
-    };
-  },
   data() {
     return {
+      // Properties moved from setup()
+      editMode: false,
+      interviewData: null,
+      alertMessage: '',
+      alertClass: '',
+
+      // Store instances (initialized in created())
+      interviewStore: null,
+      formPersistenceStore: null,
+
+      // Existing properties
       formData: {
         id: null,
         candidate_name: '',
@@ -197,7 +216,11 @@ export default {
       restoredDataNotification: {
         show: false,
         timestamp: null
-      }
+      },
+
+      // Form validation
+      validationErrors: {},
+      isValidating: false
     };
   },
 
@@ -233,6 +256,10 @@ export default {
 
   async created() {
     try {
+      // Initialize stores
+      this.interviewStore = useInterviewStore();
+      this.formPersistenceStore = useFormPersistenceStore();
+
       // Mark component as ready
       this.isComponentReady = true;
     } catch (error) {
@@ -295,6 +322,122 @@ export default {
   },
 
   methods: {
+    // Form Validation Methods
+    validatePhone() {
+      const phone = this.formData.phone;
+
+      if (!phone || phone.trim() === '') {
+        this.validationErrors.phone = 'Phone number is required';
+        return false;
+      }
+
+      // Remove all non-digit characters for validation
+      const cleanPhone = phone.replace(/\D/g, '');
+
+      // Check length: 10 for Thai, 11 for Myanmar
+      if (cleanPhone.length === 10) {
+        // Thai phone number validation (starts with 0)
+        if (!cleanPhone.startsWith('0')) {
+          this.validationErrors.phone = 'Thai phone number must start with 0';
+          return false;
+        }
+      } else if (cleanPhone.length === 11) {
+        // Myanmar phone number validation (starts with 09)
+        if (!cleanPhone.startsWith('09')) {
+          this.validationErrors.phone = 'Myanmar phone number must start with 09';
+          return false;
+        }
+      } else {
+        this.validationErrors.phone = 'Phone number must be 10 digits (Thai) or 11 digits (Myanmar)';
+        return false;
+      }
+
+      // Clear error if validation passes
+      delete this.validationErrors.phone;
+      return true;
+    },
+
+    validateScore() {
+      const score = this.formData.score;
+
+      // Score is optional, so empty is valid
+      if (!score || score === '') {
+        delete this.validationErrors.score;
+        return true;
+      }
+
+      const numericScore = parseFloat(score);
+
+      // Check if it's a valid number
+      if (isNaN(numericScore)) {
+        this.validationErrors.score = 'Score must be a valid number';
+        return false;
+      }
+
+      // Check range 0-100
+      if (numericScore < 0 || numericScore > 100) {
+        this.validationErrors.score = 'Score must be between 0 and 100';
+        return false;
+      }
+
+      // Clear error if validation passes
+      delete this.validationErrors.score;
+      return true;
+    },
+
+    validateForm() {
+      let isValid = true;
+
+      // Validate required fields
+      if (!this.formData.candidate_name || this.formData.candidate_name.trim() === '') {
+        this.validationErrors.candidate_name = 'Candidate name is required';
+        isValid = false;
+      } else {
+        delete this.validationErrors.candidate_name;
+      }
+
+      if (!this.formData.job_position || this.formData.job_position.trim() === '') {
+        this.validationErrors.job_position = 'Job position is required';
+        isValid = false;
+      } else {
+        delete this.validationErrors.job_position;
+      }
+
+      // Validate phone and score
+      const phoneValid = this.validatePhone();
+      const scoreValid = this.validateScore();
+
+      return isValid && phoneValid && scoreValid;
+    },
+
+    handlePhoneInput(event) {
+      // Allow only digits, spaces, dashes, parentheses, and plus signs
+      const value = event.target.value;
+      const cleanValue = value.replace(/[^\d\s\-\(\)\+]/g, '');
+
+      if (value !== cleanValue) {
+        this.formData.phone = cleanValue;
+      }
+
+      // Clear validation error on input
+      if (this.validationErrors.phone) {
+        delete this.validationErrors.phone;
+      }
+
+      this.handleFormChange();
+    },
+
+    handleScoreInput(event) {
+      const value = event.target.value;
+
+      // Clear validation error on input
+      if (this.validationErrors.score) {
+        delete this.validationErrors.score;
+      }
+
+      this.handleFormChange();
+    },
+
     // Called when modal is shown
     onModalShown() {
       if (this.editMode && this.interviewData) {
@@ -387,7 +530,6 @@ export default {
       if (this.isDestroyed || !this.isComponentReady) return;
 
       try {
-        const formStore = useFormPersistenceStore();
         const draftData = {
           formData: { ...this.formData },
           originalFormData: { ...this.originalFormData },
@@ -404,7 +546,7 @@ export default {
         }
 
         const key = this.editMode ? `interviewEditForm_${this.formData.id}` : 'interviewForm';
-        formStore.saveFormSection('interview', key, draftData);
+        this.formPersistenceStore.saveFormSection('interview', key, draftData);
         console.log('💾 Interview form draft saved automatically');
       } catch (error) {
         console.error('❌ Error saving interview form draft:', error);
@@ -413,8 +555,7 @@ export default {
 
     loadFormDraft() {
       try {
-        const formStore = useFormPersistenceStore();
-        const savedData = formStore.checkForSavedData('interview');
+        const savedData = this.formPersistenceStore.checkForSavedData('interview');
 
         if (savedData.hasSavedData) {
           const key = this.editMode ? `interviewEditForm_${this.formData.id}` : 'interviewForm';
@@ -458,9 +599,8 @@ export default {
 
     clearFormDraft() {
       try {
-        const formStore = useFormPersistenceStore();
         const key = this.editMode ? `interviewEditForm_${this.formData.id}` : 'interviewForm';
-        formStore.clearFormSection('interview', key);
+        this.formPersistenceStore.clearFormSection('interview', key);
         console.log('🗑️ Interview form draft cleared');
       } catch (error) {
         console.error('❌ Error clearing interview form draft:', error);
@@ -649,6 +789,13 @@ export default {
     },
 
     async handleSubmit() {
+      // Validate form before submission
+      if (!this.validateForm()) {
+        this.alertMessage = 'Please fix the validation errors before submitting.';
+        this.alertClass = 'alert-danger';
+        return;
+      }
+
       this.isSubmitting = true;
       this.alertMessage = ''; // Reset alert message
       try {
@@ -661,13 +808,11 @@ export default {
           formattedData.end_time = this.formatTimeWithSeconds(formattedData.end_time);
         }
 
-        const interviewStore = useInterviewStore();
-
         let response;
         if (this.editMode) {
-          response = await interviewStore.updateInterview(this.formData.id, formattedData);
+          response = await this.interviewStore.updateInterview(this.formData.id, formattedData);
         } else {
-          response = await interviewStore.createInterview(formattedData);
+          response = await this.interviewStore.createInterview(formattedData);
         }
 
         if (!response.success) {
@@ -740,6 +885,11 @@ export default {
       };
       this.originalFormData = {};
       this.isDraftMode = false;
+
+      // Clear validation errors
+      this.validationErrors = {};
+      this.alertMessage = '';
+      this.alertClass = '';
       this.hasUnsavedChanges = false;
       this.restoredDataNotification.show = false;
       this.restoredDataNotification.timestamp = null;

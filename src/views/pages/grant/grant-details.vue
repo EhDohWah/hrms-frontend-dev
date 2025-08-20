@@ -60,7 +60,7 @@
                 <div class="table-responsive-custom">
                   <a-table :columns="grantItemColumns" :dataSource="grant.items" :rowKey="record => record.id" bordered
                     size="small" :pagination="false" :expandable="expandableConfig" class="grant-items-table"
-                    :scroll="{ x: 1300 }" :loading="{ spinning: loading, indicator: loadingIndicator }">
+                    :loading="{ spinning: loading, indicator: loadingIndicator }">
                     <template #expandedRowRender="{ record }">
                       <div class="expanded-row-content">
                         <div class="slot-header">

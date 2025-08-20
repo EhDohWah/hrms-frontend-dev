@@ -28,12 +28,17 @@
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
                     <h5>Job Offers List</h5>
-                    <!-- Table Operations -->
-                    <div class="table-operations">
-                        <a-button @click="clearFilters">Clear filters</a-button>
-                        <a-button @click="clearAll">Clear filters and sorters</a-button>
+                    <div class="d-flex align-items-center flex-wrap row-gap-2">
+                        <div class="me-2">
+                            <a-button class="me-2" @click="clearFilters">Clear filters</a-button>
+                            <a-button @click="clearAll">Clear filters and sorters</a-button>
+                        </div>
+                        <div class="input-icon-end">
+                            <a-input-search v-model:value="searchCandidateName" placeholder="Enter candidate name..."
+                                :loading="searchLoading" enter-button="Search" @search="handleCandidateNameSearch"
+                                style="width: 250px;" class="search-input-primary" />
+                        </div>
                     </div>
-                    <!-- /Table Operations -->
                 </div>
                 <div class="card-body">
                     <div v-if="loading" class="text-center my-3">
@@ -43,7 +48,7 @@
                         <p class="mt-2">Loading job offers...</p>
                     </div>
                     <div v-else>
-                        <a-table :columns="columns" :data-source="tableData" :pagination="pagination"
+                        <a-table :columns="columns" :data-source="tableData" :pagination="false"
                             :scroll="{ x: 'max-content' }" row-key="id" @change="handleTableChange">
                             <template #bodyCell="{ column, record }">
                                 <template v-if="column.dataIndex === 'acceptance_status'">
@@ -74,6 +79,20 @@
                                 </template>
                             </template>
                         </a-table>
+
+                        <!-- SEPARATE PAGINATION COMPONENT -->
+                        <div class="pagination-wrapper">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="pagination-info">
+                                    <!-- Optional: Additional info can go here -->
+                                </div>
+                                <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
+                                    :show-size-changer="true" :show-quick-jumper="true"
+                                    :page-size-options="['10', '20', '50', '100']"
+                                    :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                                    @change="handlePaginationChange" @show-size-change="handleSizeChange" />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -127,22 +146,12 @@ export default {
         const total = ref(0);
         const jobOfferStore = useJobOfferStore();
 
-        const pagination = computed(() => ({
-            total: total.value,
-            current: currentPage.value,
-            pageSize: pageSize.value,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50', '100'],
-            showTotal: (total) => `Total ${total} items`
-        }));
-
         return {
             filteredInfo,
             sortedInfo,
             currentPage,
             pageSize,
             total,
-            pagination,
             jobOfferStore,
         };
     },
@@ -157,7 +166,9 @@ export default {
             notificationTitle: '',
             notificationMessage: '',
             notificationClass: '',
-            pdfUrl: null
+            pdfUrl: null,
+            searchCandidateName: '',
+            searchLoading: false
         };
     },
     computed: {
@@ -166,61 +177,47 @@ export default {
             const sorted = this.sortedInfo || {};
 
             return [
-
-                {
-                    title: '#ID',
-                    dataIndex: 'id',
-                    key: 'id',
-                    sorter: (a, b) => a.id - b.id,
-                    sortOrder: sorted.columnKey === 'id' && sorted.order,
-                },
                 {
                     title: 'Job Offer ID',
                     dataIndex: 'custom_offer_id',
                     key: 'custom_offer_id',
-                    filters: this.getUniqueValues('custom_offer_id'),
-                    filteredValue: filtered.custom_offer_id || null,
-                    onFilter: (value, record) => record.custom_offer_id.includes(value),
-                    sorter: (a, b) => a.custom_offer_id.localeCompare(b.custom_offer_id),
-                    sortOrder: sorted.columnKey === 'custom_offer_id' && sorted.order,
-                    filterSearch: true,
+                    sorter: true,
+                    sortOrder: sorted.columnKey === 'custom_offer_id' && sorted.order
                 },
-
                 {
                     title: 'Candidate Name',
                     dataIndex: 'candidate_name',
                     key: 'candidate_name',
-                    filters: this.getUniqueValues('candidate_name'),
-                    filteredValue: filtered.candidate_name || null,
-                    onFilter: (value, record) => record.candidate_name.includes(value),
-                    sorter: (a, b) => a.candidate_name.localeCompare(b.candidate_name),
-                    sortOrder: sorted.columnKey === 'candidate_name' && sorted.order,
-                    filterSearch: true,
+                    sorter: true,
+                    sortOrder: sorted.columnKey === 'candidate_name' && sorted.order
                 },
                 {
                     title: 'Position',
                     dataIndex: 'position_name',
                     key: 'position_name',
-                    filters: this.getUniqueValues('position_name'),
+                    filters: [
+                        { text: 'HR Manager', value: 'HR Manager' },
+                        { text: 'Software Developer', value: 'Software Developer' },
+                        { text: 'Data Analyst', value: 'Data Analyst' },
+                        { text: 'Project Manager', value: 'Project Manager' }
+                    ],
                     filteredValue: filtered.position_name || null,
-                    onFilter: (value, record) => record.position_name.includes(value),
-                    sorter: (a, b) => a.position_name.localeCompare(b.position_name),
-                    sortOrder: sorted.columnKey === 'position_name' && sorted.order,
-                    filterSearch: true,
+                    sorter: true,
+                    sortOrder: sorted.columnKey === 'position_name' && sorted.order
                 },
                 {
                     title: 'Date',
                     dataIndex: 'date',
                     key: 'date',
-                    sorter: (a, b) => moment(a.date).unix() - moment(b.date).unix(),
-                    sortOrder: sorted.columnKey === 'date' && sorted.order,
+                    sorter: true,
+                    sortOrder: sorted.columnKey === 'date' && sorted.order
                 },
                 {
                     title: 'Deadline',
                     dataIndex: 'acceptance_deadline',
                     key: 'acceptance_deadline',
-                    sorter: (a, b) => moment(a.acceptance_deadline).unix() - moment(b.acceptance_deadline).unix(),
-                    sortOrder: sorted.columnKey === 'acceptance_deadline' && sorted.order,
+                    sorter: true,
+                    sortOrder: sorted.columnKey === 'acceptance_deadline' && sorted.order
                 },
                 {
                     title: 'Status',
@@ -229,17 +226,17 @@ export default {
                     filters: [
                         { text: 'Pending', value: 'pending' },
                         { text: 'Accepted', value: 'accepted' },
-                        { text: 'Rejected', value: 'rejected' },
+                        { text: 'Rejected', value: 'rejected' }
                     ],
                     filteredValue: filtered.acceptance_status || null,
-                    onFilter: (value, record) => record.acceptance_status === value,
-                    sorter: (a, b) => a.acceptance_status.localeCompare(b.acceptance_status),
-                    sortOrder: sorted.columnKey === 'acceptance_status' && sorted.order,
+                    sorter: true,
+                    sortOrder: sorted.columnKey === 'acceptance_status' && sorted.order
                 },
                 {
                     title: 'Actions',
                     dataIndex: 'actions',
                     key: 'actions',
+                    fixed: 'right'
                 }
             ];
         },
@@ -313,45 +310,222 @@ export default {
             }
         },
 
-        getUniqueValues(field) {
-            const values = [...new Set(this.jobOffers.map(item => item[field]))].filter(Boolean);
-            return values.map(value => ({ text: value, value }));
+
+
+        // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING
+        handlePaginationChange(page, pageSize) {
+            console.log('Pagination change:', page, pageSize);
+            this.currentPage = page;
+            this.pageSize = pageSize || this.pageSize;
+
+            // Build complete parameters preserving current filters and sorting
+            const params = this.buildApiParams({
+                page: page,
+                per_page: this.pageSize
+            });
+
+            this.fetchJobOffers(params);
         },
 
+        handleSizeChange(current, size) {
+            console.log('Size change:', current, size);
+            this.currentPage = 1; // Reset to first page when changing page size
+            this.pageSize = size;
+
+            // Build complete parameters preserving current filters and sorting
+            const params = this.buildApiParams({
+                page: 1,
+                per_page: size
+            });
+
+            this.fetchJobOffers(params);
+        },
+
+        // Helper method to build complete API parameters
+        buildApiParams(baseParams = {}) {
+            const params = {
+                page: this.currentPage,
+                per_page: this.pageSize,
+                ...baseParams
+            };
+
+            // Add sorting parameters
+            if (this.sortedInfo && this.sortedInfo.field) {
+                const sortField = this.mapSortField(this.sortedInfo.field);
+                params.sort_by = sortField;
+                params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
+            }
+
+            // Add filter parameters
+            if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
+                if (this.filteredInfo.position_name && this.filteredInfo.position_name.length > 0) {
+                    params.filter_position = this.filteredInfo.position_name.join(',');
+                }
+                if (this.filteredInfo.acceptance_status && this.filteredInfo.acceptance_status.length > 0) {
+                    params.filter_status = this.filteredInfo.acceptance_status.join(',');
+                }
+            }
+
+            return params;
+        },
+
+        // TABLE CHANGE HANDLER (for sorting/filtering only)
         handleTableChange(pagination, filters, sorter) {
-            console.log('Various parameters', pagination, filters, sorter);
-            this.currentPage = pagination.current;
-            this.pageSize = pagination.pageSize;
+            console.log('Table change (sorting/filtering):', filters, sorter);
+
+            // Check if there's actually a meaningful change
+            const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
+            const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
+
+            // Only proceed if there's an actual filter or sort change
+            if (!hasFilterChange && !hasSorterChange) {
+                console.log('No meaningful change detected, skipping reload');
+                return;
+            }
+
+            // Update filter and sort state
             this.filteredInfo = filters;
             this.sortedInfo = sorter;
+
+            // Reset to first page when filter/sort changes
+            this.currentPage = 1;
+
+            // Build complete parameters
+            const params = this.buildApiParams({
+                page: 1,
+                per_page: this.pageSize
+            });
+
+            // Fetch job offers with new parameters
+            this.fetchJobOffers(params);
+        },
+
+        // Map frontend table field names to backend field names
+        mapSortField(field) {
+            const fieldMapping = {
+                'custom_offer_id': 'job_offer_id',
+                'candidate_name': 'candidate_name',
+                'position_name': 'position',
+                'date': 'date',
+                'acceptance_deadline': 'acceptance_deadline',
+                'acceptance_status': 'status'
+            };
+            return fieldMapping[field] || field;
         },
 
         clearFilters() {
-            this.filteredInfo = null;
+            this.filteredInfo = {};
+            this.currentPage = 1;
+
+            const params = this.buildApiParams({
+                page: 1,
+                per_page: this.pageSize
+            });
+
+            this.fetchJobOffers(params);
         },
 
         clearAll() {
-            this.filteredInfo = null;
-            this.sortedInfo = null;
+            this.filteredInfo = {};
+            this.sortedInfo = {};
+            this.searchCandidateName = '';
+            this.currentPage = 1;
+
+            const params = this.buildApiParams({
+                page: 1,
+                per_page: this.pageSize
+            });
+
+            this.fetchJobOffers(params);
         },
 
-        async fetchJobOffers() {
-            this.loading = true;
+        async handleCandidateNameSearch() {
+            // Validation: Check if search input is empty
+            if (!this.searchCandidateName || this.searchCandidateName.trim() === '') {
+                this.$message.warning('Please enter a candidate name to search');
+                return;
+            }
 
+            this.searchLoading = true;
             try {
-                await this.jobOfferStore.fetchJobOffers();
+                const response = await jobOfferService.searchByCandidateName(this.searchCandidateName);
 
-                if (this.jobOfferStore.jobOffers) {
-                    this.jobOffers = this.jobOfferStore.jobOffers.map(jobOffer => ({
+                // Check if the API returned success
+                if (response.success === true && response.data) {
+                    const jobOffersData = Array.isArray(response.data) ? response.data : [response.data];
+
+                    // Format the job offers data
+                    this.jobOffers = jobOffersData.map(jobOffer => ({
                         ...jobOffer,
                         date: jobOffer.date ? moment(jobOffer.date).format('YYYY-MM-DD') : '',
                         acceptance_deadline: jobOffer.acceptance_deadline ? moment(jobOffer.acceptance_deadline).format('YYYY-MM-DD') : ''
                     }));
-                    this.total = this.jobOffers.length;
+
+                    // Update the pagination properties
+                    this.total = jobOffersData.length;
+                    this.currentPage = 1;
+                    this.$message.success(response.message || 'Job offers found successfully');
+                } else {
+                    // Handle API response with success: false (404 - Not found)
+                    this.jobOffers = [];
+                    this.total = 0;
+                    this.$message.warning(response.message || 'No job offers found for this candidate');
+                }
+
+                return response;
+            } catch (error) {
+                // Only network errors, auth errors, or parsing errors reach here
+                console.error('Error searching job offers by candidate name:', error);
+                this.$message.error('Network error: Failed to search job offers by candidate name');
+                // Clear job offers on error
+                this.jobOffers = [];
+                this.total = 0;
+            } finally {
+                this.searchLoading = false;
+            }
+        },
+
+        async fetchJobOffers(params = {}) {
+            this.loading = true;
+            try {
+                const queryParams = {
+                    page: params.page || this.currentPage || 1,
+                    per_page: params.per_page || this.pageSize,
+                    ...params
+                };
+
+                // Use the advanced paginated method for better server-side support
+                const response = await jobOfferService.getAdvancedPaginatedJobOffers(queryParams);
+
+                if (response.success && response.data) {
+                    const jobOffersData = response.data;
+
+                    this.jobOffers = jobOffersData.map(jobOffer => ({
+                        ...jobOffer,
+                        date: jobOffer.date ? moment(jobOffer.date).format('YYYY-MM-DD') : '',
+                        acceptance_deadline: jobOffer.acceptance_deadline ? moment(jobOffer.acceptance_deadline).format('YYYY-MM-DD') : ''
+                    }));
+
+                    // Update pagination properties from server response
+                    if (response.pagination) {
+                        this.total = response.pagination.total;
+                        this.currentPage = response.pagination.current_page;
+                        this.pageSize = response.pagination.per_page;
+                    } else {
+                        this.total = response.data.length;
+                        this.currentPage = 1;
+                    }
+
                     this.$message.success('Job offers loaded successfully');
+                } else {
+                    this.jobOffers = [];
+                    this.total = 0;
+                    this.$message.error('No job offers data received');
                 }
             } catch (error) {
                 console.error('Error fetching job offers:', error);
+                this.jobOffers = [];
+                this.total = 0;
                 this.$message.error('Failed to load job offers');
             } finally {
                 this.loading = false;
@@ -440,5 +614,110 @@ export default {
     justify-content: center;
     font-size: 14px;
     min-width: 80px;
+}
+
+/* Primary color styling for search input button */
+.search-input-primary :deep(.ant-input-search-button) {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:hover) {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:focus) {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Pagination wrapper styling */
+.pagination-wrapper {
+    margin-top: 20px;
+    padding: 20px 16px;
+    border-top: 1px solid #e8e8e8;
+    position: relative;
+    z-index: 100;
+}
+
+.pagination-info {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Ensure pagination is not overlapping */
+.resize-observer-fix {
+    position: relative;
+    min-height: 100px;
+}
+
+/* Ant Design pagination customization */
+:deep(.ant-pagination) {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+:deep(.ant-pagination-total-text) {
+    margin-right: 16px;
+    color: #666;
+    font-size: 14px;
+}
+
+:deep(.ant-pagination-options) {
+    margin-left: 16px;
+}
+
+:deep(.ant-pagination-options-size-changer) {
+    margin-right: 8px;
+}
+
+:deep(.ant-pagination-options-quick-jumper) {
+    margin-left: 8px;
+}
+
+/* Fix dropdown placement - force dropdown to appear above */
+:deep(.ant-pagination-options-size-changer .ant-select) {
+    z-index: 1000;
+}
+
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+    z-index: 1050 !important;
+    top: auto !important;
+    bottom: calc(100% + 4px) !important;
+}
+
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+    z-index: 1050 !important;
+}
+
+/* Ensure pagination dropdowns appear above */
+.pagination-wrapper {
+    position: relative;
+    z-index: 100;
+}
+
+/* Override Ant Design dropdown placement */
+:deep(.ant-pagination .ant-select-dropdown) {
+    position: absolute !important;
+    bottom: calc(100% + 4px) !important;
+    top: auto !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Container overflow fixes */
+.card-body {
+    overflow: visible !important;
+    padding-bottom: 0;
+}
+
+.card {
+    overflow: visible !important;
+    margin-bottom: 20px;
 }
 </style>

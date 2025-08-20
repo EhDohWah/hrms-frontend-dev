@@ -37,43 +37,44 @@ class EmployeeService {
 
     // Get all employees with pagination and filtering support
     async getEmployees(params = {}) {
-        // Extract all possible parameters with defaults
-        const {
-            per_page = '',
-            staff_id = '',
-            status = '',
-            id_type = '',
-            subsidiary = '',
-            gender = '',
-            date_of_birth = '',
-            sort_by = '',
-            sort_order = ''
-        } = params;
+        try {
+            // Build query parameters object, including the missing 'page' parameter
+            const queryParams = new URLSearchParams();
 
-        // Build query parameters object
-        const queryParams = new URLSearchParams();
-        queryParams.append('per_page', per_page);
+            // Add all parameters from params object
+            Object.keys(params).forEach(key => {
+                if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                    queryParams.append(key, params[key]);
+                }
+            });
 
-        // Only add non-empty filter parameters
-        if (staff_id) queryParams.append('staff_id', staff_id);
-        if (status) queryParams.append('status', status);
-        if (id_type) queryParams.append('id_type', id_type);
-        if (subsidiary) queryParams.append('subsidiary', subsidiary);
-        if (gender) queryParams.append('gender', gender);
-        if (date_of_birth) queryParams.append('date_of_birth', date_of_birth);
-        if (sort_by) queryParams.append('sort_by', sort_by);
-        if (sort_order) queryParams.append('sort_order', sort_order);
+            // Use the base endpoint without the query parameters that are already in the URL
+            const endpoint = API_ENDPOINTS.EMPLOYEE.LIST.split('?')[0];
 
-        // Use the base endpoint without the query parameters that are already in the URL
-        const endpoint = API_ENDPOINTS.EMPLOYEE.LIST.split('?')[0];
-
-        return await apiService.get(`${endpoint}?${queryParams.toString()}`);
+            const response = await apiService.get(`${endpoint}?${queryParams.toString()}`);
+            return response; // This should return the full API response including pagination metadata
+        } catch (error) {
+            console.error('Error fetching employees:', error);
+            throw error;
+        }
     }
 
-    // Get single employee
+    // Get single employee (handles 404 as valid response like grantService)
     async getSingleEmployee(staffId) {
         const endpoint = API_ENDPOINTS.EMPLOYEE.SINGLE.replace(':staffId', staffId);
-        return await apiService.get(endpoint);
+
+        try {
+            // Use the regular API service
+            return await apiService.get(endpoint);
+        } catch (error) {
+            // Check if it's a 404 error with employee not found response
+            if (error.response && error.response.status === 404 && error.response.data) {
+                // Return the 404 response data as a valid response (not an error)
+                return error.response.data;
+            }
+            // For other errors (network, auth, etc.), re-throw the error
+            throw error;
+        }
     }
 
     // Get employee details

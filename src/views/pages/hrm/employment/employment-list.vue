@@ -8,24 +8,11 @@
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <!-- Add Employment Button -->
           <div class="mb-2 me-2">
-            <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
-              @click="openAddEmploymentModal">
+            <button class="btn btn-primary d-flex align-items-center" @click="openAddEmploymentModal">
               <i class="ti ti-circle-plus me-2"></i>Add Employment
-            </a>
+            </button>
           </div>
-
-
-
-          <!-- Delete Selected Employments Button -->
-          <div class="mb-2 me-2">
-            <a href="javascript:void(0);" class="btn btn-danger d-flex align-items-center"
-              @click="confirmDeleteSelectedEmployments" :class="{ 'disabled': selectedRowKeys.length === 0 }">
-              <i class="ti ti-trash me-2"></i>Delete Selected
-            </a>
-          </div>
-
           <div class="head-icons ms-2">
             <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
               data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
@@ -39,228 +26,214 @@
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Employment List</h5>
-          <div class="table-operations">
-            <a-button @click="clearFilters">Clear filters</a-button>
-            <a-button @click="clearAll">Clear filters and sorters</a-button>
+          <div class="d-flex align-items-center flex-wrap row-gap-2">
+            <div class="me-2">
+              <a-button class="me-2" @click="clearFilters">Clear filters</a-button>
+              <a-button @click="clearAll">Clear filters and sorters</a-button>
+            </div>
+            <div class="input-icon-end">
+              <a-input-search v-model:value="searchStaffId" placeholder="Enter staff ID..." :loading="searchLoading"
+                enter-button="Search" @search="handleStaffIdSearch" style="width: 250px;"
+                class="search-input-primary" />
+            </div>
           </div>
         </div>
         <div class="card-body">
-          <div class="custom-datatable-filter table-responsive">
-            <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
-              <div class="row">
-                <div class="col-sm-12 col-md-6">
-                  <div class="dataTables_length" id="DataTables_Table_0_length">
-                    <label>
-                      Row Per Page
-                      <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0"
-                        class="form-select form-select-sm" v-model.number="perPage"
-                        @change="handlePerPageChange($event)">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                        <option :value="totalEmployees">All</option>
-                      </select>
-                      Entries
-                    </label>
-                  </div>
-                </div>
-                <div class="col-sm-12 col-md-6">
-                  <div id="DataTables_Table_0_filter" class="dataTables_filter text-end me-3">
-                    <label>
-                      STAFF ID SEARCH:
-                      <input type="search" class="form-control form-control-sm d-inline-block w-auto"
-                        placeholder="Search" aria-controls="DataTables_Table_0" v-model="searchStaffId">
-                      <button class="btn btn-sm btn-primary ms-2" @click="handleStaffIdSearch">Search</button>
-                    </label>
-                  </div>
-                </div>
-              </div>
+          <div v-if="loading" class="text-center my-3">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
             </div>
-
-            <div v-if="loading" class="text-center my-3">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-2">Loading employment records...</p>
-            </div>
-            <div v-else>
-              <a-table :columns="columns" :data-source="tableData" :pagination="pagination"
-                :scroll="{ x: 'max-content' }" row-key="id" @change="handleTableChange"
-                :rowSelection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange }">
-                <template #bodyCell="{ column, record }">
-                  <!-- Subsidiary column -->
-                  <template v-if="column.key === 'subsidiary'">
-                    <span :class="[
-                      'badge badge-sm fw-normal',
-                      record.subsidiary === 'SMRU' ? 'badge-primary' :
-                        record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
-                          'badge-secondary'
-                    ]">
-                      {{ record.subsidiary }}
-                    </span>
-                  </template>
-
-                  <template v-else-if="column.dataIndex === 'actions'">
-                    <div class="action-icon d-inline-flex">
-                      <a href="javascript:void(0);" class="me-2" @click="openEditEmploymentModal(record)">
-                        <i class="ti ti-edit"></i>
-                      </a>
-                      <a href="javascript:void(0);" @click="deleteEmployment(record.id)">
-                        <i class="ti ti-trash"></i>
-                      </a>
-                    </div>
-                  </template>
-                  <template v-else-if="column.dataIndex === 'salary'">
-                    {{ formatCurrency(record.salary) }}
-                  </template>
-                  <template v-else-if="column.dataIndex === 'start_date' || column.dataIndex === 'end_date'">
-                    {{ formatDate(record[column.dataIndex]) }}
-                  </template>
-                  <template v-else-if="column.dataIndex === 'status'">
-                    <span :class="record.active ? 'badge bg-success' : 'badge bg-danger'">
-                      {{ record.active ? 'Active' : 'Inactive' }}
-                    </span>
-                  </template>
-                  <template v-else>
-                    {{ record[column.dataIndex] }}
-                  </template>
+            <p class="mt-2">Loading employments...</p>
+          </div>
+          <div v-else class="resize-observer-fix">
+            <!-- TABLE WITHOUT PAGINATION -->
+            <a-table :columns="columns" :data-source="tableData" :pagination="false" :scroll="{ x: 'max-content' }"
+              row-key="id" @change="handleTableChange">
+              <!-- Custom cell rendering -->
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.dataIndex === 'actions'">
+                  <div class="action-icon d-inline-flex">
+                    <a href="javascript:void(0);" class="me-2" @click="openEditEmploymentModal(record)">
+                      <i class="ti ti-edit"></i>
+                    </a>
+                    <a href="javascript:void(0);" class="text-danger" @click="confirmDeleteEmployment(record.id)">
+                      <i class="ti ti-trash"></i>
+                    </a>
+                  </div>
                 </template>
-              </a-table>
+
+                <template v-else-if="column.dataIndex === 'department_position'">
+                  <span v-if="record.department_position">
+                    {{ record.department_position.department }} - {{ record.department_position.position }}
+                  </span>
+                  <span v-else class="text-muted">-</span>
+                </template>
+                <template v-else-if="column.dataIndex === 'work_location'">
+                  {{ record.work_location || '-' }}
+                </template>
+                <template v-else-if="column.dataIndex === 'employee_name'">
+                  <span v-if="record.employee">
+                    {{ record.employee.first_name_en }} {{ record.employee.last_name_en }}
+                  </span>
+                  <span v-else class="text-muted">-</span>
+                </template>
+                <template v-else-if="column.dataIndex === 'staff_id'">
+                  <span v-if="record.employee">
+                    {{ record.employee.staff_id }}
+                  </span>
+                  <span v-else class="text-muted">-</span>
+                </template>
+                <template v-else-if="column.dataIndex === 'subsidiary'">
+                  <span v-if="record.employee" :class="[
+                    'badge badge-sm fw-normal',
+                    record.employee.subsidiary === 'SMRU' ? 'badge-primary' :
+                      record.employee.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                        'badge-secondary'
+                  ]">
+                    {{ record.employee.subsidiary }}
+                  </span>
+                  <span v-else class="text-muted">-</span>
+                </template>
+                <template v-else-if="column.dataIndex === 'salary' || column.dataIndex === 'probation_salary'">
+                  {{ formatCurrency(record[column.dataIndex]) }}
+                </template>
+                <template
+                  v-else-if="column.dataIndex === 'start_date' || column.dataIndex === 'end_date' || column.dataIndex === 'probation_pass_date'">
+                  {{ formatDate(record[column.dataIndex]) }}
+                </template>
+                <template v-else-if="column.dataIndex === 'status'">
+                  <span :class="[
+                    'badge',
+                    record.status === 'Active' ? 'bg-success' :
+                      record.status === 'Pending' ? 'bg-warning' :
+                        record.status === 'Expired' ? 'bg-danger' :
+                          'bg-secondary'
+                  ]">
+                    {{ record.status }}
+                  </span>
+                </template>
+              </template>
+            </a-table>
+
+            <!-- SEPARATE PAGINATION COMPONENT -->
+            <div class="pagination-wrapper">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                  <!-- Optional: Additional info can go here -->
+                </div>
+                <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
+                  :show-size-changer="true" :show-quick-jumper="true" :page-size-options="['10', '20', '50', '100']"
+                  :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                  @change="handlePaginationChange" @show-size-change="handleSizeChange" />
+              </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
-    <div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
-      <p class="mb-0">2014 - 2025 &copy; HRMS</p>
-      <p>
-        Designed &amp; Developed By
-        <a href="javascript:void(0);" class="text-primary">Dreams</a>
-      </p>
-    </div>
+    <layout-footer></layout-footer>
+  </div>
 
-    <!-- Employment Modal Component -->
-    <employment-modal ref="employmentModal" @employment-added="fetchEmployments"
-      @employment-updated="fetchEmployments" />
+  <!-- Employment Modal Component -->
+  <employment-modal ref="employmentModal" @employment-added="fetchEmployments" @employment-updated="fetchEmployments" />
 
-    <!-- Notification Toast -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-      <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header" :class="notificationClass">
-          <strong class="me-auto">{{ notificationTitle }}</strong>
-          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-          {{ notificationMessage }}
-        </div>
+  <!-- Notification Toast -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header" :class="notificationClass">
+        <strong class="me-auto">{{ notificationTitle }}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body">
+        {{ notificationMessage }}
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { message } from 'ant-design-vue';
-import { Modal as AntModal } from 'ant-design-vue';
-import { ref, computed } from 'vue';
-import moment from 'moment';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import EmploymentModal from '@/components/modal/employment-modal.vue';
+import LayoutHeader from '@/views/layouts/layout-header.vue';
+import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
+import LayoutFooter from '@/views/layouts/layout-footer.vue';
 import { employmentService } from '@/services/employment.service';
+import moment from 'moment';
+import { Modal } from 'ant-design-vue';
 
 export default {
   name: 'EmploymentList',
   components: {
-    EmploymentModal,
     indexBreadcrumb,
-  },
-  setup() {
-    const filteredInfo = ref({});
-    const sortedInfo = ref({});
-    const currentPage = ref(1);
-    const pageSize = ref(10);
-    const total = ref(0);
-    const selectedRowKeys = ref([]);
-
-    const pagination = computed(() => ({
-      total: total.value,
-      current: currentPage.value,
-      pageSize: pageSize.value,
-      showSizeChanger: true,
-      pageSizeOptions: ['10', '20', '50', '100'],
-      showTotal: (total) => `Total ${total} items`
-    }));
-
-    return {
-      filteredInfo,
-      sortedInfo,
-      currentPage,
-      pageSize,
-      total,
-      pagination,
-      perPage: 10,
-      selectedRowKeys,
-    };
+    EmploymentModal,
+    LayoutHeader,
+    LayoutSidebar,
+    LayoutFooter,
   },
   data() {
     return {
-      title: 'Employment Records',
+      title: 'Employments',
       text: 'HR Management',
       text1: 'Employment List',
-      employments: [],
-      loading: false,
+      searchStaffId: '',
       notificationTitle: '',
       notificationMessage: '',
       notificationClass: '',
-      searchStaffId: '',
-      totalEmployees: 0,
+
+      // Data properties matching grant-list
+      filteredInfo: {},
+      sortedInfo: {},
+      employments: [],
+      loading: false,
+      searchLoading: false,
+
+      // SEPARATE PAGINATION PROPERTIES
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
     };
   },
   computed: {
     columns() {
       const filtered = this.filteredInfo || {};
       const sorted = this.sortedInfo || {};
+
       return [
         {
           title: 'Subsidiary',
           dataIndex: 'subsidiary',
           key: 'subsidiary',
+          width: 150,
           filters: [
             { text: 'SMRU', value: 'SMRU' },
             { text: 'BHF', value: 'BHF' },
           ],
           filteredValue: filtered.subsidiary || null,
-          onFilter: (value, record) => record.subsidiary === value,
-          sorter: (a, b) => a.subsidiary.localeCompare(b.subsidiary),
+          sorter: true, // Enable server-side sorting
           sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
-          width: 120,
+          filterSearch: true
         },
         {
           title: 'Staff ID',
           dataIndex: 'staff_id',
           key: 'staff_id',
-          filters: this.getUniqueValues('staff_id'),
-          filteredValue: filtered.staff_id || null,
-          onFilter: (value, record) => record.staff_id.includes(value),
-          sorter: (a, b) => a.staff_id.localeCompare(b.staff_id),
-          sortOrder: sorted.columnKey === 'staff_id' && sorted.order,
+          width: 150,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'staff_id' && sorted.order
         },
         {
           title: 'Employee Name',
           dataIndex: 'employee_name',
           key: 'employee_name',
-          filters: this.getUniqueValues('employee_name'),
-          filteredValue: filtered.employee_name || null,
-          onFilter: (value, record) => record.employee_name.includes(value),
-          sorter: (a, b) => a.employee_name.localeCompare(b.employee_name),
-          sortOrder: sorted.columnKey === 'employee_name' && sorted.order,
-          filterSearch: true,
+          width: 200,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'employee_name' && sorted.order
         },
         {
           title: 'Employment Type',
           dataIndex: 'employment_type',
           key: 'employment_type',
+          width: 150,
           filters: [
             { text: 'Full-Time', value: 'Full-Time' },
             { text: 'Part-Time', value: 'Part-Time' },
@@ -269,85 +242,103 @@ export default {
             { text: 'Internship', value: 'Internship' },
           ],
           filteredValue: filtered.employment_type || null,
-          onFilter: (value, record) => record.employment_type === value,
-          sorter: (a, b) => a.employment_type.localeCompare(b.employment_type),
+          sorter: true, // Enable server-side sorting
           sortOrder: sorted.columnKey === 'employment_type' && sorted.order,
+          filterSearch: true
         },
         {
           title: 'Department Position',
           dataIndex: 'department_position',
           key: 'department_position',
-          filters: this.getUniqueValues('department_position'),
-          filteredValue: filtered.department_position || null,
-          onFilter: (value, record) => record.department_position.includes(value),
-          sorter: (a, b) => a.department_position.localeCompare(b.department_position),
-          sortOrder: sorted.columnKey === 'department_position' && sorted.order,
-          filterSearch: true,
+          width: 200,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'department_position' && sorted.order
         },
         {
           title: 'Work Location',
           dataIndex: 'work_location',
           key: 'work_location',
-          filters: this.getUniqueValues('work_location'),
-          filteredValue: filtered.work_location || null,
-          onFilter: (value, record) => record.work_location.includes(value),
-          sorter: (a, b) => a.work_location.localeCompare(b.work_location),
-          sortOrder: sorted.columnKey === 'work_location' && sorted.order,
-          filterSearch: true,
+          width: 150,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'work_location' && sorted.order
         },
         {
           title: 'Start Date',
           dataIndex: 'start_date',
           key: 'start_date',
-          sorter: (a, b) => moment(a.start_date).unix() - moment(b.start_date).unix(),
-          sortOrder: sorted.columnKey === 'start_date' && sorted.order,
+          width: 120,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'start_date' && sorted.order
         },
         {
           title: 'End Date',
           dataIndex: 'end_date',
           key: 'end_date',
-          sorter: (a, b) => moment(a.end_date).unix() - moment(b.end_date).unix(),
-          sortOrder: sorted.columnKey === 'end_date' && sorted.order,
+          width: 120,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'end_date' && sorted.order
+        },
+        {
+          title: 'Probation Pass Date',
+          dataIndex: 'probation_pass_date',
+          key: 'probation_pass_date',
+          width: 150,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'probation_pass_date' && sorted.order
         },
         {
           title: 'Salary',
           dataIndex: 'salary',
           key: 'salary',
-          sorter: (a, b) => a.salary - b.salary,
-          sortOrder: sorted.columnKey === 'salary' && sorted.order,
+          width: 120,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'salary' && sorted.order
+        },
+        {
+          title: 'Probation Salary',
+          dataIndex: 'probation_salary',
+          key: 'probation_salary',
+          width: 120,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'probation_salary' && sorted.order
         },
         {
           title: 'Status',
           dataIndex: 'status',
           key: 'status',
+          width: 100,
           filters: [
-            { text: 'Active', value: true },
-            { text: 'Inactive', value: false },
+            { text: 'Active', value: 'Active' },
+            { text: 'Pending', value: 'Pending' },
+            { text: 'Expired', value: 'Expired' },
           ],
           filteredValue: filtered.status || null,
-          onFilter: (value, record) => record.active === value,
-          sorter: (a, b) => (a.active === b.active ? 0 : a.active ? -1 : 1),
-          sortOrder: sorted.columnKey === 'status' && sorted.order,
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'status' && sorted.order
         },
         {
           title: 'Actions',
-          fixed: 'right',
           dataIndex: 'actions',
           key: 'actions',
+          fixed: 'right',
+          width: 120
         }
       ];
     },
     tableData() {
+      // With server-side pagination, just return the employments as-is
       return this.employments.map(emp => ({
         ...emp,
         key: emp.id,
-        subsidiary: emp.employee ? emp.employee.subsidiary : 'N/A',
-        staff_id: emp.employee ? emp.employee.staff_id : 'N/A',
-        employee_name: emp.employee ? emp.employee.first_name_en + ' ' + emp.employee.last_name_en : 'N/A',
-        department_position: emp.department_position ? emp.department_position.department + ' | ' + emp.department_position.position : 'N/A',
-        work_location: emp.work_location ? emp.work_location.name : 'N/A',
-        status: emp.active ? 'Active' : 'Inactive',
+        subsidiary: emp.employee?.subsidiary || 'N/A',
+        staff_id: emp.employee?.staff_id || 'N/A',
+        employee_name: emp.employee ? `${emp.employee.first_name_en} ${emp.employee.last_name_en}` : 'N/A',
+        employment_type: emp.employment_type,
+        work_location: emp.work_location?.name || 'N/A',
+        start_date: emp.start_date,
+        end_date: emp.end_date,
         salary: emp.position_salary,
+        status: this.calculateEmploymentStatus(emp.start_date, emp.end_date),
       }));
     }
   },
@@ -355,170 +346,366 @@ export default {
     this.fetchEmployments();
   },
   methods: {
-    onSelectChange(selectedRowKeys) {
-      this.selectedRowKeys = selectedRowKeys;
-    },
-    toggleHeader() {
-      document.querySelector('.content').classList.toggle('collapsed-header');
-    },
-    handlePerPageChange(event) {
-      this.pageSize = parseInt(event.target.value);
-      this.currentPage = 1;
-    },
-    handleStaffIdSearch() {
-      // Implement staff ID search functionality
-      if (this.searchStaffId) {
-        this.filteredInfo = {
-          ...this.filteredInfo,
-          staff_id: [this.searchStaffId]
-        };
-      } else {
-        const { ...rest } = this.filteredInfo;
-        this.filteredInfo = rest;
-      }
-    },
-    confirmDeleteSelectedEmployments() {
-      if (this.selectedRowKeys.length === 0) return;
+    // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING
+    handlePaginationChange(page, pageSize) {
+      console.log('Pagination change:', page, pageSize);
+      this.currentPage = page;
+      this.pageSize = pageSize || this.pageSize;
 
-      AntModal.confirm({
-        title: 'Are you sure?',
-        content: `You are about to delete ${this.selectedRowKeys.length} employment records. This action cannot be undone.`,
-        centered: true,
-        okText: 'Yes, delete',
-        cancelText: 'Cancel',
-        onOk: async () => {
-          try {
-            // Implement batch delete functionality
-            for (const id of this.selectedRowKeys) {
-              await employmentService.deleteEmployment(id);
-            }
-            await this.fetchEmployments();
-            this.selectedRowKeys = [];
-            this.showNotification('Success', 'Selected employment records deleted successfully', 'bg-success');
-          } catch (error) {
-            console.error('Error deleting employment records:', error);
-            this.showNotification('Error', 'Failed to delete selected employment records', 'bg-danger');
-          }
-        }
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: page,
+        per_page: this.pageSize
       });
+
+      this.fetchEmployments(params);
     },
-    getUniqueValues(field) {
-      const values = [...new Set(this.employments.map(item => {
-        if (field === 'subsidiary')
-          return item.employee ? item.employee.subsidiary : '';
-        if (field === 'staff_id')
-          return item.employee ? item.employee.staff_id : '';
-        if (field === 'employee_name')
-          return item.employee ? item.employee.first_name_en + ' ' + item.employee.last_name_en : '';
-        if (field === 'department_position')
-          return item.department_position ? item.department_position.department + ' | ' + item.department_position.position : '';
-        if (field === 'work_location')
-          return item.work_location ? item.work_location.name : '';
-        return item[field];
-      }))].filter(Boolean);
-      return values.map(value => ({ text: value, value }));
+
+    handleSizeChange(current, size) {
+      console.log('Size change:', current, size);
+      this.currentPage = 1; // Reset to first page when changing page size
+      this.pageSize = size;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: size
+      });
+
+      this.fetchEmployments(params);
     },
+
+    // Helper method to build complete API parameters
+    buildApiParams(baseParams = {}) {
+      const params = {
+        page: this.currentPage,
+        per_page: this.pageSize,
+        ...baseParams
+      };
+
+      // Add sorting parameters
+      if (this.sortedInfo && this.sortedInfo.field) {
+        const sortField = this.mapSortField(this.sortedInfo.field);
+        params.sort_by = sortField;
+        params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
+      }
+
+      // Add filter parameters
+      if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
+        if (this.filteredInfo.subsidiary && this.filteredInfo.subsidiary.length > 0) {
+          params.filter_subsidiary = this.filteredInfo.subsidiary.join(',');
+        }
+        if (this.filteredInfo.employment_type && this.filteredInfo.employment_type.length > 0) {
+          params.filter_employment_type = this.filteredInfo.employment_type.join(',');
+        }
+        if (this.filteredInfo.status && this.filteredInfo.status.length > 0) {
+          params.filter_status = this.filteredInfo.status.join(',');
+        }
+      }
+
+      return params;
+    },
+
+    // TABLE CHANGE HANDLER (for sorting/filtering only)
     handleTableChange(pagination, filters, sorter) {
-      this.currentPage = pagination.current;
-      this.pageSize = pagination.pageSize;
+      console.log('Table change (sorting/filtering):', filters, sorter);
+
+      // Check if there's actually a meaningful change
+      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
+      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
+
+      // Only proceed if there's an actual filter or sort change
+      if (!hasFilterChange && !hasSorterChange) {
+        console.log('No meaningful change detected, skipping reload');
+        return;
+      }
+
+      // Update filter and sort state
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
+
+      // Reset to first page when filter/sort changes
+      this.currentPage = 1;
+
+      // Build complete parameters
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      // Fetch employments with new parameters
+      this.fetchEmployments(params);
     },
+
+    // Map frontend table field names to backend field names
+    mapSortField(field) {
+      const fieldMapping = {
+        'staff_id': 'staff_id',
+        'employee_name': 'employee_name',
+        'employment_type': 'employment_type',
+        'work_location': 'work_location',
+        'start_date': 'start_date',
+        'end_date': 'end_date',
+        'salary': 'salary',
+        'subsidiary': 'subsidiary'
+      };
+      return fieldMapping[field] || field;
+    },
+
     clearFilters() {
       this.filteredInfo = {};
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchEmployments(params);
     },
+
     clearAll() {
       this.filteredInfo = {};
       this.sortedInfo = {};
+      this.searchStaffId = '';
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchEmployments(params);
     },
-    async fetchEmployments() {
+
+    async handleStaffIdSearch() {
+      // Validation: Check if search input is empty
+      if (!this.searchStaffId || this.searchStaffId.trim() === '') {
+        this.$message.warning('Please enter a staff ID to search');
+        return;
+      }
+
+      this.searchLoading = true;
+      try {
+        const response = await employmentService.searchEmploymentsByStaffId(this.searchStaffId);
+
+        // Check if the API returned success
+        if (response.success === true && response.data) {
+          // Handle array of employments from search response
+          const employmentData = response.data;
+
+          // Use the same mapping approach as fetchEmployments
+          this.employments = employmentData.map(emp => ({
+            // Map employment data structure consistently
+            id: emp.id,
+            employee: emp.employee,
+            employment_type: emp.employment_type,
+            work_location: emp.work_location,
+            start_date: emp.start_date,
+            end_date: emp.end_date,
+            position_salary: emp.position_salary,
+            probation_pass_date: emp.probation_pass_date,
+            probation_salary: emp.probation_salary,
+            fte: emp.fte,
+            department_position: emp.department_position,
+            pay_method: emp.pay_method,
+            health_welfare: emp.health_welfare,
+            pvd: emp.pvd,
+            saving_fund: emp.saving_fund,
+            employee_funding_allocations: emp.employee_funding_allocations,
+            // Keep original object for editing
+            ...emp
+          }));
+
+          // Update pagination for search results
+          this.total = employmentData.length;
+          this.currentPage = 1;
+
+          // Show success message with employee summary if available
+          if (response.employee_summary) {
+            const summary = response.employee_summary;
+            this.$message.success(`Found ${employmentData.length} employment(s) for ${summary.full_name} (${summary.staff_id})`);
+          } else {
+            this.$message.success(response.message || 'Employment found successfully');
+          }
+
+          // Log statistics if available
+          if (response.statistics) {
+            console.log('Search Statistics:', response.statistics);
+          }
+        } else {
+          // Handle API response with success: false (404 - Employment not found)
+          this.$message.warning(response.message || 'No employment found with this staff ID');
+          // Clear employments when no results found
+          this.employments = [];
+          this.total = 0;
+        }
+
+        return response;
+      } catch (error) {
+        // Only network errors, auth errors, or parsing errors reach here
+        console.error('Error fetching employment by staff ID:', error);
+        this.$message.error('Network error: Failed to fetch employment by staff ID');
+        // Clear employments on error
+        this.employments = [];
+        this.total = 0;
+      } finally {
+        this.searchLoading = false;
+      }
+    },
+
+    async fetchEmployments(params = {}) {
       this.loading = true;
       try {
-        const response = await employmentService.getEmployments();
-        this.employments = response.data || [];
-        this.total = this.employments.length;
-        this.totalEmployees = this.employments.length;
-        this.showNotification('Success', 'Employment records loaded successfully', 'bg-success');
+        const queryParams = {
+          page: params.page || this.currentPage || 1,
+          per_page: params.per_page || this.pageSize,
+          ...params
+        };
+
+        const response = await employmentService.getAllEmployments(queryParams);
+
+        if (response.success && response.data) {
+          this.employments = response.data.map(emp => ({
+            // Map employment data structure
+            id: emp.id,
+            employee: emp.employee,
+            employment_type: emp.employment_type,
+            work_location: emp.work_location,
+            start_date: emp.start_date,
+            end_date: emp.end_date,
+            position_salary: emp.position_salary,
+            department_position: emp.department_position,
+            active: emp.active,
+            // Keep original object for editing
+            ...emp
+          }));
+
+          // Update pagination from server response
+          if (response.pagination) {
+            this.total = response.pagination.total;
+            this.currentPage = response.pagination.current_page;
+            this.pageSize = response.pagination.per_page;
+          } else {
+            this.total = response.data.length;
+            this.currentPage = 1;
+          }
+
+          this.$message.success('Employments loaded successfully');
+        } else {
+          this.employments = [];
+          this.total = 0;
+          this.$message.error('No employments data received');
+        }
       } catch (error) {
         console.error('Error fetching employments:', error);
-        this.showNotification('Error', 'Failed to load employment records', 'bg-danger');
+        this.employments = [];
+        this.total = 0;
+        this.$message.error('Failed to load employments');
       } finally {
         this.loading = false;
       }
     },
-    openAddEmploymentModal() {
-      this.$refs.employmentModal.openModal();
-    },
-    openEditEmploymentModal(record) {
-      this.$refs.employmentModal.employmentData = record;
-      this.$refs.employmentModal.editMode = true;
-      this.$refs.employmentModal.openModal();
-    },
-    async deleteEmployment(id) {
-      try {
-        AntModal.confirm({
-          title: 'Are you sure?',
-          content: 'You are about to delete this employment record. This action cannot be undone.',
-          centered: true,
-          okText: 'Yes, delete',
-          cancelText: 'Cancel',
-          onOk: async function () {
-            try {
-              await employmentService.deleteEmployment(id);
-              this.employments = this.employments.filter(emp => emp.id !== id);
-              this.total = this.employments.length;
-              this.showNotification('Success', 'Employment record deleted successfully', 'bg-success');
-            } catch (error) {
-              console.error('Error deleting employment:', error);
-              this.showNotification('Error', 'Failed to delete employment record', 'bg-danger');
-            }
-          }.bind(this),
-          onCancel() { }
-        });
-      } catch (error) {
-        console.error('Delete confirmation failed:', error);
+
+    // Calculate employment status based on start_date and end_date
+    calculateEmploymentStatus(startDate, endDate) {
+      if (!startDate) {
+        return 'Pending'; // No start date means not started yet
       }
+
+      const today = new Date();
+      const start = new Date(startDate);
+      const end = endDate ? new Date(endDate) : null;
+
+      // Remove time component for accurate date comparison
+      today.setHours(0, 0, 0, 0);
+      start.setHours(0, 0, 0, 0);
+      if (end) {
+        end.setHours(0, 0, 0, 0);
+      }
+
+      // Future start date
+      if (start > today) {
+        return 'Pending';
+      }
+
+      // No end date and start date is today or in the past
+      if (!end) {
+        return 'Active';
+      }
+
+      // Has end date - check if expired
+      if (end < today) {
+        return 'Expired';
+      }
+
+      // Currently active (start date passed, end date not reached)
+      return 'Active';
     },
 
-    showNotification(title, msg, className) {
-      // You can optionally use the title if needed.
-      if (className === 'bg-success') {
-        message.success(msg);
-      } else if (className === 'bg-danger') {
-        message.error(msg);
-      } else {
-        message.info(msg);
-      }
+    toggleHeader() {
+      console.log('toggleHeader');
+      document.getElementById("collapse-header").classList.toggle("active");
+      document.body.classList.toggle("header-collapse");
     },
-    formatDate(dateString) {
-      if (!dateString) return '';
-      return moment(dateString).format('YYYY-MM-DD');
-    },
+
     formatCurrency(value) {
       if (!value) return '$0.00';
       return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD'
       }).format(value);
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return '';
+      return moment(dateString).format('YYYY-MM-DD');
+    },
+
+    openAddEmploymentModal() {
+      this.$refs.employmentModal.openModal();
+    },
+
+    openEditEmploymentModal(record) {
+      this.$refs.employmentModal.employmentData = record;
+      this.$refs.employmentModal.editMode = true;
+      this.$refs.employmentModal.openModal();
+    },
+
+    // Confirm delete employment
+    confirmDeleteEmployment(id) {
+      Modal.confirm({
+        title: 'Are you sure you want to delete this employment?',
+        content: 'This action cannot be undone.',
+        centered: true,
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: () => {
+          this.deleteEmployment(id);
+        }
+      });
+    },
+
+    async deleteEmployment(id) {
+      this.loading = true;
+      try {
+        await employmentService.deleteEmployment(id);
+        this.$message.success('Employment deleted successfully');
+        // Refresh the employments list
+        this.fetchEmployments();
+      } catch (error) {
+        console.error('Error deleting employment:', error);
+        this.$message.error('Failed to delete employment');
+      } finally {
+        this.loading = false;
+      }
     }
   }
 };
 </script>
 
 <style scoped>
-:deep(.ant-select-selector) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  min-width: 80px;
-}
-
-
-.table-operations>button {
-  margin-right: 8px;
-}
-
 .table-operations {
   margin-bottom: 16px;
 }
@@ -527,53 +714,116 @@ export default {
   margin-right: 8px;
 }
 
-.action-icon i {
-  font-size: 1.2rem;
-  color: #333;
+:deep(.ant-select-selector) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  min-width: 80px;
 }
 
-.action-icon i:hover {
-  color: #007bff;
+/* Primary color styling for search input button */
+.search-input-primary :deep(.ant-input-search-button) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
 }
 
-/* Make scrollbar bigger and more visible */
-:deep(.ant-table-body)::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
+.search-input-primary :deep(.ant-input-search-button:hover) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
 }
 
-:deep(.ant-table-body)::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 7px;
+.search-input-primary :deep(.ant-input-search-button:focus) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
 }
 
-:deep(.ant-table-body)::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 7px;
-  border: 1px solid #f1f1f1;
+/* Pagination wrapper styling */
+.pagination-wrapper {
+  margin-top: 20px;
+  padding: 20px 16px;
+  border-top: 1px solid #e8e8e8;
+  position: relative;
+  z-index: 100;
 }
 
-/* Fix for bleeding edges and selection column */
-:deep(.ant-table) {
-  border-radius: 0;
-  overflow: hidden;
+.pagination-info {
+  color: #666;
+  font-size: 14px;
 }
 
-/* Fix for fixed columns */
-:deep(.ant-table-cell-fix-left),
-:deep(.ant-table-cell-fix-right) {
-  background-color: #ffffff !important;
-  z-index: 2 !important;
-  box-shadow: 0 0 0 1px #e0e0e0;
+/* Ensure pagination is not overlapping */
+.resize-observer-fix {
+  position: relative;
+  min-height: 100px;
 }
 
-/* Fix for selection column */
-:deep(.ant-table-selection-column) {
-  background-color: #ffffff !important;
-  z-index: 3 !important;
-  min-width: 60px !important;
-  width: 60px !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
+/* Ant Design pagination customization */
+:deep(.ant-pagination) {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+:deep(.ant-pagination-total-text) {
+  margin-right: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.ant-pagination-options) {
+  margin-left: 16px;
+}
+
+:deep(.ant-pagination-options-size-changer) {
+  margin-right: 8px;
+}
+
+:deep(.ant-pagination-options-quick-jumper) {
+  margin-left: 8px;
+}
+
+/* Fix dropdown placement - force dropdown to appear above */
+:deep(.ant-pagination-options-size-changer .ant-select) {
+  z-index: 1000;
+}
+
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+  z-index: 1050 !important;
+  top: auto !important;
+  bottom: calc(100% + 4px) !important;
+}
+
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+  z-index: 1050 !important;
+}
+
+/* Ensure pagination dropdowns appear above */
+.pagination-wrapper {
+  position: relative;
+  z-index: 100;
+}
+
+/* Override Ant Design dropdown placement */
+:deep(.ant-pagination .ant-select-dropdown) {
+  position: absolute !important;
+  bottom: calc(100% + 4px) !important;
+  top: auto !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Container overflow fixes */
+.card-body {
+  overflow: visible !important;
+  padding-bottom: 0;
+}
+
+.card {
+  overflow: visible !important;
+  margin-bottom: 20px;
 }
 </style>

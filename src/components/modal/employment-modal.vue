@@ -35,24 +35,45 @@
               {{ alertMessage }}
             </div>
 
-            <div class="form-group">
-              <label class="form-label required">Employee</label>
-              <a-tree-select v-model:value="formData.employee_id" @change="onEmployeeChange" show-search
-                style="width: 100%;" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
-                placeholder="Select employee" allow-clear tree-default-expand-all :tree-data="employeeTreeData"
-                tree-node-filter-prop="title" :getPopupContainer="getPopupContainer"
-                :class="{ 'is-invalid': validationErrors.employee_id }" required @input="saveFormState" />
-              <div v-if="validationErrors.employee_id" class="invalid-feedback">
-                {{ validationErrors.employee_id }}
+            <!-- Row 1: Employee + FTE (2 columns) -->
+            <div class="date-row">
+              <div class="form-group" style="flex: 2.3;"> <!-- 70% width -->
+                <label class="form-label required">Employee</label>
+                <a-tree-select v-model:value="formData.employee_id" @change="onEmployeeChange" show-search
+                  style="width: 100%;" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
+                  placeholder="Select employee" allow-clear tree-default-expand-all :tree-data="employeeTreeData"
+                  tree-node-filter-prop="title" :getPopupContainer="getPopupContainer"
+                  :class="{ 'is-invalid': validationErrors.employee_id }" required @input="saveFormState" />
+                <div v-if="validationErrors.employee_id" class="invalid-feedback">
+                  {{ validationErrors.employee_id }}
+                </div>
+              </div>
+              <div class="form-group" style="flex: 1;"> <!-- 30% width -->
+                <label class="form-label">FTE</label>
+                <input type="number" step="0.1" min="0" max="1" class="form-control" v-model.number="formData.fte"
+                  @input="saveFormState">
+                <div v-if="validationErrors.fte" class="invalid-feedback">
+                  {{ validationErrors.fte }}
+                </div>
               </div>
             </div>
 
-            <div v-if="selectedEmployeeInfo" class="employee-info-card mb-3">
+            <div v-if="selectedEmployeeInfo" class="employee-info-card mb-3" style="margin-top: 16px;">
               <div class="card-body">
                 <h6 class="card-title">Selected Employee</h6>
                 <p class="card-text">
                   <strong>{{ selectedEmployeeInfo.name }}</strong><br>
                   <small class="text-muted">Subsidiary: {{ selectedEmployeeInfo.subsidiary }}</small><br>
+                  <small class="text-muted">Status:
+                    <span :class="[
+                      'badge badge-sm',
+                      selectedEmployeeInfo.status === 'Local ID' ? 'bg-success' :
+                        selectedEmployeeInfo.status === 'Local non ID' || selectedEmployeeInfo.status === 'Local non ID Staff' ? 'bg-primary' :
+                          selectedEmployeeInfo.status === 'Expats' ? 'bg-warning' : 'bg-secondary'
+                    ]">
+                      {{ selectedEmployeeInfo.status }}
+                    </span>
+                  </small>
                 </p>
               </div>
             </div>
@@ -185,27 +206,10 @@
               </div>
             </div>
 
-            <div class="date-row">
-              <div class="form-group">
-                <label class="form-label">Employee Tax (%)</label>
-                <input type="number" class="form-control" v-model.number="formData.employee_tax"
-                  :class="{ 'is-invalid': validationErrors.employee_tax }" @input="saveFormState">
-                <div v-if="validationErrors.employee_tax" class="invalid-feedback">
-                  {{ validationErrors.employee_tax }}
-                </div>
-              </div>
 
-              <div class="form-group">
-                <label class="form-label">FTE</label>
-                <input type="number" step="0.1" min="0" max="1" class="form-control" v-model.number="formData.fte"
-                  @input="saveFormState">
-                <div v-if="validationErrors.fte" class="invalid-feedback">
-                  {{ validationErrors.fte }}
-                </div>
-              </div>
-            </div>
 
-            <div class="form-group" style="margin-bottom: 0;">
+            <!-- Funding Allocation with added spacing -->
+            <div class="form-group funding-allocation-section" style="margin-top: 24px; margin-bottom: 0;">
               <label>Funding Allocation</label>
 
               <div class="date-row" style="margin-bottom:8px;">
@@ -424,24 +428,26 @@
               <p class="text-muted text-center">No funding allocations added. Please add at least one allocation.</p>
             </div>
 
-            <!-- Benefits Section -->
+            <!-- Enhanced Benefits Section -->
             <div class="form-group">
               <label class="form-label">Benefits</label>
+
               <div class="checkbox-group">
                 <label class="checkbox-item">
                   <input type="checkbox" v-model="formData.health_welfare" @change="saveFormState" />
                   <span class="checkmark"></span>
                   Health & Welfare
                 </label>
-                <label class="checkbox-item" v-if="isLocalIDStaff">
-                  <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
-                  <span class="checkmark"></span>
-                  PVD
-                </label>
-                <label class="checkbox-item" v-if="isLocalNonIDStaff">
+
+                <label class="checkbox-item">
                   <input type="checkbox" v-model="formData.saving_fund" @change="saveFormState" />
                   <span class="checkmark"></span>
                   Saving Fund
+                </label>
+                <label class="checkbox-item">
+                  <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
+                  <span class="checkmark"></span>
+                  PVD
                 </label>
               </div>
             </div>
@@ -464,10 +470,9 @@
 <script>
 import { Modal } from 'bootstrap';
 import { ref, createVNode, nextTick } from 'vue';
-import { message, Modal as AntModal } from 'ant-design-vue';
+import { Modal as AntModal } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { employmentService } from '@/services/employment.service';
-import { employeeFundingAllocationService } from '@/services/employee-funding-allocation.service';
 import { employeeService } from '@/services/employee.service';
 import { departmentPositionService } from '@/services/department-position.service';
 import { workLocationService } from '@/services/worklocation.service';
@@ -503,7 +508,7 @@ export default {
         probation_pass_date: '',
         position_salary: '',
         probation_salary: '',
-        employee_tax: '',
+
         fte: 1.0,
         health_welfare: false,
         pvd: false,
@@ -515,7 +520,8 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        level_of_effort: 100,
+
       },
       editData: {
         allocation_type: '',
@@ -598,6 +604,13 @@ export default {
         if (newVal) {
           this.formData = { ...newVal };
 
+          // Ensure department_position_id is properly set
+          if (newVal.department_position_id) {
+            // Convert to number to match dropdown option values
+            this.formData.department_position_id = parseInt(newVal.department_position_id);
+            console.log('🔧 Setting department_position_id from API:', newVal.department_position_id, '-> converted to:', this.formData.department_position_id);
+          }
+
           // Convert dates to Date objects for the date-picker component
           if (this.formData.start_date) {
             this.formData.start_date = new Date(this.formData.start_date);
@@ -607,6 +620,20 @@ export default {
           }
           if (this.formData.probation_pass_date) {
             this.formData.probation_pass_date = new Date(this.formData.probation_pass_date);
+          }
+
+          // Load funding allocations when employment data is set
+          if (this.editMode && newVal.id) {
+            this.loadEmployeeFundingAllocations(newVal.id);
+          }
+
+          // Set selected employee info if available
+          if (newVal.employee) {
+            this.selectedEmployeeInfo = {
+              name: `${newVal.employee.first_name_en || ''} ${newVal.employee.last_name_en || ''}`.trim(),
+              staff_id: newVal.employee.staff_id || 'N/A',
+              subsidiary: newVal.employee.subsidiary || 'N/A'
+            };
           }
         }
       },
@@ -1043,15 +1070,25 @@ export default {
         isValid = false;
       }
 
-      // Validate that funding allocations total exactly 100%
-      if (this.fundingAllocations.length === 0) {
-        this.alertMessage = 'Please add at least one funding allocation';
-        this.alertClass = 'alert-danger';
-        isValid = false;
-      } else if (this.totalEffort !== 100) {
-        this.alertMessage = `Total effort must equal 100%. Current total: ${this.totalEffort}%`;
-        this.alertClass = 'alert-danger';
-        isValid = false;
+      // Validate funding allocations based on mode
+      if (!this.editMode) {
+        // For create mode, allocations are required
+        if (this.fundingAllocations.length === 0) {
+          this.alertMessage = 'Please add at least one funding allocation';
+          this.alertClass = 'alert-danger';
+          isValid = false;
+        } else if (this.totalEffort !== 100) {
+          this.alertMessage = `Total effort must equal 100%. Current total: ${this.totalEffort}%`;
+          this.alertClass = 'alert-danger';
+          isValid = false;
+        }
+      } else {
+        // For update mode, allocations are optional, but if provided must total 100%
+        if (this.fundingAllocations.length > 0 && this.totalEffort !== 100) {
+          this.alertMessage = `If allocations are provided, total effort must equal 100%. Current total: ${this.totalEffort}%`;
+          this.alertClass = 'alert-danger';
+          isValid = false;
+        }
       }
 
       return isValid;
@@ -1192,6 +1229,8 @@ export default {
         const response = await departmentPositionService.getAllDepartmentPositions();
         if (response.data) {
           this.departmentPositions = response.data;
+          console.log('📋 Department positions loaded:', this.departmentPositions.length, 'positions');
+          console.log('📋 First few positions:', this.departmentPositions.slice(0, 3));
         }
       } catch (error) {
         console.error('Error fetching department positions:', error);
@@ -1252,11 +1291,18 @@ export default {
           this.selectedEmployeeInfo = {
             name: employee.title,
             staff_id: employee.staff_id || 'N/A',
-            subsidiary: subsidiary || 'N/A'
+            subsidiary: subsidiary || 'N/A',
+            status: employee.status || 'N/A'
           };
+
+          // Auto-select benefits based on employee status
+          this.autoSelectBenefitsBasedOnStatus(employee.status);
         }
       } else {
         this.selectedEmployeeInfo = null;
+        // Reset benefits when no employee is selected
+        this.formData.pvd = false;
+        this.formData.saving_fund = false;
       }
       this.saveFormState();
     },
@@ -1285,6 +1331,34 @@ export default {
         }
       }
       return null;
+    },
+
+    // Auto-select benefits based on employee status
+    autoSelectBenefitsBasedOnStatus(status) {
+      console.log('Auto-selecting benefits for status:', status);
+
+      // Reset benefits first
+      this.formData.pvd = false;
+      this.formData.saving_fund = false;
+
+      if (!status) return;
+
+      // Auto-select based on status
+      if (status === 'Local ID') {
+        this.formData.pvd = true;
+        this.formData.saving_fund = false;
+        console.log('✅ Auto-selected PVD for Local ID staff');
+      } else if (status === 'Local non ID' || status === 'Local non ID Staff') {
+        this.formData.pvd = false;
+        this.formData.saving_fund = true;
+        console.log('✅ Auto-selected Saving Fund for Local non ID staff');
+      } else {
+        // For other statuses (Expats, etc.), don't auto-select anything
+        console.log('ℹ️ No auto-selection for status:', status);
+      }
+
+      // Save form state after auto-selection
+      this.saveFormState();
     },
 
     async onGrantChange() {
@@ -1571,9 +1645,26 @@ export default {
         this.restoredDataNotification.show = false;
 
         this.formData = { ...this.employmentData };
+
+        // Ensure department_position_id is properly set
+        if (this.employmentData.department_position_id) {
+          // Convert to number to match dropdown option values
+          this.formData.department_position_id = parseInt(this.employmentData.department_position_id);
+          console.log('🔧 Setting department_position_id from API in openModal:', this.employmentData.department_position_id, '-> converted to:', this.formData.department_position_id);
+        }
+
+        // Set selected employee info if available
+        if (this.employmentData.employee) {
+          this.selectedEmployeeInfo = {
+            name: `${this.employmentData.employee.first_name_en || ''} ${this.employmentData.employee.last_name_en || ''}`.trim(),
+            staff_id: this.employmentData.employee.staff_id || 'N/A',
+            subsidiary: this.employmentData.employee.subsidiary || 'N/A'
+          };
+        }
+
         // Load existing funding allocations if editing
-        if (this.formData.id) {
-          this.loadEmployeeFundingAllocations(this.formData.id);
+        if (this.employmentData.id) {
+          this.loadEmployeeFundingAllocations(this.employmentData.id);
         }
       } else {
         // Creating new employment - check for draft
@@ -1604,13 +1695,174 @@ export default {
 
     async loadEmployeeFundingAllocations(employmentId) {
       try {
-        // TODO: Implement loading existing funding allocations
         console.log('Loading funding allocations for employment:', employmentId);
-        this.fundingAllocations = [];
+        this.isLoadingData = true;
+
+        // Since the employment data already contains employee_funding_allocations,
+        // we can use that data directly from this.employmentData
+        if (this.employmentData && this.employmentData.employee_funding_allocations) {
+          console.log('Found existing funding allocations:', this.employmentData.employee_funding_allocations);
+
+          // Map the existing allocations to our internal format
+          this.fundingAllocations = this.employmentData.employee_funding_allocations.map(allocation => {
+            // Convert level_of_effort from decimal string to percentage number
+            const effortPercentage = parseFloat(allocation.level_of_effort) * 100;
+
+            if (allocation.allocation_type === 'org_funded') {
+              // Handle org_funded allocations
+              return {
+                id: allocation.id,
+                allocation_type: 'org_funded',
+                grant_id: allocation.org_funded_id || '',
+                grant_items_id: '',
+                position_slot_id: '',
+                department_position_id: parseInt(this.employmentData.department_position_id) || '', // Use employment's department_position_id
+                level_of_effort: effortPercentage,
+
+                // Additional data for display purposes
+                _original: {
+                  grant_name: 'Org Funded',
+                  grant_code: '',
+                  grant_position: '',
+                  slot_number: '',
+                  budget_line_code: '',
+                  allocated_amount: allocation.allocated_amount,
+                  start_date: allocation.start_date,
+                  end_date: allocation.end_date,
+                  org_funded_name: 'Org Funded'
+                }
+              };
+            } else {
+              // Handle grant allocations
+              return {
+                id: allocation.id,
+                allocation_type: 'grant',
+                grant_id: allocation.position_slot?.grant_item?.grant?.id || '',
+                grant_items_id: allocation.position_slot?.grant_item?.id || '',
+                position_slot_id: allocation.position_slot_id || '',
+                department_position_id: '',
+                level_of_effort: effortPercentage,
+
+                // Additional data for display purposes
+                _original: {
+                  grant_name: allocation.position_slot?.grant_item?.grant?.name || 'Unknown Grant',
+                  grant_code: allocation.position_slot?.grant_item?.grant?.code || '',
+                  grant_position: allocation.position_slot?.grant_item?.grant_position || '',
+                  slot_number: allocation.position_slot?.slot_number || '',
+                  budget_line_code: allocation.position_slot?.budget_line?.budget_line_code || '',
+                  allocated_amount: allocation.allocated_amount,
+                  start_date: allocation.start_date,
+                  end_date: allocation.end_date
+                }
+              };
+            }
+          });
+
+          console.log('Mapped funding allocations:', this.fundingAllocations);
+        } else {
+          console.log('No existing funding allocations found');
+          this.fundingAllocations = [];
+        }
+
       } catch (error) {
         console.error('Error loading funding allocations:', error);
         this.fundingAllocations = [];
+        this.alertMessage = 'Failed to load existing funding allocations';
+        this.alertClass = 'alert-danger';
+      } finally {
+        this.isLoadingData = false;
       }
+    },
+
+    // Build payload for API based on create/update mode
+    buildPayloadForAPI() {
+      const basePayload = {
+        // Employment data - matching backend field names exactly
+        employee_id: this.formData.employee_id,
+        employment_type: this.formData.employment_type,
+        pay_method: this.formData.pay_method || null,
+        probation_pass_date: this.formatDateForAPI(this.formData.probation_pass_date),
+        start_date: this.formatDateForAPI(this.formData.start_date),
+        end_date: this.formatDateForAPI(this.formData.end_date),
+        department_position_id: this.formData.department_position_id || null,
+        work_location_id: this.formData.work_location_id || null,
+        position_salary: this.formData.position_salary,
+        probation_salary: this.formData.probation_salary || null,
+        fte: this.formData.fte || null,
+        health_welfare: !!this.formData.health_welfare,
+        pvd: !!this.formData.pvd,
+        saving_fund: !!this.formData.saving_fund
+      };
+
+      // For create mode, all fields are required as per backend create validation
+      if (!this.editMode) {
+        return {
+          ...basePayload,
+          // Funding allocation data - required for create
+          allocations: this.fundingAllocations.map(allocation => {
+            const isOrgFunded = allocation.allocation_type === 'org_funded';
+            const calculatedSalary = this.calculateSalaryFromEffort(allocation.level_of_effort);
+
+            if (isOrgFunded) {
+              return {
+                allocation_type: 'org_funded',
+                grant_id: allocation.grant_id,
+                level_of_effort: allocation.level_of_effort,
+                allocated_amount: calculatedSalary
+              };
+            } else {
+              return {
+                allocation_type: 'grant',
+                position_slot_id: allocation.position_slot_id,
+                level_of_effort: allocation.level_of_effort,
+                allocated_amount: calculatedSalary
+              };
+            }
+          })
+        };
+      }
+
+      // For update mode, only include changed fields and optionally include allocations
+      const updatePayload = {};
+
+      // Only include fields that have values (backend update method accepts nullable fields)
+      Object.keys(basePayload).forEach(key => {
+        const value = basePayload[key];
+        if (value !== null && value !== undefined && value !== '') {
+          updatePayload[key] = value;
+        }
+      });
+
+      // Always include boolean fields for updates (they can be false)
+      updatePayload.health_welfare = !!this.formData.health_welfare;
+      updatePayload.pvd = !!this.formData.pvd;
+      updatePayload.saving_fund = !!this.formData.saving_fund;
+
+      // Include allocations if they exist (optional for updates)
+      if (this.fundingAllocations.length > 0) {
+        updatePayload.allocations = this.fundingAllocations.map(allocation => {
+          const isOrgFunded = allocation.allocation_type === 'org_funded';
+          const calculatedSalary = this.calculateSalaryFromEffort(allocation.level_of_effort);
+
+          if (isOrgFunded) {
+            return {
+              allocation_type: 'org_funded',
+              grant_id: allocation.grant_id,
+              level_of_effort: allocation.level_of_effort,
+              allocated_amount: calculatedSalary
+            };
+          } else {
+            return {
+              allocation_type: 'grant',
+              position_slot_id: allocation.position_slot_id,
+              level_of_effort: allocation.level_of_effort,
+              allocated_amount: calculatedSalary
+            };
+          }
+        });
+      }
+
+      return updatePayload;
     },
 
     async handleSubmit() {
@@ -1629,74 +1881,15 @@ export default {
 
         this.isSubmitting = true;
 
-        // Helper function to format date for API
-        const formatDateForAPI = (date) => {
-          if (!date) return null;
-
-          // If it's already a string in YYYY-MM-DD format, use it as is
-          if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            return date;
-          }
-
-          // Convert Date object to YYYY-MM-DD format
-          if (date instanceof Date) {
-            return date.toISOString().split('T')[0];
-          }
-
-          return null;
-        };
-
         // Prepare payload to match backend API expectations
-        const payload = {
-          // Employment data - matching backend field names
-          employee_id: this.formData.employee_id,
-          employment_type: this.formData.employment_type,
-          pay_method: this.formData.pay_method || null,
-          probation_pass_date: formatDateForAPI(this.formData.probation_pass_date),
-          start_date: formatDateForAPI(this.formData.start_date),
-          end_date: formatDateForAPI(this.formData.end_date),
-          department_position_id: this.formData.department_position_id,
-          work_location_id: this.formData.work_location_id,
-          position_salary: this.formData.position_salary,
-          probation_salary: this.formData.probation_salary || null,
-          employee_tax: this.formData.employee_tax || null,
-          fte: this.formData.fte || null,
-          health_welfare: this.formData.health_welfare,
-          pvd: this.formData.pvd,
-          saving_fund: this.formData.saving_fund,
-
-          // Funding allocation data - updated to include calculated salary
-          allocations: this.fundingAllocations.map(allocation => {
-            const isOrgFunded = this.isOrgFundGrant(allocation.grant_id);
-            const calculatedSalary = this.calculateSalaryFromEffort(allocation.level_of_effort);
-
-            if (isOrgFunded) {
-              // For org_funded allocations, send calculated salary based on effort
-              return {
-                allocation_type: 'org_funded',
-                grant_id: allocation.grant_id,
-                department_position_id: allocation.department_position_id,
-                allocated_salary: calculatedSalary,
-                level_of_effort: allocation.level_of_effort
-              };
-            } else {
-              // For grant allocations, send calculated salary based on effort
-              return {
-                allocation_type: 'grant',
-                position_slot_id: allocation.position_slot_id,
-                allocated_salary: calculatedSalary,
-                level_of_effort: allocation.level_of_effort
-              };
-            }
-          })
-        };
+        const payload = this.buildPayloadForAPI();
 
         console.log('Payload for API:', payload);
 
         let response;
         if (this.editMode) {
-          // For editing, we might need separate API calls for employment and funding
-          response = await employmentService.updateEmployment(this.formData.employment_id, payload);
+          // For editing, use the improved update API with optional allocations
+          response = await employmentService.updateEmployment(this.formData.employment_id || this.employmentData.id, payload);
         } else {
           // For creating, use the combined API that creates employment + funding allocations
           response = await employmentService.createEmployment(payload);
@@ -1769,7 +1962,7 @@ export default {
         probation_pass_date: '',
         position_salary: '',
         probation_salary: '',
-        employee_tax: '',
+
         fte: 1.0,
         health_welfare: false,
         pvd: false,
@@ -1804,6 +1997,23 @@ export default {
       this.clearValidationErrors();
       this.clearFormDraft();
       console.log('Form reset complete. Memory cleared.');
+    },
+
+    // Helper function to format date for API
+    formatDateForAPI(date) {
+      if (!date) return null;
+
+      // If it's already a string in YYYY-MM-DD format, use it as is
+      if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return date;
+      }
+
+      // Convert Date object to YYYY-MM-DD format
+      if (date instanceof Date) {
+        return date.toISOString().split('T')[0];
+      }
+
+      return null;
     },
 
     // getPopupContainer ensures the dropdown is appended to document.body
@@ -1931,17 +2141,10 @@ select {
   margin-bottom: 0;
 }
 
-.checkbox-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin: 10px 0 16px 0;
-}
-
 .checkbox-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   cursor: pointer;
   font-weight: 500;
   color: #1d2636;
@@ -2279,5 +2482,38 @@ select {
 :deep(.ant-modal-confirm .ant-btn-danger) {
   background: #ff4d4f;
   border-color: #ff4d4f;
+}
+
+/* New styles for reorganized form sections */
+.employee-tax-section {
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #fafbfc;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.funding-allocation-section {
+  border-top: 2px solid #e9ecef;
+  padding-top: 20px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 12px 0 12px 0;
+}
+
+.checkbox-item {
+  min-width: 140px;
+}
+
+/* Status badge styles */
+.badge.badge-sm {
+  font-size: 0.75em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
 }
 </style>

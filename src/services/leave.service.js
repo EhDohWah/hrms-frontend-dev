@@ -1,12 +1,16 @@
-import axios from 'axios';
-import API_ENDPOINTS from '@/config/api.config';
+import { apiService } from './api.service';
+import { API_ENDPOINTS } from '@/config/api.config';
 
+/**
+ * Leave Service
+ * Handles all leave-related API operations including leave types, requests, balances, approvals, and traditional leaves
+ * Uses the centralized apiService for consistent error handling, authentication, and response processing
+ */
 class LeaveService {
   // Leave Types
   async getLeaveTypes() {
     try {
-      const response = await axios.get(API_ENDPOINTS.LEAVE.TYPES.LIST);
-      return response.data;
+      return await apiService.get(API_ENDPOINTS.LEAVE.TYPES.LIST);
     } catch (error) {
       console.error('Error fetching leave types:', error);
       throw error;
@@ -15,8 +19,7 @@ class LeaveService {
 
   async createLeaveType(data) {
     try {
-      const response = await axios.post(API_ENDPOINTS.LEAVE.TYPES.CREATE, data);
-      return response.data;
+      return await apiService.post(API_ENDPOINTS.LEAVE.TYPES.CREATE, data);
     } catch (error) {
       console.error('Error creating leave type:', error);
       throw error;
@@ -26,8 +29,7 @@ class LeaveService {
   async updateLeaveType(id, data) {
     try {
       const url = API_ENDPOINTS.LEAVE.TYPES.UPDATE.replace(':id', id);
-      const response = await axios.put(url, data);
-      return response.data;
+      return await apiService.put(url, data);
     } catch (error) {
       console.error('Error updating leave type:', error);
       throw error;
@@ -37,8 +39,7 @@ class LeaveService {
   async deleteLeaveType(id) {
     try {
       const url = API_ENDPOINTS.LEAVE.TYPES.DELETE.replace(':id', id);
-      const response = await axios.delete(url);
-      return response.data;
+      return await apiService.delete(url);
     } catch (error) {
       console.error('Error deleting leave type:', error);
       throw error;
@@ -48,8 +49,7 @@ class LeaveService {
   async getLeaveTypeDetails(id) {
     try {
       const url = API_ENDPOINTS.LEAVE.TYPES.DETAILS.replace(':id', id);
-      const response = await axios.get(url);
-      return response.data;
+      return await apiService.get(url);
     } catch (error) {
       console.error('Error fetching leave type details:', error);
       throw error;
@@ -59,8 +59,7 @@ class LeaveService {
   // Leave Requests
   async getLeaveRequests() {
     try {
-      const response = await axios.get(API_ENDPOINTS.LEAVE.REQUESTS.LIST);
-      return response.data;
+      return await apiService.get(API_ENDPOINTS.LEAVE.REQUESTS.LIST);
     } catch (error) {
       console.error('Error fetching leave requests:', error);
       throw error;
@@ -69,8 +68,7 @@ class LeaveService {
 
   async createLeaveRequest(data) {
     try {
-      const response = await axios.post(API_ENDPOINTS.LEAVE.REQUESTS.CREATE, data);
-      return response.data;
+      return await apiService.post(API_ENDPOINTS.LEAVE.REQUESTS.CREATE, data);
     } catch (error) {
       console.error('Error creating leave request:', error);
       throw error;
@@ -80,8 +78,7 @@ class LeaveService {
   async updateLeaveRequest(id, data) {
     try {
       const url = API_ENDPOINTS.LEAVE.REQUESTS.UPDATE.replace(':id', id);
-      const response = await axios.put(url, data);
-      return response.data;
+      return await apiService.put(url, data);
     } catch (error) {
       console.error('Error updating leave request:', error);
       throw error;
@@ -91,8 +88,7 @@ class LeaveService {
   async deleteLeaveRequest(id) {
     try {
       const url = API_ENDPOINTS.LEAVE.REQUESTS.DELETE.replace(':id', id);
-      const response = await axios.delete(url);
-      return response.data;
+      return await apiService.delete(url);
     } catch (error) {
       console.error('Error deleting leave request:', error);
       throw error;
@@ -102,8 +98,7 @@ class LeaveService {
   async getLeaveRequestDetails(id) {
     try {
       const url = API_ENDPOINTS.LEAVE.REQUESTS.DETAILS.replace(':id', id);
-      const response = await axios.get(url);
-      return response.data;
+      return await apiService.get(url);
     } catch (error) {
       console.error('Error fetching leave request details:', error);
       throw error;
@@ -113,8 +108,7 @@ class LeaveService {
   // Leave Balances
   async getLeaveBalances() {
     try {
-      const response = await axios.get(API_ENDPOINTS.LEAVE.BALANCES.LIST);
-      return response.data;
+      return await apiService.get(API_ENDPOINTS.LEAVE.BALANCES.LIST);
     } catch (error) {
       console.error('Error fetching leave balances:', error);
       throw error;
@@ -123,8 +117,7 @@ class LeaveService {
 
   async createLeaveBalance(data) {
     try {
-      const response = await axios.post(API_ENDPOINTS.LEAVE.BALANCES.CREATE, data);
-      return response.data;
+      return await apiService.post(API_ENDPOINTS.LEAVE.BALANCES.CREATE, data);
     } catch (error) {
       console.error('Error creating leave balance:', error);
       throw error;
@@ -134,8 +127,7 @@ class LeaveService {
   async updateLeaveBalance(id, data) {
     try {
       const url = API_ENDPOINTS.LEAVE.BALANCES.UPDATE.replace(':id', id);
-      const response = await axios.put(url, data);
-      return response.data;
+      return await apiService.put(url, data);
     } catch (error) {
       console.error('Error updating leave balance:', error);
       throw error;
@@ -145,8 +137,7 @@ class LeaveService {
   // Leave Approvals
   async getLeaveApprovals() {
     try {
-      const response = await axios.get(API_ENDPOINTS.LEAVE.APPROVALS.LIST);
-      return response.data;
+      return await apiService.get(API_ENDPOINTS.LEAVE.APPROVALS.LIST);
     } catch (error) {
       console.error('Error fetching leave approvals:', error);
       throw error;
@@ -155,8 +146,7 @@ class LeaveService {
 
   async createLeaveApproval(data) {
     try {
-      const response = await axios.post(API_ENDPOINTS.LEAVE.APPROVALS.CREATE, data);
-      return response.data;
+      return await apiService.post(API_ENDPOINTS.LEAVE.APPROVALS.CREATE, data);
     } catch (error) {
       console.error('Error creating leave approval:', error);
       throw error;
@@ -166,8 +156,7 @@ class LeaveService {
   async updateLeaveApproval(id, data) {
     try {
       const url = API_ENDPOINTS.LEAVE.APPROVALS.UPDATE.replace(':id', id);
-      const response = await axios.put(url, data);
-      return response.data;
+      return await apiService.put(url, data);
     } catch (error) {
       console.error('Error updating leave approval:', error);
       throw error;
@@ -177,8 +166,7 @@ class LeaveService {
   // Traditional Leave
   async getTraditionalLeaves() {
     try {
-      const response = await axios.get(API_ENDPOINTS.LEAVE.TRADITIONAL.LIST);
-      return response.data;
+      return await apiService.get(API_ENDPOINTS.LEAVE.TRADITIONAL.LIST);
     } catch (error) {
       console.error('Error fetching traditional leaves:', error);
       throw error;
@@ -187,8 +175,7 @@ class LeaveService {
 
   async createTraditionalLeave(data) {
     try {
-      const response = await axios.post(API_ENDPOINTS.LEAVE.TRADITIONAL.CREATE, data);
-      return response.data;
+      return await apiService.post(API_ENDPOINTS.LEAVE.TRADITIONAL.CREATE, data);
     } catch (error) {
       console.error('Error creating traditional leave:', error);
       throw error;
@@ -198,8 +185,7 @@ class LeaveService {
   async updateTraditionalLeave(id, data) {
     try {
       const url = API_ENDPOINTS.LEAVE.TRADITIONAL.UPDATE.replace(':id', id);
-      const response = await axios.put(url, data);
-      return response.data;
+      return await apiService.put(url, data);
     } catch (error) {
       console.error('Error updating traditional leave:', error);
       throw error;
@@ -207,4 +193,4 @@ class LeaveService {
   }
 }
 
-export default new LeaveService();
+export const leaveService = new LeaveService();

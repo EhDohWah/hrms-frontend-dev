@@ -17,19 +17,40 @@ export const useInterviewStore = defineStore('interview', {
   },
 
   actions: {
-    async fetchInterviews() {
+    // Fetch interviews with parameters for server-side pagination, filtering, and sorting
+    async fetchInterviews(params = {}) {
+      try {
+        this.loading = true;
+        this.error = null;
+
+        // Use the new getAll method with parameters
+        const response = await interviewService.getAll(params);
+
+        // Return the raw API payload for the component to handle
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch interviews';
+        console.error('Error fetching interviews:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Legacy method for backward compatibility
+    async fetchAllInterviews() {
       try {
         this.loading = true;
         this.error = null;
         const response = await interviewService.getAllInterviews();
-        
+
         // Check if response.data exists and is an array; if not, assume response is the array
         const interviewsData = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response)
-          ? response
-          : [];
-          
+            ? response
+            : [];
+
         this.interviews = interviewsData;
         return this.interviews;
       } catch (error) {
@@ -96,8 +117,7 @@ export const useInterviewStore = defineStore('interview', {
         this.loading = true;
         this.error = null;
         const response = await interviewService.deleteInterview(id);
-        // Refresh interviews list after deleting
-        await this.fetchInterviews();
+        // Don't automatically refresh - let the component handle it
         return response;
       } catch (error) {
         this.error = error.message || 'Failed to delete interview';

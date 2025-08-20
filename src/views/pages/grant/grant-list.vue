@@ -31,42 +31,19 @@
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Grants List</h5>
-          <div class="table-operations">
-            <a-button @click="clearFilters">Clear filters</a-button>
-            <a-button @click="clearAll">Clear filters and sorters</a-button>
+          <div class="d-flex align-items-center flex-wrap row-gap-2">
+            <div class="me-2">
+              <a-button class="me-2" @click="clearFilters">Clear filters</a-button>
+              <a-button @click="clearAll">Clear filters and sorters</a-button>
+            </div>
+            <div class="input-icon-end">
+              <a-input-search v-model:value="searchGrantCode" placeholder="Enter full grant code..."
+                :loading="searchLoading" enter-button="Search" @search="handleGrantCodeSearch" style="width: 250px;"
+                class="search-input-primary" />
+            </div>
           </div>
         </div>
         <div class="card-body">
-          <div id="DataTables_Table_0_wrapper" class="dataTables_wrapper dt-bootstrap5 no-footer">
-            <div class="row">
-              <!-- <div class="col-sm-12 col-md-6">
-                <div class="dataTables_length" id="DataTables_Table_0_length">
-                  <label>
-                    Row Per Page
-                    <select name="DataTables_Table_0_length" aria-controls="DataTables_Table_0"
-                      class="form-select form-select-sm" v-model.number="perPage" @change="handlePerPageChange($event)">
-                      <option value="10">10</option>
-                      <option value="25">25</option>
-                      <option value="50">50</option>
-                      <option value="100">100</option>
-                      <option :value="totalEmployees">All</option>
-                    </select>
-                    Entries
-                  </label>
-                </div>
-              </div> -->
-              <div class="col-sm-12">
-                <div id="DataTables_Table_0_filter" class="dataTables_filter text-end me-3">
-                  <label>
-                    GRANT CODE SEARCH:
-                    <input type="search" class="form-control form-control-sm d-inline-block w-auto" placeholder="Search"
-                      aria-controls="DataTables_Table_0" v-model="searchGrantCode">
-                    <button class="btn btn-sm btn-primary ms-2" @click="handleGrantCodeSearch">Search</button>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
           <div v-if="loading" class="text-center my-3">
             <div class="spinner-border text-primary" role="status">
               <span class="visually-hidden">Loading...</span>
@@ -74,7 +51,8 @@
             <p class="mt-2">Loading grants...</p>
           </div>
           <div v-else class="resize-observer-fix">
-            <a-table :columns="columns" :data-source="tableData" :pagination="pagination" :scroll="{ x: 'max-content' }"
+            <!-- TABLE WITHOUT PAGINATION -->
+            <a-table :columns="columns" :data-source="tableData" :pagination="false" :scroll="{ x: 'max-content' }"
               row-key="id" @change="handleTableChange">
               <!-- Expandable row for grant items -->
               <template #expandedRowRender="{ record }">
@@ -203,6 +181,19 @@
 
               </template>
             </a-table>
+
+            <!-- SEPARATE PAGINATION COMPONENT -->
+            <div class="pagination-wrapper">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                  <!-- Optional: Additional info can go here -->
+                </div>
+                <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
+                  :show-size-changer="true" :show-quick-jumper="true" :page-size-options="['10', '20', '50', '100']"
+                  :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                  @change="handlePaginationChange" @show-size-change="handleSizeChange" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -236,92 +227,56 @@
 <script>
 import { Toast, Modal as BootstrapModal } from 'bootstrap';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-import { useGrantStore } from '@/stores/grantStore';
-import { ref, onMounted, computed, reactive } from 'vue';
+import GrantModal from '@/components/modal/grant-modal.vue';
+import GrantModalUpdate from '@/components/modal/grant-modal-update.vue';
+import GrantUploadModal from '@/components/modal/grant-upload-modal.vue';
+import LayoutHeader from '@/views/layouts/layout-header.vue';
+import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
+import LayoutFooter from '@/views/layouts/layout-footer.vue';
+import { grantService } from '@/services/grant.service';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
 import { cloneDeep } from 'lodash-es';
 import { Modal } from 'ant-design-vue';
 
-
-
 export default {
   name: 'GrantList',
   components: {
     indexBreadcrumb,
-
-  },
-  setup() {
-    const dateRangeInput = ref(null);
-    const filteredInfo = ref({});
-    const sortedInfo = ref({});
-    const currentPage = ref(1);
-    const pageSize = ref(10);
-    const total = ref(0);
-    const grantStore = useGrantStore();
-    const editableData = reactive({});
-
-    onMounted(() => {
-      if (dateRangeInput.value) {
-        const start = moment().subtract(6, 'days');
-        const end = moment();
-
-        new DateRangePicker(dateRangeInput.value, {
-          startDate: start,
-          endDate: end,
-          ranges: {
-            'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [
-              moment().subtract(1, 'month').startOf('month'),
-              moment().subtract(1, 'month').endOf('month')
-            ]
-          }
-        }, (start, end) => {
-          return start.format('M/D/YYYY') + ' - ' + end.format('M/D/YYYY');
-        });
-      }
-    });
-
-    const pagination = computed(() => ({
-      total: total.value,
-      current: currentPage.value,
-      pageSize: pageSize.value,
-      showSizeChanger: true,
-      pageSizeOptions: ['10', '20', '50', '100'],
-      showTotal: (total) => `Total ${total} items`
-    }));
-
-    return {
-      dateRangeInput,
-      filteredInfo,
-      sortedInfo,
-      currentPage,
-      pageSize,
-      total,
-      pagination,
-      grantStore,
-      editableData,
-      searchGrantCode: ''
-    };
+    GrantModal,
+    GrantModalUpdate,
+    GrantUploadModal,
+    LayoutHeader,
+    LayoutSidebar,
+    LayoutFooter,
   },
   data() {
     return {
       title: 'Grants',
       text: 'Grants',
       text1: 'Grant List',
-      grants: [],
-      loading: false,
       searchTerm: '',
+      searchGrantCode: '',
       notificationTitle: '',
       notificationMessage: '',
       notificationClass: '',
       grantModalInstance: null,
       grantModalUpdateInstance: null,
       grantUploadModalInstance: null,
+      // Data properties from setup()
+      dateRangeInput: null,
+      filteredInfo: {},
+      sortedInfo: {},
+      grants: [],
+      loading: false,
+      searchLoading: false,
+      editableData: {},
+      grantService,
+
+      // SEPARATE PAGINATION PROPERTIES
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
       innerColumns: [
         {
           title: 'Position',
@@ -391,10 +346,19 @@ export default {
           dataIndex: 'subsidiary',
           key: 'subsidiary',
           width: 150,
-          filters: this.getUniqueFilters('subsidiary'),
+          filters: [
+            {
+              text: 'SMRU',
+              value: 'SMRU',
+            },
+            {
+              text: 'BHF',
+              value: 'BHF',
+            },
+          ],
           filteredValue: filtered.subsidiary || null,
-          onFilter: (value, record) => record.subsidiary.toString().toLowerCase().includes(value.toLowerCase()),
-          sorter: (a, b) => a.subsidiary.localeCompare(b.subsidiary),
+          // Remove onFilter for server-side filtering
+          sorter: true, // Enable server-side sorting
           sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
           filterSearch: true
         },
@@ -404,24 +368,16 @@ export default {
           dataIndex: 'code',
           key: 'code',
           width: 150,
-          filters: this.getUniqueFilters('code'),
-          filteredValue: filtered.code || null,
-          onFilter: (value, record) => record.code.toString().toLowerCase().includes(value.toLowerCase()),
-          sorter: (a, b) => a.code.localeCompare(b.code),
-          sortOrder: sorted.columnKey === 'code' && sorted.order,
-          filterSearch: true
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'code' && sorted.order
         },
         {
           title: 'Grant Name',
           dataIndex: 'name',
           key: 'name',
           width: 200,
-          filters: this.getUniqueFilters('name'),
-          filteredValue: filtered.name || null,
-          onFilter: (value, record) => record.name.toString().toLowerCase().includes(value.toLowerCase()),
-          sorter: (a, b) => a.name.localeCompare(b.name),
-          sortOrder: sorted.columnKey === 'name' && sorted.order,
-          filterSearch: true
+          sorter: true, // Enable server-side sorting
+          sortOrder: sorted.columnKey === 'name' && sorted.order
         },
 
         {
@@ -429,10 +385,9 @@ export default {
           dataIndex: 'endDate',
           key: 'endDate',
           width: 150,
-          // Use the isoEndDate for sorting to avoid issues with the formatted string
-          sorter: (a, b) => new Date(a.isoEndDate) - new Date(b.isoEndDate),
-          sortOrder: sorted.columnKey === 'endDate' && sorted.order
+          sorter: false
         },
+
         {
           title: 'Description',
           dataIndex: 'description',
@@ -444,14 +399,14 @@ export default {
           title: 'Actions',
           dataIndex: 'actions',
           key: 'actions',
+          fixed: 'right',
           width: 120
         }
       ];
     },
     tableData() {
-      const startIndex = (this.currentPage - 1) * this.pageSize;
-      const endIndex = startIndex + this.pageSize;
-      return this.grants.slice(startIndex, endIndex).map(grant => ({
+      // With server-side pagination, just return the grants as-is
+      return this.grants.map(grant => ({
         ...grant,
         key: grant.id,
         description: grant.description || 'No description'
@@ -461,6 +416,30 @@ export default {
 
   },
   mounted() {
+    // Initialize DateRangePicker
+    if (this.dateRangeInput) {
+      const start = moment().subtract(6, 'days');
+      const end = moment();
+
+      new DateRangePicker(this.dateRangeInput, {
+        startDate: start,
+        endDate: end,
+        ranges: {
+          'Today': [moment(), moment()],
+          'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+          'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+          'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+          'This Month': [moment().startOf('month'), moment().endOf('month')],
+          'Last Month': [
+            moment().subtract(1, 'month').startOf('month'),
+            moment().subtract(1, 'month').endOf('month')
+          ]
+        }
+      }, (start, end) => {
+        return start.format('M/D/YYYY') + ' - ' + end.format('M/D/YYYY');
+      });
+    }
+
     // Initialize modal instances once
     const grantModalEl = document.getElementById('grant_modal');
     const grantModalUpdateEl = document.getElementById('grant_modal_update');
@@ -473,6 +452,99 @@ export default {
     this.fetchGrants();
   },
   methods: {
+    // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING
+    handlePaginationChange(page, pageSize) {
+      console.log('Pagination change:', page, pageSize);
+      this.currentPage = page;
+      this.pageSize = pageSize || this.pageSize;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: page,
+        per_page: this.pageSize
+      });
+
+      this.fetchGrants(params);
+    },
+
+    handleSizeChange(current, size) {
+      console.log('Size change:', current, size);
+      this.currentPage = 1; // Reset to first page when changing page size
+      this.pageSize = size;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: size
+      });
+
+      this.fetchGrants(params);
+    },
+
+    // Helper method to build complete API parameters
+    buildApiParams(baseParams = {}) {
+      const params = {
+        page: this.currentPage,
+        per_page: this.pageSize,
+        ...baseParams
+      };
+
+      // Add sorting parameters
+      if (this.sortedInfo && this.sortedInfo.field) {
+        const sortField = this.mapSortField(this.sortedInfo.field);
+        params.sort_by = sortField;
+        params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
+      }
+
+      // Add filter parameters
+      if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
+        if (this.filteredInfo.subsidiary && this.filteredInfo.subsidiary.length > 0) {
+          params.filter_subsidiary = this.filteredInfo.subsidiary.join(',');
+        }
+        if (this.filteredInfo.status && this.filteredInfo.status.length > 0) {
+          params.filter_status = this.filteredInfo.status.join(',');
+        }
+      }
+
+      // // Add search parameter if exists
+      // if (this.searchGrantCode && this.searchGrantCode.trim()) {
+      //   params.search = this.searchGrantCode.trim();
+      // }
+
+      return params;
+    },
+
+    // TABLE CHANGE HANDLER (for sorting/filtering only)
+    handleTableChange(pagination, filters, sorter) {
+      console.log('Table change (sorting/filtering):', filters, sorter);
+
+      // Check if there's actually a meaningful change
+      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
+      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
+
+      // Only proceed if there's an actual filter or sort change
+      if (!hasFilterChange && !hasSorterChange) {
+        console.log('No meaningful change detected, skipping reload');
+        return;
+      }
+
+      // Update filter and sort state
+      this.filteredInfo = filters;
+      this.sortedInfo = sorter;
+
+      // Reset to first page when filter/sort changes
+      this.currentPage = 1;
+
+      // Build complete parameters
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      // Fetch grants with new parameters
+      this.fetchGrants(params);
+    },
+
     // Add grant item
     handleAddItem(grantId) {
       // Create a new grant item with default values
@@ -540,9 +612,10 @@ export default {
         let updatedItem;
 
         if (itemData.__isNew) {
-          updatedItem = await this.grantStore.createGrantItem(itemData);
+          const response = await this.grantService.createGrantItem(itemData);
+          updatedItem = response.data || response;
         } else {
-          await this.grantStore.updateGrantItem(id, itemData);
+          await this.grantService.updateGrantItem(id, itemData);
           updatedItem = itemData;
         }
 
@@ -606,8 +679,8 @@ export default {
     // Delete grant item
     async deleteItem(record) {
       try {
-        // Delete the grant item through the store
-        await this.grantStore.deleteGrantItem(record.id);
+        // Delete the grant item through the service
+        await this.grantService.deleteGrantItem(record.id);
 
         // Refresh the grants list to get latest state
         this.fetchGrants();
@@ -646,28 +719,43 @@ export default {
       }));
     },
 
-    handleTableChange(pagination, filters, sorter) {
-      console.log('Table parameters changed:', pagination, filters, sorter);
-      this.currentPage = pagination.current;
-      this.pageSize = pagination.pageSize;
-      this.filteredInfo = filters;
-      this.sortedInfo = sorter;
 
-      // You can add API call here if you're fetching data from server
-      // this.fetchGrants(pagination.current, pagination.pageSize, sorter, filters);
+
+    // Map frontend table field names to backend field names
+    mapSortField(field) {
+      const fieldMapping = {
+        'code': 'code',
+        'name': 'name',
+        'subsidiary': 'subsidiary'
+      };
+      return fieldMapping[field] || field;
     },
 
     clearFilters() {
       this.filteredInfo = {};
-      this.fetchGrants();
+      this.currentPage = 1;
 
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchGrants(params);
     },
 
     clearAll() {
       this.filteredInfo = {};
       this.sortedInfo = {};
       this.searchGrantCode = '';
-      this.fetchGrants();
+      this.searchTerm = '';
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchGrants(params);
     },
 
     mapGrantItems(items) {
@@ -699,12 +787,19 @@ export default {
       });
     },
     async handleGrantCodeSearch() {
-      this.loading = true;
-      try {
-        const response = await this.grantStore.fetchGrantByCode(this.searchGrantCode);
+      // Validation: Check if search input is empty
+      if (!this.searchGrantCode || this.searchGrantCode.trim() === '') {
+        this.$message.warning('Please enter a grant code to search');
+        return;
+      }
 
-        if (response && (response.data || response)) {
-          const grantData = response.data || response;
+      this.searchLoading = true;
+      try {
+        const response = await this.grantService.searchGrantByCode(this.searchGrantCode);
+
+        // Check if the API returned success
+        if (response.success === true && response.data) {
+          const grantData = response.data;
 
           // Format the grant data similar to fetchGrants method
           const isoEndDate = grantData.end_date || moment(new Date(new Date().setFullYear(new Date().getFullYear() + 1))).format('YYYY-MM-DD');
@@ -724,53 +819,76 @@ export default {
           // Update the grants array with just this grant
           this.grants = [formattedGrant];
           this.total = 1;
-          this.$message.success('Grant found successfully');
+          this.currentPage = 1;
+          this.$message.success(response.message || 'Grant found successfully');
         } else {
-          this.grants = [];
-          this.total = 0;
-          this.$message.warning('No grant found with this code');
+          // Handle API response with success: false (404 - Grant not found)
+
+          this.$message.warning(response.message || 'No grant found with this code');
         }
 
         return response;
       } catch (error) {
+        // Only network errors, auth errors, or parsing errors reach here
         console.error('Error fetching grant by code:', error);
-        this.$message.error('Failed to fetch grant by code');
+        this.$message.error('Network error: Failed to fetch grant by code');
+        // Clear grants on error
         this.grants = [];
         this.total = 0;
       } finally {
-        this.loading = false;
+        this.searchLoading = false;
       }
     },
-
-    async fetchGrants() {
+    async fetchGrants(params = {}) {
       this.loading = true;
       try {
-        await this.grantStore.fetchGrants();
-        const grantsData = this.grantStore.grants;
+        const queryParams = {
+          page: params.page || this.currentPage || 1,
+          per_page: params.per_page || this.pageSize,
+          ...params
+        };
 
-        this.grants = grantsData.map(grant => {
-          // Ensure you have an ISO date either from the backend or a default value
-          const isoEndDate = grant.end_date || moment(new Date(new Date().setFullYear(new Date().getFullYear() + 1))).format('YYYY-MM-DD');
+        const response = await this.grantService.getAllGrants(queryParams);
 
-          return {
-            id: grant.id,
-            code: grant.code,
-            name: grant.name,
-            subsidiary: grant.subsidiary,
-            description: grant.description,
-            startDate: grant.startDate || moment(new Date()).format('DD/MM/YYYY'),
-            // Format the end date for display as dd/mm/yyyy
-            endDate: grant.end_date ? moment(grant.end_date).format('DD MMM YYYY') : '',
-            // Keep the original ISO date for sorting purposes
-            isoEndDate,
-            items: this.mapGrantItems(grant.grant_items)
-          };
-        });
+        if (response.success && response.data) {
+          const grantsData = response.data;
 
-        this.total = this.grants.length;
-        this.$message.success('Grants loaded successfully');
+          this.grants = grantsData.map(grant => {
+            const isoEndDate = grant.end_date || moment(new Date(new Date().setFullYear(new Date().getFullYear() + 1))).format('YYYY-MM-DD');
+
+            return {
+              id: grant.id,
+              code: grant.code,
+              name: grant.name,
+              subsidiary: grant.subsidiary,
+              description: grant.description,
+              startDate: grant.startDate || moment(new Date()).format('DD/MM/YYYY'),
+              endDate: grant.end_date ? moment(grant.end_date).format('DD MMM YYYY') : '',
+              isoEndDate,
+              items: this.mapGrantItems(grant.grant_items)
+            };
+          });
+
+          // Update pagination properties from server response
+          if (response.pagination) {
+            this.total = response.pagination.total;
+            this.currentPage = response.pagination.current_page;
+            this.pageSize = response.pagination.per_page;
+          } else {
+            this.total = response.data.length;
+            this.currentPage = 1;
+          }
+
+          this.$message.success('Grants loaded successfully');
+        } else {
+          this.grants = [];
+          this.total = 0;
+          this.$message.error('No grants data received');
+        }
       } catch (error) {
         console.error('Error fetching grants:', error);
+        this.grants = [];
+        this.total = 0;
         this.$message.error('Failed to load grants');
       } finally {
         this.loading = false;
@@ -778,44 +896,18 @@ export default {
     },
 
     async handleSearch() {
-      this.loading = true;
+      this.currentPage = 1;
 
-      try {
-        if (!this.searchTerm.trim()) {
-          // If search is empty, reset to default list
-          await this.fetchGrants();
-          return;
-        }
-
-        // Filter grants locally based on search term
-        const searchTermLower = this.searchTerm.toLowerCase();
-        const filteredGrants = this.grantStore.grants.filter(grant =>
-          grant.code?.toLowerCase().includes(searchTermLower) ||
-          grant.name?.toLowerCase().includes(searchTermLower) ||
-          grant.description?.toLowerCase().includes(searchTermLower)
-        );
-
-        this.grants = filteredGrants.map(grant => ({
-          id: grant.id,
-          code: grant.code,
-          name: grant.name,
-          amount: grant.amount || this.calculateTotalAmount(grant.grant_items),
-          startDate: grant.startDate || new Date().toLocaleDateString(),
-          endDate: grant.end_date ||
-            new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString(),
-          status: grant.status || 'Pending',
-          description: grant.description,
-          items: this.mapGrantItems(grant.grant_items)
-        }));
-
-        this.total = this.grants.length;
-        this.showNotification('Search Results', `Found ${this.total} grants matching "${this.searchTerm}"`, 'bg-info text-white');
-      } catch (error) {
-        console.error("Error searching grants:", error);
-        this.showNotification('Error', 'Failed to search grants', 'bg-danger text-white');
-      } finally {
-        this.loading = false;
+      if (!this.searchTerm.trim()) {
+        this.searchTerm = '';
       }
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      await this.fetchGrants(params);
     },
 
     formatCurrency(value) {
@@ -876,7 +968,7 @@ export default {
       this.loading = true;
       try {
         // Add new grant
-        await this.grantStore.createGrant(formData);
+        await this.grantService.createGrant(formData);
         this.$message.success('Grant created successfully');
         // Refresh the grants list
         this.fetchGrants();
@@ -898,7 +990,7 @@ export default {
 
         console.log('Updating grant with ID:', formData.id);
         // Update existing grant with validated ID
-        await this.grantStore.updateGrant(formData.id, { ...formData });
+        await this.grantService.updateGrant(formData.id, { ...formData });
         this.$message.success('Grant updated successfully');
         // Refresh the grants list
         this.fetchGrants();
@@ -913,7 +1005,7 @@ export default {
     async deleteGrant(id) {
       this.loading = true;
       try {
-        await this.grantStore.deleteGrant(id);
+        await this.grantService.deleteGrant(id);
         this.$message.success('Grant deleted successfully');
         // Refresh the grants list
         this.fetchGrants();
@@ -928,7 +1020,7 @@ export default {
     async handleGrantUploadSubmit(formData) {
       this.loading = true;
       try {
-        await this.grantStore.uploadGrantFile(formData);
+        await this.grantService.uploadGrantFile(formData);
         this.showNotification('Success', 'Grant file uploaded successfully', 'bg-success text-white');
         // Refresh the grants list
         this.fetchGrants();
@@ -969,4 +1061,109 @@ export default {
 .editable-row-operations a {
   margin-right: 8px;
 }
-</style>
+
+/* Primary color styling for search input button */
+.search-input-primary :deep(.ant-input-search-button) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:hover) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:focus) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Pagination wrapper styling */
+.pagination-wrapper {
+  margin-top: 20px;
+  padding: 20px 16px;
+  border-top: 1px solid #e8e8e8;
+  position: relative;
+  z-index: 100;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Ensure pagination is not overlapping */
+.resize-observer-fix {
+  position: relative;
+  min-height: 100px;
+}
+
+/* Ant Design pagination customization */
+:deep(.ant-pagination) {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+:deep(.ant-pagination-total-text) {
+  margin-right: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.ant-pagination-options) {
+  margin-left: 16px;
+}
+
+:deep(.ant-pagination-options-size-changer) {
+  margin-right: 8px;
+}
+
+:deep(.ant-pagination-options-quick-jumper) {
+  margin-left: 8px;
+}
+
+/* Fix dropdown placement - force dropdown to appear above */
+:deep(.ant-pagination-options-size-changer .ant-select) {
+  z-index: 1000;
+}
+
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+  z-index: 1050 !important;
+  top: auto !important;
+  bottom: calc(100% + 4px) !important;
+}
+
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+  z-index: 1050 !important;
+}
+
+/* Ensure pagination dropdowns appear above */
+.pagination-wrapper {
+  position: relative;
+  z-index: 100;
+}
+
+/* Override Ant Design dropdown placement */
+:deep(.ant-pagination .ant-select-dropdown) {
+  position: absolute !important;
+  bottom: calc(100% + 4px) !important;
+  top: auto !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Container overflow fixes */
+.card-body {
+  overflow: visible !important;
+  padding-bottom: 0;
+}
+
+.card {
+  overflow: visible !important;
+  margin-bottom: 20px;
+}
+</style> 

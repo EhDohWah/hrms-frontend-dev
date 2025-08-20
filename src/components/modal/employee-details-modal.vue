@@ -179,7 +179,7 @@
 
   <!-- Edit Personal Information Modal -->
   <div class="modal fade" id="edit_personal">
-    <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Personal Information</h4>
@@ -205,7 +205,7 @@
         <form @submit.prevent="submitPersonalInformationForm">
           <div class="modal-body pb-0">
             <div class="row">
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Phone <span class="text-danger"> *</span></label>
                   <input type="tel" class="form-control" v-model="personalFormData.mobile_phone"
@@ -213,7 +213,7 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label" for="edit-nationality">Nationality <span class="text-danger">
                       *</span></label>
@@ -228,7 +228,7 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Social Security Number</label>
                   <input type="text" class="form-control" v-model="personalFormData.social_security_number"
@@ -236,7 +236,7 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Tax Number</label>
                   <input type="text" class="form-control" v-model="personalFormData.tax_number"
@@ -244,7 +244,7 @@
                 </div>
               </div>
 
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Religion <span class="text-danger"> *</span></label>
                   <select class="form-select" v-model="personalFormData.religion"
@@ -256,7 +256,7 @@
                   </select>
                 </div>
               </div>
-              <div class="col-md-6">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Marital Status <span class="text-danger"> *</span></label>
                   <select class="form-select" v-model="personalFormData.marital_status"
@@ -270,14 +270,14 @@
               </div>
 
               <template v-if="personalFormData.marital_status === 'Married'">
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <div class="mb-3">
                     <label class="form-label">Spouse Name</label>
                     <input type="text" class="form-control" v-model="personalFormData.spouse_name"
                       placeholder="Enter spouse name" @input="saveFormState('personalFormData')" />
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <div class="mb-3">
                     <label class="form-label">Spouse Mobile</label>
                     <input type="tel" class="form-control" v-model="personalFormData.spouse_mobile"
@@ -362,42 +362,33 @@
   </div>
   <!-- /Edit Personal Information Modal -->
 
-  <!-- Add Beneficiary Modal -->
+  <!-- Add/Edit Beneficiary Modal -->
   <div class="modal fade" id="add_beneficiary">
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">Add Beneficiary</h4>
-          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('add_beneficiary')"
+          <h4 class="modal-title">{{ $parent.isEditingBeneficiary ? 'Edit Beneficiary' : 'Add Beneficiary' }}</h4>
+          <button type="button" class="btn-close custom-btn-close" @click="$parent.closeBeneficiaryModal()"
             aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
 
-        <!-- Restored Data Notification -->
-        <div v-if="restoredDataNotification.beneficiaryForm"
-          class="alert alert-info alert-dismissible fade show mx-3 mt-2" role="alert">
-          <i class="ti ti-info-circle me-2"></i>
-          Restored your previous unsaved changes
-          <button type="button" class="btn-close" @click="restoredDataNotification.beneficiaryForm = false"></button>
-        </div>
-
-        <form @submit.prevent="submitBeneficiaryForm">
+        <form @submit.prevent="$parent.submitBeneficiaryForm()">
           <div class="modal-body pb-0">
             <div class="row">
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Beneficiary Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_name" required
-                    @input="saveFormState('beneficiaryForm')" />
+                  <input type="text" class="form-control" v-model="$parent.beneficiaryForm.beneficiary_name" required
+                    placeholder="Enter beneficiary name" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Relationship <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="beneficiaryForm.beneficiary_relationship" required
-                    @change="saveFormState('beneficiaryForm')">
-                    <option value="" disabled selected>Select Relationship</option>
+                  <select class="form-select" v-model="$parent.beneficiaryForm.beneficiary_relationship" required>
+                    <option value="" disabled>Select Relationship</option>
                     <option value="Spouse">Spouse</option>
                     <option value="Child">Child</option>
                     <option value="Parent">Parent</option>
@@ -409,19 +400,19 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Phone Number <span class="text-danger"> *</span></label>
-                  <input type="tel" class="form-control" v-model="beneficiaryForm.phone_number" required
-                    @input="saveFormState('beneficiaryForm')" />
+                  <input type="tel" class="form-control" v-model="$parent.beneficiaryForm.phone_number" required
+                    placeholder="Enter phone number" />
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-light border me-2"
-              @click="handleModalClose('add_beneficiary')">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+              @click="$parent.closeBeneficiaryModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="$parent.isSubmitting">
+              <span v-if="$parent.isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
-              Save
+              {{ $parent.isEditingBeneficiary ? 'Update' : 'Save' }}
             </button>
           </div>
         </form>
@@ -429,6 +420,400 @@
     </div>
   </div>
   <!-- /Add Beneficiary Modal -->
+
+
+
+  <!-- Add/Edit Bank Information Modal -->
+  <div class="modal fade" id="edit_bank">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">{{ isEditingBank ? 'Edit' : 'Add' }} Bank Information</h4>
+          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_bank')"
+            aria-label="Close">
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+
+        <!-- Restored Data Notification -->
+        <div v-if="restoredDataNotification.bankForm" class="alert alert-info alert-dismissible fade show mx-3 mt-2"
+          role="alert">
+          <i class="ti ti-info-circle me-2"></i>
+          Restored your previous unsaved changes
+          <button type="button" class="btn-close" @click="restoredDataNotification.bankForm = false"></button>
+        </div>
+
+        <form @submit.prevent="submitBankForm">
+          <div class="modal-body pb-0">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Bank Name <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="bankForm.bank_name" required @change="saveFormState('bankForm')">
+                    <option value="" disabled selected>Select Bank</option>
+                    <option value="Bangkok Bank">Bangkok Bank</option>
+                    <option value="Kasikorn Bank">Kasikorn Bank</option>
+                    <option value="Siam Commercial Bank">Siam Commercial Bank</option>
+                    <option value="Krung Thai Bank">Krung Thai Bank</option>
+                    <option value="Bank of Ayudhya">Bank of Ayudhya</option>
+                    <option value="TMBThanachart Bank">TMBThanachart Bank</option>
+                    <option value="Government Savings Bank">Government Savings Bank</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Bank Account Number <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="bankForm.bank_account_number" required
+                    placeholder="Enter account number" @input="saveFormState('bankForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Account Name <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="bankForm.bank_account_name" required
+                    placeholder="Enter account holder name" @input="saveFormState('bankForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Branch <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="bankForm.bank_branch" required
+                    placeholder="Enter branch name" @input="saveFormState('bankForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">SWIFT Code</label>
+                  <input type="text" class="form-control" v-model="bankForm.swift_code" placeholder="Enter SWIFT code"
+                    @input="saveFormState('bankForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Account Type</label>
+                  <select class="form-select" v-model="bankForm.account_type" @change="saveFormState('bankForm')">
+                    <option value="" disabled selected>Select Account Type</option>
+                    <option value="Savings">Savings Account</option>
+                    <option value="Current">Current Account</option>
+                    <option value="Fixed">Fixed Deposit</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-light border me-2"
+              @click="handleModalClose('edit_bank')">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+              {{ isEditingBank ? 'Update' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- /Add/Edit Bank Information Modal -->
+
+  <!-- Add/Edit Family Information Modal -->
+  <div class="modal fade" id="edit_familyinformation">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">{{ isEditingFamily ? 'Edit' : 'Add' }} Family Information</h4>
+          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_familyinformation')"
+            aria-label="Close">
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+
+        <!-- Restored Data Notification -->
+        <div v-if="restoredDataNotification.familyForm" class="alert alert-info alert-dismissible fade show mx-3 mt-2"
+          role="alert">
+          <i class="ti ti-info-circle me-2"></i>
+          Restored your previous unsaved changes
+          <button type="button" class="btn-close" @click="restoredDataNotification.familyForm = false"></button>
+        </div>
+
+        <form @submit.prevent="submitFamilyForm">
+          <div class="modal-body pb-0">
+            <div class="row">
+              <!-- Father Information -->
+              <div class="col-md-12">
+                <h6 class="mb-3"><i class="ti ti-user me-2"></i>Father Information</h6>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Father's Name</label>
+                  <input type="text" class="form-control" v-model="familyForm.father_name"
+                    placeholder="Enter father's name" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Father's Occupation</label>
+                  <input type="text" class="form-control" v-model="familyForm.father_occupation"
+                    placeholder="Enter father's occupation" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Father's Phone</label>
+                  <input type="tel" class="form-control" v-model="familyForm.father_phone"
+                    placeholder="Enter father's phone" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Father's Date of Birth</label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker v-model="familyForm.father_date_of_birth" class="form-control datetimepicker"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="true" :input-format="dateFormat"
+                      @update:model-value="handleDateChange('familyForm', 'father_date_of_birth', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mother Information -->
+              <div class="col-md-12">
+                <hr class="my-3">
+                <h6 class="mb-3"><i class="ti ti-user me-2"></i>Mother Information</h6>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Mother's Name</label>
+                  <input type="text" class="form-control" v-model="familyForm.mother_name"
+                    placeholder="Enter mother's name" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Mother's Occupation</label>
+                  <input type="text" class="form-control" v-model="familyForm.mother_occupation"
+                    placeholder="Enter mother's occupation" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Mother's Phone</label>
+                  <input type="tel" class="form-control" v-model="familyForm.mother_phone"
+                    placeholder="Enter mother's phone" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Mother's Date of Birth</label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker v-model="familyForm.mother_date_of_birth" class="form-control datetimepicker"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="true" :input-format="dateFormat"
+                      @update:model-value="handleDateChange('familyForm', 'mother_date_of_birth', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Emergency Contact -->
+              <div class="col-md-12">
+                <hr class="my-3">
+                <h6 class="mb-3"><i class="ti ti-phone me-2"></i>Emergency Contact</h6>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Emergency Contact Name</label>
+                  <input type="text" class="form-control" v-model="familyForm.emergency_contact_name"
+                    placeholder="Enter emergency contact name" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Emergency Contact Relationship</label>
+                  <input type="text" class="form-control" v-model="familyForm.emergency_contact_relationship"
+                    placeholder="Enter relationship" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Emergency Contact Phone</label>
+                  <input type="tel" class="form-control" v-model="familyForm.emergency_contact_phone"
+                    placeholder="Enter emergency contact phone" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Emergency Contact Address</label>
+                  <textarea class="form-control" v-model="familyForm.emergency_contact_address" rows="2"
+                    placeholder="Enter emergency contact address" @input="saveFormState('familyForm')"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-light border me-2"
+              @click="handleModalClose('edit_familyinformation')">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+              {{ isEditingFamily ? 'Update' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- /Add/Edit Family Information Modal -->
+
+  <!-- Add/Edit Education Modal -->
+  <div class="modal fade" id="edit_education">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">{{ isEditingEducation ? 'Edit' : 'Add' }} Education Information</h4>
+          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_education')"
+            aria-label="Close">
+            <i class="ti ti-x"></i>
+          </button>
+        </div>
+
+        <!-- Restored Data Notification -->
+        <div v-if="restoredDataNotification.educationForm"
+          class="alert alert-info alert-dismissible fade show mx-3 mt-2" role="alert">
+          <i class="ti ti-info-circle me-2"></i>
+          Restored your previous unsaved changes
+          <button type="button" class="btn-close" @click="restoredDataNotification.educationForm = false"></button>
+        </div>
+
+        <form @submit.prevent="submitEducationForm">
+          <div class="modal-body pb-0">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Institution Name <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="educationForm.institution_name" required
+                    placeholder="Enter institution name" @input="saveFormState('educationForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Degree/Qualification <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="educationForm.degree" required
+                    placeholder="Enter degree or qualification" @input="saveFormState('educationForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Field of Study</label>
+                  <input type="text" class="form-control" v-model="educationForm.field_of_study"
+                    placeholder="Enter field of study" @input="saveFormState('educationForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Education Level <span class="text-danger"> *</span></label>
+                  <select class="form-select" v-model="educationForm.education_level" required
+                    @change="saveFormState('educationForm')">
+                    <option value="" disabled selected>Select Education Level</option>
+                    <option value="Primary School">Primary School</option>
+                    <option value="Secondary School">Secondary School</option>
+                    <option value="High School">High School</option>
+                    <option value="Diploma">Diploma</option>
+                    <option value="Bachelor's Degree">Bachelor's Degree</option>
+                    <option value="Master's Degree">Master's Degree</option>
+                    <option value="Doctoral Degree">Doctoral Degree</option>
+                    <option value="Professional Certificate">Professional Certificate</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Start Date</label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker v-model="educationForm.start_date" class="form-control datetimepicker"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="true" :input-format="dateFormat"
+                      @update:model-value="handleDateChange('educationForm', 'start_date', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">End Date</label>
+                  <div class="input-icon-end position-relative">
+                    <date-picker v-model="educationForm.end_date" class="form-control datetimepicker"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="true" :input-format="dateFormat"
+                      @update:model-value="handleDateChange('educationForm', 'end_date', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">GPA/Grade</label>
+                  <input type="text" class="form-control" v-model="educationForm.gpa" placeholder="Enter GPA or grade"
+                    @input="saveFormState('educationForm')" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Location</label>
+                  <input type="text" class="form-control" v-model="educationForm.location" placeholder="Enter location"
+                    @input="saveFormState('educationForm')" />
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Description/Notes</label>
+                  <textarea class="form-control" v-model="educationForm.description" rows="3"
+                    placeholder="Enter additional information about this education"
+                    @input="saveFormState('educationForm')"></textarea>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Status</label>
+                  <select class="form-select" v-model="educationForm.status" @change="saveFormState('educationForm')">
+                    <option value="" disabled selected>Select Status</option>
+                    <option value="Completed">Completed</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Discontinued">Discontinued</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Honors/Awards</label>
+                  <input type="text" class="form-control" v-model="educationForm.honors"
+                    placeholder="Enter any honors or awards" @input="saveFormState('educationForm')" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-light border me-2"
+              @click="handleModalClose('edit_education')">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
+                aria-hidden="true"></span>
+              {{ isEditingEducation ? 'Update' : 'Save' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- /Add/Edit Education Modal -->
 
   <!-- Add Child Modal -->
   <div class="modal fade" id="add_child">
@@ -674,8 +1059,10 @@ export default {
       restoredDataNotification: {
         editForm: false,
         personalForm: false,
-        beneficiaryForm: false,
         childForm: false,
+        bankForm: false,
+        familyForm: false,
+        educationForm: false,
         editFormTime: null,
         personalFormTime: null,
       },
@@ -724,12 +1111,47 @@ export default {
         date_of_birth: null, // Initialize as null instead of empty string
       },
 
-      beneficiaryForm: {
-        beneficiary_name: '',
-        beneficiary_relationship: '',
-        phone_number: '',
-        beneficiary_email: '',
-        beneficiary_address: '',
+
+
+      bankForm: {
+        id: null,
+        bank_name: '',
+        bank_account_number: '',
+        bank_account_name: '',
+        bank_branch: '',
+        swift_code: '',
+        account_type: '',
+      },
+
+      familyForm: {
+        id: null,
+        father_name: '',
+        father_occupation: '',
+        father_phone: '',
+        father_date_of_birth: null,
+        mother_name: '',
+        mother_occupation: '',
+        mother_phone: '',
+        mother_date_of_birth: null,
+        emergency_contact_name: '',
+        emergency_contact_relationship: '',
+        emergency_contact_phone: '',
+        emergency_contact_address: '',
+      },
+
+      educationForm: {
+        id: null,
+        institution_name: '',
+        degree: '',
+        field_of_study: '',
+        education_level: '',
+        start_date: null,
+        end_date: null,
+        gpa: '',
+        location: '',
+        description: '',
+        status: '',
+        honors: '',
       },
 
       selectedLanguages: [],
@@ -743,6 +1165,10 @@ export default {
 
       editingChild: null,
       isEditingChild: false,
+      isEditingBeneficiary: false,
+      isEditingBank: false,
+      isEditingFamily: false,
+      isEditingEducation: false,
       dateFormat: "dd-MM-yyyy",
       EpsRate: ["Select", "EPS", "ESI", "EPF"],
       OneEpsRate: ["Select", "EPS", "ESI", "EPF"],
@@ -976,9 +1402,37 @@ export default {
           this.restoredDataNotification.personalFormTime = savedData.personalFormData.timestamp || Date.now();
         }
 
-        if (savedData.beneficiaryForm) {
-          Object.assign(this.beneficiaryForm, savedData.beneficiaryForm);
-          this.restoredDataNotification.beneficiaryForm = true;
+
+
+        if (savedData.bankForm) {
+          Object.assign(this.bankForm, savedData.bankForm);
+          this.restoredDataNotification.bankForm = true;
+        }
+
+        if (savedData.familyForm) {
+          const familyData = { ...savedData.familyForm };
+          // Safely convert date fields
+          if (familyData.father_date_of_birth) {
+            familyData.father_date_of_birth = this.safeConvertToDate(familyData.father_date_of_birth);
+          }
+          if (familyData.mother_date_of_birth) {
+            familyData.mother_date_of_birth = this.safeConvertToDate(familyData.mother_date_of_birth);
+          }
+          Object.assign(this.familyForm, familyData);
+          this.restoredDataNotification.familyForm = true;
+        }
+
+        if (savedData.educationForm) {
+          const educationData = { ...savedData.educationForm };
+          // Safely convert date fields
+          if (educationData.start_date) {
+            educationData.start_date = this.safeConvertToDate(educationData.start_date);
+          }
+          if (educationData.end_date) {
+            educationData.end_date = this.safeConvertToDate(educationData.end_date);
+          }
+          Object.assign(this.educationForm, educationData);
+          this.restoredDataNotification.educationForm = true;
         }
 
         if (savedData.childForm && !this.isEditingChild) {
@@ -1226,7 +1680,9 @@ export default {
         }
 
         // Reset other forms
-        this.resetBeneficiaryForm();
+        this.resetBankForm();
+        this.resetFamilyForm();
+        this.resetEducationForm();
         this.resetChildForm();
       } catch (error) {
         console.error('Error resetting forms:', error);
@@ -1332,43 +1788,311 @@ export default {
       }
     },
 
-    // Submit beneficiary form
-    async submitBeneficiaryForm() {
+
+
+    // Submit bank form
+    async submitBankForm() {
       if (this.isDestroyed) return;
 
       try {
         this.isSubmitting = true;
 
-        // Add your beneficiary submission logic here
+        // Validate required fields
+        if (!this.bankForm.bank_name || !this.bankForm.bank_account_number || !this.bankForm.bank_account_name || !this.bankForm.bank_branch) {
+          this.$message.error('Please fill in all required fields');
+          return;
+        }
+
+        const payload = {
+          employee_id: this.employee.id,
+          bank_name: this.bankForm.bank_name,
+          bank_account_number: this.bankForm.bank_account_number,
+          bank_account_name: this.bankForm.bank_account_name,
+          bank_branch: this.bankForm.bank_branch,
+          swift_code: this.bankForm.swift_code,
+          account_type: this.bankForm.account_type,
+        };
+
+        // Add API call here
+        // const response = await bankService.createOrUpdateBank(payload);
+        console.log('Bank payload ready for API:', payload);
+
+        this.$message.success(`Bank information ${this.isEditingBank ? 'updated' : 'added'} successfully`);
+        this.$emit('employee-updated');
 
         // Clear saved form data after successful submission
-        this.clearFormSection(this.employee.id, 'beneficiaryForm');
+        this.clearFormSection(this.employee.id, 'bankForm');
         this.markAsSaved(this.employee.id);
 
         // Reset form
-        this.resetBeneficiaryForm();
+        this.resetBankForm();
 
         // Close modal
-        this.closeModal('add_beneficiary');
+        await this.safeHideModal('edit_bank');
       } catch (error) {
-        console.error('Error submitting beneficiary form:', error);
-        throw error;
+        console.error('Error submitting bank form:', error);
+        this.$message.error('Error saving bank information');
       } finally {
         this.isSubmitting = false;
       }
     },
 
-    // Reset beneficiary form
-    resetBeneficiaryForm() {
+    // Reset bank form
+    resetBankForm() {
       if (this.isDestroyed) return;
 
-      this.beneficiaryForm = {
-        beneficiary_name: '',
-        beneficiary_relationship: '',
-        phone_number: '',
-        beneficiary_email: '',
-        beneficiary_address: '',
+      this.bankForm = {
+        id: null,
+        bank_name: '',
+        bank_account_number: '',
+        bank_account_name: '',
+        bank_branch: '',
+        swift_code: '',
+        account_type: '',
       };
+      this.isEditingBank = false;
+    },
+
+    // Open Bank Modal (for both add and edit)
+    async openBankModal(bankData = null) {
+      if (this.isDestroyed) return;
+
+      if (bankData) {
+        // Edit mode
+        this.isEditingBank = true;
+        this.bankForm = {
+          id: bankData.id,
+          bank_name: bankData.bank_name || '',
+          bank_account_number: bankData.bank_account_number || '',
+          bank_account_name: bankData.bank_account_name || '',
+          bank_branch: bankData.bank_branch || '',
+          swift_code: bankData.swift_code || '',
+          account_type: bankData.account_type || '',
+        };
+      } else {
+        // Add mode
+        this.isEditingBank = false;
+        this.resetBankForm();
+      }
+
+      await this.safeShowModal('edit_bank');
+    },
+
+    // Submit family form
+    async submitFamilyForm() {
+      if (this.isDestroyed) return;
+
+      try {
+        this.isSubmitting = true;
+
+        const payload = {
+          employee_id: this.employee.id,
+          father_name: this.familyForm.father_name,
+          father_occupation: this.familyForm.father_occupation,
+          father_phone: this.familyForm.father_phone,
+          father_date_of_birth: this.formatDate(this.familyForm.father_date_of_birth),
+          mother_name: this.familyForm.mother_name,
+          mother_occupation: this.familyForm.mother_occupation,
+          mother_phone: this.familyForm.mother_phone,
+          mother_date_of_birth: this.formatDate(this.familyForm.mother_date_of_birth),
+          emergency_contact_name: this.familyForm.emergency_contact_name,
+          emergency_contact_relationship: this.familyForm.emergency_contact_relationship,
+          emergency_contact_phone: this.familyForm.emergency_contact_phone,
+          emergency_contact_address: this.familyForm.emergency_contact_address,
+        };
+
+        // Add API call here
+        // const response = await familyService.createOrUpdateFamily(payload);
+        console.log('Family payload ready for API:', payload);
+
+        this.$message.success(`Family information ${this.isEditingFamily ? 'updated' : 'saved'} successfully`);
+        this.$emit('employee-updated');
+
+        // Clear saved form data after successful submission
+        this.clearFormSection(this.employee.id, 'familyForm');
+        this.markAsSaved(this.employee.id);
+
+        // Reset form
+        this.resetFamilyForm();
+
+        // Close modal
+        await this.safeHideModal('edit_familyinformation');
+      } catch (error) {
+        console.error('Error submitting family form:', error);
+        this.$message.error('Error saving family information');
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    // Reset family form
+    resetFamilyForm() {
+      if (this.isDestroyed) return;
+
+      this.familyForm = {
+        id: null,
+        father_name: '',
+        father_occupation: '',
+        father_phone: '',
+        father_date_of_birth: null,
+        mother_name: '',
+        mother_occupation: '',
+        mother_phone: '',
+        mother_date_of_birth: null,
+        emergency_contact_name: '',
+        emergency_contact_relationship: '',
+        emergency_contact_phone: '',
+        emergency_contact_address: '',
+      };
+      this.isEditingFamily = false;
+    },
+
+    // Open Family Modal (for both add and edit)
+    async openFamilyModal(familyData = null) {
+      if (this.isDestroyed) return;
+
+      if (familyData) {
+        // Edit mode
+        this.isEditingFamily = true;
+        this.familyForm = {
+          id: familyData.id,
+          father_name: familyData.father_name || '',
+          father_occupation: familyData.father_occupation || '',
+          father_phone: familyData.father_phone || '',
+          father_date_of_birth: this.safeConvertToDate(familyData.father_date_of_birth),
+          mother_name: familyData.mother_name || '',
+          mother_occupation: familyData.mother_occupation || '',
+          mother_phone: familyData.mother_phone || '',
+          mother_date_of_birth: this.safeConvertToDate(familyData.mother_date_of_birth),
+          emergency_contact_name: familyData.emergency_contact_name || '',
+          emergency_contact_relationship: familyData.emergency_contact_relationship || '',
+          emergency_contact_phone: familyData.emergency_contact_phone || '',
+          emergency_contact_address: familyData.emergency_contact_address || '',
+        };
+      } else {
+        // Add mode (populate with employee data if available)
+        this.isEditingFamily = false;
+        this.familyForm = {
+          id: null,
+          father_name: this.employee?.father_name || '',
+          father_occupation: this.employee?.father_occupation || '',
+          father_phone: '',
+          father_date_of_birth: null,
+          mother_name: this.employee?.mother_name || '',
+          mother_occupation: this.employee?.mother_occupation || '',
+          mother_phone: '',
+          mother_date_of_birth: null,
+          emergency_contact_name: '',
+          emergency_contact_relationship: '',
+          emergency_contact_phone: '',
+          emergency_contact_address: '',
+        };
+      }
+
+      await this.safeShowModal('edit_familyinformation');
+    },
+
+    // Submit education form
+    async submitEducationForm() {
+      if (this.isDestroyed) return;
+
+      try {
+        this.isSubmitting = true;
+
+        // Validate required fields
+        if (!this.educationForm.institution_name || !this.educationForm.degree || !this.educationForm.education_level) {
+          this.$message.error('Please fill in all required fields');
+          return;
+        }
+
+        const payload = {
+          employee_id: this.employee.id,
+          institution_name: this.educationForm.institution_name,
+          degree: this.educationForm.degree,
+          field_of_study: this.educationForm.field_of_study,
+          education_level: this.educationForm.education_level,
+          start_date: this.formatDate(this.educationForm.start_date),
+          end_date: this.formatDate(this.educationForm.end_date),
+          gpa: this.educationForm.gpa,
+          location: this.educationForm.location,
+          description: this.educationForm.description,
+          status: this.educationForm.status,
+          honors: this.educationForm.honors,
+        };
+
+        // Add API call here
+        // const response = await educationService.createOrUpdateEducation(payload);
+        console.log('Education payload ready for API:', payload);
+
+        this.$message.success(`Education information ${this.isEditingEducation ? 'updated' : 'added'} successfully`);
+        this.$emit('employee-updated');
+
+        // Clear saved form data after successful submission
+        this.clearFormSection(this.employee.id, 'educationForm');
+        this.markAsSaved(this.employee.id);
+
+        // Reset form
+        this.resetEducationForm();
+
+        // Close modal
+        await this.safeHideModal('edit_education');
+      } catch (error) {
+        console.error('Error submitting education form:', error);
+        this.$message.error('Error saving education information');
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    // Reset education form
+    resetEducationForm() {
+      if (this.isDestroyed) return;
+
+      this.educationForm = {
+        id: null,
+        institution_name: '',
+        degree: '',
+        field_of_study: '',
+        education_level: '',
+        start_date: null,
+        end_date: null,
+        gpa: '',
+        location: '',
+        description: '',
+        status: '',
+        honors: '',
+      };
+      this.isEditingEducation = false;
+    },
+
+    // Open Education Modal (for both add and edit)
+    async openEducationModal(educationData = null) {
+      if (this.isDestroyed) return;
+
+      if (educationData) {
+        // Edit mode
+        this.isEditingEducation = true;
+        this.educationForm = {
+          id: educationData.id,
+          institution_name: educationData.institution_name || '',
+          degree: educationData.degree || '',
+          field_of_study: educationData.field_of_study || '',
+          education_level: educationData.education_level || '',
+          start_date: this.safeConvertToDate(educationData.start_date),
+          end_date: this.safeConvertToDate(educationData.end_date),
+          gpa: educationData.gpa || '',
+          location: educationData.location || '',
+          description: educationData.description || '',
+          status: educationData.status || '',
+          honors: educationData.honors || '',
+        };
+      } else {
+        // Add mode
+        this.isEditingEducation = false;
+        this.resetEducationForm();
+      }
+
+      await this.safeShowModal('edit_education');
     },
 
     // Create or Update Child
@@ -1680,7 +2404,10 @@ export default {
             const modalFormMap = {
               'edit_employee': 'editFormData',
               'edit_personal': 'personalFormData',
-              'add_beneficiary': 'beneficiaryForm',
+
+              'edit_bank': 'bankForm',
+              'edit_familyinformation': 'familyForm',
+              'edit_education': 'educationForm',
               'add_child': 'childForm'
             };
 
@@ -1696,6 +2423,22 @@ export default {
               if (formKey === 'childForm' && formData.date_of_birth) {
                 formData.date_of_birth = this.safeConvertToDate(formData.date_of_birth);
               }
+              if (formKey === 'familyForm') {
+                if (formData.father_date_of_birth) {
+                  formData.father_date_of_birth = this.safeConvertToDate(formData.father_date_of_birth);
+                }
+                if (formData.mother_date_of_birth) {
+                  formData.mother_date_of_birth = this.safeConvertToDate(formData.mother_date_of_birth);
+                }
+              }
+              if (formKey === 'educationForm') {
+                if (formData.start_date) {
+                  formData.start_date = this.safeConvertToDate(formData.start_date);
+                }
+                if (formData.end_date) {
+                  formData.end_date = this.safeConvertToDate(formData.end_date);
+                }
+              }
 
               Object.assign(this[formKey], formData);
 
@@ -1706,8 +2449,13 @@ export default {
               } else if (formKey === 'personalFormData') {
                 this.restoredDataNotification.personalForm = true;
                 this.restoredDataNotification.personalFormTime = savedData.timestamp;
-              } else if (formKey === 'beneficiaryForm') {
-                this.restoredDataNotification.beneficiaryForm = true;
+
+              } else if (formKey === 'bankForm') {
+                this.restoredDataNotification.bankForm = true;
+              } else if (formKey === 'familyForm') {
+                this.restoredDataNotification.familyForm = true;
+              } else if (formKey === 'educationForm') {
+                this.restoredDataNotification.educationForm = true;
               } else if (formKey === 'childForm' && !this.isEditingChild) {
                 this.restoredDataNotification.childForm = true;
               }

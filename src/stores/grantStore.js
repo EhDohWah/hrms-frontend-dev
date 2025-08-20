@@ -10,7 +10,15 @@ export const useGrantStore = defineStore('grant', {
     grantItems: [],
     currentGrant: null,
     loading: false,
-    error: null
+    error: null,
+    pagination: {
+      current_page: 1,
+      per_page: 10,
+      total: 0,
+      last_page: 1,
+      from: 0,
+      to: 0
+    }
   }),
 
   getters: {
@@ -23,6 +31,113 @@ export const useGrantStore = defineStore('grant', {
   },
 
   actions: {
+
+    async fetchPaginatedGrants(params = {}) {
+      this.loading = true;
+      try {
+        const queryParams = {
+          page: params.page || 1,
+          per_page: params.per_page || 10,
+          ...(params.search && { search: params.search }),
+          ...(params.subsidiary && { subsidiary: params.subsidiary }),
+          ...(params.code && { code: params.code }),
+          ...(params.sort_by && { sort_by: params.sort_by }),
+          ...(params.sort_order && { sort_order: params.sort_order })
+        };
+
+        const response = await grantService.getPaginatedGrants(queryParams);
+
+        if (response.data && response.data.success) {
+          this.grants = response.data.data;
+          this.pagination = response.data.pagination;
+        } else {
+          // Handle case where response structure might be different
+          this.grants = response.data || response || [];
+          this.pagination = {
+            current_page: 1,
+            per_page: 10,
+            total: this.grants.length,
+            last_page: 1,
+            from: 1,
+            to: this.grants.length
+          };
+        }
+
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch paginated grants';
+        console.error('Error fetching paginated grants:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchAdvancedPaginatedGrants(params = {}) {
+      this.loading = true;
+      try {
+        const queryParams = {
+          page: params.page || 1,
+          per_page: params.per_page || 10,
+          with_items: params.with_items || true,
+          ...(params.search && { search: params.search }),
+          ...(params.subsidiary && { subsidiary: params.subsidiary }),
+          ...(params.code && { code: params.code }),
+          ...(params.name && { name: params.name }),
+          ...(params.end_date_after && { end_date_after: params.end_date_after }),
+          ...(params.end_date_before && { end_date_before: params.end_date_before }),
+          ...(params.end_date_between && { end_date_between: params.end_date_between }),
+          ...(params.sort_by && { sort_by: params.sort_by }),
+          ...(params.sort_order && { sort_order: params.sort_order }),
+          ...(params.include_expired !== undefined && { include_expired: params.include_expired })
+        };
+
+        const response = await grantService.getAdvancedPaginatedGrants(queryParams);
+
+        if (response.data && response.data.success) {
+          this.grants = response.data.data.data || response.data.data;
+          this.pagination = response.data.data.pagination || response.data.pagination;
+        } else {
+          // Handle case where response structure might be different
+          this.grants = response.data || response || [];
+          this.pagination = {
+            current_page: 1,
+            per_page: 10,
+            total: this.grants.length,
+            last_page: 1,
+            from: 1,
+            to: this.grants.length
+          };
+        }
+
+        return response;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch advanced paginated grants';
+        console.error('Error fetching advanced paginated grants:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchFilterOptions() {
+      try {
+        this.loading = true;
+        this.error = null;
+        const response = await grantService.getFilterOptions();
+
+        // Return the filter options data
+        return response.data && response.data.success
+          ? response.data.data
+          : response.data || response;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch filter options';
+        console.error('Error fetching filter options:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
 
     async fetchGrantById(id) {
 

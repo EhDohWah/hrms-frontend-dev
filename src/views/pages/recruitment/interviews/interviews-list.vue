@@ -395,7 +395,7 @@ export default {
       try {
         const response = await interviewService.getByCandidateName(this.searchCandidate.trim());
 
-        // Check if the API returned success
+        // Handle successful response - getByCandidateName has special 404 handling
         if (response.success === true && response.data) {
           const interviewData = response.data;
 
@@ -410,19 +410,47 @@ export default {
           this.total = 1;
           this.currentPage = 1;
           this.$message.success(response.message || 'Interview found successfully');
+        } else if (response.success === false) {
+          // Handle 404 response from getByCandidateName (not thrown as error)
+          this.interviews = [];
+          this.total = 0;
+          this.$message.info(response.message || 'No interview found for this candidate');
         } else {
-          // Handle API response with success: false (404 - Interview not found)
-          this.$message.warning(response.message || 'No interview found for this candidate');
+          // Fallback for unexpected response format
+          this.$message.warning('No interview found for this candidate');
+          this.interviews = [];
+          this.total = 0;
         }
 
         return response;
       } catch (error) {
-        // Only network errors, auth errors, or parsing errors reach here
-        console.error('Error fetching interview by candidate name:', error);
-        this.$message.error('Network error: Failed to fetch interview by candidate name');
-        // Clear interviews on error
+        // Handle BaseService structured errors (thrown as exceptions)
+        console.error('Error during candidate search:', error);
         this.interviews = [];
         this.total = 0;
+
+        // Handle BaseService error structure
+        if (error.status) {
+          switch (error.status) {
+            case 401:
+              this.$message.error(error.message || 'Authentication required. Please log in again.');
+              break;
+            case 403:
+              this.$message.error(error.message || 'You don\'t have permission to search interviews.');
+              break;
+            case 500:
+              this.$message.error(error.message || 'Server error occurred. Please try again later.');
+              break;
+            case 422:
+              this.$message.warning(error.message || 'Invalid search parameters.');
+              break;
+            default:
+              this.$message.error(error.message || 'Failed to search for interview');
+          }
+        } else {
+          // Handle network or other unexpected errors
+          this.$message.error(error.message || 'Network connection error. Please check your connection and try again.');
+        }
       } finally {
         this.searchLoading = false;
       }
@@ -460,7 +488,10 @@ export default {
             this.currentPage = 1;
           }
 
-          this.$message.success('Interviews loaded successfully');
+          // Only show success message on initial load, not on pagination/filter changes
+          if (params.page === 1 || !params.page) {
+            this.$message.success('Interviews loaded successfully');
+          }
         } else {
           this.interviews = [];
           this.total = 0;
@@ -470,7 +501,29 @@ export default {
         console.error('Error fetching interviews:', error);
         this.interviews = [];
         this.total = 0;
-        this.$message.error('Failed to load interviews');
+
+        // Handle BaseService structured errors
+        if (error.status) {
+          switch (error.status) {
+            case 401:
+              this.$message.error(error.message || 'Authentication required. Please log in again.');
+              break;
+            case 403:
+              this.$message.error(error.message || 'You don\'t have permission to view interviews.');
+              break;
+            case 500:
+              this.$message.error(error.message || 'Server error occurred. Please try again later.');
+              break;
+            case 422:
+              this.$message.warning(error.message || 'Invalid request parameters.');
+              break;
+            default:
+              this.$message.error(error.message || 'Failed to load interviews');
+          }
+        } else {
+          // Handle network or other unexpected errors
+          this.$message.error(error.message || 'Network connection error. Please check your connection and try again.');
+        }
       } finally {
         this.loading = false;
       }
@@ -532,14 +585,47 @@ export default {
             onOk: async () => {
               this.loading = true;
               try {
-                await this.interviewStore.deleteInterview(id);
-                this.$message.success('Interview moved to recycle bin successfully');
-                // Refresh the list
-                this.refreshInterviews();
+                const response = await this.interviewStore.deleteInterview(id);
+
+                // Success case - BaseService returns successful responses normally
+                if (response && response.success !== false) {
+                  this.$message.success('Interview moved to recycle bin successfully');
+                  // Refresh the list
+                  this.refreshInterviews();
+                } else if (response && response.success === false) {
+                  // Handle any remaining error responses that aren't thrown
+                  this.$message.error(response.message || 'Failed to move interview to recycle bin');
+                }
                 resolve();
               } catch (error) {
-                console.error('Error moving interview to recycle bin:', error);
-                this.$message.error('Failed to move interview to recycle bin');
+                // Handle BaseService structured errors (thrown as exceptions)
+                console.error('Error during interview deletion:', error);
+
+                // Handle BaseService error structure
+                if (error.status) {
+                  switch (error.status) {
+                    case 404:
+                      this.$message.warning(error.message || 'Interview not found. It may have already been deleted.');
+                      break;
+                    case 401:
+                      this.$message.error(error.message || 'Authentication required. Please log in again.');
+                      break;
+                    case 403:
+                      this.$message.error(error.message || 'You don\'t have permission to delete this interview.');
+                      break;
+                    case 500:
+                      this.$message.error(error.message || 'Server error occurred while deleting. Please try again later.');
+                      break;
+                    case 422:
+                      this.$message.warning(error.message || 'Invalid request. Please check the interview data.');
+                      break;
+                    default:
+                      this.$message.error(error.message || 'Failed to move interview to recycle bin');
+                  }
+                } else {
+                  // Handle network or other unexpected errors
+                  this.$message.error(error.message || 'Network connection error. Please check your connection and try again.');
+                }
                 resolve();
               } finally {
                 this.loading = false;
@@ -552,6 +638,7 @@ export default {
         });
       } catch (error) {
         console.error('Delete confirmation failed:', error);
+        this.$message.error('Failed to show delete confirmation dialog');
       }
     },
 

@@ -6,25 +6,27 @@ class TaxSettingsService {
     }
 
     /**
-     * Get all tax settings
-     * @param {Object} params - Query parameters (page, limit, search, year, etc.)
+     * Get all tax settings with advanced filtering and pagination
+     * @param {Object} params - Query parameters (page, per_page, search, filter_setting_type, filter_effective_year, filter_is_selected, sort_by, sort_order)
      * @returns {Promise<Object>} API response with tax settings data
      */
     async getTaxSettings(params = {}) {
         try {
-            const response = await apiService.get(this.baseURL, { params });
-            return {
-                success: true,
-                data: response.data,
-                message: 'Tax settings retrieved successfully'
-            };
+            // Build query parameters object
+            const queryParams = new URLSearchParams();
+
+            // Add all parameters from params object
+            Object.keys(params).forEach(key => {
+                if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                    queryParams.append(key, params[key]);
+                }
+            });
+
+            const response = await apiService.get(`${this.baseURL}?${queryParams.toString()}`);
+            return response; // This should return the full API response including pagination metadata
         } catch (error) {
             console.error('Error fetching tax settings:', error);
-            return {
-                success: false,
-                message: error.response?.data?.message || 'Failed to fetch tax settings',
-                errors: error.response?.data?.errors || null
-            };
+            throw error;
         }
     }
 
@@ -171,22 +173,69 @@ class TaxSettingsService {
 
     /**
      * Bulk update tax settings
-     * @param {Array} updates - Array of tax setting updates
+     * @param {Object} bulkUpdateData - Bulk update data with effective_year, settings array, and updated_by
      * @returns {Promise<Object>} API response
      */
-    async bulkUpdateTaxSettings(updates) {
+    async bulkUpdateTaxSettings(bulkUpdateData) {
         try {
-            const response = await apiService.post(`${this.baseURL}/bulk-update`, { updates });
+            const response = await apiService.post(`${this.baseURL}/bulk-update`, bulkUpdateData);
             return {
                 success: true,
                 data: response.data,
-                message: 'Tax settings updated successfully'
+                message: response.data?.message || 'Tax settings updated successfully'
             };
         } catch (error) {
             console.error('Error bulk updating tax settings:', error);
             return {
                 success: false,
                 message: error.response?.data?.message || 'Failed to update tax settings',
+                errors: error.response?.data?.errors || null
+            };
+        }
+    }
+
+    /**
+     * Toggle tax setting selection status
+     * @param {number} id - Tax setting ID
+     * @returns {Promise<Object>} API response
+     */
+    async toggleTaxSetting(id) {
+        try {
+            const response = await apiService.patch(`${this.baseURL}/${id}/toggle`);
+            return {
+                success: true,
+                data: response.data?.data || response.data,
+                message: response.data?.message || 'Tax setting toggled successfully',
+                status: response.data?.status || null,
+                previous_status: response.data?.previous_status || null
+            };
+        } catch (error) {
+            console.error('Error toggling tax setting:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to toggle tax setting',
+                errors: error.response?.data?.errors || null
+            };
+        }
+    }
+
+    /**
+     * Get allowed tax setting keys
+     * @returns {Promise<Object>} API response with allowed keys
+     */
+    async getAllowedKeys() {
+        try {
+            const response = await apiService.get(`${this.baseURL}/allowed-keys`);
+            return {
+                success: true,
+                data: response.data?.data || response.data,
+                message: response.data?.message || 'Allowed keys retrieved successfully'
+            };
+        } catch (error) {
+            console.error('Error fetching allowed keys:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to fetch allowed keys',
                 errors: error.response?.data?.errors || null
             };
         }
@@ -245,7 +294,7 @@ class TaxSettingsService {
     }
 
     /**
-     * Get available tax setting keys/types
+     * Get available tax setting keys/types (static fallback)
      * @returns {Array} Available tax setting keys
      */
     getTaxSettingKeys() {
@@ -253,15 +302,20 @@ class TaxSettingsService {
             { value: 'PERSONAL_ALLOWANCE', label: 'Personal Allowance', type: 'DEDUCTION' },
             { value: 'SPOUSE_ALLOWANCE', label: 'Spouse Allowance', type: 'DEDUCTION' },
             { value: 'CHILD_ALLOWANCE', label: 'Child Allowance', type: 'DEDUCTION' },
+            { value: 'DISABILITY_ALLOWANCE', label: 'Disability Allowance', type: 'DEDUCTION' },
+            { value: 'EDUCATION_ALLOWANCE', label: 'Education Allowance', type: 'DEDUCTION' },
+            { value: 'PERSONAL_EXPENSE_RATE', label: 'Personal Expense Rate', type: 'RATE' },
             { value: 'SSF_RATE', label: 'Social Security Fund Rate', type: 'RATE' },
-            { value: 'SSF_MAX_CONTRIBUTION', label: 'SSF Maximum Contribution', type: 'LIMIT' },
             { value: 'PF_MIN_RATE', label: 'Provident Fund Minimum Rate', type: 'RATE' },
             { value: 'PF_MAX_RATE', label: 'Provident Fund Maximum Rate', type: 'RATE' },
-            { value: 'PF_MAX_CONTRIBUTION', label: 'PF Maximum Contribution', type: 'LIMIT' },
-            { value: 'WITHHOLDING_TAX_RATE', label: 'Withholding Tax Rate', type: 'RATE' },
-            { value: 'OVERTIME_RATE_MULTIPLIER', label: 'Overtime Rate Multiplier', type: 'RATE' },
-            { value: 'MINIMUM_WAGE', label: 'Minimum Wage', type: 'LIMIT' },
-            { value: 'MAXIMUM_TAXABLE_INCOME', label: 'Maximum Taxable Income', type: 'LIMIT' }
+            { value: 'CHARITABLE_DONATION_RATE', label: 'Charitable Donation Rate', type: 'RATE' },
+            { value: 'PERSONAL_EXPENSE_MAX', label: 'Personal Expense Maximum', type: 'LIMIT' },
+            { value: 'SSF_MAX_MONTHLY', label: 'SSF Maximum Monthly', type: 'LIMIT' },
+            { value: 'SSF_MAX_YEARLY', label: 'SSF Maximum Yearly', type: 'LIMIT' },
+            { value: 'HEALTH_INSURANCE_MAX', label: 'Health Insurance Maximum', type: 'LIMIT' },
+            { value: 'LIFE_INSURANCE_MAX', label: 'Life Insurance Maximum', type: 'LIMIT' },
+            { value: 'PENSION_INSURANCE_MAX', label: 'Pension Insurance Maximum', type: 'LIMIT' },
+            { value: 'HOUSE_INTEREST_MAX', label: 'House Interest Maximum', type: 'LIMIT' }
         ];
     }
 

@@ -67,6 +67,7 @@ export const API_ENDPOINTS = {
         UPLOAD_PROFILE_PICTURE: '/employees/:id/profile-picture',
         UPDATE_BASIC_INFORMATION: '/employees/:id/basic-information',
         UPDATE_PERSONAL_INFORMATION: '/employees/:id/personal-information',
+        UPDATE_BANK_INFORMATION: '/employees/:id/bank-information',
     },
 
     // Role endpoints
@@ -84,6 +85,7 @@ export const API_ENDPOINTS = {
     EMPLOYMENT: {
         LIST: '/employments',
         SEARCH_BY_STAFF_ID: '/employments/search/staff-id/:staffId',
+        FUNDING_ALLOCATIONS: '/employments/:id/funding-allocations',
         CREATE: '/employments',
         UPDATE: '/employments/:id',
         DELETE: '/employments/:id',
@@ -154,10 +156,14 @@ export const API_ENDPOINTS = {
     // Lookup endpoints
     LOOKUP: {
         LIST: '/lookups',
+        LISTS: '/lookups/lists',
         CREATE: '/lookups',
         UPDATE: '/lookups/:id',
         DELETE: '/lookups/:id',
-        DETAILS: '/lookups/:id'
+        DETAILS: '/lookups/:id',
+        TYPES: '/lookups/types',
+        BY_TYPE: '/lookups/type/:type',
+        SEARCH: '/lookups/search'
     },
 
     // Department Position endpoints
@@ -179,7 +185,7 @@ export const API_ENDPOINTS = {
         DETAILS: '/worklocations/:id'
     },
 
-    // Leave endpoints
+    // Leave endpoints - Updated to match Laravel backend structure
     LEAVE: {
         TYPES: {
             LIST: '/leaves/types',
@@ -203,18 +209,11 @@ export const API_ENDPOINTS = {
             DETAILS: '/leaves/balances/:id'
         },
         APPROVALS: {
-            LIST: '/leaves/approvals',
-            CREATE: '/leaves/approvals',
+            LIST: '/leaves/requests/:leaveRequestId/approvals',
+            CREATE: '/leaves/requests/:leaveRequestId/approvals',
             UPDATE: '/leaves/approvals/:id',
             DELETE: '/leaves/approvals/:id',
             DETAILS: '/leaves/approvals/:id'
-        },
-        TRADITIONAL: {
-            LIST: '/leaves/traditional',
-            CREATE: '/leaves/traditional',
-            UPDATE: '/leaves/traditional/:id',
-            DELETE: '/leaves/traditional/:id',
-            DETAILS: '/leaves/traditional/:id'
         }
     },
 
@@ -257,11 +256,17 @@ export const API_ENDPOINTS = {
     // payroll endpoints    
     PAYROLL: {
         LIST: '/payrolls',
+        SEARCH: '/payrolls/search',
         CREATE: '/payrolls',
         UPDATE: '/payrolls/:id',
         DELETE: '/payrolls/:id',
         DETAILS: '/payrolls/:id',
-        EMPLOYEE_EMPLOYMENT: '/payrolls/employee-employment'
+        EMPLOYEE_EMPLOYMENT: '/payrolls/employee-employment',
+        EMPLOYEE_EMPLOYMENT_CALCULATED: '/payrolls/employee-employment-calculated',
+        PREVIEW_ADVANCES: '/payrolls/preview-advances',
+        TAX_SUMMARY: '/payrolls/tax-summary/:id',
+        CALCULATE: '/payrolls/calculate',
+        BULK_CALCULATE: '/payrolls/bulk-calculate'
     },
 
     // Employee grant allocation endpoints
@@ -340,7 +345,7 @@ export const API_ENDPOINTS = {
 
     // Tax Settings endpoints
     TAX_SETTINGS: {
-        LIST: '/tax-settings',
+        LIST: '/tax-settings?per_page=&setting_key=&setting_type=&effective_year=&is_selected=&sort_by=&sort_order=',
         CREATE: '/tax-settings',
         UPDATE: '/tax-settings/:id',
         DELETE: '/tax-settings/:id',
@@ -348,13 +353,15 @@ export const API_ENDPOINTS = {
         BY_YEAR: '/tax-settings/by-year/:year',
         VALUE: '/tax-settings/value/:key',
         BULK_UPDATE: '/tax-settings/bulk-update',
+        TOGGLE: '/tax-settings/:id/toggle',
+        ALLOWED_KEYS: '/tax-settings/allowed-keys',
         EXPORT_EXCEL: '/tax-settings/export/excel',
         EXPORT_PDF: '/tax-settings/export/pdf'
     },
 
     // Tax Brackets endpoints
     TAX_BRACKETS: {
-        LIST: '/tax-brackets',
+        LIST: '/tax-brackets?per_page=&effective_year=&sort_by=&sort_order=',
         CREATE: '/tax-brackets',
         UPDATE: '/tax-brackets/:id',
         DELETE: '/tax-brackets/:id',
@@ -370,12 +377,10 @@ export const API_ENDPOINTS = {
     TAX_CALCULATIONS: {
         PAYROLL: '/tax-calculations/payroll',
         INCOME_TAX: '/tax-calculations/income-tax',
-        SOCIAL_SECURITY: '/tax-calculations/social-security',
-        PROVIDENT_FUND: '/tax-calculations/provident-fund',
-        HISTORY: '/tax-calculations/history/:employeeId',
-        SAVE: '/tax-calculations/save',
-        DETAILS: '/tax-calculations/:id',
-        EXPORT_PDF: '/tax-calculations/:id/export/pdf'
+        ANNUAL_SUMMARY: '/tax-calculations/annual-summary',
+        VALIDATE_INPUTS: '/tax-calculations/validate-inputs',
+        COMPLIANCE_CHECK: '/tax-calculations/compliance-check',
+        THAI_REPORT: '/tax-calculations/thai-report'
     }
 
 };

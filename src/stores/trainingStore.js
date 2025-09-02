@@ -40,14 +40,14 @@ export const useTrainingStore = defineStore('training', {
         this.loading = true;
         this.error = null;
         const response = await trainingService.getTrainings();
-        
+
         // Check if response.data exists and is an array; if not, assume response is the array
         const trainingsData = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response)
-          ? response
-          : [];
-          
+            ? response
+            : [];
+
         this.trainings = trainingsData;
         return this.trainings;
       } catch (error) {
@@ -129,14 +129,14 @@ export const useTrainingStore = defineStore('training', {
         this.loading = true;
         this.error = null;
         const response = await trainingService.getEmployeeTrainings();
-        
+
         // Check if response.data exists and is an array; if not, assume response is the array
         const employeeTrainingsData = Array.isArray(response.data)
           ? response.data
           : Array.isArray(response)
-          ? response
-          : [];
-          
+            ? response
+            : [];
+
         this.employeeTrainings = employeeTrainingsData;
         return this.employeeTrainings;
       } catch (error) {

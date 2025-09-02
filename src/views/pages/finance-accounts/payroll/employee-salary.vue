@@ -8,7 +8,7 @@
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <!-- <div class="me-2 mb-2">
+          <div class="me-2 mb-2">
             <div class="dropdown">
               <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
                 data-bs-toggle="dropdown">
@@ -26,7 +26,7 @@
                 </li>
               </ul>
             </div>
-          </div> -->
+          </div>
 
           <div class="mb-2">
             <router-link to="/payroll/add-employee-salary" class="btn btn-primary d-flex align-items-center"><i
@@ -42,221 +42,213 @@
       </div>
       <!-- /Breadcrumb -->
 
-      <!-- Monthly Payroll Statistics Cards -->
-      <div class="row mb-4">
-        <div class="col-lg-3 col-md-6">
-          <div class="card border-0 bg-light-primary">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="avatar avatar-md bg-primary rounded-circle">
-                    <i class="ti ti-users text-white"></i>
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6 class="card-title mb-1">Total Employees</h6>
-                  <p class="card-text mb-0 text-muted">{{ monthlyStats.totalEmployees }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-          <div class="card border-0 bg-light-success">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="avatar avatar-md bg-success rounded-circle">
-                    <i class="ti ti-coin text-white"></i>
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6 class="card-title mb-1">Total Payroll</h6>
-                  <p class="card-text mb-0 text-muted">฿{{ formatCurrency(monthlyStats.totalPayroll) }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-          <div class="card border-0 bg-light-warning">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="avatar avatar-md bg-warning rounded-circle">
-                    <i class="ti ti-percentage text-white"></i>
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6 class="card-title mb-1">Total Tax</h6>
-                  <p class="card-text mb-0 text-muted">฿{{ formatCurrency(monthlyStats.totalTax) }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-6">
-          <div class="card border-0 bg-light-info">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <div class="avatar avatar-md bg-info rounded-circle">
-                    <i class="ti ti-receipt text-white"></i>
-                  </div>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6 class="card-title mb-1">Payslips Generated</h6>
-                  <p class="card-text mb-0 text-muted">{{ monthlyStats.payslipsGenerated }}/{{
-                    monthlyStats.totalEmployees }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Tax Calculation Summary Card -->
-      <div class="row mb-4">
-        <div class="col-12">
-          <div class="card border-0 bg-light-secondary">
-            <div class="card-header">
-              <h6 class="mb-0"><i class="ti ti-calculator me-2"></i>Thailand Personal Income Tax Summary</h6>
-            </div>
-            <div class="card-body">
-              <div class="row">
-                <div class="col-md-3">
-                  <div class="text-center">
-                    <h6 class="text-muted mb-1">Tax Year</h6>
-                    <p class="h5 mb-0">{{ currentTaxYear }}</p>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="text-center">
-                    <h6 class="text-muted mb-1">Tax Brackets</h6>
-                    <p class="h5 mb-0">{{ taxSummary.totalBrackets }}</p>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="text-center">
-                    <h6 class="text-muted mb-1">Max Tax Rate</h6>
-                    <p class="h5 mb-0">{{ taxSummary.maxTaxRate }}%</p>
-                  </div>
-                </div>
-                <div class="col-md-3">
-                  <div class="text-center">
-                    <h6 class="text-muted mb-1">Standard Deduction</h6>
-                    <p class="h5 mb-0">฿{{ formatCurrency(taxSummary.standardDeduction) }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Employee Salary List</h5>
-          <div class="table-operations">
-            <a-button @click="clearFilters">Clear filters</a-button>
-            <a-button @click="clearAll">Clear filters and sorters</a-button>
-            <a-button type="primary" @click="calculateAllTaxes" :loading="calculatingTaxes">
-              <i class="ti ti-calculator me-1"></i>Calculate Taxes
-            </a-button>
-          </div>
-        </div>
-
-        <div class="card-body p-0">
-          <div class="custom-datatable-filter table-responsive">
-            <div v-if="payrollStore.loading" class="text-center my-3">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+          <div class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3">
+            <div class="me-3">
+              <div class="input-icon-end position-relative">
+                <input type="text" class="form-control" v-model="searchQuery" placeholder="Search employees..."
+                  @input="handleSearch" />
+                <span class="input-icon-addon">
+                  <i class="ti ti-search"></i>
+                </span>
               </div>
-              <p class="mt-2">Loading payrolls...</p>
+            </div>
+            <div class="me-3">
+              <div class="input-icon-end position-relative">
+                <input type="text" class="form-control date-range bookingrange" ref="dateRangeInput"
+                  placeholder="dd/mm/yyyy - dd/mm/yyyy" />
+                <span class="input-icon-addon">
+                  <i class="ti ti-chevron-down"></i>
+                </span>
+              </div>
+            </div>
+            <!-- Subsidiary Filter -->
+            <div class="dropdown me-3">
+              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                data-bs-toggle="dropdown">
+                {{ selectedSubsidiary || 'All Subsidiaries' }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end p-3">
+                <li>
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
+                    @click="selectedSubsidiary = null; handleFilterChange()">
+                    All Subsidiaries
+                  </a>
+                </li>
+                <li v-for="subsidiary in availableSubsidiaries" :key="subsidiary">
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
+                    @click="selectedSubsidiary = subsidiary; handleFilterChange()">
+                    {{ subsidiary }}
+                  </a>
+                </li>
+              </ul>
             </div>
 
-            <a-table v-else class="table datatable thead-light bordered-table" :columns="columns"
-              :scroll="{ x: 2000, y: 600 }" :data-source="payrolls" :row-selection="rowSelection"
-              :pagination="pagination" @change="handleChange" :bordered="true">
-              <!-- Employee Name column with highlighting -->
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'employeeName'">
-                  <div class="d-flex align-items-center file-name-icon">
-                    <a href="javascript:void(0);" class="avatar avatar-md">
-                      <img src="@/assets/img/users/user-32.jpg" class="img-fluid rounded-circle" alt="img" />
-                    </a>
-                    <div class="ms-2">
-                      <h6 class="fw-medium">
-                        <router-link :to="`/employee/employee-details/${record.employee_id}`">
-                          {{ record.employeeName }}
-                        </router-link>
-                      </h6>
-                      <router-link :to="`/employee/employee-details/${record.employee_id}`">
-                        <span class="d-block mt-1">{{ record.position }}</span>
-                      </router-link>
-                    </div>
-                  </div>
-                </template>
+            <!-- Department Filter -->
+            <div class="dropdown me-3">
+              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                data-bs-toggle="dropdown">
+                {{ selectedDepartment || 'All Departments' }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end p-3">
+                <li>
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
+                    @click="selectedDepartment = null; handleFilterChange()">
+                    All Departments
+                  </a>
+                </li>
+                <li v-for="department in availableDepartments" :key="department">
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
+                    @click="selectedDepartment = department; handleFilterChange()">
+                    {{ department }}
+                  </a>
+                </li>
+              </ul>
+            </div>
 
-                <!-- Department column -->
-                <template v-if="column.key === 'department'">
-                  <span :class="[
-                    'badge badge-sm fw-normal',
-                    record.department === 'Finance' ? 'badge-primary' :
-                      record.department === 'HR' ? 'badge-soft-primary fw-bold' :
-                        'badge-secondary'
-                  ]">
-                    {{ record.department }}
-                  </span>
-                </template>
+            <!-- Sort Filter -->
+            <div class="dropdown">
+              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                data-bs-toggle="dropdown">
+                Sort By : {{ currentSortLabel }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end p-3">
+                <li v-for="option in sortOptions" :key="option.key">
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
+                    @click="selectedSortBy = option.key; handleFilterChange()"
+                    :class="{ 'active': selectedSortBy === option.key }">
+                    {{ option.label }}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center p-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading payroll data...</p>
+          </div>
 
-                <!-- Tax column with breakdown tooltip -->
-                <template v-if="column.key === 'tax'">
-                  <div class="d-flex align-items-center">
-                    <span class="fw-semibold text-danger">
-                      ฿{{ formatCurrency(record.tax || 0) }}
+          <!-- Error State -->
+          <div v-else-if="error" class="alert alert-danger m-3" role="alert">
+            <i class="ti ti-alert-circle me-2"></i>
+            {{ error }}
+            <button type="button" class="btn btn-sm btn-outline-danger ms-2" @click="fetchPayrolls">
+              <i class="ti ti-refresh me-1"></i>Retry
+            </button>
+          </div>
+
+          <!-- Data Table -->
+          <div v-else class="resize-observer-fix">
+            <div class="table-responsive">
+              <a-table class="table datatable thead-light" :columns="columns" :data-source="tableData"
+                :row-selection="rowSelection" :pagination="false" :loading="loading" :scroll="{ x: 'max-content' }"
+                @change="handleTableChange">
+                <template #bodyCell="{ column, record }">
+                  <template v-if="column.key === 'subsidiary'">
+                    <span :class="[
+                      'badge badge-sm fw-normal',
+                      record.subsidiary === 'SMRU' ? 'badge-primary' :
+                        record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                          'badge-secondary'
+                    ]">
+                      {{ record.subsidiary }}
                     </span>
-                    <a-tooltip v-if="record.taxBreakdown" placement="top">
-                      <template #title>
-                        <div class="text-start">
-                          <div><strong>Tax Breakdown:</strong></div>
-                          <div v-for="(amount, bracket) in record.taxBreakdown" :key="bracket">
-                            {{ bracket }}: ฿{{ formatCurrency(amount) }}
-                          </div>
-                        </div>
-                      </template>
-                      <i class="ti ti-info-circle ms-1 text-muted cursor-pointer"></i>
-                    </a-tooltip>
+                  </template>
+
+                  <template v-if="column.key === 'employeeName'">
+                    <div class="d-flex align-items-center file-name-icon">
+                      <a href="javascript:void(0);" class="avatar avatar-md">
+                        <img :src="require(`@/assets/img/users/${record.Image}`)" class="img-fluid rounded-circle"
+                          alt="img" />
+                      </a>
+                      <div class="ms-2">
+                        <h6 class="fw-medium">
+                          <a href="javascript:void(0);">{{ record.employeeName }}</a>
+                        </h6>
+                        <span class="d-block mt-1">{{ record.department }}</span>
+                      </div>
+                    </div>
+                  </template>
+
+                  <template v-if="column.key === 'department_position'">
+                    <span class="text-muted">{{ record.department_position }}</span>
+                  </template>
+
+                  <template v-if="column.key === 'funding_sources'">
+                    <span :class="[
+                      'badge badge-sm fw-normal',
+                      record.allocation_type === 'grant' ? 'badge-success' :
+                        record.allocation_type === 'org_funded' ? 'badge-info' :
+                          'badge-secondary'
+                    ]">
+                      {{ record.funding_sources }}
+                    </span>
+                  </template>
+
+                  <template v-if="column.key === 'level_of_effort'">
+                    <span class="text-primary fw-medium">{{ (parseFloat(record.level_of_effort) * 100).toFixed(0)
+                      }}%</span>
+                  </template>
+
+                  <template v-if="column.key === 'pay_period_date'">
+                    <span class="text-muted">{{ formatDate(record.pay_period_date) }}</span>
+                  </template>
+
+                  <template v-if="column.key === 'payslip'">
+                    <div>
+                      <span class="badge badge-dark badge-md">{{ record.payslip }}</span>
+                    </div>
+                  </template>
+
+                  <template v-if="column.key === 'action'">
+                    <div class="action-icon d-inline-flex">
+                      <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal"
+                        data-bs-target="#view-employee-salary" :title="`View ${record.employeeName} salary details`"><i
+                          class="ti ti-eye"></i></a>
+                      <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal"
+                        data-bs-target="#edit-employee-salary" :title="`Edit ${record.employeeName} salary`"><i
+                          class="ti ti-edit"></i></a>
+                      <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"
+                        :title="`Delete ${record.employeeName} salary record`"><i class="ti ti-trash"></i></a>
+                    </div>
+                  </template>
+                </template>
+
+                <!-- Empty State -->
+                <template #emptyText>
+                  <div class="text-center p-4">
+                    <i class="ti ti-database-off display-4 text-muted"></i>
+                    <h5 class="mt-3">No Payroll Records Found</h5>
+                    <p class="text-muted">
+                      {{ emptyStateMessage }}
+                    </p>
+                    <button v-if="searchQuery" type="button" class="btn btn-outline-primary" @click="clearFilters">
+                      <i class="ti ti-filter-off me-1"></i>Clear Filters
+                    </button>
                   </div>
                 </template>
+              </a-table>
+            </div>
 
-                <!-- Taxable Income column -->
-                <template v-if="column.key === 'taxableIncome'">
-                  <span class="fw-semibold text-primary">
-                    ฿{{ formatCurrency(record.taxableIncome || 0) }}
-                  </span>
-                </template>
-
-                <!-- Payslip column -->
-                <template v-if="column.key === 'payslip'">
-                  <router-link :to="`/payroll/payslip/${record.id}`" class="btn btn-sm btn-primary">
-                    Generate Slip
-                  </router-link>
-                </template>
-
-                <!-- Action column -->
-                <template v-if="column.key === 'action'">
-                  <div class="action-icon d-inline-flex">
-                    <a href="javascript:void(0);" class="me-2" data-bs-toggle="modal"
-                      data-bs-target="#edit-employee-salary" @click="editPayroll(record)"><i class="ti ti-edit"></i></a>
-                    <a href="javascript:void(0);" @click="confirmDeletePayroll(record.id)"><i
-                        class="ti ti-trash"></i></a>
-                    <a href="javascript:void(0);" class="me-2" @click="calculateTaxForEmployee(record)"
-                      title="Calculate Tax"><i class="ti ti-calculator"></i></a>
-                  </div>
-                </template>
-              </template>
-            </a-table>
+            <!-- SEPARATE PAGINATION COMPONENT -->
+            <div class="pagination-wrapper">
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="pagination-info">
+                  <!-- Optional: Additional info can go here -->
+                </div>
+                <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
+                  :show-size-changer="true" :show-quick-jumper="true" :page-size-options="['10', '20', '50', '100']"
+                  :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                  @change="handlePaginationChange" @show-size-change="handlePageSizeChange" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -265,256 +257,170 @@
     <layout-footer></layout-footer>
   </div>
   <!-- /Page Wrapper -->
+  <employee-salary-modal></employee-salary-modal>
 </template>
-
 <script>
 import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
+import { ref, reactive, computed, onMounted, nextTick } from "vue";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
-import { usePayrollStore } from '@/stores/payrollStore';
-import { mapStores } from 'pinia';
-import { Modal } from 'ant-design-vue';
-import { taxCalculationsService } from '@/services/tax-calculations.service';
+import { payrollService } from '@/services/payroll.service';
+import { useLookupStore } from "@/stores/lookupStore";
+import { useDepartmentPositionStore } from "@/stores/departmentPositionStore";
+
+// Import Bootstrap or use global Bootstrap if available
+let bootstrap;
+try {
+  bootstrap = require('bootstrap');
+} catch (e) {
+  // Fallback to global Bootstrap
+  bootstrap = window.bootstrap || {};
+}
+
+// Helper function to parse currency strings for sorting
+const parseCurrency = (value) => {
+  if (!value || typeof value !== 'string') return 0;
+  return parseFloat(value.replace(/[$,฿]/g, '')) || 0;
+};
+
+// Helper function to format currency
+const formatCurrency = (value) => {
+  if (!value) return '฿0.00';
+  return `฿${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
 
 export default {
+  name: 'EmployeeSalary',
   data() {
     return {
+      // Page metadata
       title: "Employee Salary",
       text: "HR",
       text1: "Employee Salary",
+
+      // Reactive state
       payrolls: [],
-      calculatingTaxes: false,
+      loading: false,
+      error: null,
 
-      // Monthly statistics
-      monthlyStats: {
-        totalEmployees: 0,
-        totalPayroll: 0,
-        totalTax: 0,
-        payslipsGenerated: 0
-      },
-
-      // Tax summary
-      taxSummary: {
-        totalBrackets: 0,
-        maxTaxRate: 0,
-        standardDeduction: 60000
-      },
-
-      // Current tax year
-      currentTaxYear: new Date().getFullYear(),
+      // Search and filters
+      searchQuery: "",
+      selectedSubsidiary: null,
+      selectedDepartment: null,
+      selectedDateRange: null,
+      selectedSortBy: 'created_at',
+      selectedSortOrder: 'desc',
 
       // Pagination
       currentPage: 1,
       pageSize: 10,
-      paginationSettings: {
-        pageSizeOptions: ['5', '10', '20', '50', '100'],
-        showSizeChanger: true,
-        showQuickJumper: false,
-      },
+      total: 0,
 
-      // Filter and sort info
-      filteredInfo: {},
-      sortedInfo: {},
+      // Table selection
+      selectedRowKeys: [],
 
-      // Row selection configuration
-      rowSelection: {
-        onChange: (selectedRowKeys, selectedRows) => {
-          console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-        },
-        onSelect: (record, selected, selectedRows) => {
-          console.log(record, selected, selectedRows);
-        },
-        onSelectAll: (selected, selectedRows, changeRows) => {
-          console.log(selected, selectedRows, changeRows);
-        },
-      },
+      // Available filter options (will be populated from lookup data)
+      availableSubsidiaries: [],
+      availableDepartments: [],
+      subsidiaries: [],
+      departments: [],
 
-      payrollToEdit: null,
-      payrollToDelete: null,
-
-      // Sample demo record
-      samplePayroll: {
-        id: 'demo-1',
-        employee_id: 'emp-123',
-        staff_id: 'STF-001',
-        employeeName: 'John Doe',
-        department: 'Finance',
-        position: 'Financial Analyst',
-        basic_salary: 5000,
-        net_paid: 4500,
-        pay_period_date: moment().format("DD MMM YYYY"),
-        created_at: moment().format("DD MMM YYYY"),
-        payslip: 'Generate Slip',
-        payslip_number: 'PS-2023-001'
-      },
+      // Sort options
+      sortOptions: [
+        { key: 'created_at', label: 'Recently Added' },
+        { key: 'employee_name', label: 'Employee Name' },
+        { key: 'staff_id', label: 'Staff ID' },
+        { key: 'basic_salary', label: 'Basic Salary' },
+        { key: 'subsidiary', label: 'Subsidiary' },
+        { key: 'department', label: 'Department' },
+        { key: 'last_7_days', label: 'Last 7 Days' },
+        { key: 'last_month', label: 'Last Month' },
+      ],
     };
   },
 
   computed: {
-    ...mapStores(usePayrollStore),
-
-    // Define columns with filters and sorters
+    // Dynamic table columns based on API response structure
     columns() {
-      const filtered = this.filteredInfo || {};
-      const sorted = this.sortedInfo || {};
-
       return [
         {
-          title: 'ID',
-          dataIndex: 'id',
+          title: 'Subsidiary',
+          dataIndex: 'subsidiary',
+          key: 'subsidiary',
           fixed: 'left',
-          key: 'id',
+          sorter: false, // Server-side sorting
+          sortDirections: ['ascend', 'descend'],
         },
         {
-          title: 'Dept',
-          dataIndex: 'department',
-          key: 'department',
-          fixed: 'left',
-          filters: this.getUniqueValues('department'),
-          filteredValue: filtered.department || null,
-          onFilter: (value, record) => record.department === value,
-          sorter: (a, b) => {
-            a = a.department.toLowerCase();
-            b = b.department.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'department' && sorted.order,
+          title: 'Dept / Position',
+          dataIndex: 'department_position',
+          key: 'department_position',
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
         },
         {
           title: 'Staff ID',
           dataIndex: 'staff_id',
           key: 'staff_id',
-          fixed: 'left',
-          filters: this.getUniqueValues('staff_id'),
-          filteredValue: filtered.staff_id || null,
-          onFilter: (value, record) => record.staff_id.includes(value),
-          sorter: (a, b) => {
-            a = a.staff_id.toLowerCase();
-            b = b.staff_id.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'staff_id' && sorted.order,
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
         },
         {
           title: 'Employee Name',
           dataIndex: 'employeeName',
           key: 'employeeName',
-          fixed: 'left',
-          filteredValue: filtered.employeeName || null,
-          onFilter: (value, record) => record.employeeName.toLowerCase().includes(value.toLowerCase()),
-          sorter: (a, b) => {
-            a = a.employeeName.toLowerCase();
-            b = b.employeeName.toLowerCase();
-            return a.localeCompare(b);
-          },
-          sortOrder: sorted.columnKey === 'employeeName' && sorted.order,
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
         },
         {
-          title: 'Basic Salary',
+          title: 'Gross Salary',
           dataIndex: 'basic_salary',
           key: 'basic_salary',
-          sorter: (a, b) => (a.basic_salary || 0) - (b.basic_salary || 0),
-          sortOrder: sorted.columnKey === 'basic_salary' && sorted.order,
-          render: (text) => {
-            return `฿${parseFloat(text || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
         },
         {
-          title: 'Taxable Income',
+          title: 'Total Income',
           dataIndex: 'taxableIncome',
           key: 'taxableIncome',
-          sorter: (a, b) => (a.taxableIncome || 0) - (b.taxableIncome || 0),
-          sortOrder: sorted.columnKey === 'taxableIncome' && sorted.order,
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
         },
         {
-          title: 'Retroactive Fund',
-          dataIndex: 'retroactive_fund',
-          key: 'retroactive_fund',
-          sorter: (a, b) => (a.retroactive_fund || 0) - (b.retroactive_fund || 0),
-          sortOrder: sorted.columnKey === 'retroactive_fund' && sorted.order,
-          render: (text) => {
-            if (!text) return '฿0.00';
-            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
-        },
-        {
-          title: '13 mo.salary',
-          dataIndex: 'thirteenth_month_salary',
-          key: 'thirteenth_month_salary',
-          sorter: (a, b) => (a.thirteenth_month_salary || 0) - (b.thirteenth_month_salary || 0),
-          sortOrder: sorted.columnKey === 'thirteenth_month_salary' && sorted.order,
-          render: (text) => {
-            if (!text) return '฿0.00';
-            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
-        },
-        {
-          title: 'Salary Accrue',
-          dataIndex: 'salary_accrue',
-          key: 'salary_accrue',
-          sorter: (a, b) => (a.salary_accrue || 0) - (b.salary_accrue || 0),
-          sortOrder: sorted.columnKey === 'salary_accrue' && sorted.order,
-          render: (text) => {
-            if (!text) return '฿0.00';
-            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
-        },
-        {
-          title: 'PVD/Saving Fund',
-          dataIndex: 'pvd_saving_fund',
-          key: 'pvd_saving_fund',
-          sorter: (a, b) => (a.pvd_saving_fund || 0) - (b.pvd_saving_fund || 0),
-          sortOrder: sorted.columnKey === 'pvd_saving_fund' && sorted.order,
-          render: (text) => {
-            if (!text) return '฿0.00';
-            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
-        },
-        {
-          title: 'SSF',
-          dataIndex: 'ssf',
-          key: 'ssf',
-          sorter: (a, b) => (a.ssf || 0) - (b.ssf || 0),
-          sortOrder: sorted.columnKey === 'ssf' && sorted.order,
-          render: (text) => {
-            if (!text) return '฿0.00';
-            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
-        },
-        {
-          title: 'H/W',
-          dataIndex: 'hw',
-          key: 'hw',
-          sorter: (a, b) => (a.hw || 0) - (b.hw || 0),
-          sortOrder: sorted.columnKey === 'hw' && sorted.order,
-          render: (text) => {
-            if (!text) return '฿0.00';
-            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
-        },
-        {
-          title: 'Tax',
-          dataIndex: 'tax',
-          key: 'tax',
-          sorter: (a, b) => (a.tax || 0) - (b.tax || 0),
-          sortOrder: sorted.columnKey === 'tax' && sorted.order,
+          title: 'Total Deductions',
+          dataIndex: 'total_deduction',
+          key: 'total_deduction',
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
         },
         {
           title: 'Net Salary',
           dataIndex: 'net_paid',
           key: 'net_paid',
-          sorter: (a, b) => (a.net_paid || 0) - (b.net_paid || 0),
-          sortOrder: sorted.columnKey === 'net_paid' && sorted.order,
-          render: (text) => {
-            if (!text) return '฿0.00';
-            return `฿${parseFloat(text).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          }
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
         },
         {
-          title: 'Payslip',
-          dataIndex: 'payslip',
-          key: 'payslip',
+          title: 'Funding Type',
+          dataIndex: 'funding_sources',
+          key: 'funding_sources',
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
+        },
+        {
+          title: 'LOE',
+          dataIndex: 'level_of_effort',
+          key: 'level_of_effort',
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
+        },
+        {
+          title: 'Pay Period',
+          dataIndex: 'pay_period_date',
+          key: 'pay_period_date',
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
         },
         {
           title: 'Actions',
@@ -524,188 +430,336 @@ export default {
       ];
     },
 
-    pagination() {
+    // Map API data to table format
+    tableData() {
+      return this.payrolls.map(payroll => ({
+        key: payroll.id,
+        id: payroll.id,
+        subsidiary: payroll.employment?.employee?.subsidiary || 'N/A',
+        department_position: this.getDepartmentPosition(payroll),
+        staff_id: payroll.employment?.employee?.staff_id || 'N/A',
+        employeeName: this.getEmployeeName(payroll),
+        department: payroll.employment?.department_position?.department || 'N/A',
+        basic_salary: formatCurrency(payroll.gross_salary),
+        funding_sources: this.getFundingSources(payroll),
+        payslip: 'Generate Slip',
+        Image: this.getEmployeeImage(payroll),
+        // Additional fields for compatibility
+        taxableIncome: formatCurrency(payroll.total_income),
+        net_paid: formatCurrency(payroll.net_salary),
+        pay_period_date: payroll.pay_period_date,
+        // Additional fields from API response
+        employment_id: payroll.employment_id,
+        employee_funding_allocation_id: payroll.employee_funding_allocation_id,
+        total_deduction: formatCurrency(payroll.total_deduction),
+        allocation_type: payroll.employee_funding_allocation?.allocation_type || 'N/A',
+        level_of_effort: payroll.employee_funding_allocation?.level_of_effort || 'N/A',
+      }));
+    },
+
+    // Row selection configuration
+    rowSelection() {
       return {
-        ...this.paginationSettings,
-        current: this.currentPage,
-        pageSize: this.pageSize,
-        total: this.payrollStore.payrolls.length,
-        showTotal: (total) => `Total ${total} payrolls`,
+        selectedRowKeys: this.selectedRowKeys,
+        onChange: (selectedRowKeys) => {
+          this.selectedRowKeys = selectedRowKeys;
+        },
+        onSelect: (record, selected, selectedRows) => {
+          console.log('Selected row:', record, selected, selectedRows);
+        },
+        onSelectAll: (selected, selectedRows, changeRows) => {
+          console.log('Select all:', selected, selectedRows, changeRows);
+        },
       };
-    }
+    },
+
+    // Current sort label
+    currentSortLabel() {
+      const option = this.sortOptions.find(opt => opt.key === this.selectedSortBy);
+      return option ? option.label : 'Recently Added';
+    },
+
+    // Empty state message
+    emptyStateMessage() {
+      return this.searchQuery
+        ? 'No records match your search criteria.'
+        : 'There are no payroll records to display.';
+    },
   },
 
-  mounted() {
-    this.fetchPayrolls();
-    this.$nextTick(() => {
-      this.initializeDateRangePicker();
-    });
-  },
+  async mounted() {
+    // Initialize Bootstrap components after Vue component is mounted
+    await this.$nextTick();
+    this.initializeBootstrapComponents();
+    this.initializeDateRangePicker();
 
-  beforeUnmount() {
-    // Cleanup DateRangePicker when component is destroyed
-    if (this.daterangepicker) {
-      this.daterangepicker.remove();
-    }
+    // Load lookup and department data
+    await this.initializeFilterData();
+
+    // Fetch initial data
+    await this.fetchPayrolls();
   },
 
   methods: {
-    // Format currency helper
-    formatCurrency(amount) {
-      if (!amount) return '0.00';
-      return parseFloat(amount).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-    },
+    // =================== API METHODS ===================
 
-    // Calculate monthly statistics
-    calculateMonthlyStats() {
-      if (!this.payrolls || this.payrolls.length === 0) {
-        this.monthlyStats = {
-          totalEmployees: 0,
-          totalPayroll: 0,
-          totalTax: 0,
-          payslipsGenerated: 0
-        };
-        return;
-      }
-
-      this.monthlyStats = {
-        totalEmployees: this.payrolls.length,
-        totalPayroll: this.payrolls.reduce((sum, payroll) => sum + (parseFloat(payroll.basic_salary) || 0), 0),
-        totalTax: this.payrolls.reduce((sum, payroll) => sum + (parseFloat(payroll.tax) || 0), 0),
-        payslipsGenerated: this.payrolls.filter(payroll => payroll.payslip_number).length
+    // Build API parameters from current state
+    buildApiParams() {
+      const params = {
+        page: this.currentPage,
+        per_page: this.pageSize,
       };
-    },
 
-    // Calculate tax for a specific employee
-    async calculateTaxForEmployee(employee) {
-      try {
-        const taxableIncome = this.calculateTaxableIncome(employee);
-        const taxCalculation = await this.calculateTax(taxableIncome);
-
-        // Update the employee record with tax information
-        const index = this.payrolls.findIndex(p => p.id === employee.id);
-        if (index !== -1) {
-          this.payrolls[index] = {
-            ...this.payrolls[index],
-            taxableIncome: taxableIncome,
-            tax: taxCalculation.totalTax,
-            taxBreakdown: taxCalculation.breakdown
-          };
-        }
-
-        this.$message.success(`Tax calculated for ${employee.employeeName}`);
-      } catch (error) {
-        console.error('Error calculating tax for employee:', error);
-        this.$message.error('Failed to calculate tax');
+      // Add search parameter
+      if (this.searchQuery?.trim()) {
+        params.search = this.searchQuery.trim();
       }
+
+      // Add filter parameters
+      if (this.selectedSubsidiary) {
+        params.filter_subsidiary = this.selectedSubsidiary;
+      }
+
+      if (this.selectedDepartment) {
+        params.filter_department = this.selectedDepartment;
+      }
+
+      if (this.selectedDateRange) {
+        params.filter_date_range = this.selectedDateRange;
+      }
+
+      // Add sorting parameters
+      if (this.selectedSortBy) {
+        params.sort_by = this.selectedSortBy;
+        params.sort_order = this.selectedSortOrder;
+      }
+
+      return params;
     },
 
-    // Calculate taxable income for an employee
-    calculateTaxableIncome(employee) {
-      const basicSalary = parseFloat(employee.basic_salary) || 0;
-      const retroactiveFund = parseFloat(employee.retroactive_fund) || 0;
-      const thirteenthMonthSalary = parseFloat(employee.thirteenth_month_salary) || 0;
-      const salaryAccrue = parseFloat(employee.salary_accrue) || 0;
+    // Fetch payrolls from API
+    async fetchPayrolls() {
+      this.loading = true;
+      this.error = null;
 
-      // Thailand standard deduction (฿60,000 per year)
-      const standardDeduction = 60000 / 12; // Monthly deduction
-
-      const totalIncome = basicSalary + retroactiveFund + thirteenthMonthSalary + salaryAccrue;
-      const taxableIncome = Math.max(0, totalIncome - standardDeduction);
-
-      return taxableIncome;
-    },
-
-    // Calculate tax using Thailand tax brackets
-    async calculateTax(taxableIncome) {
       try {
-        // Thailand Personal Income Tax Brackets (2024)
-        const taxBrackets = [
-          { min: 0, max: 150000, rate: 0.05 },
-          { min: 150000, max: 300000, rate: 0.10 },
-          { min: 300000, max: 500000, rate: 0.15 },
-          { min: 500000, max: 750000, rate: 0.20 },
-          { min: 750000, max: 1000000, rate: 0.25 },
-          { min: 1000000, max: 2000000, rate: 0.30 },
-          { min: 2000000, max: 5000000, rate: 0.35 },
-          { min: 5000000, max: Infinity, rate: 0.37 }
-        ];
+        const params = this.buildApiParams();
+        const response = await payrollService.getPayrolls(params);
 
-        let totalTax = 0;
-        const breakdown = {};
-        const annualIncome = taxableIncome * 12;
+        if (response.success) {
+          this.payrolls = response.data || [];
 
-        for (const bracket of taxBrackets) {
-          if (annualIncome > bracket.min) {
-            const taxableInBracket = Math.min(
-              annualIncome - bracket.min,
-              bracket.max - bracket.min
-            );
-            const taxInBracket = taxableInBracket * bracket.rate;
-            totalTax += taxInBracket;
-
-            if (taxInBracket > 0) {
-              breakdown[`${bracket.rate * 100}%`] = taxInBracket;
-            }
+          // Update pagination info from API response
+          if (response.pagination) {
+            this.currentPage = response.pagination.current_page || 1;
+            this.pageSize = response.pagination.per_page || 10;
+            this.total = response.pagination.total || 0;
           }
-        }
 
-        return {
-          totalTax: totalTax / 12, // Convert to monthly
-          breakdown: breakdown
-        };
-      } catch (error) {
-        console.error('Error calculating tax:', error);
-        throw error;
-      }
-    },
-
-    // Calculate taxes for all employees
-    async calculateAllTaxes() {
-      this.calculatingTaxes = true;
-      try {
-        for (const employee of this.payrolls) {
-          await this.calculateTaxForEmployee(employee);
+          // Update available filter options if provided
+          if (response.filters && response.filters.available_options) {
+            this.updateFilterOptions(response.filters.available_options);
+          }
+        } else {
+          throw new Error(response.message || 'Failed to fetch payrolls');
         }
-        this.calculateMonthlyStats();
-        this.$message.success('Taxes calculated for all employees');
       } catch (error) {
-        console.error('Error calculating taxes for all employees:', error);
-        this.$message.error('Failed to calculate taxes for all employees');
+        console.error('Error fetching payrolls:', error);
+        this.error = error.message || 'An error occurred while fetching payrolls';
+        this.payrolls = [];
+        this.total = 0;
       } finally {
-        this.calculatingTaxes = false;
+        this.loading = false;
       }
     },
 
-    // Get unique values for filter dropdowns
-    getUniqueValues(field) {
-      if (!this.payrolls || this.payrolls.length === 0) return [];
+    // Search payrolls by staff ID
+    async handleStaffIdSearch(staffId) {
+      this.loading = true;
+      this.error = null;
 
-      const uniqueValues = [...new Set(this.payrolls.map(item => item[field]))].filter(Boolean);
-      return uniqueValues.map(value => ({ text: value, value }));
+      try {
+        const params = {
+          staff_id: staffId,
+          page: 1,
+          per_page: this.pageSize,
+        };
+
+        const response = await payrollService.searchPayrolls(params);
+
+        if (response.success) {
+          this.payrolls = response.data || [];
+          this.currentPage = 1;
+
+          if (response.pagination) {
+            this.total = response.pagination.total;
+          }
+        } else {
+          throw new Error(response.message || 'No payrolls found for this staff ID');
+        }
+      } catch (error) {
+        console.error('Error searching payrolls:', error);
+        this.error = error.message || 'An error occurred while searching payrolls';
+        this.payrolls = [];
+        this.total = 0;
+      } finally {
+        this.loading = false;
+      }
     },
 
-    // Handle table change (pagination, filters, sorter)
-    handleChange(pagination, filters, sorter) {
-      console.log('Various parameters', pagination, filters, sorter);
-      this.filteredInfo = filters;
-      this.sortedInfo = sorter;
-      this.currentPage = pagination.current;
-      this.pageSize = pagination.pageSize;
+    // =================== EVENT HANDLERS ===================
+
+    // Handle pagination change
+    handlePaginationChange(page, pageSize) {
+      this.currentPage = page;
+      this.pageSize = pageSize || this.pageSize;
+      this.fetchPayrolls();
+    },
+
+    // Handle page size change
+    handlePageSizeChange(current, size) {
+      this.currentPage = 1; // Reset to first page when changing page size
+      this.pageSize = size;
+      this.fetchPayrolls();
+    },
+
+    // Handle table sorting and filtering changes
+    handleTableChange(pagination, filters, sorter) {
+      // Update pagination
+      if (pagination) {
+        this.currentPage = pagination.current;
+        this.pageSize = pagination.pageSize;
+      }
+
+      // Update sorting
+      if (sorter && sorter.field) {
+        this.selectedSortBy = sorter.field;
+        this.selectedSortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
+      }
+
+      // Fetch updated data
+      this.fetchPayrolls();
+    },
+
+    // Handle search input
+    async handleSearch() {
+      // Reset to first page when searching
+      this.currentPage = 1;
+      await this.fetchPayrolls();
+    },
+
+    // Handle filter changes
+    async handleFilterChange() {
+      this.currentPage = 1; // Reset to first page
+      await this.fetchPayrolls();
     },
 
     // Clear all filters
-    clearFilters() {
-      this.filteredInfo = {};
+    async clearFilters() {
+      this.searchQuery = "";
+      this.selectedSubsidiary = null;
+      this.selectedDepartment = null;
+      this.selectedDateRange = null;
+      this.selectedSortBy = 'created_at';
+      this.selectedSortOrder = 'desc';
+      this.currentPage = 1;
+
+      await this.fetchPayrolls();
     },
 
-    // Clear all filters and sorters
-    clearAll() {
-      this.filteredInfo = {};
-      this.sortedInfo = {};
+    // =================== DATA TRANSFORMATION METHODS ===================
+
+    // Get formatted employee name
+    getEmployeeName(payroll) {
+      if (payroll.employment?.employee) {
+        const firstName = payroll.employment.employee.first_name_en || '';
+        const lastName = payroll.employment.employee.last_name_en || '';
+        return `${firstName} ${lastName}`.trim() || 'N/A';
+      }
+      return 'N/A';
+    },
+
+    // Get department and position
+    getDepartmentPosition(payroll) {
+      const dept = payroll.employment?.department_position?.department || '';
+      const pos = payroll.employment?.department_position?.position || '';
+      return dept && pos ? `${dept}/${pos}` : dept || pos || 'N/A';
+    },
+
+    // Get funding sources from employee funding allocation
+    getFundingSources(payroll) {
+      if (payroll.employee_funding_allocation) {
+        const allocation = payroll.employee_funding_allocation;
+        if (allocation.allocation_type === 'org_funded') {
+          return 'Organization Funded';
+        } else if (allocation.allocation_type === 'grant') {
+          return 'Grant Funded';
+        }
+        return allocation.allocation_type;
+      }
+      return 'General Fund';
+    },
+
+    // Get employee image
+    getEmployeeImage(payroll) {
+      // Return a default image or map from employee data
+      return 'user-32.jpg';
+    },
+
+    // Format date for display
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    },
+
+    // Update filter options from API response
+    updateFilterOptions(options) {
+      if (options.subsidiaries) {
+        this.availableSubsidiaries = options.subsidiaries;
+      }
+      if (options.departments) {
+        this.availableDepartments = options.departments;
+      }
+    },
+
+    // =================== UI METHODS ===================
+
+    initializeBootstrapComponents() {
+      try {
+        // Check if Bootstrap is available
+        const Bootstrap = window.bootstrap || bootstrap;
+
+        if (Bootstrap && Bootstrap.Dropdown) {
+          // Initialize all dropdowns
+          const dropdownElementList = document.querySelectorAll('[data-bs-toggle="dropdown"]');
+          dropdownElementList.forEach(dropdownToggleEl => {
+            if (!Bootstrap.Dropdown.getInstance(dropdownToggleEl)) {
+              new Bootstrap.Dropdown(dropdownToggleEl);
+            }
+          });
+        }
+
+        if (Bootstrap && Bootstrap.Tooltip) {
+          // Initialize all tooltips
+          const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+          tooltipTriggerList.forEach(tooltipTriggerEl => {
+            if (!Bootstrap.Tooltip.getInstance(tooltipTriggerEl)) {
+              new Bootstrap.Tooltip(tooltipTriggerEl);
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Bootstrap initialization failed:', error);
+        // Fallback: Try to manually trigger dropdowns using jQuery if available
+        if (window.$ && window.$.fn.dropdown) {
+          window.$('[data-bs-toggle="dropdown"]').dropdown();
+        }
+      }
     },
 
     toggleHeader() {
@@ -713,17 +767,18 @@ export default {
       document.body.classList.toggle("header-collapse");
     },
 
-    booking_range(start, end) {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
-    },
-
     initializeDateRangePicker() {
       const dateRangeInput = this.$refs.dateRangeInput;
+
       if (dateRangeInput) {
         const start = moment().subtract(6, "days");
         const end = moment();
 
-        this.daterangepicker = new DateRangePicker(
+        const booking_range = (start, end) => {
+          return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
+        };
+
+        new DateRangePicker(
           dateRangeInput,
           {
             startDate: start,
@@ -740,257 +795,81 @@ export default {
               ],
             },
           },
-          this.booking_range
+          booking_range
         );
 
-        this.booking_range(start, end);
+        // Handle date range selection
+        dateRangeInput.addEventListener('apply.daterangepicker', (ev, picker) => {
+          const startDate = picker.startDate.format('YYYY-MM-DD');
+          const endDate = picker.endDate.format('YYYY-MM-DD');
+          this.selectedDateRange = `${startDate},${endDate}`;
+          this.handleFilterChange();
+        });
       }
     },
 
-    mapPayrollData(data) {
-      return data.map(payroll => ({
-        id: payroll.id,
-        employee_id: payroll.employee_id,
-        staff_id: payroll.employee?.staff_id || 'N/A',
-        employeeName: payroll.employee ? `${payroll.employee.first_name_en} ${payroll.employee.last_name_en}`.trim() : 'N/A',
-        department: payroll.employee?.employment?.department_position?.department || 'N/A',
-        position: payroll.employee?.employment?.department_position?.position || 'N/A',
-        basic_salary: payroll.basic_salary,
-        net_paid: payroll.net_paid,
-        pay_period_date: moment(payroll.pay_period_date).format("DD MMM YYYY"),
-        created_at: moment(payroll.created_at).format("DD MMM YYYY"),
-        payslip: 'Generate Slip',
-        payslip_number: payroll.payslip_number || 'Not Generated',
-        // Additional fields for Thailand tax calculation
-        retroactive_fund: payroll.retroactive_fund || 0,
-        thirteenth_month_salary: payroll.thirteenth_month_salary || 0,
-        salary_accrue: payroll.salary_accrue || 0,
-        pvd_saving_fund: payroll.pvd_saving_fund || 0,
-        ssf: payroll.ssf || 0,
-        hw: payroll.hw || 0,
-        tax: payroll.tax || 0,
-        taxableIncome: 0,
-        taxBreakdown: null
-      }));
+    // =================== LOOKUP AND DEPARTMENT DATA METHODS ===================
+
+    // Initialize filter data from lookups and department positions
+    async initializeFilterData() {
+      await this.initSubsidiaries();
+      await this.initDepartments();
     },
 
-    async fetchPayrolls() {
+    // Get subsidiary data from lookups
+    async fetchSubsidiaries() {
       try {
-        await this.payrollStore.fetchPayrolls();
-        this.payrolls = this.mapPayrollData(this.payrollStore.payrolls);
-
-        // Calculate initial statistics
-        this.calculateMonthlyStats();
-
-        // Set tax summary
-        this.taxSummary = {
-          totalBrackets: 8, // Thailand has 8 tax brackets
-          maxTaxRate: 37, // Maximum tax rate is 37%
-          standardDeduction: 60000
-        };
-
-        this.$message.success('Payrolls loaded successfully');
+        const lookupStore = useLookupStore();
+        const subsidiaries = lookupStore.getLookupsByType('subsidiary');
+        return subsidiaries || [];
       } catch (error) {
-        console.error("Error fetching payrolls:", error);
-        this.$message.error('Failed to load payrolls');
+        console.error('Error fetching subsidiaries:', error);
+        return [];
       }
     },
 
-    // Add a sample record for demo purposes
-    addSampleRecord() {
-      // Check if the demo record already exists
-      const exists = this.payrolls.some(p => p.id === this.samplePayroll.id);
-      if (!exists) {
-        this.payrolls.unshift(this.samplePayroll);
+    // Initialize subsidiary data
+    async initSubsidiaries() {
+      const lookupStore = useLookupStore();
+      // If lookups aren't loaded yet, fetch them first
+      if (!lookupStore.lookups.length) {
+        await lookupStore.fetchAllLookupLists();
       }
+      this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
+      this.availableSubsidiaries = this.subsidiaries.map(sub => sub.value).filter(Boolean);
     },
 
-    // Format currency helper
-    formatCurrency(amount) {
-      if (!amount) return '0.00';
-      return parseFloat(amount).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-    },
-
-    // Calculate monthly statistics
-    calculateMonthlyStats() {
-      if (!this.payrolls || this.payrolls.length === 0) {
-        this.monthlyStats = {
-          totalEmployees: 0,
-          totalPayroll: 0,
-          totalTax: 0,
-          payslipsGenerated: 0
-        };
-        return;
-      }
-
-      this.monthlyStats = {
-        totalEmployees: this.payrolls.length,
-        totalPayroll: this.payrolls.reduce((sum, payroll) => sum + (parseFloat(payroll.basic_salary) || 0), 0),
-        totalTax: this.payrolls.reduce((sum, payroll) => sum + (parseFloat(payroll.tax) || 0), 0),
-        payslipsGenerated: this.payrolls.filter(payroll => payroll.payslip_number).length
-      };
-    },
-
-    // Calculate tax for a specific employee
-    async calculateTaxForEmployee(employee) {
+    // Get departments from department position store
+    async fetchDepartments() {
       try {
-        const taxableIncome = this.calculateTaxableIncome(employee);
-        const taxCalculation = await this.calculateTax(taxableIncome);
-
-        // Update the employee record with tax information
-        const index = this.payrolls.findIndex(p => p.id === employee.id);
-        if (index !== -1) {
-          this.payrolls[index] = {
-            ...this.payrolls[index],
-            taxableIncome: taxableIncome,
-            tax: taxCalculation.totalTax,
-            taxBreakdown: taxCalculation.breakdown
-          };
-        }
-
-        this.$message.success(`Tax calculated for ${employee.employeeName}`);
+        const departmentPositionStore = useDepartmentPositionStore();
+        return departmentPositionStore.getAllDepartments;
       } catch (error) {
-        console.error('Error calculating tax for employee:', error);
-        this.$message.error('Failed to calculate tax');
+        console.error('Error fetching departments:', error);
+        return [];
       }
     },
 
-    // Calculate taxable income for an employee
-    calculateTaxableIncome(employee) {
-      const basicSalary = parseFloat(employee.basic_salary) || 0;
-      const retroactiveFund = parseFloat(employee.retroactive_fund) || 0;
-      const thirteenthMonthSalary = parseFloat(employee.thirteenth_month_salary) || 0;
-      const salaryAccrue = parseFloat(employee.salary_accrue) || 0;
-
-      // Thailand standard deduction (฿60,000 per year)
-      const standardDeduction = 60000 / 12; // Monthly deduction
-
-      const totalIncome = basicSalary + retroactiveFund + thirteenthMonthSalary + salaryAccrue;
-      const taxableIncome = Math.max(0, totalIncome - standardDeduction);
-
-      return taxableIncome;
-    },
-
-    // Calculate tax using Thailand tax brackets
-    async calculateTax(taxableIncome) {
-      try {
-        // Thailand Personal Income Tax Brackets (2024)
-        const taxBrackets = [
-          { min: 0, max: 150000, rate: 0.05 },
-          { min: 150000, max: 300000, rate: 0.10 },
-          { min: 300000, max: 500000, rate: 0.15 },
-          { min: 500000, max: 750000, rate: 0.20 },
-          { min: 750000, max: 1000000, rate: 0.25 },
-          { min: 1000000, max: 2000000, rate: 0.30 },
-          { min: 2000000, max: 5000000, rate: 0.35 },
-          { min: 5000000, max: Infinity, rate: 0.37 }
-        ];
-
-        let totalTax = 0;
-        const breakdown = {};
-        const annualIncome = taxableIncome * 12;
-
-        for (const bracket of taxBrackets) {
-          if (annualIncome > bracket.min) {
-            const taxableInBracket = Math.min(
-              annualIncome - bracket.min,
-              bracket.max - bracket.min
-            );
-            const taxInBracket = taxableInBracket * bracket.rate;
-            totalTax += taxInBracket;
-
-            if (taxInBracket > 0) {
-              breakdown[`${bracket.rate * 100}%`] = taxInBracket;
-            }
-          }
-        }
-
-        return {
-          totalTax: totalTax / 12, // Convert to monthly
-          breakdown: breakdown
-        };
-      } catch (error) {
-        console.error('Error calculating tax:', error);
-        throw error;
+    // Initialize department data
+    async initDepartments() {
+      const departmentPositionStore = useDepartmentPositionStore();
+      // If department positions aren't loaded yet, fetch them first
+      if (!departmentPositionStore.departmentPositions.length) {
+        await departmentPositionStore.fetchDepartmentPositions();
       }
+      this.departments = departmentPositionStore.departmentPositions;
+      this.availableDepartments = departmentPositionStore.getAllDepartments;
     },
+  },
 
-    // Calculate taxes for all employees
-    async calculateAllTaxes() {
-      this.calculatingTaxes = true;
-      try {
-        for (const employee of this.payrolls) {
-          await this.calculateTaxForEmployee(employee);
-        }
-        this.calculateMonthlyStats();
-        this.$message.success('Taxes calculated for all employees');
-      } catch (error) {
-        console.error('Error calculating taxes for all employees:', error);
-        this.$message.error('Failed to calculate taxes for all employees');
-      } finally {
-        this.calculatingTaxes = false;
-      }
-    },
+  // Expose refs for template access
+  setup() {
+    const dateRangeInput = ref(null);
 
-    calculateTotalAmount() {
-      if (!this.payrollStore.payrolls || this.payrollStore.payrolls.length === 0) {
-        return '$0.00';
-      }
-
-      const total = this.payrollStore.payrolls.reduce((sum, payroll) => {
-        return sum + (parseFloat(payroll.net_paid) || 0);
-      }, 0);
-
-      return '$' + total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    },
-
-    countPendingPayrolls() {
-      if (!this.payrollStore.payrolls) return 0;
-
-      return this.payrollStore.payrolls.filter(payroll => !payroll.payslip_number).length;
-    },
-
-    countProcessedPayrolls() {
-      if (!this.payrollStore.payrolls) return 0;
-
-      return this.payrollStore.payrolls.filter(payroll => payroll.payslip_number).length;
-    },
-
-    editPayroll(payroll) {
-      this.payrollToEdit = payroll;
-      // The modal will be shown by the data-bs-target attribute
-    },
-
-    confirmDeletePayroll(id) {
-      Modal.confirm({
-        title: 'Are you sure you want to delete this payroll?',
-        content: 'This action cannot be undone.',
-        centered: true,
-        okText: 'Yes',
-        okType: 'danger',
-        cancelText: 'No',
-        onOk: () => {
-          this.deletePayroll(id);
-        }
-      });
-    },
-
-    async deletePayroll(id) {
-      if (!id) return;
-
-      try {
-        await this.payrollStore.deletePayroll(id);
-        this.$message.success('Payroll deleted successfully');
-        this.fetchPayrolls();
-      } catch (error) {
-        this.$message.error('Failed to delete payroll');
-        console.error("Error deleting payroll:", error);
-      }
-    }
-  }
+    return {
+      dateRangeInput,
+    };
+  },
 };
 </script>
 
@@ -1003,97 +882,221 @@ export default {
   min-width: 80px;
 }
 
-.table-operations {
-  margin-bottom: 16px;
+/* Ensure dropdown menus are properly positioned and visible */
+.dropdown-menu {
+  z-index: 1050;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #dee2e6 transparent;
 }
 
-.table-operations>button {
+/* Custom scrollbar styling for webkit browsers */
+.dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background-color: #dee2e6;
+  border-radius: 3px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background-color: #adb5bd;
+}
+
+/* Ensure dropdowns work properly with Bootstrap */
+.dropdown.show .dropdown-menu {
+  display: block;
+}
+
+/* Loading spinner styling */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Active dropdown item styling */
+.dropdown-item.active {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+/* Dropdown item hover and focus styling */
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: #f8f9fa;
+  color: #495057;
+  transition: background-color 0.15s ease-in-out;
+}
+
+/* Ensure dropdown items have consistent padding */
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* Empty state styling */
+.display-4 {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+/* Error state styling */
+.alert {
+  border-radius: 0.5rem;
+}
+
+/* Table loading overlay */
+.ant-table-loading .ant-spin-nested-loading>div>.ant-spin {
+  max-height: none;
+}
+
+/* Pagination styling */
+.ant-pagination {
+  margin: 1rem;
+  text-align: center;
+}
+
+/* Badge styling for subsidiaries */
+.badge-primary {
+  background-color: #0d6efd;
+}
+
+.badge-soft-primary {
+  background-color: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+}
+
+/* Filter button styling */
+.btn-white {
+  background-color: #fff;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+.btn-white:hover {
+  background-color: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+/* Responsive table improvements */
+@media (max-width: 768px) {
+  .custom-datatable-filter {
+    overflow-x: auto;
+  }
+
+  .d-flex.flex-wrap {
+    flex-direction: column;
+  }
+
+  .me-3 {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Action icons styling */
+.action-icon a {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.action-icon a:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Pagination wrapper styling - FIXED POSITION */
+.pagination-wrapper {
+  margin-top: 20px;
+  padding: 20px 16px;
+  border-top: 1px solid #e8e8e8;
+  position: relative;
+  z-index: 100;
+  background-color: #fff;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Ensure pagination is not overlapping */
+.resize-observer-fix {
+  position: relative;
+  min-height: 100px;
+}
+
+/* Ant Design pagination customization */
+:deep(.ant-pagination) {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+:deep(.ant-pagination-total-text) {
+  margin-right: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.ant-pagination-options) {
+  margin-left: 16px;
+}
+
+:deep(.ant-pagination-options-size-changer) {
   margin-right: 8px;
 }
 
-.bordered-table {
-  border: 1px solid #e0e0e0;
+:deep(.ant-pagination-options-quick-jumper) {
+  margin-left: 8px;
 }
 
-:deep(.ant-table-bordered .ant-table-thead > tr > th),
-:deep(.ant-table-bordered .ant-table-tbody > tr > td) {
-  border-right: 1px solid #e0e0e0;
+/* Fix dropdown placement - force dropdown to appear above */
+:deep(.ant-pagination-options-size-changer .ant-select) {
+  z-index: 1000;
 }
 
-:deep(.ant-table-bordered .ant-table-thead > tr > th) {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e0e0e0;
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+  z-index: 1050 !important;
+  top: auto !important;
+  bottom: calc(100% + 4px) !important;
 }
 
-/* Persistent hover effect - keeps the background color until cursor leaves the row */
-:deep(.ant-table-tbody > tr:hover)>td {
-  background-color: #f0f7ff !important;
-  transition: background-color 0.1s ease;
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+  z-index: 1050 !important;
 }
 
-/* Make scrollbar bigger and more visible */
-:deep(.ant-table-body)::-webkit-scrollbar {
-  width: 14px;
-  height: 14px;
+/* Override Ant Design dropdown placement */
+:deep(.ant-pagination .ant-select-dropdown) {
+  position: absolute !important;
+  bottom: calc(100% + 4px) !important;
+  top: auto !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
 }
 
-:deep(.ant-table-body)::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 7px;
+/* Container overflow fixes */
+.card-body {
+  overflow: visible !important;
+  padding-bottom: 0;
 }
 
-:deep(.ant-table-body)::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 7px;
-  border: 3px solid #f1f1f1;
-}
-
-:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Statistic cards styling */
-.bg-light-primary {
-  background-color: rgba(13, 110, 253, 0.1) !important;
-}
-
-.bg-light-success {
-  background-color: rgba(25, 135, 84, 0.1) !important;
-}
-
-.bg-light-warning {
-  background-color: rgba(255, 193, 7, 0.1) !important;
-}
-
-.bg-light-info {
-  background-color: rgba(13, 202, 240, 0.1) !important;
-}
-
-.bg-light-secondary {
-  background-color: rgba(108, 117, 125, 0.1) !important;
-}
-
-/* Tax calculation button styling */
-.cursor-pointer {
-  cursor: pointer;
-}
-
-/* Avatar styling */
-.avatar {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-
-.avatar-md {
-  width: 48px;
-  height: 48px;
-}
-
-.avatar i {
-  font-size: 20px;
+.card {
+  overflow: visible !important;
+  margin-bottom: 20px;
 }
 </style>

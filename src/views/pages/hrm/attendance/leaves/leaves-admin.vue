@@ -6,53 +6,36 @@
   <div class="page-wrapper">
     <div class="content">
       <!-- Breadcrumb -->
-      <div
-        class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
-      >
+      <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="me-2 mb-2">
             <div class="dropdown">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
+              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
+                data-bs-toggle="dropdown">
                 <i class="ti ti-file-export me-1"></i>Export
               </a>
               <ul class="dropdown-menu dropdown-menu-end p-3">
                 <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    ><i class="ti ti-file-type-pdf me-1"></i>Export as PDF</a
-                  >
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="exportData('pdf')"><i
+                      class="ti ti-file-type-pdf me-1"></i>Export as PDF</a>
                 </li>
                 <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    ><i class="ti ti-file-type-xls me-1"></i>Export as Excel
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="exportData('excel')"><i
+                      class="ti ti-file-type-xls me-1"></i>Export as Excel
                   </a>
                 </li>
               </ul>
             </div>
           </div>
           <div class="mb-2">
-            <a
-              href="javascript:void(0);"
-              data-bs-toggle="modal"
-              data-bs-target="#add_leaves"
-              class="btn btn-primary d-flex align-items-center"
-              ><i class="ti ti-circle-plus me-2"></i>Add Leave</a
-            >
+            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_leaves"
+              class="btn btn-primary d-flex align-items-center" @click="openCreateModal"><i
+                class="ti ti-circle-plus me-2"></i>Add Leave</a>
           </div>
           <div class="head-icons ms-2">
-            <a
-              href="javascript:void(0);"
-              class=""
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              data-bs-original-title="Collapse"
-              id="collapse-header"
-              @click="toggleHeader"
-            >
+            <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+              data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
@@ -69,15 +52,14 @@
                 <div class="d-flex align-items-center">
                   <div class="flex-shrink-0 me-2">
                     <span
-                      class="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center"
-                    >
-                      <i class="ti ti-user-check text-success fs-18"></i>
+                      class="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
+                      <i class="ti ti-calendar-check text-success fs-18"></i>
                     </span>
                   </div>
                 </div>
                 <div class="text-end">
-                  <p class="mb-1">Total Present</p>
-                  <h4>180/200</h4>
+                  <p class="mb-1">Total Requests</p>
+                  <h4>{{ stats.totalRequests || 0 }}</h4>
                 </div>
               </div>
             </div>
@@ -90,15 +72,14 @@
                 <div class="d-flex align-items-center">
                   <div class="flex-shrink-0 me-2">
                     <span
-                      class="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center"
-                    >
-                      <i class="ti ti-user-edit text-pink fs-18"></i>
+                      class="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
+                      <i class="ti ti-check text-success fs-18"></i>
                     </span>
                   </div>
                 </div>
                 <div class="text-end">
-                  <p class="mb-1">Planned Leaves</p>
-                  <h4>10</h4>
+                  <p class="mb-1">Approved</p>
+                  <h4>{{ stats.approvedRequests || 0 }}</h4>
                 </div>
               </div>
             </div>
@@ -111,15 +92,14 @@
                 <div class="d-flex align-items-center">
                   <div class="flex-shrink-0 me-2">
                     <span
-                      class="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center"
-                    >
-                      <i class="ti ti-user-exclamation text-warning fs-18"></i>
+                      class="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
+                      <i class="ti ti-clock text-warning fs-18"></i>
                     </span>
                   </div>
                 </div>
                 <div class="text-end">
-                  <p class="mb-1">Unplanned Leaves</p>
-                  <h4>10</h4>
+                  <p class="mb-1">Pending</p>
+                  <h4>{{ stats.pendingRequests || 0 }}</h4>
                 </div>
               </div>
             </div>
@@ -132,15 +112,14 @@
                 <div class="d-flex align-items-center">
                   <div class="flex-shrink-0 me-2">
                     <span
-                      class="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center"
-                    >
-                      <i class="ti ti-user-question text-info fs-18"></i>
+                      class="avatar avatar-md rounded-circle bg-white d-flex align-items-center justify-content-center">
+                      <i class="ti ti-x text-danger fs-18"></i>
                     </span>
                   </div>
                 </div>
                 <div class="text-end">
-                  <p class="mb-1">Pending Requests</p>
-                  <h4>15</h4>
+                  <p class="mb-1">Declined</p>
+                  <h4>{{ stats.declinedRequests || 0 }}</h4>
                 </div>
               </div>
             </div>
@@ -151,154 +130,239 @@
 
       <!-- Leaves list -->
       <div class="card">
-        <div
-          class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"
-        >
+        <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Leave List</h5>
-          <div
-            class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3"
-          >
+          <div class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3">
+            <!-- Search Input -->
             <div class="me-3">
               <div class="input-icon-end position-relative">
-                <input
-                  type="text"
-                  class="form-control date-range bookingrange"
-                  ref="dateRangeInput"
-                  placeholder="dd/mm/yyyy - dd/mm/yyyy"
-                />
+                <input type="text" class="form-control" v-model="filters.search" placeholder="Search by name or ID..."
+                  @input="debouncedSearch" />
+                <span class="input-icon-addon">
+                  <i class="ti ti-search"></i>
+                </span>
+              </div>
+            </div>
+
+            <!-- Date Range Filter -->
+            <div class="me-3">
+              <div class="input-icon-end position-relative">
+                <input type="text" class="form-control date-range bookingrange" ref="dateRangeInput"
+                  placeholder="dd/mm/yyyy - dd/mm/yyyy" readonly />
                 <span class="input-icon-addon">
                   <i class="ti ti-chevron-down"></i>
                 </span>
               </div>
             </div>
+
+            <!-- Leave Type Filter -->
             <div class="dropdown me-3">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-sm btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
-                Leave Type
+              <a href="javascript:void(0);"
+                class="dropdown-toggle btn btn-sm btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
+                {{ selectedLeaveTypeName || 'Leave Type' }}
               </a>
               <ul class="dropdown-menu dropdown-menu-end p-3">
                 <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Medical Leave</a
-                  >
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="setLeaveTypeFilter(null)"
+                    :class="{ 'active': !filters.leaveTypes.length }">All Types</a>
                 </li>
-                <li>
+                <li v-for="leaveType in leaveTypeOptions" :key="leaveType.value">
                   <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Casual Leave</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Annual Leave</a
-                  >
+                    @click="setLeaveTypeFilter(leaveType.value)"
+                    :class="{ 'active': filters.leaveTypes.includes(leaveType.value) }">{{ leaveType.label }}</a>
                 </li>
               </ul>
             </div>
-            <div class="dropdown">
-              <a
-                href="javascript:void(0);"
-                class="dropdown-toggle btn btn-sm btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown"
-              >
-                Sort By : Last 7 Days
+
+            <!-- Status Filter -->
+            <div class="dropdown me-3">
+              <a href="javascript:void(0);"
+                class="dropdown-toggle btn btn-sm btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
+                {{ selectedStatusName || 'Status' }}
               </a>
               <ul class="dropdown-menu dropdown-menu-end p-3">
                 <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Recently Added</a
-                  >
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="setStatusFilter('')"
+                    :class="{ 'active': !filters.status }">All Status</a>
                 </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Ascending</a
-                  >
+                <li v-for="status in statusOptions" :key="status.value">
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="setStatusFilter(status.value)"
+                    :class="{ 'active': filters.status === status.value }">
+                    <span class="rounded-circle d-flex justify-content-center align-items-center me-2"
+                      :class="`bg-transparent-${status.color}`" style="width: 16px; height: 16px;">
+                      <i class="ti ti-point-filled" :class="`text-${status.color}`"></i>
+                    </span>
+                    {{ status.label }}
+                  </a>
                 </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Desending</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Last Month</a
-                  >
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                    >Last 7 Days</a
-                  >
+              </ul>
+            </div>
+
+            <!-- Sort Filter -->
+            <div class="dropdown">
+              <a href="javascript:void(0);"
+                class="dropdown-toggle btn btn-sm btn-white d-inline-flex align-items-center" data-bs-toggle="dropdown">
+                Sort By: {{ selectedSortName }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end p-3">
+                <li v-for="sort in sortOptions" :key="sort.value">
+                  <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="setSortFilter(sort.value)"
+                    :class="{ 'active': filters.sortBy === sort.value }">{{ sort.label }}</a>
                 </li>
               </ul>
             </div>
           </div>
         </div>
         <div class="card-body p-0">
-          <div class="custom-datatable-filter table-responsive">
-            <a-table
-              class="table datatable thead-light"
-              :columns="columns"
-              :data-source="data"
-              :row-selection="rowSelection"
-            >
+          <!-- Loading State -->
+          <div v-if="isLeaveRequestsLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading leave requests...</p>
+          </div>
+
+          <!-- Empty State -->
+          <div v-else-if="!hasLeaveRequests" class="text-center py-5">
+            <div class="empty-state">
+              <i class="ti ti-calendar-x text-muted" style="font-size: 3rem;"></i>
+              <h5 class="mt-3 text-muted">No leave requests found</h5>
+              <p class="text-muted">{{ filters.search ? 'Try adjusting your search criteria' : 'Start by creating a new leave request' }}</p>
+              <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#add_leaves"
+                @click="openCreateModal">
+                <i class="ti ti-plus me-2"></i>Add Leave Request
+              </button>
+            </div>
+          </div>
+
+          <!-- Data Table -->
+          <div v-else class="custom-datatable-filter table-responsive">
+            <a-table class="table datatable thead-light" :columns="columns" :data-source="leaveRequests"
+              :row-selection="rowSelection" :pagination="false" :loading="isLeaveRequestsLoading">
               <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'Employee'">
+                <template v-if="column.key === 'employee'">
                   <div class="d-flex align-items-center file-name-icon">
                     <a href="javascript:void(0);" class="avatar avatar-md border avatar-rounded">
-                      <img
-                        :src="require(`@/assets/img/users/${record.Image}`)"
-                        class="img-fluid"
-                        alt="img"
-                      />
+                      <img :src="getEmployeeAvatar(record.employee)" class="img-fluid" alt="Employee Avatar"
+                        @error="handleImageError" />
                     </a>
                     <div class="ms-2">
                       <h6 class="fw-medium">
-                        <a href="javascript:void(0);">{{ record.Employee }}</a>
+                        <a href="javascript:void(0);" @click="viewEmployeeDetails(record.employee)">
+                          {{ record.employee?.name || 'Unknown Employee' }}
+                        </a>
                       </h6>
-                      <span class="fs-12 fw-normal">{{ record.Roll }}</span>
+                      <span class="fs-12 fw-normal">
+                        {{ record.employee?.staffId || 'N/A' }} • {{ record.employee?.department || 'N/A' }}
+                      </span>
                     </div>
                   </div>
                 </template>
-                <template v-if="column.key === 'Leave_Type'">
+
+                <template v-if="column.key === 'leaveType'">
                   <div class="d-flex align-items-center">
                     <p class="fs-14 fw-medium d-flex align-items-center mb-0">
-                      {{ record.Leave_Type }}
+                      {{ record.leaveType?.name || 'Unknown Type' }}
                     </p>
-                    <a
-                      href="javascript:void(0);"
-                      class="ms-2"
-                      data-bs-toggle="tooltip"
-                      data-bs-placement="right"
-                      data-bs-title="I am currently experiencing a fever and design & Development"
-                    >
+                    <a v-if="record.reason" href="javascript:void(0);" class="ms-2" data-bs-toggle="tooltip"
+                      data-bs-placement="right" :data-bs-title="record.reason">
                       <i class="ti ti-info-circle text-info"></i>
                     </a>
                   </div>
                 </template>
-                <template v-if="column.key === 'Status'">
-                  <span :class="getStatusClass(record.Status)">{{ record.Status }}</span>
+
+                <template v-if="column.key === 'dateRange'">
+                  <div>
+                    <div class="fw-medium">{{ formatDate(record.startDate) }}</div>
+                    <div class="text-muted fs-12">to {{ formatDate(record.endDate) }}</div>
+                  </div>
                 </template>
+
+                <template v-if="column.key === 'totalDays'">
+                  <span class="badge bg-light text-dark">{{ record.totalDays }} day{{ record.totalDays !== 1 ? 's' : ''
+                  }}</span>
+                </template>
+
+                <template v-if="column.key === 'status'">
+                  <div class="dropdown">
+                    <a href="javascript:void(0);"
+                      class="dropdown-toggle btn btn-sm btn-white d-inline-flex align-items-center"
+                      data-bs-toggle="dropdown" :disabled="!canUpdateStatus(record)">
+                      <span class="rounded-circle d-flex justify-content-center align-items-center me-2"
+                        :class="getStatusConfig(record.status).class.replace('badge ', 'bg-transparent-')"
+                        style="width: 16px; height: 16px;">
+                        <i class="ti ti-point-filled"
+                          :class="getStatusConfig(record.status).class.replace('badge bg-', 'text-').replace('-light', '')"></i>
+                      </span>
+                      {{ getStatusConfig(record.status).label }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end p-3" v-if="canUpdateStatus(record)">
+                      <li v-for="status in statusOptions" :key="status.value">
+                        <a href="javascript:void(0);"
+                          class="dropdown-item rounded-1 d-flex justify-content-start align-items-center"
+                          @click="updateLeaveStatus(record.id, status.value)"
+                          :class="{ 'active': record.status === status.value }">
+                          <span class="rounded-circle d-flex justify-content-center align-items-center me-2"
+                            :class="`bg-transparent-${status.color}`" style="width: 16px; height: 16px;">
+                            <i class="ti ti-point-filled" :class="`text-${status.color}`"></i>
+                          </span>
+                          {{ status.label }}
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </template>
+
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
-                    <a
-                      href="javascript:void(0);"
-                      class="me-2"
-                      data-bs-toggle="modal"
-                      data-bs-target="#edit_leaves"
-                      ><i class="ti ti-edit"></i
-                    ></a>
-                    <a
-                      href="javascript:void(0);"
-                      data-bs-toggle="modal"
-                      data-bs-target="#delete_modal"
-                      ><i class="ti ti-trash"></i
-                    ></a>
+                    <a href="javascript:void(0);" class="me-2" data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Edit" @click="editLeaveRequest(record)">
+                      <i class="ti ti-edit"></i>
+                    </a>
+                    <a href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete"
+                      @click="confirmDeleteLeaveRequest(record)">
+                      <i class="ti ti-trash"></i>
+                    </a>
                   </div>
                 </template>
               </template>
             </a-table>
+
+            <!-- Pagination -->
+            <div class="d-flex justify-content-between align-items-center p-3 border-top">
+              <div class="text-muted">
+                Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} entries
+              </div>
+              <div class="d-flex align-items-center">
+                <div class="me-3">
+                  <select class="form-select form-select-sm" v-model="filters.perPage"
+                    @change="changePerPage(filters.perPage)">
+                    <option value="10">10 per page</option>
+                    <option value="25">25 per page</option>
+                    <option value="50">50 per page</option>
+                    <option value="100">100 per page</option>
+                  </select>
+                </div>
+                <nav aria-label="Page navigation">
+                  <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item" :class="{ disabled: isFirstPage }">
+                      <a class="page-link" href="javascript:void(0);" @click="previousPage">
+                        <i class="ti ti-chevron-left"></i>
+                      </a>
+                    </li>
+                    <li v-for="page in getVisiblePages()" :key="page" class="page-item"
+                      :class="{ active: page === pagination.currentPage }">
+                      <a class="page-link" href="javascript:void(0);" @click="goToPage(page)">{{ page }}</a>
+                    </li>
+                    <li class="page-item" :class="{ disabled: isLastPage }">
+                      <a class="page-link" href="javascript:void(0);" @click="nextPage">
+                        <i class="ti ti-chevron-right"></i>
+                      </a>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -308,273 +372,392 @@
   </div>
   <!-- /Page Wrapper -->
 
-  <leaves-admin-modal></leaves-admin-modal>
+  <leaves-admin-modal @leave-request-created="handleLeaveRequestCreated"></leaves-admin-modal>
 </template>
 
 
 
 <script>
+import { ref, reactive, computed, onMounted, watch } from 'vue';
+import moment from 'moment';
+import DateRangePicker from 'daterangepicker';
 import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
-import { ref } from "vue";
-import { onMounted } from "vue";
-import moment from "moment";
-import DateRangePicker from "daterangepicker";
 
+// Composables
+import { useLeaveRequests } from '@/composables/useLeaveRequests';
+import { useLeaveTypes } from '@/composables/useLeaveTypes';
+import { useToast } from '@/composables/useToast';
+import { useLoading } from '@/composables/useLoading';
 
-const data = [
-  {
-    Image: "user-32.jpg",
-    Employee: "Anthony Lewis",
-    Roll: "Finance",
-    Leave_Type: "Medical Leave",
-    From: "14 Jan 2024",
-    To: "15 Jan 2024",
-    No_of_Days: "2 Days",
-    Status: "Pending"
-  },
-  {
-    Image: "user-09.jpg",
-    Employee: "Brian Villalobos",
-    Roll: "Developer",
-    Leave_Type: "Casual Leave",
-    From: "21 Jan 2024",
-    To: "25 Jan 2024",
-    No_of_Days: "5 Days",
-    Status: "Approved"
-  },
-  {
-    Image: "user-01.jpg",
-    Employee: "Harvey Smith",
-    Roll: "Developer",
-    Leave_Type: "Medical Leave",
-    From: "20 Feb 2024",
-    To: "22 Feb 2024",
-    No_of_Days: "3 Days",
-    Status: "Declined"
-  },
-  {
-    Image: "user-33.jpg",
-    Employee: "Stephan Peralt",
-    Roll: "Executive Officer",
-    Leave_Type: "Annual Leave",
-    From: "15 Mar 2024",
-    To: "17 Mar 2024",
-    No_of_Days: "3 Days",
-    Status: "Approved"
-  },
-  {
-    Image: "user-34.jpg",
-    Employee: "Doglas Martini",
-    Roll: "Manager",
-    Leave_Type: "Casual Leave",
-    From: "12 Apr 2024",
-    To: "16 Apr 2024",
-    No_of_Days: "5 Days",
-    Status: "Pending"
-  },
-  {
-    Image: "user-02.jpg",
-    Employee: "Linda Ray",
-    Roll: "Finance",
-    Leave_Type: "Medical Leave",
-    From: "20 May 2024",
-    To: "21 May 2024",
-    No_of_Days: "2 Days",
-    Status: "Approved"
-  },
-  {
-    Image: "user-35.jpg",
-    Employee: "Elliot Murray",
-    Roll: "Developer",
-    Leave_Type: "Casual Leave",
-    From: "06 Jul 2024",
-    To: "06 Jul 2024",
-    No_of_Days: "1 Day",
-    Status: "Pending"
-  },
-  {
-    Image: "user-36.jpg",
-    Employee: "Rebecca Smtih",
-    Roll: "Executive",
-    Leave_Type: "Medical Leave",
-    From: "02 Sep 2024",
-    To: "04 Sep 2024",
-    No_of_Days: "3 Days",
-    Status: "Approved"
-  },
-  {
-    Image: "user-37.jpg",
-    Employee: "Connie Waters",
-    Roll: "Developer",
-    Leave_Type: "Annual Leave",
-    From: "15 Nov 2024",
-    To: "15 Nov 2024",
-    No_of_Days: "1 Day",
-    Status: "Declined"
-  },
-  {
-    Image: "user-38.jpg",
-    Employee: "Lori Broaddus",
-    Roll: "Finance",
-    Leave_Type: "Casual Leave",
-    From: "10 Dec 2024",
-    To: "11 Dec 2024",
-    No_of_Days: "2 Days",
-    Status: "Pending"
-  },
-];
+// Utils
+import { dateUtils, statusUtils, filterUtils } from '@/utils/leave.utils';
 
-const columns = [
-  {
-    sorter: false,
-  },
-  {
-    title: "Employee",
-    dataIndex: "Employee",
-    key: "Employee",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Employee.toLowerCase();
-        b = b.Employee.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Leave Type",
-    dataIndex: "Leave_Type",
-    key: "Leave_Type",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Leave_Type.toLowerCase();
-        b = b.Leave_Type.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "From",
-    dataIndex: "From",
-    sorter: {
-      compare: (a, b) => {
-        a = a.From.toLowerCase();
-        b = b.From.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "To",
-    dataIndex: "To",
-    sorter: {
-      compare: (a, b) => {
-        a = a.To.toLowerCase();
-        b = b.To.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "No of Days",
-    dataIndex: "No_of_Days",
-    sorter: {
-      compare: (a, b) => {
-        a = a.No_of_Days.toLowerCase();
-        b = b.No_of_Days.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "Status",
-    dataIndex: "Status",
-    key: "Status",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Status.toLowerCase();
-        b = b.Status.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
-  },
-  {
-    title: "",
-    key: "action",
-    sorter: true,
-  },
-];
+// Components
+import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 
 export default {
-  data() {
-    return {
-      title: "Leaves",
-      text: "Employee",
-      text1: "Leaves",
-      leaveStatus: ["Pending", "Approved", "Declined"],
-      data,
-      columns,
-    };
+  name: 'LeavesAdmin',
+  components: {
+    indexBreadcrumb,
   },
-  methods: {
-    toggleHeader() {
+
+  setup() {
+    // Composables
+    const {
+      leaveRequests,
+      pagination,
+      stats,
+      filters,
+      hasLeaveRequests,
+      isFirstPage,
+      isLastPage,
+      fetchLeaveRequests,
+      updateRequestStatus,
+      deleteLeaveRequest,
+      goToPage,
+      nextPage,
+      previousPage,
+      changePerPage,
+      updateFilters,
+      setDateRange
+    } = useLeaveRequests();
+
+    const {
+      leaveTypeOptions,
+      fetchLeaveTypes
+    } = useLeaveTypes();
+
+    const { showToast } = useToast();
+    const { isLeaveRequestsLoading } = useLoading();
+
+    // Reactive data
+    const dateRangeInput = ref(null);
+    const selectedLeaveRequest = ref(null);
+    const searchTimeout = ref(null);
+
+    // Page data
+    const title = ref("Leaves");
+    const text = ref("Employee");
+    const text1 = ref("Leaves");
+
+    // Options
+    const statusOptions = computed(() => statusUtils.getAllStatuses());
+    const sortOptions = computed(() => filterUtils.getSortOptions());
+
+    // Computed properties for filter display
+    const selectedLeaveTypeName = computed(() => {
+      if (!filters.leaveTypes.length) return null;
+      const selected = leaveTypeOptions.value.find(type =>
+        filters.leaveTypes.includes(type.value)
+      );
+      return selected?.label || 'Multiple Types';
+    });
+
+    const selectedStatusName = computed(() => {
+      if (!filters.status) return null;
+      const selected = statusOptions.value.find(status => status.value === filters.status);
+      return selected?.label;
+    });
+
+    const selectedSortName = computed(() => {
+      const selected = sortOptions.value.find(sort => sort.value === filters.sortBy);
+      return selected?.label || 'Recently Added';
+    });
+
+    // Table configuration
+    const columns = [
+      {
+        title: '',
+        key: 'selection',
+        width: 50,
+      },
+      {
+        title: 'Employee',
+        key: 'employee',
+        sorter: true,
+      },
+      {
+        title: 'Leave Type',
+        key: 'leaveType',
+        sorter: true,
+      },
+      {
+        title: 'Date Range',
+        key: 'dateRange',
+        sorter: true,
+      },
+      {
+        title: 'Days',
+        key: 'totalDays',
+        sorter: true,
+        width: 100,
+      },
+      {
+        title: 'Status',
+        key: 'status',
+        sorter: true,
+        width: 150,
+      },
+      {
+        title: 'Actions',
+        key: 'action',
+        width: 100,
+      },
+    ];
+
+    const rowSelection = {
+      onChange: (selectedRowKeys, selectedRows) => {
+        console.log('Selected rows:', selectedRows);
+      },
+      onSelect: (record, selected, selectedRows) => {
+        console.log('Record selected:', record, selected);
+      },
+      onSelectAll: (selected, selectedRows, changeRows) => {
+        console.log('All selected:', selected, selectedRows, changeRows);
+      },
+    };
+
+    // Methods
+    const toggleHeader = () => {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
-    },
-    getStatusClass(status) {
-      switch(status) {
-        case 'Approved':
-          return 'badge bg-success-light text-success';
-        case 'Pending':
-          return 'badge bg-warning-light text-warning';
-        case 'Declined':
-          return 'badge bg-danger-light text-danger';
-        default:
-          return 'badge bg-secondary-light text-secondary';
+    };
+
+    const formatDate = (date) => {
+      return dateUtils.formatDate(date, 'DD MMM YYYY');
+    };
+
+    const getStatusConfig = (status) => {
+      return statusUtils.getStatusConfig(status);
+    };
+
+    const getEmployeeAvatar = (employee) => {
+      if (!employee) return require('@/assets/img/users/user-01.jpg');
+
+      try {
+        // Try to get the employee's avatar, fallback to default
+        return require(`@/assets/img/users/${employee.staffId || 'user-01'}.jpg`);
+      } catch {
+        return require('@/assets/img/users/user-01.jpg');
       }
-    }
-  },
-  setup() {
-    const dateRangeInput = ref(null);
+    };
 
-    function booking_range(start, end) {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
-    }
+    const handleImageError = (event) => {
+      event.target.src = require('@/assets/img/users/user-01.jpg');
+    };
 
-    onMounted(() => {
-      if (dateRangeInput.value) {
-        const start = moment().subtract(6, "days");
-        const end = moment();
+    const canUpdateStatus = (record) => {
+      // Add your business logic here
+      return record.status === 'pending';
+    };
 
-        new DateRangePicker(
-          dateRangeInput.value,
-          {
-            startDate: start,
-            endDate: end,
-            ranges: {
-              Today: [moment(), moment()],
-              Yesterday: [moment().subtract(1, "days"), moment().subtract(1, "days")],
-              "Last 7 Days": [moment().subtract(6, "days"), moment()],
-              "Last 30 Days": [moment().subtract(29, "days"), moment()],
-              "This Month": [moment().startOf("month"), moment().endOf("month")],
-              "Last Month": [
-                moment().subtract(1, "month").startOf("month"),
-                moment().subtract(1, "month").endOf("month"),
-              ],
-            },
-          },
-          booking_range
-        );
-
-        booking_range(start, end);
+    // Filter methods
+    const debouncedSearch = () => {
+      if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value);
       }
+
+      searchTimeout.value = setTimeout(() => {
+        fetchLeaveRequests(true);
+      }, 500);
+    };
+
+    const setLeaveTypeFilter = (leaveTypeId) => {
+      if (leaveTypeId === null) {
+        filters.leaveTypes = [];
+      } else {
+        filters.leaveTypes = [leaveTypeId];
+      }
+      fetchLeaveRequests(true);
+    };
+
+    const setStatusFilter = (status) => {
+      filters.status = status;
+      fetchLeaveRequests(true);
+    };
+
+    const setSortFilter = (sortBy) => {
+      filters.sortBy = sortBy;
+      fetchLeaveRequests(true);
+    };
+
+    // CRUD methods
+    const openCreateModal = () => {
+      selectedLeaveRequest.value = null;
+      // The modal will be opened by Bootstrap
+    };
+
+    const editLeaveRequest = (record) => {
+      selectedLeaveRequest.value = record;
+      // Open edit modal
+      const modal = new bootstrap.Modal(document.getElementById('edit_leaves'));
+      modal.show();
+    };
+
+    const confirmDeleteLeaveRequest = (record) => {
+      if (confirm(`Are you sure you want to delete the leave request for ${record.employee?.name}?`)) {
+        handleDeleteLeaveRequest(record.id);
+      }
+    };
+
+    const handleDeleteLeaveRequest = async (id) => {
+      const result = await deleteLeaveRequest(id);
+      if (result.success) {
+        showToast('Leave request deleted successfully', 'success');
+      }
+    };
+
+    const updateLeaveStatus = async (id, status) => {
+      const result = await updateRequestStatus(id, status);
+      if (result.success) {
+        showToast(`Leave request ${status} successfully`, 'success');
+      }
+    };
+
+    const viewEmployeeDetails = (employee) => {
+      // Navigate to employee details or show employee modal
+      console.log('View employee details:', employee);
+    };
+
+    // Pagination helpers
+    const getVisiblePages = () => {
+      const current = pagination.currentPage;
+      const total = pagination.lastPage;
+      const delta = 2;
+      const range = [];
+      const rangeWithDots = [];
+
+      for (let i = Math.max(2, current - delta);
+        i <= Math.min(total - 1, current + delta);
+        i++) {
+        range.push(i);
+      }
+
+      if (current - delta > 2) {
+        rangeWithDots.push(1, '...');
+      } else {
+        rangeWithDots.push(1);
+      }
+
+      rangeWithDots.push(...range);
+
+      if (current + delta < total - 1) {
+        rangeWithDots.push('...', total);
+      } else {
+        rangeWithDots.push(total);
+      }
+
+      return rangeWithDots.filter((item, index, arr) =>
+        arr.indexOf(item) === index && item !== '...' || item === '...'
+      );
+    };
+
+    // Export methods
+    const exportData = (format) => {
+      showToast(`Exporting data as ${format.toUpperCase()}...`, 'info');
+      // Implement export functionality
+    };
+
+    // Handle leave request created event from modal
+    const handleLeaveRequestCreated = (leaveRequestData) => {
+      console.log('📬 Received leave request created event:', leaveRequestData);
+
+      // Show success message
+      showToast(`Leave request created successfully for ${leaveRequestData.employee.first_name_en} ${leaveRequestData.employee.last_name_en}`, 'success');
+
+      // Refresh the leave requests table
+      fetchLeaveRequests();
+
+      console.log('✅ Leave requests table refreshed');
+    };
+
+    // Date range picker setup
+    const initializeDateRangePicker = () => {
+      if (!dateRangeInput.value) return;
+
+      const start = moment().subtract(6, 'days');
+      const end = moment();
+
+      new DateRangePicker(dateRangeInput.value, {
+        startDate: start,
+        endDate: end,
+        ranges: dateUtils.getDateRangePresets(),
+      }, (start, end) => {
+        setDateRange(start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'));
+      });
+    };
+
+    // Lifecycle
+    onMounted(async () => {
+      // Initialize data
+      await Promise.all([
+        fetchLeaveRequests(),
+        fetchLeaveTypes()
+      ]);
+
+      // Initialize date range picker
+      initializeDateRangePicker();
     });
 
     return {
+      // Reactive data
+      title,
+      text,
+      text1,
       dateRangeInput,
+      selectedLeaveRequest,
+
+      // Composable data
+      leaveRequests,
+      pagination,
+      stats,
+      filters,
+      leaveTypeOptions,
+      isLeaveRequestsLoading,
+
+      // Computed
+      hasLeaveRequests,
+      isFirstPage,
+      isLastPage,
+      statusOptions,
+      sortOptions,
+      selectedLeaveTypeName,
+      selectedStatusName,
+      selectedSortName,
+
+      // Table config
+      columns,
+      rowSelection,
+
+      // Methods
+      toggleHeader,
+      formatDate,
+      getStatusConfig,
+      getEmployeeAvatar,
+      handleImageError,
+      canUpdateStatus,
+      debouncedSearch,
+      setLeaveTypeFilter,
+      setStatusFilter,
+      setSortFilter,
+      openCreateModal,
+      editLeaveRequest,
+      confirmDeleteLeaveRequest,
+      updateLeaveStatus,
+      viewEmployeeDetails,
+      getVisiblePages,
+      exportData,
+
+      // Pagination methods
+      goToPage,
+      nextPage,
+      previousPage,
+      changePerPage,
+
+      // Event handlers
+      handleLeaveRequestCreated,
     };
   },
 };
 </script>
-
-

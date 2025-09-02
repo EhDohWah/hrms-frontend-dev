@@ -6,7 +6,7 @@
         <div class="modal-header"
           style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 15px 20px;">
           <div class="d-flex align-items-center">
-            <h4 class="modal-title me-2" style="color: #0067A5; font-weight: 600;">Add New Employee</h4>
+            <h4 class="modal-title me-2">Add New Employee</h4>
           </div>
           <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
@@ -1148,7 +1148,7 @@ export default {
       // If lookups aren't loaded yet, fetch them first
       // Only fetch if not already loaded
       if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
+        await lookupStore.fetchAllLookupLists();
       }
       this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
     },

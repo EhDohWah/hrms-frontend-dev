@@ -53,8 +53,17 @@
               <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === 'actions'">
                   <div class="action-icon d-inline-flex">
-                    <a href="javascript:void(0);" class="me-2" @click="openEditEmploymentModal(record)">
-                      <i class="ti ti-edit"></i>
+                    <a href="javascript:void(0);" class="me-2 edit-button" @click="openEditEmploymentModal(record)"
+                      :class="{ 'loading': editingEmploymentId === record.id }"
+                      :disabled="editingEmploymentId === record.id">
+                      <span class="button-content">
+                        <i class="ti ti-edit edit-icon" :class="{ 'fade-out': editingEmploymentId === record.id }"></i>
+                        <div v-if="editingEmploymentId === record.id" class="loading-dots">
+                          <div class="dot"></div>
+                          <div class="dot"></div>
+                          <div class="dot"></div>
+                        </div>
+                      </span>
                     </a>
                     <a href="javascript:void(0);" class="text-danger" @click="confirmDeleteEmployment(record.id)">
                       <i class="ti ti-trash"></i>
@@ -134,8 +143,9 @@
     <layout-footer></layout-footer>
   </div>
 
-  <!-- Employment Modal Component -->
-  <employment-modal ref="employmentModal" @employment-added="fetchEmployments" @employment-updated="fetchEmployments" />
+  <!-- Employment Modal Components -->
+  <employment-modal ref="employmentModal" @employment-added="onEmploymentAdded" />
+  <employment-edit-modal ref="employmentEditModal" @employment-updated="onEmploymentUpdated" />
 
   <!-- Notification Toast -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
@@ -154,6 +164,7 @@
 <script>
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import EmploymentModal from '@/components/modal/employment-modal.vue';
+import EmploymentEditModal from '@/components/modal/employment-edit-modal.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
@@ -166,6 +177,7 @@ export default {
   components: {
     indexBreadcrumb,
     EmploymentModal,
+    EmploymentEditModal,
     LayoutHeader,
     LayoutSidebar,
     LayoutFooter,
@@ -191,6 +203,9 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
+
+      // Loading states for individual actions
+      editingEmploymentId: null, // Track which employment is being edited
     };
   },
   computed: {
@@ -595,6 +610,7 @@ export default {
         } else {
           this.employments = [];
           this.total = 0;
+
           this.$message.error('No employments data received');
         }
       } catch (error) {
@@ -666,10 +682,35 @@ export default {
       this.$refs.employmentModal.openModal();
     },
 
-    openEditEmploymentModal(record) {
-      this.$refs.employmentModal.employmentData = record;
-      this.$refs.employmentModal.editMode = true;
-      this.$refs.employmentModal.openModal();
+    async openEditEmploymentModal(record) {
+      console.log('Opening edit modal for employment:', record.id);
+
+      try {
+        // Show loading state on the specific edit button
+        this.editingEmploymentId = record.id;
+
+        // Fetch complete employment details with all related data
+        const response = await employmentService.getEmploymentById(record.id);
+
+        if (response.success && response.data) {
+          console.log('Employment details loaded:', response.data);
+
+          // Set the employment data to the edit modal
+          this.$refs.employmentEditModal.employmentData = response.data;
+
+          // Open the modal
+          this.$refs.employmentEditModal.openModal();
+        } else {
+          console.error('Failed to load employment details:', response);
+          this.$message.error('Failed to load employment details');
+        }
+      } catch (error) {
+        console.error('Error loading employment details:', error);
+        this.$message.error('Failed to load employment details');
+      } finally {
+        // Clear loading state
+        this.editingEmploymentId = null;
+      }
     },
 
     // Confirm delete employment
@@ -699,6 +740,29 @@ export default {
         this.$message.error('Failed to delete employment');
       } finally {
         this.loading = false;
+      }
+    },
+
+    // Event handlers for modal operations
+    onEmploymentAdded(result) {
+      console.log('Employment added:', result);
+      if (result.success) {
+        this.$message.success(result.message || 'Employment added successfully');
+        // Refresh the employments list to show the new employment
+        this.fetchEmployments();
+      } else {
+        this.$message.error(result.message || 'Failed to add employment');
+      }
+    },
+
+    onEmploymentUpdated(result) {
+      console.log('Employment updated:', result);
+      if (result.success) {
+        this.$message.success(result.message || 'Employment updated successfully');
+        // Refresh the employments list to show the updated employment
+        this.fetchEmployments();
+      } else {
+        this.$message.error(result.message || 'Failed to update employment');
       }
     }
   }
@@ -825,5 +889,119 @@ export default {
 .card {
   overflow: visible !important;
   margin-bottom: 20px;
+}
+
+/* Action icons styling */
+.action-icon a {
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.action-icon a:hover {
+  background-color: rgba(0, 123, 255, 0.08);
+  border-color: rgba(0, 123, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Edit button specific styling */
+.edit-button {
+  color: #495057;
+}
+
+.edit-button:hover {
+  color: #007bff;
+}
+
+.edit-button .button-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Loading state */
+.edit-button.loading {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-color: rgba(0, 123, 255, 0.3);
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.edit-button.loading:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Icon fade out animation */
+.edit-icon {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.edit-icon.fade-out {
+  opacity: 0;
+}
+
+/* Loading dots animation */
+.loading-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loading-dots .dot {
+  width: 3px;
+  height: 3px;
+  background-color: #007bff;
+  border-radius: 50%;
+  animation: loadingDots 1.4s infinite ease-in-out both;
+}
+
+.loading-dots .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+.loading-dots .dot:nth-child(3) {
+  animation-delay: 0s;
+}
+
+@keyframes loadingDots {
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Disabled state */
+.edit-button[disabled] {
+  opacity: 0.8;
 }
 </style>

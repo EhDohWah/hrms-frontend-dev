@@ -289,10 +289,71 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Languages</label>
-                  <a-select v-model:value="personalFormData.languages" mode="multiple" style="width: 100%"
-                    placeholder="Select languages"
-                    :options="languages.map(language => ({ value: language.value, label: language.value }))"
-                    @change="saveFormState('personalFormData')"></a-select>
+
+                  <!-- Custom Bootstrap Multi-Select (Ant Design Style) -->
+                  <div class="custom-multi-select" style="width: 100%; position: relative;">
+                    <!-- Selected Items Display -->
+                    <div class="selected-items-container form-control"
+                      style="min-height: 38px; padding: 4px 8px; cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px; align-items: center;"
+                      @click="openDropdown" :class="{ 'focused': dropdownOpen }" @focus="openDropdown" tabindex="0">
+
+                      <!-- Selected Language Tags -->
+                      <span v-for="selectedLang in selectedLanguageItems" :key="selectedLang.value"
+                        class="badge bg-primary me-1 mb-1 d-flex align-items-center"
+                        style="font-size: 12px; padding: 4px 8px;">
+                        {{ selectedLang.label }}
+                        <i class="ti ti-x ms-1" style="cursor: pointer; font-size: 10px;"
+                          @click.stop="removeLanguage(selectedLang.value)"></i>
+                      </span>
+
+                      <!-- Placeholder or Input -->
+                      <input v-if="dropdownOpen" ref="searchInput" v-model="searchQuery" type="text"
+                        placeholder="Search languages..."
+                        style="border: none; outline: none; flex: 1; min-width: 100px; background: transparent;"
+                        @keydown.escape="closeDropdown" @keydown.enter.prevent="selectFirstFiltered">
+
+                      <span v-else-if="!personalFormData.languages || personalFormData.languages.length === 0"
+                        class="text-muted" style="flex: 1;">
+                        Select languages
+                      </span>
+
+                      <!-- Dropdown Arrow -->
+                      <i class="ti ti-chevron-down ms-auto" style="transition: transform 0.2s; color: #999;"
+                        :style="{ transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }"></i>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <div v-if="dropdownOpen" class="dropdown-menu show position-absolute w-100"
+                      style="z-index: 1050; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); top: 100%; left: 0;">
+
+                      <!-- Clear All Option -->
+                      <div v-if="personalFormData.languages && personalFormData.languages.length > 0"
+                        class="dropdown-item text-danger d-flex align-items-center"
+                        style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;"
+                        @click="clearAllLanguages">
+                        <i class="ti ti-trash me-2"></i>
+                        Clear All
+                      </div>
+
+                      <!-- Language Options -->
+                      <div v-for="option in filteredLanguageOptions" :key="option.value"
+                        class="dropdown-item d-flex align-items-center" style="padding: 8px 12px; cursor: pointer;"
+                        :class="{ 'active': isLanguageSelected(option.value) }" @click="toggleLanguage(option.value)">
+
+                        <!-- Label -->
+                        <span style="flex: 1;">{{ option.label }}</span>
+
+                        <!-- Check Icon for Selected -->
+                        <i v-if="isLanguageSelected(option.value)" class="ti ti-check text-primary"></i>
+                      </div>
+
+                      <!-- No Results -->
+                      <div v-if="filteredLanguageOptions.length === 0" class="dropdown-item text-muted text-center"
+                        style="padding: 12px;">
+                        No languages found
+                      </div>
+                    </div>
+                  </div>
 
                 </div>
               </div>
@@ -451,14 +512,9 @@
                   <label class="form-label">Bank Name <span class="text-danger"> *</span></label>
                   <select class="form-select" v-model="bankForm.bank_name" required @change="saveFormState('bankForm')">
                     <option value="" disabled selected>Select Bank</option>
-                    <option value="Bangkok Bank">Bangkok Bank</option>
-                    <option value="Kasikorn Bank">Kasikorn Bank</option>
-                    <option value="Siam Commercial Bank">Siam Commercial Bank</option>
-                    <option value="Krung Thai Bank">Krung Thai Bank</option>
-                    <option value="Bank of Ayudhya">Bank of Ayudhya</option>
-                    <option value="TMBThanachart Bank">TMBThanachart Bank</option>
-                    <option value="Government Savings Bank">Government Savings Bank</option>
-                    <option value="Other">Other</option>
+                    <option v-for="bank in bankNames" :key="bank.id" :value="bank.value">
+                      {{ bank.value }}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -481,24 +537,6 @@
                   <label class="form-label">Branch <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" v-model="bankForm.bank_branch" required
                     placeholder="Enter branch name" @input="saveFormState('bankForm')" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">SWIFT Code</label>
-                  <input type="text" class="form-control" v-model="bankForm.swift_code" placeholder="Enter SWIFT code"
-                    @input="saveFormState('bankForm')" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Account Type</label>
-                  <select class="form-select" v-model="bankForm.account_type" @change="saveFormState('bankForm')">
-                    <option value="" disabled selected>Select Account Type</option>
-                    <option value="Savings">Savings Account</option>
-                    <option value="Current">Current Account</option>
-                    <option value="Fixed">Fixed Deposit</option>
-                  </select>
                 </div>
               </div>
             </div>
@@ -997,6 +1035,7 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue'; // Add icon i
 import { useLookupStore } from "@/stores/lookupStore";
 import employeeService from "@/services/employee.service";
 import employeeChildrenService from "@/services/employee-children.service";
+// Ant Design is globally imported in main.js
 
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
@@ -1008,7 +1047,10 @@ const currentDateSix = ref(new Date());
 
 export default {
   emits: ['employee-updated', 'grantPositionAdded'],
+  components: {
+    // Ant Design components are globally available
 
+  },
   props: {
     // Employee details passed from the parent
     employee: {
@@ -1042,6 +1084,7 @@ export default {
       employeeInitialTH: [],
       idTypes: [],
       languages: [],
+      bankNames: [],
       startdate: currentDate,
       startdateOne: currentDateOne,
       startdateTwo: currentDateTwo,
@@ -1119,8 +1162,6 @@ export default {
         bank_account_number: '',
         bank_account_name: '',
         bank_branch: '',
-        swift_code: '',
-        account_type: '',
       },
 
       familyForm: {
@@ -1155,6 +1196,10 @@ export default {
       },
 
       selectedLanguages: [],
+
+      // Custom multi-select data
+      dropdownOpen: false,
+      searchQuery: '',
 
       childForm: {
         id: null,
@@ -1208,6 +1253,43 @@ export default {
   },
 
   computed: {
+
+
+    languageOptions() {
+      if (!this.languages || !Array.isArray(this.languages)) {
+        return [];
+      }
+
+      if (this.languages.length === 0) {
+        return [];
+      }
+
+      return this.languages.map(language => ({
+        value: language.value,
+        label: language.value
+      }));
+    },
+
+    // Get selected language items for display
+    selectedLanguageItems() {
+      if (!this.personalFormData.languages || !Array.isArray(this.personalFormData.languages)) {
+        return [];
+      }
+      return this.languageOptions.filter(option =>
+        this.personalFormData.languages.includes(option.value)
+      );
+    },
+
+    // Filter language options based on search
+    filteredLanguageOptions() {
+      if (!this.searchQuery) {
+        return this.languageOptions;
+      }
+      return this.languageOptions.filter(option =>
+        option.label.toLowerCase().includes(this.searchQuery.toLowerCase())
+      );
+    },
+
     ...mapState(useFormPersistenceStore, ['hasEmployeeUnsavedChanges']),
 
     calculatedAge() {
@@ -1295,7 +1377,7 @@ export default {
 
         // Fetch all lookups once
         if (!lookupStore.lookups.length) {
-          await lookupStore.fetchAllLookups();
+          await lookupStore.fetchAllLookupLists();
         }
 
         if (this.isDestroyed) return;
@@ -1311,6 +1393,9 @@ export default {
         this.employeeInitialTH = lookupStore.getLookupsByType('employee_initial_th') || [];
         this.idTypes = lookupStore.getLookupsByType('identification_types') || [];
         this.languages = lookupStore.getLookupsByType('employee_language') || [];
+        this.bankNames = lookupStore.getLookupsByType('bank_name') || [];
+
+        console.log(`📊 Loaded ${this.bankNames.length} bank names from lookup store:`, this.bankNames);
 
       } catch (error) {
         console.error('Error initializing lookup data:', error);
@@ -1790,7 +1875,6 @@ export default {
 
 
 
-    // Submit bank form
     async submitBankForm() {
       if (this.isDestroyed) return;
 
@@ -1803,35 +1887,48 @@ export default {
           return;
         }
 
+        // Prepare payload for the new dedicated bank endpoint
         const payload = {
-          employee_id: this.employee.id,
           bank_name: this.bankForm.bank_name,
           bank_account_number: this.bankForm.bank_account_number,
           bank_account_name: this.bankForm.bank_account_name,
           bank_branch: this.bankForm.bank_branch,
-          swift_code: this.bankForm.swift_code,
-          account_type: this.bankForm.account_type,
         };
 
-        // Add API call here
-        // const response = await bankService.createOrUpdateBank(payload);
-        console.log('Bank payload ready for API:', payload);
+        console.log('Updating bank information for employee:', this.employee.id, 'with payload:', payload);
 
-        this.$message.success(`Bank information ${this.isEditingBank ? 'updated' : 'added'} successfully`);
-        this.$emit('employee-updated');
+        // Call the dedicated bank information update API
+        const response = await employeeService.updateBankInformation(this.employee.id, payload);
 
-        // Clear saved form data after successful submission
-        this.clearFormSection(this.employee.id, 'bankForm');
-        this.markAsSaved(this.employee.id);
+        if (response.success) {
+          this.$message.success('Bank information updated successfully');
+          this.$emit('employee-updated');
 
-        // Reset form
-        this.resetBankForm();
+          // Clear saved form data after successful submission
+          this.clearFormSection(this.employee.id, 'bankForm');
+          this.markAsSaved(this.employee.id);
 
-        // Close modal
-        await this.safeHideModal('edit_bank');
+          // Reset form
+          this.resetBankForm();
+
+          // Close modal
+          await this.safeHideModal('edit_bank');
+        } else {
+          throw new Error(response.message || 'Failed to update bank information');
+        }
       } catch (error) {
         console.error('Error submitting bank form:', error);
-        this.$message.error('Error saving bank information');
+
+        // Handle validation errors from backend
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+          const errors = error.response.data.errors;
+          const errorMessage = Object.values(errors).flat().join(', ');
+          this.$message.error(`Validation Error: ${errorMessage}`);
+        } else if (error.response?.status === 404) {
+          this.$message.error('Employee not found');
+        } else {
+          this.$message.error(error.response?.data?.message || 'Failed to save bank information');
+        }
       } finally {
         this.isSubmitting = false;
       }
@@ -1847,8 +1944,6 @@ export default {
         bank_account_number: '',
         bank_account_name: '',
         bank_branch: '',
-        swift_code: '',
-        account_type: '',
       };
       this.isEditingBank = false;
     },
@@ -2364,12 +2459,102 @@ export default {
       this.alertMessage = '';
       this.alertClass = '';
     },
+
+
+
+    // Custom multi-select methods
+    openDropdown() {
+      if (!this.dropdownOpen) {
+        this.dropdownOpen = true;
+        this.$nextTick(() => {
+          if (this.$refs.searchInput) {
+            this.$refs.searchInput.focus();
+          }
+        });
+      }
+    },
+
+    toggleDropdown() {
+      this.dropdownOpen = !this.dropdownOpen;
+      if (this.dropdownOpen) {
+        this.$nextTick(() => {
+          if (this.$refs.searchInput) {
+            this.$refs.searchInput.focus();
+          }
+        });
+      } else {
+        this.searchQuery = '';
+      }
+    },
+
+    closeDropdown() {
+      this.dropdownOpen = false;
+      this.searchQuery = '';
+    },
+
+    isLanguageSelected(value) {
+      return this.personalFormData.languages && this.personalFormData.languages.includes(value);
+    },
+
+    toggleLanguage(value) {
+      if (!this.personalFormData.languages) {
+        this.personalFormData.languages = [];
+      }
+
+      const index = this.personalFormData.languages.indexOf(value);
+      if (index > -1) {
+        // Remove language
+        this.personalFormData.languages.splice(index, 1);
+      } else {
+        // Add language
+        this.personalFormData.languages.push(value);
+      }
+
+      this.saveFormState('personalFormData');
+    },
+
+    removeLanguage(value) {
+      if (this.personalFormData.languages) {
+        const index = this.personalFormData.languages.indexOf(value);
+        if (index > -1) {
+          this.personalFormData.languages.splice(index, 1);
+          this.saveFormState('personalFormData');
+        }
+      }
+    },
+
+    clearAllLanguages() {
+      this.personalFormData.languages = [];
+      this.saveFormState('personalFormData');
+      this.closeDropdown();
+    },
+
+    selectFirstFiltered() {
+      if (this.filteredLanguageOptions.length > 0) {
+        const firstOption = this.filteredLanguageOptions[0];
+        if (!this.isLanguageSelected(firstOption.value)) {
+          this.toggleLanguage(firstOption.value);
+        }
+        this.searchQuery = '';
+      }
+    },
+
+    // Handle click outside to close dropdown
+    handleClickOutside(event) {
+      const multiSelect = event.target.closest('.custom-multi-select');
+      if (!multiSelect && this.dropdownOpen) {
+        this.closeDropdown();
+      }
+    },
   },
 
   mounted() {
     if (this.isDestroyed) return;
 
     this.fetchGrantPositions();
+
+    // Add click outside handler for custom multi-select
+    document.addEventListener('click', this.handleClickOutside);
 
     // Clean up expired data when component mounts
     const formStore = useFormPersistenceStore();
@@ -2533,6 +2718,9 @@ export default {
     this.isDestroyed = true;
     this.isComponentReady = false;
 
+    // Remove click outside handler
+    document.removeEventListener('click', this.handleClickOutside);
+
     // Clean up modal instances
     if (this.modalInstances) {
       Object.values(this.modalInstances).forEach(modal => {
@@ -2630,5 +2818,30 @@ export default {
 :deep(.ant-modal-confirm .ant-btn-danger) {
   background: #ff4d4f;
   border-color: #ff4d4f;
+}
+
+/* Custom Multi-Select Styling */
+.custom-multi-select .focused {
+  border-color: #1890ff !important;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2) !important;
+}
+
+.custom-multi-select .dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+.custom-multi-select .dropdown-item.active {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.custom-multi-select .badge {
+  font-weight: normal;
+  border-radius: 4px;
+}
+
+.custom-multi-select .badge .ti-x:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
 }
 </style>

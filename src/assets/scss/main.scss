@@ -1,5 +1,5 @@
 :root {
-  --primary-color:#0067A5; // NetSuite blue color
+  --primary-color: #0067A5; // NetSuite blue color
   --secondary-color: #6B7280;
   --success-color: #10B981;
   --danger-color: #EF4444;
@@ -17,8 +17,8 @@
   z-index: 99999 !important;
 }
 
-body > .ant-select-dropdown,
-body > .ant-tree-select-dropdown {
+body>.ant-select-dropdown,
+body>.ant-tree-select-dropdown {
   z-index: 99999 !important;
 }
 

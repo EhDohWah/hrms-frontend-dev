@@ -128,8 +128,8 @@ class ApiService {
                 const error = new Error(`HTTP error! Status: ${response.status}`);
                 error.response = response;
                 throw error;
-            }   
-            
+            }
+
             // Return the blob directly instead of parsing as JSON
             return await response.blob();
         } catch (error) {
@@ -156,13 +156,46 @@ class ApiService {
                 }),
                 credentials: 'include'
             });
-            
+
             if (!response.ok) {
                 const error = new Error(`HTTP error! Status: ${response.status}`);
                 error.response = response;
                 throw error;
             }
-            
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
+    // Get Interview Report Excel using GET with query parameters
+    async getInterviewReportExcel(startDate, endDate, endpoint) {
+        try {
+            // Build the URL with query parameters
+            const url = new URL(this.getFullURL(endpoint));
+            url.searchParams.append('start_date', startDate);
+            url.searchParams.append('end_date', endDate);
+
+            const response = await fetch(url.toString(), {
+                method: 'GET',
+                headers: {
+                    ...this.headers,
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
             // Return the blob directly instead of parsing as JSON
             return await response.blob();
         } catch (error) {
@@ -186,13 +219,13 @@ class ApiService {
                 },
                 credentials: 'include'
             });
-            
+
             if (!response.ok) {
                 const error = new Error(`HTTP error! Status: ${response.status}`);
                 error.response = response;
                 throw error;
             }
-            
+
             // Return the blob directly instead of parsing as JSON
             return await response.blob();
         } catch (error) {
@@ -270,9 +303,9 @@ class ApiService {
             if (data !== null) {
                 opts.body = JSON.stringify(data);
                 // ensure the server sees JSON
-                opts.headers = { 
-                    ...opts.headers, 
-                    'Content-Type': 'application/json' 
+                opts.headers = {
+                    ...opts.headers,
+                    'Content-Type': 'application/json'
                 };
             }
 
@@ -311,15 +344,15 @@ class ApiService {
             // Create headers without Content-Type (browser will set it with boundary)
             const headers = { ...this.headers };
             delete headers['Content-Type']; // Let the browser set this for FormData
-            
+
             // Make sure X-Requested-With is set for Laravel to recognize AJAX requests
             headers['X-Requested-With'] = 'XMLHttpRequest';
-            
+
             // Log the endpoint for debugging
             console.log('Posting FormData to endpoint:', endpoint);
             const fullUrl = this.getFullURL(endpoint);
             console.log('Full URL:', fullUrl);
-            
+
             // Make the request with FormData
             const response = await fetch(fullUrl, {
                 method: 'POST',
@@ -327,7 +360,7 @@ class ApiService {
                 body: formData, // Send FormData directly, not JSON.stringify
                 credentials: 'include'
             });
-            
+
             return this.handleResponse(response, { endpoint, method: 'POST', data: formData });
         } catch (error) {
             console.error('Error in postFormData:', error);

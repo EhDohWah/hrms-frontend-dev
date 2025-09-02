@@ -29,11 +29,16 @@
                 <div class="mb-3">
                   <label class="form-label">Offer Date <span class="text-danger">*</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker" :editable="true" :clearable="false"
-                      :input-format="displayFormat" v-model="formData.date" @input="handleFormChange" />
+                    <date-picker class="form-control datetimepicker"
+                      :class="{ 'is-invalid': validationErrors && validationErrors.date }" :editable="true"
+                      :clearable="false" :input-format="displayFormat" v-model="formData.date"
+                      @input="handleFormChange" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
+                  </div>
+                  <div v-if="validationErrors && validationErrors.date" class="invalid-feedback d-block">
+                    {{ validationErrors.date[0] }}
                   </div>
                 </div>
               </div>
@@ -50,12 +55,16 @@
                 <div class="mb-3">
                   <label class="form-label">Acceptance Deadline <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                      :clearable="false" :input-format="displayFormat" v-model="formData.acceptance_deadline"
-                      @input="handleFormChange" />
+                    <date-picker class="form-control datetimepicker"
+                      :class="{ 'is-invalid': validationErrors && validationErrors.acceptance_deadline }"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="displayFormat"
+                      v-model="formData.acceptance_deadline" @input="handleFormChange" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
+                  </div>
+                  <div v-if="validationErrors && validationErrors.acceptance_deadline" class="invalid-feedback d-block">
+                    {{ validationErrors.acceptance_deadline[0] }}
                   </div>
                 </div>
               </div>
@@ -112,6 +121,62 @@
   </div>
 </template>
 
+<style scoped>
+/* Enhanced error display styling */
+.alert {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.alert-danger {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-left: 4px solid #dc2626;
+}
+
+.alert-warning {
+  background-color: #fffbeb;
+  color: #d97706;
+  border-left: 4px solid #d97706;
+}
+
+.alert-info {
+  background-color: #eff6ff;
+  color: #2563eb;
+  border-left: 4px solid #2563eb;
+}
+
+.invalid-feedback {
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.is-invalid {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25) !important;
+}
+
+/* Date picker error styling */
+.input-icon-end .is-invalid {
+  padding-right: 2.5rem;
+}
+
+/* Validation error list styling */
+.alert ul {
+  padding-left: 1.2rem;
+  margin-bottom: 0;
+}
+
+.alert ul li {
+  margin-bottom: 0.25rem;
+}
+
+.alert ul li:last-child {
+  margin-bottom: 0;
+}
+</style>
+
 <script>
 import { Modal } from 'bootstrap';
 import { useJobOfferStore } from '@/stores/jobOfferStore';
@@ -159,7 +224,8 @@ export default {
       restoredDataNotification: {
         show: false,
         timeAgo: ''
-      }
+      },
+      validationErrors: {}
     }
   },
   computed: {
@@ -389,6 +455,7 @@ export default {
     async handleSubmit() {
       this.isSubmitting = true;
       this.alertMessage = ''; // Reset alert message
+      this.validationErrors = {}; // Clear validation errors
       try {
         const jobOfferStore = useJobOfferStore();
 
@@ -433,6 +500,7 @@ export default {
       this.originalFormData = {};
       this.alertMessage = '';
       this.alertClass = '';
+      this.validationErrors = {};
       this.restoredDataNotification.show = false;
     }
   }

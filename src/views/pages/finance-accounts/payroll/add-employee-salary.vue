@@ -54,22 +54,47 @@
                 <label class="filter-label">
                   <i class="ti ti-user me-1"></i>
                   Employee <span class="text-danger">*</span>
+                  <span v-if="employeesLoading" class="text-muted ms-2">
+                    <i class="ti ti-loader-2 spin"></i> Loading...
+                  </span>
                 </label>
-                <a-select v-model:value="selectedEmployeeFilter" @change="onEmployeeFilterChange"
+                <a-tree-select v-model:value="selectedEmployeeFilter" @change="onEmployeeFilterChange"
                   placeholder="Select an employee..." allow-clear style="width: 280px" show-search
-                  :filter-option="filterOption" option-label-prop="label">
-                  <a-select-option v-for="emp in originalEmployees" :key="emp.id" :value="emp.id"
-                    :label="`${emp.staff_id} - ${emp.name}`">
-                    <div class="employee-option">
+                  tree-default-expand-all :tree-data="employeeTreeData" tree-node-filter-prop="title"
+                  :loading="employeesLoading" :disabled="employeesLoading">
+                  <template #title="{ title, staff_id, subsidiary, status }">
+                    <div class="employee-tree-option">
                       <div class="employee-main">
-                        <strong>{{ emp.staff_id }}</strong> - {{ emp.name }}
+                        <strong>{{ staff_id }}</strong> {{ title }}
                       </div>
-                      <div class="employee-details">
-                        <small class="text-muted">{{ emp.department }} • {{ emp.funding_description }}</small>
+                      <div class="employee-details" v-if="staff_id">
+                        <small class="text-muted">
+                          {{ subsidiary }} •
+                          <span :class="[
+                            'badge badge-xs',
+                            status === 'Local ID' ? 'bg-success' :
+                              status === 'Local non ID' || status === 'Local non ID Staff' ? 'bg-primary' :
+                                status === 'Expats' ? 'bg-warning' : 'bg-secondary'
+                          ]">
+                            {{ status }}
+                          </span>
+                        </small>
                       </div>
                     </div>
-                  </a-select-option>
-                </a-select>
+                  </template>
+                </a-tree-select>
+              </div>
+              <div class="filter-item">
+                <label class="filter-label">
+                  <i class="ti ti-calendar me-1"></i>
+                  Pay Period Date
+                  <span v-if="calculationsLoading" class="text-muted ms-2">
+                    <i class="ti ti-loader-2 spin"></i> Calculating...
+                  </span>
+                </label>
+                <a-date-picker v-model:value="payPeriodDate" @change="onPayPeriodChange"
+                  placeholder="Select pay period date" style="width: 200px" format="YYYY-MM-DD"
+                  :disabled="!selectedEmployeeFilter || calculationsLoading" />
               </div>
               <div class="filter-item">
                 <label class="filter-label">
@@ -100,162 +125,256 @@
         </a-card>
       </div>
 
-      <!-- Employee Payroll Table -->
-      <div class="card">
-        <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-          <h5>Employee Payroll Data</h5>
-          <!-- Table Operations -->
-          <div class="table-operations d-flex align-items-center">
-            <span v-if="selectedRowKeys.length > 0" class="me-3">
-              <strong>{{ selectedRowKeys.length }}</strong> {{ selectedRowKeys.length === 1 ? 'item' : 'items' }}
-              selected
-            </span>
-            <div class="table-actions">
-              <a-space>
-                <a-button size="small" @click="resetFilters">Clear filters</a-button>
-                <a-button size="small" @click="resetTable">Reset All</a-button>
-              </a-space>
+      <!-- Initial empty state when no employee is selected -->
+      <div v-if="!selectedEmployeeData && !employeesLoading" class="initial-empty-state mb-4">
+        <a-card size="small">
+          <div class="text-center py-5">
+            <div class="empty-icon mb-3">
+              <i class="ti ti-users-plus" style="font-size: 3rem; color: #cbd5e0;"></i>
+            </div>
+            <h5 class="text-muted mb-2">Get Started</h5>
+            <p class="text-muted mb-3">Select an employee from the dropdown above to begin creating their payroll entry
+            </p>
+            <div class="text-muted small">
+              <div class="d-flex justify-content-center align-items-center gap-4 mt-3">
+                <div class="step-indicator">
+                  <span class="step-number">1</span>
+                  <span class="step-text">Select Employee</span>
+                </div>
+                <i class="ti ti-arrow-right text-muted"></i>
+                <div class="step-indicator">
+                  <span class="step-number">2</span>
+                  <span class="step-text">Choose Pay Period</span>
+                </div>
+                <i class="ti ti-arrow-right text-muted"></i>
+                <div class="step-indicator">
+                  <span class="step-number">3</span>
+                  <span class="step-text">Review & Submit</span>
+                </div>
+              </div>
             </div>
           </div>
-          <!-- /Table Operations -->
-        </div>
-
-        <!-- Table -->
-        <div class="card-body p-0">
-          <div class="custom-datatable-filter table-responsive">
-            <!-- <div class="dataTables_wrapper dt-bootstrap5 no-footer">
-              <div class="row">
-                <div class="col-sm-12 col-md-6">
-                  <div class="dataTables_length">
-                    <label>
-                      Row Per Page
-                      <select class="form-select form-select-sm" v-model.number="pagination.pageSize"
-                        @change="handlePageSizeChange">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                      </select>
-                      Entries
-                    </label>
-                  </div>
-                </div>
-                <div class="col-sm-12 col-md-6">
-                  <div class="dataTables_filter text-end me-3">
-                    <label>
-                      QUICK SEARCH:
-                      <input type="search" class="form-control form-control-sm d-inline-block w-auto"
-                        placeholder="Search employee..." v-model="quickSearch" @input="handleQuickSearch">
-                      <button class="btn btn-sm btn-primary ms-2" @click="applyQuickSearch">Search</button>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div> -->
-
-            <!-- Loading Indicator -->
-            <div v-if="loading" class="text-center py-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </div>
-              <p class="mt-2">Loading payroll data...</p>
-            </div>
-
-            <!-- Payroll Table -->
-            <div v-else>
-              <!-- Empty state when no employee selected -->
-              <div v-if="!selectedEmployeeFilter && filteredTableData.length === 0"
-                class="empty-state text-center py-5">
-                <div class="empty-icon mb-3">
-                  <i class="ti ti-users-plus" style="font-size: 3rem; color: #cbd5e0;"></i>
-                </div>
-                <h5 class="text-muted mb-2">No Employee Selected</h5>
-                <p class="text-muted mb-3">Please select an employee from the dropdown above to view their payroll data
-                  including:</p>
-              </div>
-
-              <!-- Table when employee is selected -->
-              <a-table v-else :columns="columns" :data-source="filteredTableData" :row-selection="rowSelection"
-                :scroll="{ x: 2000, y: 600 }" :loading="loading" :pagination="pagination" @change="handleTableChange"
-                row-key="key" class="table datatable thead-light">
-
-                <template #bodyCell="{ column, text, record }">
-                  <!-- Editable Position Salary -->
-                  <template v-if="column.dataIndex === 'positionSalary'">
-                    <div v-if="editableData[record.key]" class="editable-cell">
-                      <a-input-number v-model:value="editableData[record.key].positionSalary"
-                        @change="onSalaryChange(record.key)"
-                        :formatter="value => `฿ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
-                        :parser="value => value.replace(/฿\s?|(,*)/g, '')" style="width: 100%" />
-                    </div>
-                    <div v-else class="display-cell">
-                      {{ formatCurrency(text) }}
-                    </div>
-                  </template>
-
-                  <!-- Editable FTE -->
-                  <template v-else-if="column.dataIndex === 'fte'">
-                    <div v-if="editableData[record.key]" class="editable-cell">
-                      <a-input-number v-model:value="editableData[record.key].fte" @change="onFteChange(record.key)"
-                        :min="1" :max="100" :formatter="value => `${value}%`" :parser="value => value.replace('%', '')"
-                        style="width: 100%" />
-                    </div>
-                    <div v-else class="display-cell">
-                      {{ text }}%
-                    </div>
-                  </template>
-
-                  <!-- Currency columns -->
-                  <template
-                    v-else-if="['salaryByFte', 'grossSalary', 'pvd', 'tax', 'netPay'].includes(column.dataIndex)">
-                    <span class="currency-cell">{{ formatCurrency(text) }}</span>
-                  </template>
-
-                  <!-- LOE column -->
-                  <template v-else-if="column.dataIndex === 'loe'">
-                    <span class="percentage-cell">{{ text }}%</span>
-                  </template>
-
-                  <!-- Funding type with badge -->
-                  <template v-else-if="column.dataIndex === 'allocationType'">
-                    <a-tag :color="text === 'org_funded' ? 'blue' : 'green'">
-                      {{ text === 'org_funded' ? 'Organization' : 'Grant' }}
-                    </a-tag>
-                  </template>
-
-                  <!-- Actions column -->
-                  <template v-else-if="column.dataIndex === 'action'">
-                    <a-space>
-                      <template v-if="editableData[record.key]">
-                        <a-button type="link" size="small" @click="saveRow(record.key)"
-                          :loading="savingRows[record.key]">
-                          Save
-                        </a-button>
-                        <a-button type="link" size="small" @click="cancelEdit(record.key)">Cancel</a-button>
-                      </template>
-                      <template v-else>
-                        <a-button type="link" size="small" @click="editRow(record.key)">Edit</a-button>
-                        <a-button type="link" size="small" @click="viewDetails(record)" class="view-btn">
-                          View
-                        </a-button>
-                      </template>
-                    </a-space>
-                  </template>
-
-                  <!-- Default display -->
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-              </a-table>
-            </div>
-          </div>
-        </div>
-        <!-- /Table -->
+        </a-card>
       </div>
 
-      <!-- Summary Section -->
-      <div v-if="selectedRowKeys.length > 0" class="summary-section mt-4">
+      <!-- Selected Employee Info -->
+      <div v-if="selectedEmployeeData" class="employee-info-section mb-4">
+        <a-card size="small">
+          <template #title>
+            <div class="d-flex align-items-center">
+              <i class="ti ti-user-check me-2"></i>
+              Selected Employee Information
+            </div>
+          </template>
+          <div class="employee-info-content">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="info-item">
+                  <strong>{{ selectedEmployeeData.first_name_en }} {{ selectedEmployeeData.last_name_en }}</strong>
+                </div>
+                <div class="info-item">
+                  <small class="text-muted">Staff ID: {{ selectedEmployeeData.staff_id }}</small>
+                </div>
+                <div class="info-item">
+                  <small class="text-muted">Subsidiary: {{ selectedEmployeeData.subsidiary }}</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="info-item">
+                  <small class="text-muted">Department: {{
+                    selectedEmployeeData.employment?.department_position?.department
+                  }}</small>
+                </div>
+                <div class="info-item">
+                  <small class="text-muted">Position: {{ selectedEmployeeData.employment?.department_position?.position
+                  }}</small>
+                </div>
+                <div class="info-item">
+                  <small class="text-muted">Allocations: {{ selectedEmployeeData.employee_funding_allocations?.length ||
+                    0
+                  }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Debug info (remove in production) -->
+            <div class="mt-3 pt-3 border-top">
+              <details>
+                <summary class="text-muted small" style="cursor: pointer;">Debug: Employee Data Structure</summary>
+                <pre class="small mt-2 p-2 bg-light rounded">{{ JSON.stringify(selectedEmployeeData, null, 2) }}</pre>
+              </details>
+            </div>
+
+            <div v-if="payPeriodDate && selectedEmployeeCalculations.length > 0" class="mt-3 pt-3 border-top">
+              <div class="d-flex align-items-center mb-2">
+                <i class="ti ti-calculator me-2 text-success"></i>
+                <span class="text-success fw-bold">Payroll Calculations Available for {{
+                  payPeriodDate?.format('YYYY-MM-DD')
+                  }}</span>
+              </div>
+              <div class="calculation-summary">
+                <small class="text-muted">
+                  {{ selectedEmployeeCalculations.length }} allocation(s) calculated
+                  • Total LOE: {{selectedEmployeeCalculations.reduce((sum, calc) => sum +
+                    parseFloat(calc.loe_percentage), 0)
+                    * 100}}%
+                </small>
+                <div class="row mt-2">
+                  <div class="col-md-6">
+                    <small class="text-muted d-block">Net Salary: <strong class="text-success">{{
+                      formatCurrency(selectedEmployeeCalculations.reduce((sum, calc) => sum +
+                        parseFloat(calc.calculations.net_salary), 0))}}</strong></small>
+                  </div>
+                  <div class="col-md-6">
+                    <small class="text-muted d-block">Total Income: <strong class="text-info">{{
+                      formatCurrency(selectedEmployeeCalculations.reduce((sum, calc) => sum +
+                        parseFloat(calc.calculations.total_income), 0))}}</strong></small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </a-card>
+      </div>
+
+      <!-- Empty state when employee is selected but no pay period date -->
+      <div v-if="selectedEmployeeData && !payPeriodDate" class="empty-state-card mb-4">
+        <a-card size="small">
+          <div class="text-center py-4">
+            <div class="empty-icon mb-3">
+              <i class="ti ti-calendar-plus" style="font-size: 3rem; color: #cbd5e0;"></i>
+            </div>
+            <h5 class="text-muted mb-2">Select Pay Period Date</h5>
+            <p class="text-muted mb-3">Please select a pay period date above to calculate and view payroll data for
+              <strong>{{
+                selectedEmployeeData.first_name_en }} {{ selectedEmployeeData.last_name_en }}</strong>
+            </p>
+            <div class="text-muted small">
+              <i class="ti ti-info-circle me-1"></i>
+              The system will calculate salary allocations, deductions, and net pay based on the selected date.
+            </div>
+          </div>
+        </a-card>
+      </div>
+
+      <!-- Employee Payroll Table - Only show after pay period date is selected -->
+      <div v-if="payPeriodDate && selectedEmployeeData" class="row">
+        <div class="col-sm-12">
+          <div class="card">
+            <div class="card-header">
+              <h5 class="card-title mb-2">Employee Payroll Data</h5>
+              <div class="d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                <p class="card-text">
+                  This table shows the payroll calculations for the selected employee and pay period.
+                </p>
+                <!-- Table Operations -->
+                <div class="table-operations d-flex align-items-center">
+                  <span v-if="selectedRowKeys.length > 0" class="me-3">
+                    <strong>{{ selectedRowKeys.length }}</strong> {{ selectedRowKeys.length === 1 ? 'item' : 'items' }}
+                    selected
+                  </span>
+                  <div class="table-actions">
+                    <a-space>
+                      <a-button size="small" @click="resetFilters">Clear filters</a-button>
+                      <a-button size="small" @click="resetTable">Reset All</a-button>
+                    </a-space>
+                  </div>
+                </div>
+                <!-- /Table Operations -->
+              </div>
+            </div>
+
+            <div class="card-body">
+              <!-- Loading Indicator -->
+              <div v-if="loading" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading payroll data...</p>
+              </div>
+
+              <!-- Payroll Table -->
+              <div v-else class="table-responsive">
+                <a-table outlined :columns="columns" :data-source="filteredTableData" :row-selection="rowSelection"
+                  :scroll="{ x: 2100, y: 600 }" :loading="loading" :pagination="{ pageSize: 10 }"
+                  @change="handleTableChange" row-key="key" class="table datatable thead-light">
+                  <template #bodyCell="{ column, text, record }">
+                    <!-- Editable Position Salary -->
+                    <template v-if="column.dataIndex === 'positionSalary'">
+                      <div v-if="editableData[record.key]" class="editable-cell">
+                        <a-input-number v-model:value="editableData[record.key].positionSalary"
+                          @change="onSalaryChange(record.key)"
+                          :formatter="value => `฿ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+                          :parser="value => value.replace(/฿\s?|(,*)/g, '')" style="width: 100%" />
+                      </div>
+                      <div v-else class="display-cell">
+                        {{ formatCurrency(text) }}
+                      </div>
+                    </template>
+
+                    <!-- Editable FTE -->
+                    <template v-else-if="column.dataIndex === 'fte'">
+                      <div v-if="editableData[record.key]" class="editable-cell">
+                        <a-input-number v-model:value="editableData[record.key].fte" @change="onFteChange(record.key)"
+                          :min="1" :max="100" :formatter="value => `${value}%`"
+                          :parser="value => value.replace('%', '')" style="width: 100%" />
+                      </div>
+                      <div v-else class="display-cell">
+                        {{ text }}%
+                      </div>
+                    </template>
+
+                    <!-- Currency columns -->
+                    <template
+                      v-else-if="['salaryByFte', 'grossSalary', 'basicSalary', 'annualIncrease', 'adjustedSalary', 'pvd', 'savingFund', 'ssEmp', 'ssEmpr', 'healthEmployee', 'healthEmployer', 'tax', 'netPay', 'compensation', 'month13', 'totalIncome', 'totalDeductions', 'employerContributions'].includes(column.dataIndex)">
+                      <span class="currency-cell">{{ formatCurrency(text) }}</span>
+                    </template>
+
+                    <!-- LOE column -->
+                    <template v-else-if="column.dataIndex === 'loe'">
+                      <span class="percentage-cell">{{ text }}%</span>
+                    </template>
+
+                    <!-- Funding type with badge -->
+                    <template v-else-if="column.dataIndex === 'allocationType'">
+                      <a-tag :color="text === 'org_funded' ? 'blue' : 'green'">
+                        {{ text === 'org_funded' ? 'Organization' : 'Grant' }}
+                      </a-tag>
+                    </template>
+
+                    <!-- Actions column -->
+                    <template v-else-if="column.dataIndex === 'action'">
+                      <a-space>
+                        <template v-if="editableData[record.key]">
+                          <a-button type="link" size="small" @click="saveRow(record.key)"
+                            :loading="savingRows[record.key]">
+                            Save
+                          </a-button>
+                          <a-button type="link" size="small" @click="cancelEdit(record.key)">Cancel</a-button>
+                        </template>
+                        <template v-else>
+                          <a-button type="link" size="small" @click="editRow(record.key)">Edit</a-button>
+                          <a-button type="link" size="small" @click="viewDetails(record)" class="view-btn">
+                            View
+                          </a-button>
+                        </template>
+                      </a-space>
+                    </template>
+
+                    <!-- Default display -->
+                    <template v-else>
+                      {{ text }}
+                    </template>
+                  </template>
+                </a-table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary Section - Only show when payroll data is available and rows are selected -->
+      <div v-if="payPeriodDate && selectedEmployeeData && selectedRowKeys.length > 0" class="summary-section mt-4">
         <a-card title="Selection Summary" size="small">
           <a-row :gutter="16">
             <a-col :span="6">
@@ -291,11 +410,11 @@
         <a-descriptions-item label="Funding Source">{{ selectedRecord.fundingSource }}</a-descriptions-item>
         <a-descriptions-item label="LOE">{{ selectedRecord.loe }}%</a-descriptions-item>
         <a-descriptions-item label="Position Salary">{{ formatCurrency(selectedRecord.positionSalary)
-        }}</a-descriptions-item>
+          }}</a-descriptions-item>
         <a-descriptions-item label="Salary by FTE">{{ formatCurrency(selectedRecord.salaryByFte)
-        }}</a-descriptions-item>
+          }}</a-descriptions-item>
         <a-descriptions-item label="Gross Salary">{{ formatCurrency(selectedRecord.grossSalary)
-        }}</a-descriptions-item>
+          }}</a-descriptions-item>
         <a-descriptions-item label="Net Pay">{{ formatCurrency(selectedRecord.netPay) }}</a-descriptions-item>
       </a-descriptions>
 
@@ -312,10 +431,15 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
+import { useSharedDataStore } from '@/stores/sharedDataStore';
+import { payrollService } from '@/services/payroll.service';
 
 
 // Router
 const router = useRouter();
+
+// Shared data store
+const sharedStore = useSharedDataStore();
 
 // Reactive data
 const title = ref("Add Employee Salary");
@@ -327,6 +451,17 @@ const loading = ref(false);
 const saving = ref(false);
 const submitting = ref(false);
 const savingRows = reactive({});
+const employeesLoading = ref(false);
+
+// Employee data from shared store
+const employeeTreeData = ref([]);
+const flatEmployeeList = ref([]);
+
+// Selected employee data from API
+const selectedEmployeeData = ref(null);
+const selectedEmployeeCalculations = ref([]);
+const payPeriodDate = ref(null);
+const calculationsLoading = ref(false);
 
 // Filter states
 const selectedEmployeeFilter = ref('');
@@ -340,180 +475,8 @@ const editableData = reactive({});
 const detailsModalVisible = ref(false);
 const selectedRecord = ref(null);
 
-// Original employee data (preserved from original component)
-const originalEmployees = ref([
-  {
-    id: "0012",
-    staff_id: "0012",
-    name: "Chanchai Siri",
-    subsidiary: "ACME",
-    department: "Finance",
-    funding_description: "Org Funded Only",
-    employment: {
-      employment_type: "Full-Time",
-      position: "Accountant",
-      position_salary: 25000,
-      fte: 100,
-      pay_method: "Bank"
-    },
-    allocations: [
-      {
-        source: "ACME General Fund",
-        allocation_type: "org_funded",
-        position_slot: null,
-        loe: 100
-      }
-    ]
-  },
-  {
-    id: "0155",
-    staff_id: "0155",
-    name: "Mr.xxxxxxxx",
-    subsidiary: "BHF",
-    department: "Admin",
-    funding_description: "Grant+Org Funding",
-    employment: {
-      employment_type: "Full-Time",
-      position: "Local ID Staff",
-      position_salary: 40000,
-      fte: 80,
-      pay_method: "Bank"
-    },
-    allocations: [
-      {
-        source: "IHRP-RAI3E",
-        allocation_type: "grant",
-        position_slot: "Grant Position",
-        loe: 80
-      },
-      {
-        source: "BHF General Fund",
-        allocation_type: "org_funded",
-        position_slot: null,
-        loe: 20
-      }
-    ]
-  },
-  {
-    id: "0200",
-    staff_id: "0200",
-    name: "Somchai P.",
-    subsidiary: "IHRP",
-    department: "Programs",
-    funding_description: "Org + 2 Grants",
-    employment: {
-      employment_type: "Full-Time",
-      position: "Program Manager",
-      position_salary: 60000,
-      fte: 100,
-      pay_method: "Bank"
-    },
-    allocations: [
-      {
-        source: "IHRP Grant Alpha",
-        allocation_type: "grant",
-        position_slot: "Slot A",
-        loe: 40
-      },
-      {
-        source: "IHRP Grant Beta",
-        allocation_type: "grant",
-        position_slot: "Slot B",
-        loe: 35
-      },
-      {
-        source: "IHRP Central Fund",
-        allocation_type: "org_funded",
-        position_slot: null,
-        loe: 25
-      }
-    ]
-  }
-]);
-
-// Transform employee data to table format
-const transformEmployeeDataToTable = () => {
-  const tableData = [];
-
-  originalEmployees.value.forEach(employee => {
-    employee.allocations.forEach((allocation, index) => {
-      const totalLOE = employee.allocations.reduce((sum, alloc) => sum + Number(alloc.loe), 0);
-
-      // Calculate payroll values for this allocation
-      const baseSalary = Number(employee.employment.position_salary || 0);
-      let salaryByFte;
-
-      if (employee.allocations.length === 1) {
-        salaryByFte = baseSalary;
-      } else {
-        salaryByFte = baseSalary * (Number(allocation.loe) / totalLOE);
-      }
-
-      const payrollCalc = calculatePayrollForAllocation(salaryByFte);
-
-      tableData.push({
-        key: `${employee.id}-${index}`,
-        employeeId: employee.id,
-        staffId: employee.staff_id,
-        name: employee.name,
-        subsidiary: employee.subsidiary,
-        department: employee.department,
-        position: employee.employment.position,
-        employmentType: employee.employment.employment_type,
-        fte: employee.employment.fte,
-        positionSalary: employee.employment.position_salary,
-        payMethod: employee.employment.pay_method,
-        fundingSource: allocation.source,
-        allocationType: allocation.allocation_type,
-        positionSlot: allocation.position_slot || '-',
-        loe: allocation.loe,
-        salaryByFte: salaryByFte,
-        grossSalary: payrollCalc.gross,
-        pvd: payrollCalc.pvd,
-        ssEmp: payrollCalc.ssEmp,
-        ssEmpr: payrollCalc.ssEmpr,
-        healthEmployer: payrollCalc.healthEmployer,
-        healthEmployee: payrollCalc.healthEmployee,
-        tax: payrollCalc.tax,
-        netPay: payrollCalc.net,
-        compensation: payrollCalc.compensation,
-        month13: payrollCalc.month13,
-        totalLOE: totalLOE,
-        allocationIndex: index
-      });
-    });
-  });
-
-  return tableData;
-};
-
-// Calculate payroll for a specific allocation
-const calculatePayrollForAllocation = (salaryByFte) => {
-  const salary = Number(salaryByFte || 0);
-  const compensation = salary * 0.06;
-  const month13 = salary / 12;
-  const healthEmployer = salary * 0.01;
-  const healthEmployee = salary * 0.005;
-  const tax = salary * 0.03;
-  const gross = salary;
-  const pvd = gross * 0.075;
-  const ssEmp = gross * 0.03;
-  const ssEmpr = gross * 0.03;
-  const net = gross - pvd - ssEmp - healthEmployee - tax + compensation + month13;
-
-  return {
-    gross,
-    compensation,
-    month13,
-    pvd,
-    ssEmp,
-    ssEmpr,
-    healthEmployer,
-    healthEmployee,
-    tax,
-    net
-  };
-};
+// Legacy employee data - no longer used with API integration
+const originalEmployees = ref([]);
 
 // Table data
 const tableData = ref([]);
@@ -521,7 +484,8 @@ const filteredTableData = ref([]);
 
 // Computed properties
 const departments = computed(() => {
-  const depts = [...new Set(originalEmployees.value.map(emp => emp.department))];
+  if (!selectedEmployeeData.value) return [];
+  const depts = [...new Set(tableData.value.map(row => row.department))];
   return depts.sort();
 });
 
@@ -529,8 +493,17 @@ const hasSelectedRows = computed(() => selectedRowKeys.value.length > 0);
 
 const selectionSummary = computed(() => {
   const selectedData = filteredTableData.value.filter(row => selectedRowKeys.value.includes(row.key));
-  const totalGross = selectedData.reduce((sum, row) => sum + row.grossSalary, 0);
-  const totalNet = selectedData.reduce((sum, row) => sum + row.netPay, 0);
+
+  const totalGross = selectedData.reduce((sum, row) => {
+    const gross = parseFloat(row.grossSalary) || 0;
+    return sum + gross;
+  }, 0);
+
+  const totalNet = selectedData.reduce((sum, row) => {
+    const net = parseFloat(row.netPay) || 0;
+    return sum + net;
+  }, 0);
+
   const uniqueEmployees = new Set(selectedData.map(row => row.employeeId)).size;
 
   return {
@@ -548,9 +521,6 @@ const columns = ref([
     key: 'staffId',
     fixed: 'left',
     width: 100,
-    sorter: (a, b) => a.staffId.localeCompare(b.staffId),
-    filterDropdown: true,
-    onFilter: (value, record) => record.staffId.toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: 'Employee Name',
@@ -558,110 +528,168 @@ const columns = ref([
     key: 'name',
     fixed: 'left',
     width: 180,
-    sorter: (a, b) => a.name.localeCompare(b.name),
-    filterDropdown: true,
-    onFilter: (value, record) => record.name.toLowerCase().includes(value.toLowerCase()),
   },
   {
     title: 'Department',
     dataIndex: 'department',
     key: 'department',
     width: 120,
-    filters: departments.value.map(dept => ({ text: dept, value: dept })),
-    onFilter: (value, record) => record.department === value,
-    sorter: (a, b) => a.department.localeCompare(b.department),
   },
   {
     title: 'Position',
     dataIndex: 'position',
     key: 'position',
     width: 150,
-    sorter: (a, b) => a.position.localeCompare(b.position),
   },
   {
     title: 'Employment Type',
     dataIndex: 'employmentType',
     key: 'employmentType',
     width: 130,
-    filters: [
-      { text: 'Full-Time', value: 'Full-Time' },
-      { text: 'Part-Time', value: 'Part-Time' }
-    ],
-    onFilter: (value, record) => record.employmentType === value,
   },
   {
     title: 'FTE %',
     dataIndex: 'fte',
     key: 'fte',
     width: 80,
-    sorter: (a, b) => a.fte - b.fte,
   },
   {
     title: 'Position Salary',
     dataIndex: 'positionSalary',
     key: 'positionSalary',
     width: 140,
-    sorter: (a, b) => a.positionSalary - b.positionSalary,
   },
   {
     title: 'Funding Source',
     dataIndex: 'fundingSource',
     key: 'fundingSource',
-    width: 160,
-    sorter: (a, b) => a.fundingSource.localeCompare(b.fundingSource),
+    width: 200,
   },
   {
     title: 'Funding Type',
     dataIndex: 'allocationType',
     key: 'allocationType',
-    width: 120,
-    filters: [
-      { text: 'Organization', value: 'org_funded' },
-      { text: 'Grant', value: 'grant' }
-    ],
-    onFilter: (value, record) => record.allocationType === value,
+    width: 140,
   },
   {
     title: 'LOE %',
     dataIndex: 'loe',
     key: 'loe',
     width: 80,
-    sorter: (a, b) => a.loe - b.loe,
   },
   {
     title: 'Salary by FTE',
     dataIndex: 'salaryByFte',
     key: 'salaryByFte',
     width: 130,
-    sorter: (a, b) => a.salaryByFte - b.salaryByFte,
   },
   {
     title: 'Gross Salary',
     dataIndex: 'grossSalary',
     key: 'grossSalary',
     width: 130,
-    sorter: (a, b) => a.grossSalary - b.grossSalary,
   },
   {
-    title: 'PVD (7.5%)',
+    title: 'Annual Increase',
+    dataIndex: 'annualIncrease',
+    key: 'annualIncrease',
+    width: 130,
+  },
+  {
+    title: 'Adjusted Salary',
+    dataIndex: 'adjustedSalary',
+    key: 'adjustedSalary',
+    width: 130,
+  },
+  {
+    title: 'PVD Employee',
     dataIndex: 'pvd',
     key: 'pvd',
     width: 120,
-    sorter: (a, b) => a.pvd - b.pvd,
   },
   {
-    title: 'Tax',
+    title: 'Saving Fund',
+    dataIndex: 'savingFund',
+    key: 'savingFund',
+    width: 120,
+  },
+  {
+    title: 'SS Employee',
+    dataIndex: 'ssEmp',
+    key: 'ssEmp',
+    width: 110,
+  },
+  {
+    title: 'SS Employer',
+    dataIndex: 'ssEmpr',
+    key: 'ssEmpr',
+    width: 110,
+  },
+  {
+    title: 'Health Employee',
+    dataIndex: 'healthEmployee',
+    key: 'healthEmployee',
+    width: 120,
+  },
+  {
+    title: 'Health Employer',
+    dataIndex: 'healthEmployer',
+    key: 'healthEmployer',
+    width: 120,
+  },
+  {
+    title: 'Income Tax',
     dataIndex: 'tax',
     key: 'tax',
-    width: 100,
-    sorter: (a, b) => a.tax - b.tax,
+    width: 110,
   },
   {
-    title: 'Net Pay',
+    title: '13th Month',
+    dataIndex: 'month13',
+    key: 'month13',
+    width: 110,
+  },
+  {
+    title: 'Compensation',
+    dataIndex: 'compensation',
+    key: 'compensation',
+    width: 120,
+  },
+  {
+    title: 'Total Income',
+    dataIndex: 'totalIncome',
+    key: 'totalIncome',
+    width: 120,
+  },
+  {
+    title: 'Total Deductions',
+    dataIndex: 'totalDeductions',
+    key: 'totalDeductions',
+    width: 130,
+  },
+  {
+    title: 'Net Salary',
     dataIndex: 'netPay',
     key: 'netPay',
     width: 130,
-    sorter: (a, b) => a.netPay - b.netPay,
+  },
+  {
+    title: 'Employer Contributions',
+    dataIndex: 'employerContributions',
+    key: 'employerContributions',
+    width: 150,
+  },
+  {
+    title: 'Total Salary',
+    dataIndex: 'totalSalary',
+    key: 'totalSalary',
+    width: 120,
+  },
+  {
+    title: 'PVD Saving Fund',
+    dataIndex: 'totalPvdSavingFund',
+    key: 'totalPvdSavingFund',
+    width: 130,
   },
   {
     title: 'Actions',
@@ -759,10 +787,195 @@ const goBack = () => {
   router.push('/payroll/employee-salary');
 };
 
-const initializeData = () => {
-  tableData.value = transformEmployeeDataToTable();
-  // Start with empty table - only show data when employee is selected
-  filteredTableData.value = [];
+// Load employee data from shared store
+const loadEmployeeData = async () => {
+  try {
+    console.log('🔄 Loading employee tree data...');
+
+    // Load employee tree data using shared store
+    await sharedStore.fetchEmployees();
+
+    // Get the tree data for the dropdown
+    employeeTreeData.value = sharedStore.getEmployeeTreeData;
+    flatEmployeeList.value = sharedStore.getEmployees;
+
+    console.log(`✅ Loaded ${employeeTreeData.value.length} employee tree nodes`);
+
+  } catch (error) {
+    console.error('❌ Error loading employee data:', error);
+    throw error;
+  }
+};
+
+// Fetch employee employment details from API
+const fetchEmployeeEmploymentDetails = async (employeeId, payPeriodDate = null) => {
+  try {
+    calculationsLoading.value = true;
+    console.log('🔄 Fetching employee employment details...', { employeeId, payPeriodDate });
+
+    // Always use the calculated endpoint, with or without pay_period_date
+    const response = await payrollService.getEmployeeEmploymentDetailsWithCalculations(employeeId, payPeriodDate);
+
+    if (response.success) {
+      // Handle API response structures from /payrolls/employee-employment-calculated
+      if (response.data.employee) {
+        // Both API responses have employee data in response.data.employee
+        selectedEmployeeData.value = response.data.employee;
+
+        if (payPeriodDate && response.data.allocation_calculations) {
+          // With pay_period_date: data has employee and allocation_calculations
+          selectedEmployeeCalculations.value = response.data.allocation_calculations || [];
+          console.log('✅ Employee calculations loaded:', response.data.allocation_calculations?.length || 0, 'allocations');
+        } else {
+          // Without pay_period_date: only employee data, no calculations
+          selectedEmployeeCalculations.value = [];
+          console.log('✅ Employee basic data loaded');
+        }
+      } else {
+        // Fallback: if data structure is different
+        selectedEmployeeData.value = response.data;
+        selectedEmployeeCalculations.value = [];
+        console.log('✅ Employee data loaded (fallback structure)');
+      }
+
+      // Transform API data to table format
+      updateTableWithEmployeeData();
+
+      return response.data;
+    } else {
+      throw new Error(response.message || 'Failed to fetch employee employment details');
+    }
+  } catch (error) {
+    console.error('❌ Error fetching employee employment details:', error);
+    message.error('Failed to load employee details: ' + error.message);
+    selectedEmployeeData.value = null;
+    selectedEmployeeCalculations.value = [];
+    throw error;
+  } finally {
+    calculationsLoading.value = false;
+  }
+};
+
+// Transform API employee data to table format
+const updateTableWithEmployeeData = () => {
+  if (!selectedEmployeeData.value) {
+    filteredTableData.value = [];
+    tableData.value = [];
+    return;
+  }
+
+  // selectedEmployeeData.value contains the employee object
+  const employee = selectedEmployeeData.value;
+  const allocations = employee.employee_funding_allocations || [];
+  const calculations = selectedEmployeeCalculations.value || [];
+
+  console.log('🔄 Updating table with employee data:', {
+    employee: employee.staff_id,
+    allocations: allocations.length,
+    calculations: calculations.length
+  });
+
+  const tableRows = [];
+
+  allocations.forEach((allocation, index) => {
+    // Find matching calculation if available
+    const calculation = calculations.find(calc => calc.allocation_id === allocation.id);
+
+    // Get funding source information
+    let fundingSource = 'Unknown';
+    let allocationType = allocation.allocation_type;
+
+    if (allocation.allocation_type === 'org_funded' && allocation.org_funded) {
+      fundingSource = allocation.org_funded.grant?.name || 'Organization Funded';
+    } else if (allocation.allocation_type === 'grant' && allocation.position_slot) {
+      fundingSource = allocation.position_slot.grant_item?.grant?.name || 'Grant Position Slot';
+    }
+
+    // Use calculations if available, otherwise use basic employment data
+    const baseSalary = calculation
+      ? parseFloat(calculation.calculations.gross_salary)
+      : parseFloat(employee.employment?.position_salary || 0);
+
+    const salaryByFte = calculation
+      ? parseFloat(calculation.calculations.gross_salary_by_FTE)
+      : baseSalary * parseFloat(allocation.level_of_effort);
+
+    const row = {
+      key: `${employee.id}-${allocation.id}`,
+      employeeId: employee.id,
+      staffId: employee.staff_id,
+      name: `${employee.first_name_en} ${employee.last_name_en}`,
+      subsidiary: employee.subsidiary,
+      department: employee.employment?.department_position?.department || 'N/A',
+      position: employee.employment?.department_position?.position || 'N/A',
+      employmentType: employee.employment?.employment_type || 'N/A',
+      fte: parseFloat(employee.employment?.fte || 1) * 100,
+      positionSalary: parseFloat(employee.employment?.position_salary || 0),
+      payMethod: employee.employment?.pay_method || 'Bank',
+      fundingSource: fundingSource,
+      allocationType: allocationType,
+      positionSlot: allocation.position_slot?.slot_number || '-',
+      loe: parseFloat(allocation.level_of_effort) * 100,
+      salaryByFte: salaryByFte,
+
+      // Use calculated values if available, otherwise use mock calculations
+      basicSalary: calculation ? parseFloat(calculation.calculations.gross_salary) : baseSalary,
+      annualIncrease: calculation ? parseFloat(calculation.calculations.salary_increase_1_percent || 0) : 0,
+      adjustedSalary: calculation ? parseFloat(calculation.calculations.gross_salary) : baseSalary,
+      grossSalary: calculation ? parseFloat(calculation.calculations.gross_salary) : salaryByFte,
+      pvd: calculation ? parseFloat(calculation.calculations.total_pvd || 0) : salaryByFte * 0.03,
+      savingFund: calculation ? parseFloat(calculation.calculations.total_saving_fund || 0) : 0,
+      ssEmp: calculation ? parseFloat(calculation.calculations.employee_social_security || 0) : Math.min(salaryByFte * 0.05, 750),
+      ssEmpr: calculation ? parseFloat(calculation.calculations.employer_social_security || 0) : Math.min(salaryByFte * 0.05, 750),
+      healthEmployer: calculation ? parseFloat(calculation.calculations.employer_health_welfare || 0) : 0,
+      healthEmployee: calculation ? parseFloat(calculation.calculations.employee_health_welfare || 0) : 0,
+      tax: calculation ? parseFloat(calculation.calculations.income_tax || 0) : salaryByFte * 0.03,
+      netPay: calculation ? parseFloat(calculation.calculations.net_salary) : salaryByFte * 0.85,
+      compensation: calculation ? parseFloat(calculation.calculations.compensation_refund || 0) : 0,
+      month13: calculation ? parseFloat(calculation.calculations.thirteen_month_salary || 0) : salaryByFte / 12,
+      totalIncome: calculation ? parseFloat(calculation.calculations.total_income) : salaryByFte,
+      totalDeductions: calculation ? parseFloat(calculation.calculations.total_deduction || 0) : salaryByFte * 0.15,
+      employerContributions: calculation ? parseFloat(calculation.calculations.employer_contribution || 0) : Math.min(salaryByFte * 0.05, 750),
+
+      // Additional calculated fields from API
+      totalSalary: calculation ? parseFloat(calculation.calculations.total_salary || 0) : salaryByFte,
+      totalPvdSavingFund: calculation ? parseFloat(calculation.calculations.total_pvd_saving_fund || 0) : 0,
+      pvdSavingFundEmployee: calculation ? parseFloat(calculation.calculations.pvd_saving_fund_employee || 0) : 0,
+
+      // Additional data
+      totalLOE: allocations.reduce((sum, alloc) => sum + parseFloat(alloc.level_of_effort), 0) * 100,
+      allocationIndex: index,
+      allocationId: allocation.id,
+      hasCalculations: !!calculation
+    };
+
+    tableRows.push(row);
+  });
+
+  tableData.value = tableRows;
+  filteredTableData.value = tableRows;
+
+  console.log('✅ Table updated with', tableRows.length, 'allocation rows');
+};
+
+const initializeData = async () => {
+  try {
+    employeesLoading.value = true;
+
+    // Load employee tree data from shared store
+    await loadEmployeeData();
+
+    // Start with empty table - only show data when employee is selected
+    tableData.value = [];
+    filteredTableData.value = [];
+
+    console.log('✅ Employee tree data loaded successfully');
+  } catch (error) {
+    console.error('❌ Error loading employee data:', error);
+    message.error('Failed to load employee data: ' + error.message);
+  } finally {
+    employeesLoading.value = false;
+  }
 };
 
 const applyFilters = () => {
@@ -840,21 +1053,55 @@ const applyQuickSearchFilter = () => {
   filteredTableData.value = filtered;
 };
 
-const onEmployeeFilterChange = () => {
-  applyFilters();
+const onEmployeeFilterChange = async (selectedEmployeeId) => {
+  if (!selectedEmployeeId) {
+    // Clear selection
+    selectedEmployeeData.value = null;
+    selectedEmployeeCalculations.value = [];
+    tableData.value = [];
+    filteredTableData.value = [];
+    payPeriodDate.value = null;
+    return;
+  }
+
+  try {
+    // Fetch basic employee employment data first (without calculations)
+    await fetchEmployeeEmploymentDetails(selectedEmployeeId);
+    message.success('Employee selected. Choose a pay period to calculate payroll.');
+  } catch (error) {
+    console.error('Error selecting employee:', error);
+    // Error message already shown in fetchEmployeeEmploymentDetails
+  }
 };
 
-const filterOption = (input, option) => {
-  const employee = originalEmployees.value.find(emp => emp.id === option.value);
-  if (!employee) return false;
-  const searchText = input.toLowerCase();
-  return (
-    employee.staff_id.toLowerCase().includes(searchText) ||
-    employee.name.toLowerCase().includes(searchText) ||
-    employee.department.toLowerCase().includes(searchText) ||
-    employee.funding_description.toLowerCase().includes(searchText)
-  );
+// Handle pay period date change - trigger payroll calculations
+const onPayPeriodChange = async (date) => {
+  if (!selectedEmployeeFilter.value) {
+    message.warning('Please select an employee first.');
+    return;
+  }
+
+  if (!date) {
+    // Clear calculations if no date selected
+    selectedEmployeeCalculations.value = [];
+    updateTableWithEmployeeData();
+    return;
+  }
+
+  try {
+    // Format date for API
+    const formattedDate = date.format('YYYY-MM-DD');
+
+    // Fetch employee data with payroll calculations
+    await fetchEmployeeEmploymentDetails(selectedEmployeeFilter.value, formattedDate);
+    message.success('Payroll calculations completed for ' + formattedDate);
+  } catch (error) {
+    console.error('Error calculating payroll:', error);
+    // Error message already shown in fetchEmployeeEmploymentDetails
+  }
 };
+
+// Tree select handles filtering internally - no need for custom filter
 
 // Table event handlers
 const handleTableChange = () => {
@@ -931,8 +1178,8 @@ const getDetailedCalculations = (record) => {
     { label: 'COMPENSATION / REFUND', value: formatCurrency(record.compensation) },
     { label: '13th MONTH SALARY', value: formatCurrency(record.month13) },
     { label: 'PVD/SAVING FUND (7.5%)', value: formatCurrency(record.pvd) },
-    { label: 'EMPLOYER S.INSU 3%', value: formatCurrency(record.ssEmpr) },
-    { label: 'EMPLOYEE S.INSU 3%', value: formatCurrency(record.ssEmp) },
+    { label: 'EMPLOYER S.INSU 5%', value: formatCurrency(record.ssEmpr) },
+    { label: 'EMPLOYEE S.INSU 5%', value: formatCurrency(record.ssEmp) },
     { label: 'HEALTH WELFARE EMPLOYER', value: formatCurrency(record.healthEmployer) },
     { label: 'HEALTH WELFARE EMPLOYEE', value: formatCurrency(record.healthEmployee) },
     { label: 'TAX', value: formatCurrency(record.tax) },
@@ -966,14 +1213,88 @@ const submitForm = async () => {
     return;
   }
 
+  if (!selectedEmployeeData.value || !payPeriodDate.value) {
+    message.warning('Employee and pay period date are required');
+    return;
+  }
+
   try {
     submitting.value = true;
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    message.success(`Successfully submitted ${selectedRowKeys.value.length} payroll entries`);
-    goBack();
+
+    // Get selected rows data
+    const selectedRows = filteredTableData.value.filter(row => selectedRowKeys.value.includes(row.key));
+
+    // Validate that we have calculations data
+    if (!selectedEmployeeCalculations.value || selectedEmployeeCalculations.value.length === 0) {
+      message.error('No payroll calculations available. Please select a pay period date first.');
+      submitting.value = false;
+      return;
+    }
+
+    // Format allocation calculations according to backend API specification
+    const allocationCalculations = selectedRows.map(row => {
+      // Find the corresponding calculation from API response
+      const calculation = selectedEmployeeCalculations.value.find(calc => calc.allocation_id === row.allocationId);
+
+      if (!calculation) {
+        throw new Error(`No calculation found for allocation ID: ${row.allocationId}`);
+      }
+
+      return {
+        allocation_id: row.allocationId,
+        employment_id: selectedEmployeeData.value.employment.id,
+        allocation_type: row.allocationType === 'org_funded' ? 'organization' : 'grant', // Backend expects 'organization' not 'org_funded'
+        level_of_effort: parseFloat(row.loe) / 100, // Convert percentage back to decimal
+        funding_source: row.fundingSource,
+        salary_by_fte: parseFloat(row.salaryByFte) || 0,
+        compensation_refund: parseFloat(row.compensation) || 0,
+        thirteen_month_salary: parseFloat(row.month13) || 0,
+        pvd_employee: parseFloat(row.pvd) || 0,
+        saving_fund: parseFloat(row.savingFund) || 0,
+        social_security_employee: parseFloat(row.ssEmp) || 0,
+        social_security_employer: parseFloat(row.ssEmpr) || 0,
+        health_welfare_employee: parseFloat(row.healthEmployee) || 0,
+        health_welfare_employer: parseFloat(row.healthEmployer) || 0,
+        income_tax: parseFloat(row.tax) || 0,
+        total_income: parseFloat(row.totalIncome) || 0,
+        total_deductions: parseFloat(row.totalDeductions) || 0,
+        net_salary: parseFloat(row.netPay) || 0,
+        employer_contributions: parseFloat(row.employerContributions) || 0
+      };
+    });
+
+    // Prepare request payload according to backend API specification
+    const payload = {
+      employee_id: selectedEmployeeData.value.id,
+      pay_period_date: payPeriodDate.value.format('YYYY-MM-DD'),
+      allocation_calculations: allocationCalculations,
+      payslip_date: payPeriodDate.value.clone().add(1, 'day').format('YYYY-MM-DD'), // Default to next day
+      payslip_number: `PAY-${payPeriodDate.value.format('YYYY-MM')}-${selectedEmployeeData.value.staff_id}`,
+      staff_signature: `${selectedEmployeeData.value.first_name_en} ${selectedEmployeeData.value.last_name_en}`,
+      created_by: 'HR Manager User' // You might want to get this from auth user
+    };
+
+    console.log('📤 Submitting payroll data:', payload);
+
+    // Call the payroll service to create payroll records
+    const response = await payrollService.createPayroll(payload);
+
+    if (response.success) {
+      message.success(
+        `Successfully created ${response.data.summary.total_payrolls_created} payroll record(s)` +
+        (response.data.summary.total_advances_created > 0
+          ? ` with ${response.data.summary.total_advances_created} inter-subsidiary advance(s)`
+          : '')
+      );
+
+      console.log('✅ Payroll creation response:', response);
+      goBack();
+    } else {
+      throw new Error(response.message || 'Failed to create payroll records');
+    }
   } catch (error) {
-    message.error('Failed to submit payroll entries');
+    console.error('❌ Error submitting payroll:', error);
+    message.error(`Failed to submit payroll entries: ${error.message}`);
   } finally {
     submitting.value = false;
   }
@@ -1111,6 +1432,43 @@ watch([departmentFilter, fundingTypeFilter, quickSearch], () => {
   border: 1px solid #e2e8f0;
 }
 
+/* Step Indicators */
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.step-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #64748b;
+  text-align: center;
+}
+
+/* Empty State Cards */
+.initial-empty-state,
+.empty-state-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
 /* Details Modal */
 .details-content {
   max-height: 70vh;
@@ -1185,12 +1543,12 @@ watch([departmentFilter, fundingTypeFilter, quickSearch], () => {
 }
 
 /* Enhanced scrollbar styling - Match Ant Design Vue docs */
-:deep(.ant-table-body)::-webkit-scrollbar {
-  width: 16px !important;
-  height: 16px !important;
-}
+  /* :deep(.ant-table-body)::-webkit-scrollbar {
+    width: 16px !important;
+    height: 16px !important;
+  } */
 
-:deep(.ant-table-body)::-webkit-scrollbar-track {
+/* :deep(.ant-table-body)::-webkit-scrollbar-track {
   background: #f1f1f1 !important;
   border-radius: 8px !important;
 }
@@ -1203,10 +1561,10 @@ watch([departmentFilter, fundingTypeFilter, quickSearch], () => {
 
 :deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
   background: #555 !important;
-}
+} */
 
 /* Additional scrollbar styling for table wrapper */
-:deep(.custom-datatable-filter .ant-table-body)::-webkit-scrollbar {
+/* :deep(.custom-datatable-filter .ant-table-body)::-webkit-scrollbar {
   width: 16px !important;
   height: 16px !important;
 }
@@ -1224,24 +1582,24 @@ watch([departmentFilter, fundingTypeFilter, quickSearch], () => {
 
 :deep(.custom-datatable-filter .ant-table-body)::-webkit-scrollbar-thumb:hover {
   background: #555 !important;
-}
+} */
 
 /* Table Base Styling - Match employees-list.vue */
-:deep(.ant-table) {
+/* :deep(.ant-table) {
   border-radius: 0;
   overflow: hidden;
-}
+} */
 
 /* Fixed Columns Styling - Match employees-list.vue */
-:deep(.ant-table-cell-fix-left),
+/* :deep(.ant-table-cell-fix-left),
 :deep(.ant-table-cell-fix-right) {
   background-color: #ffffff !important;
   z-index: 2 !important;
   box-shadow: 0 0 0 1px #e0e0e0;
-}
+} */
 
 /* Selection Column Styling - Match employees-list.vue */
-:deep(.ant-table-selection-column) {
+/* :deep(.ant-table-selection-column) {
   background-color: #ffffff !important;
   z-index: 3 !important;
   min-width: 80px !important;
@@ -1249,44 +1607,141 @@ watch([departmentFilter, fundingTypeFilter, quickSearch], () => {
   padding-left: 8px !important;
   padding-right: 8px !important;
   text-align: center;
-}
+} */
 
 /* Selection column header styling */
-:deep(.ant-table-selection-column .ant-table-selection) {
+/* :deep(.ant-table-selection-column .ant-table-selection) {
   text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
-}
+} */
 
 /* Fix selection checkbox alignment */
-:deep(.ant-table-selection-column .ant-checkbox-wrapper) {
+/* :deep(.ant-table-selection-column .ant-checkbox-wrapper) {
   margin: 0;
-}
+} */
 
 /* Selected Rows with Fixed Columns - Match employees-list.vue */
-:deep(.ant-table-row-selected > td.ant-table-cell-fix-left),
+/* :deep(.ant-table-row-selected > td.ant-table-cell-fix-left),
 :deep(.ant-table-row-selected > td.ant-table-cell-fix-right),
 :deep(.ant-table-row-selected > td.ant-table-selection-column) {
   background-color: #e6f7ff !important;
   z-index: 3 !important;
-}
+} */
 
 /* Table Container Styling - Match employees-list.vue */
-:deep(.ant-table-container) {
+/* :deep(.ant-table-container) {
   border: 1px solid #e0e0e0;
   border-radius: 0;
-}
+} */
 
 /* Table Header Styling - Match employees-list.vue */
-:deep(.ant-table-thead > tr > th) {
+/* :deep(.ant-table-thead > tr > th) {
   font-weight: 600;
   border-bottom: 2px solid #e0e0e0;
-}
+} */
 
 /* Table Cell Padding - Match employees-list.vue */
-:deep(.ant-table-cell) {
+/* :deep(.ant-table-cell) {
   padding: 8px 8px !important;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  vertical-align: top;
+} */
+
+/* Funding columns specific styling */
+/* :deep(.ant-table-cell[data-index="fundingSource"]) {
+  min-width: 200px !important;
+  max-width: 200px !important;
+  width: 200px !important;
+} */
+
+/* :deep(.ant-table-cell[data-index="allocationType"]) {
+  min-width: 140px !important;
+  max-width: 140px !important;
+  width: 140px !important;
+  text-align: center;
+} */
+
+/* Ensure funding type tags don't overflow */
+/* :deep(.ant-table-cell[data-index="allocationType"] .ant-tag) {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+} */
+
+/* Loading Spinner */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Employee Info Section */
+.employee-info-section .info-item {
+  margin-bottom: 4px;
+}
+
+.employee-info-content .row {
+  margin: 0;
+}
+
+.calculation-summary {
+  background-color: #f0f9ff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #10b981;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Employee Tree Select Styling */
+.employee-tree-option {
+  padding: 2px 0;
+}
+
+.employee-tree-option .employee-main {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.employee-tree-option .employee-details {
+  margin-top: 2px;
+}
+
+.employee-tree-option .badge {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.employee-tree-option .badge.bg-success {
+  background-color: #10b981 !important;
+  color: white;
+}
+
+.employee-tree-option .badge.bg-primary {
+  background-color: #3b82f6 !important;
+  color: white;
+}
+
+.employee-tree-option .badge.bg-warning {
+  background-color: #f59e0b !important;
+  color: white;
+}
+
+.employee-tree-option .badge.bg-secondary {
+  background-color: #6b7280 !important;
+  color: white;
 }
 
 /* Custom Ant Design Overrides for payroll theme */

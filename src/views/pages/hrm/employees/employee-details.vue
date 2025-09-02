@@ -450,10 +450,10 @@
                       <div class="d-flex flex-column text-sm text-muted">
                         <span v-if="beneficiary.phone_number"><i class="ti ti-phone me-1"></i>{{
                           beneficiary.phone_number
-                          }}</span>
+                        }}</span>
                         <span v-if="beneficiary.beneficiary_email"><i class="ti ti-mail me-1"></i>{{
                           beneficiary.beneficiary_email
-                          }}</span>
+                        }}</span>
                       </div>
                     </div>
                     <div class="dropdown">
@@ -1095,14 +1095,14 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-calendar-plus me-2"></i>Start Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.start_date) || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-calendar-event me-2"></i>End Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.end_date) || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1111,7 +1111,7 @@
                                         Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.probation_pass_date) ||
                                         'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1136,7 +1136,7 @@
                                       <span class="text-muted"><i class="ti ti-building me-2"></i>Department Position
                                         ID</span>
                                       <span class="fw-medium">{{ employee.employment?.department_position_id || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                 </ul>
@@ -1149,14 +1149,14 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-location me-2"></i>Work Location</span>
                                       <span class="fw-medium">{{ employee.employment?.work_location?.name || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-map-pin me-2"></i>Location Type</span>
                                       <span class="fw-medium">{{ employee.employment?.work_location?.type || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1165,7 +1165,7 @@
                                         Salary</span>
                                       <span class="fw-medium">{{ employee.employment?.position_salary ?
                                         `${Number(employee.employment.position_salary).toLocaleString()} THB` : 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1173,7 +1173,7 @@
                                       <span class="text-muted"><i class="ti ti-cash me-2"></i>Probation Salary</span>
                                       <span class="fw-medium">{{ employee.employment?.probation_salary ?
                                         `${Number(employee.employment.probation_salary).toLocaleString()} THB` : 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1249,7 +1249,7 @@
                                     <h6 class="mb-2"><i class="ti ti-user me-2"></i>Created By</h6>
                                     <p class="mb-0">{{ employee.employment?.created_by || 'N/A' }}</p>
                                     <small class="text-muted">{{ formatDate(employee.employment?.created_at) || 'N/A'
-                                      }}</small>
+                                    }}</small>
                                   </div>
                                 </div>
                               </div>
@@ -1259,7 +1259,7 @@
                                     <h6 class="mb-2"><i class="ti ti-user-edit me-2"></i>Updated By</h6>
                                     <p class="mb-0">{{ employee.employment?.updated_by || 'N/A' }}</p>
                                     <small class="text-muted">{{ formatDate(employee.employment?.updated_at) || 'N/A'
-                                      }}</small>
+                                    }}</small>
                                   </div>
                                 </div>
                               </div>

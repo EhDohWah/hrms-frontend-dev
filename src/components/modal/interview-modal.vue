@@ -20,8 +20,8 @@
               {{ alertMessage }}
             </div>
 
+            <!-- Row 1: Basic Information -->
             <div class="row">
-              <!-- Left Column -->
               <div class="col-md-6">
                 <div class="mb-3">
                   <label for="candidateName" class="form-label">Candidate Name</label>
@@ -31,6 +31,30 @@
                     {{ validationErrors.candidate_name }}
                   </div>
                 </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="phone" class="form-label">Phone</label>
+                  <div style="display: flex; align-items: center;">
+                    <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.phone }" id="phone"
+                      v-model="formData.phone" required @input="handlePhoneInput" @blur="validatePhone"
+                      placeholder="Enter 10 digits (Thai) or 11 digits (Myanmar)" style="flex: 1;" />
+                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Thai numbers: 10 digits (e.g., 0812345678) | Myanmar numbers: 11 digits (e.g., 09123456789)"
+                      style="margin-left: 8px;">
+                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                    </span>
+                  </div>
+                  <div v-if="validationErrors.phone" class="invalid-feedback">
+                    {{ validationErrors.phone }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 2: Job Position (Full Width) -->
+            <div class="row">
+              <div class="col-12">
                 <div class="mb-3">
                   <label for="jobPosition" class="form-label">Job Position</label>
                   <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.job_position }"
@@ -39,13 +63,26 @@
                     {{ validationErrors.job_position }}
                   </div>
                 </div>
+              </div>
+            </div>
 
+            <!-- Row 3: Time Fields -->
+            <div class="row">
+              <div class="col-md-4">
+                <div class="mb-3">
+                  <label for="startTime" class="form-label">Start Time</label>
+                  <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required
+                    @change="handleFormChange" />
+                </div>
+              </div>
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="endTime" class="form-label">End Time</label>
                   <input type="time" class="form-control" id="endTime" v-model="formData.end_time"
                     @change="handleFormChange" />
                 </div>
-
+              </div>
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Interview Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
@@ -57,6 +94,12 @@
                     </span>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Row 4: Status and Mode -->
+            <div class="row">
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="interviewMode" class="form-label">Interview Mode</label>
                   <select class="form-select" id="interviewMode" v-model="formData.interview_mode" required
@@ -67,28 +110,7 @@
                   </select>
                 </div>
               </div>
-
-              <!-- Right Column -->
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="phone" class="form-label">Phone</label>
-                  <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.phone }" id="phone"
-                    v-model="formData.phone" required @input="handlePhoneInput" @blur="validatePhone"
-                    placeholder="Enter 10 digits (Thai) or 11 digits (Myanmar)" />
-                  <div v-if="validationErrors.phone" class="invalid-feedback">
-                    {{ validationErrors.phone }}
-                  </div>
-                  <div class="form-text">
-                    <small>Thai numbers: 10 digits (e.g., 0812345678) | Myanmar numbers: 11 digits (e.g.,
-                      09123456789)</small>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label for="startTime" class="form-label">Start Time</label>
-                  <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required
-                    @change="handleFormChange" />
-                </div>
-
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="interviewStatus" class="form-label">Interview Status</label>
                   <select class="form-select" id="interviewStatus" v-model="formData.interview_status" required
@@ -99,18 +121,29 @@
                     <option value="In Progress">In Progress</option>
                   </select>
                 </div>
+              </div>
+              <div class="col-md-4">
                 <div class="mb-3">
                   <label for="score" class="form-label">Score</label>
-                  <input type="number" class="form-control" :class="{ 'is-invalid': validationErrors.score }" id="score"
-                    v-model="formData.score" min="0" max="100" step="0.01" @input="handleScoreInput"
-                    @blur="validateScore" placeholder="Enter score between 0-100" />
+                  <div style="display: flex; align-items: center;">
+                    <input type="number" class="form-control" :class="{ 'is-invalid': validationErrors.score }"
+                      id="score" v-model="formData.score" min="0" max="100" step="0.01" @input="handleScoreInput"
+                      @blur="validateScore" placeholder="Enter score between 0-100" style="flex: 1;" />
+                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Enter a numeric score between 0 and 100 (decimals allowed)" style="margin-left: 8px;">
+                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                    </span>
+                  </div>
                   <div v-if="validationErrors.score" class="invalid-feedback">
                     {{ validationErrors.score }}
                   </div>
-                  <div class="form-text">
-                    <small>Enter a numeric score between 0 and 100 (decimals allowed)</small>
-                  </div>
                 </div>
+              </div>
+            </div>
+
+            <!-- Row 5: Hired Status -->
+            <div class="row">
+              <div class="col-md-6">
                 <div class="mb-3">
                   <label for="hiredStatus" class="form-label">Hired Status</label>
                   <select class="form-select" id="hiredStatus" v-model="formData.hired_status"
@@ -161,15 +194,18 @@
 </template>
 
 <script>
-import { Modal } from 'bootstrap';
+import { Modal, Tooltip as BootstrapTooltip } from 'bootstrap';
 import { createVNode, nextTick } from 'vue';
 import { message, Modal as AntModal } from 'ant-design-vue';
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue';
 import { useInterviewStore } from '@/stores/interviewStore';
 import { useFormPersistenceStore } from '@/stores/formPersistenceStore';
 
 export default {
   name: 'InterviewModal',
+  components: {
+    InfoCircleOutlined,
+  },
   data() {
     return {
       // Properties moved from setup()
@@ -301,6 +337,9 @@ export default {
         this.cleanupModalBackdrops();
       });
     }
+
+    // Initialize tooltips on component mount
+    this.initializeTooltips();
   },
 
   beforeUnmount() {
@@ -322,6 +361,26 @@ export default {
   },
 
   methods: {
+    // Initialize Bootstrap tooltips
+    initializeTooltips() {
+      this.$nextTick(() => {
+        // Dispose of existing tooltips to prevent duplicates
+        const existingTooltips = document.querySelectorAll('#interviewModal [data-bs-toggle="tooltip"]');
+        existingTooltips.forEach(tooltipTriggerEl => {
+          const existingTooltip = BootstrapTooltip.getInstance(tooltipTriggerEl);
+          if (existingTooltip) {
+            existingTooltip.dispose();
+          }
+        });
+
+        // Initialize all tooltips within the modal
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('#interviewModal [data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new BootstrapTooltip(tooltipTriggerEl);
+        });
+      });
+    },
+
     // Form Validation Methods
     validatePhone() {
       const phone = this.formData.phone;
@@ -477,6 +536,9 @@ export default {
         this.isDraftMode = true;
         this.hasUnsavedChanges = false;
       }
+
+      // Initialize tooltips when modal is shown
+      this.initializeTooltips();
 
       console.log('📝 Interview modal ready for input - isDraftMode:', this.isDraftMode);
     },
@@ -815,13 +877,9 @@ export default {
           response = await this.interviewStore.createInterview(formattedData);
         }
 
-        if (!response.success) {
-          this.alertMessage = response.message;
-          this.alertClass = 'alert-danger';
-          if (response.errors) {
-            this.alertMessage += ' ' + Object.values(response.errors).flat().join(' ');
-          }
-        } else {
+        // Handle successful response from BaseService
+        if (response && response.success !== false) {
+          // Success case
           this.$emit(this.editMode ? 'interview-updated' : 'interview-added');
           message.success(this.editMode ? 'Interview updated successfully' : 'Interview added successfully');
 
@@ -834,11 +892,71 @@ export default {
           if (this.modalInstance) {
             this.modalInstance.hide();
           }
+        } else if (response && response.success === false) {
+          // Handle any remaining error responses that aren't thrown
+          this.alertMessage = response.message || `Failed to ${this.editMode ? 'update' : 'create'} interview. Please try again.`;
+          this.alertClass = 'alert-danger';
+        } else {
+          // Fallback for unexpected response format
+          this.alertMessage = `Failed to ${this.editMode ? 'update' : 'create'} interview. Please try again.`;
+          this.alertClass = 'alert-danger';
         }
       } catch (error) {
+        // Handle BaseService structured errors (thrown as exceptions)
         console.error('Error submitting form:', error);
-        this.alertMessage = error.message || 'An error occurred while saving the interview.';
-        this.alertClass = 'alert-danger';
+
+        // Handle BaseService error structure
+        if (error.status) {
+          switch (error.status) {
+            case 422:
+              // Validation error - show detailed validation errors
+              this.alertMessage = error.message || 'Validation failed. Please check your input.';
+              this.alertClass = 'alert-warning';
+
+              // Display specific validation errors if available
+              if (error.errors && typeof error.errors === 'object') {
+                const errorMessages = Object.entries(error.errors)
+                  .map(([field, messages]) => {
+                    const fieldMessages = Array.isArray(messages) ? messages : [messages];
+                    return fieldMessages.map(msg => `${field.replace('_', ' ')}: ${msg}`).join(', ');
+                  })
+                  .join('; ');
+
+                if (errorMessages) {
+                  this.alertMessage += ` Details: ${errorMessages}`;
+                }
+              }
+              break;
+
+            case 404:
+              this.alertMessage = error.message || 'Interview not found. It may have been deleted by another user.';
+              this.alertClass = 'alert-warning';
+              break;
+
+            case 401:
+              this.alertMessage = error.message || 'Authentication required. Please log in again.';
+              this.alertClass = 'alert-danger';
+              break;
+
+            case 403:
+              this.alertMessage = error.message || `You don't have permission to ${this.editMode ? 'update' : 'create'} interviews.`;
+              this.alertClass = 'alert-danger';
+              break;
+
+            case 500:
+              this.alertMessage = error.message || `Server error occurred while ${this.editMode ? 'updating' : 'creating'} interview. Please try again later.`;
+              this.alertClass = 'alert-danger';
+              break;
+
+            default:
+              this.alertMessage = error.message || `An error occurred while ${this.editMode ? 'updating' : 'creating'} the interview.`;
+              this.alertClass = 'alert-danger';
+          }
+        } else {
+          // Handle network or other unexpected errors
+          this.alertMessage = error.message || `Network connection error. Please check your connection and try again.`;
+          this.alertClass = 'alert-danger';
+        }
       } finally {
         this.isSubmitting = false;
       }
@@ -1015,5 +1133,59 @@ export default {
 :deep(.ant-modal-confirm .ant-btn-danger) {
   background: #ff4d4f;
   border-color: #ff4d4f;
+}
+
+/* Bootstrap Tooltip styling enhancements */
+:deep(.tooltip) {
+  z-index: 9999 !important;
+}
+
+:deep(.tooltip-inner) {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  color: white !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  max-width: 300px !important;
+  text-align: left !important;
+}
+
+:deep(.tooltip.bs-tooltip-top .tooltip-arrow::before) {
+  border-top-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-bottom .tooltip-arrow::before) {
+  border-bottom-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-start .tooltip-arrow::before) {
+  border-left-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-end .tooltip-arrow::before) {
+  border-right-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* Input field container styling */
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Ensure tooltip icons don't interfere with input functionality */
+.tooltip-icon {
+  pointer-events: auto;
+  z-index: 1;
+}
+
+/* Modal content overflow fixes for tooltips */
+.modal-content {
+  overflow: visible !important;
+}
+
+.modal-body {
+  overflow: visible !important;
 }
 </style>

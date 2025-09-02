@@ -5,9 +5,7 @@
   <div class="page-wrapper">
     <div class="content">
       <!-- Breadcrumb -->
-      <div
-        class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
-      >
+      <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="mb-2">
@@ -16,15 +14,8 @@
             </a>
           </div>
           <div class="head-icons ms-2">
-            <a
-              href="javascript:void(0);"
-              class=""
-              data-bs-toggle="tooltip"
-              data-bs-placement="top"
-              data-bs-original-title="Collapse"
-              id="collapse-header"
-              @click="toggleHeader"
-            >
+            <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+              data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
@@ -48,15 +39,15 @@
                   </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="text-end mb-3">
-                      <h5 class="text-gray mb-1">
-                        Payslip No <span class="text-primary"> #PS4283</span>
-                      </h5>
-                      <p class="fw-medium">
-                        Salary Month : <span class="text-dark">October 2024</span>
-                      </p>
-                    </div>
+                  <div class="text-end mb-3">
+                    <h5 class="text-gray mb-1">
+                      Payslip No <span class="text-primary"> #PS4283</span>
+                    </h5>
+                    <p class="fw-medium">
+                      Salary Month : <span class="text-dark">October 2024</span>
+                    </p>
                   </div>
+                </div>
               </div>
 
               <!-- Staff Info Table -->
@@ -170,7 +161,8 @@
                 </tr>
                 <tr>
                   <td colspan="3">Pay method: xxxxxx</td>
-                  <td></td><td colspan="2"></td>
+                  <td></td>
+                  <td colspan="2"></td>
                 </tr>
               </table>
             </div>
@@ -232,20 +224,25 @@ export default {
   align-items: center;
   justify-content: center;
 }
+
 .title {
   text-align: right;
   font-weight: bold;
   font-size: 16px;
 }
+
 table {
   width: 100%;
   border-collapse: collapse;
 }
-th, td {
+
+th,
+td {
   border: 1px solid #000;
   padding: 6px;
   vertical-align: top;
 }
+
 .table td.border-0 {
   border: none !important;
 }

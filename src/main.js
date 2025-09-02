@@ -1,7 +1,6 @@
 import { createApp } from 'vue';
 import { router } from './router';
 import App from "./App.vue";
-import 'bootstrap-vue/dist/bootstrap-vue.css'
 import { BootstrapVue3, BToastPlugin } from 'bootstrap-vue-3'
 import Antd from 'ant-design-vue';
 import 'ant-design-vue/dist/reset.css';
@@ -169,7 +168,7 @@ import grantPositionList from '@/views/pages/grant/grant-position-list.vue';
 import employeeSite from '@/views/pages/hrm/employees/employee-sites.vue';
 
 
-import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'ionicons-npm/css/ionicons.css';
@@ -332,9 +331,14 @@ app.use(FlagIcon)
 app.use(VCalendar)
     .use(BootstrapVue3)
     .use(BToastPlugin)
-    // Removed ThemifyIcon component usage
     .use(SimpleLineIcons)
-    .use(ThemifyIcon)
 app.component('IconHome', IconHome);
+
+// Provide EventBus globally (instead of using as plugin)
+app.provide('eventBus', eventBus);
+
+// Register ThemifyIcon as a component (instead of plugin)
+app.component('themify-icon', ThemifyIcon);
+
 app.use(CKEditor);
 app.use(router).mount('#app');   

@@ -8,11 +8,11 @@
         <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
           <index-breadcrumb :title="title" :text="text" :text1="text1" />
           <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-            <div class="mb-2 me-2">
+            <!-- <div class="mb-2 me-2">
               <button class="btn btn-primary d-flex align-items-center" @click="openAddGrantPositionModal">
                 <i class="ti ti-circle-plus me-2"></i>Add Grant Position
               </button>
-            </div>
+            </div> -->
             <div class="ms-2 head-icons">
               <a href="javascript:void(0);" :class="{ active: isCollapsed }" @click="toggleCollapse"
                 data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Collapse" id="collapse-header">

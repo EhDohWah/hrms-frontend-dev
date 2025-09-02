@@ -1,18 +1,21 @@
 // job-offer.service.js
 import { apiService } from '@/services/api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
+import { BaseService } from '@/services/base.service';
 
-class JobOfferService {
+class JobOfferService extends BaseService {
 
   // Fetch all job offers
   async getAllJobOffers(params = {}) {
     try {
-      // Build query string from parameters
-      const queryString = new URLSearchParams(params).toString();
+      // Build query string from parameters using BaseService method
+      const queryString = this.buildQueryString(params);
       const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}${queryString ? `?${queryString}` : ''}`;
 
-      const response = await apiService.get(endpoint);
-      return response; // This should return the full API response including pagination metadata
+      return await this.handleApiResponse(
+        () => apiService.get(endpoint),
+        'fetch job offers list'
+      );
     } catch (error) {
       console.error('Error fetching job offers:', error);
       throw error;
@@ -24,15 +27,15 @@ class JobOfferService {
     const endpoint = API_ENDPOINTS.JOB_OFFER.BY_CANDIDATE.replace(':candidateName', candidateName);
 
     try {
-      // Use the regular API service
-      return await apiService.get(endpoint);
+      return await this.handleApiResponse(
+        () => apiService.get(endpoint),
+        `fetch job offers for candidate ${candidateName}`
+      );
     } catch (error) {
-      // Check if it's a 404 error with job offer not found response
-      if (error.response && error.response.status === 404 && error.response.data) {
-        // Return the 404 response data as a valid response (not an error)
-        return error.response.data;
+      // Handle 404 as a valid "not found" response for search
+      if (error.status === 404) {
+        return error; // Return the structured error response from BaseService
       }
-      // For other errors (network, auth, etc.), re-throw the error
       throw error;
     }
   }
@@ -42,15 +45,15 @@ class JobOfferService {
     const endpoint = API_ENDPOINTS.JOB_OFFER.BY_CANDIDATE.replace(':candidateName', candidateName);
 
     try {
-      // Use the regular API service
-      return await apiService.get(endpoint);
+      return await this.handleApiResponse(
+        () => apiService.get(endpoint),
+        `search job offers for candidate ${candidateName}`
+      );
     } catch (error) {
-      // Check if it's a 404 error with job offer not found response
-      if (error.response && error.response.status === 404 && error.response.data) {
-        // Return the 404 response data as a valid response (not an error)
-        return error.response.data;
+      // Handle 404 as a valid "not found" response for search
+      if (error.status === 404) {
+        return error; // Return the structured error response from BaseService
       }
-      // For other errors (network, auth, etc.), re-throw the error
       throw error;
     }
   }
@@ -58,30 +61,45 @@ class JobOfferService {
   // Get job offer by ID
   async getJobOfferById(id) {
     const endpoint = API_ENDPOINTS.JOB_OFFER.DETAILS.replace(':id', id);
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      `fetch job offer with ID ${id}`
+    );
   }
 
   // Get job offer details
   async getJobOfferDetails(id) {
     const endpoint = API_ENDPOINTS.JOB_OFFER.DETAILS.replace(':id', id);
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      `fetch job offer details for ID ${id}`
+    );
   }
 
   // Create a new job offer
   async createJobOffer(jobOfferData) {
-    return await apiService.post(API_ENDPOINTS.JOB_OFFER.CREATE, jobOfferData);
+    return await this.handleApiResponse(
+      () => apiService.post(API_ENDPOINTS.JOB_OFFER.CREATE, jobOfferData),
+      'create job offer'
+    );
   }
 
   // Update an existing job offer
   async updateJobOffer(id, jobOfferData) {
     const endpoint = API_ENDPOINTS.JOB_OFFER.UPDATE.replace(':id', id);
-    return await apiService.put(endpoint, jobOfferData);
+    return await this.handleApiResponse(
+      () => apiService.put(endpoint, jobOfferData),
+      `update job offer with ID ${id}`
+    );
   }
 
   // Delete a job offer
   async deleteJobOffer(id) {
     const endpoint = API_ENDPOINTS.JOB_OFFER.DELETE.replace(':id', id);
-    return await apiService.delete(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.delete(endpoint),
+      `delete job offer with ID ${id}`
+    );
   }
 
   /**
@@ -92,19 +110,14 @@ class JobOfferService {
    * @throws {Error} - If the job offer is not found or there's a server error
    */
   async generateJobOfferPDF(custom_job_offer_id) {
-    try {
-      // Append a cache-busting timestamp query parameter
-      const timestamp = new Date().getTime();
-      const endpoint = API_ENDPOINTS.JOB_OFFER.GENERATE_PDF.replace(':id', custom_job_offer_id) + `?ts=${timestamp}`;
-      const pdfBlob = await apiService.getPdf(endpoint);
-      return pdfBlob;
-    } catch (error) {
-      // Handle specific error cases based on status code
-      if (error.response && error.response.status === 404) {
-        throw new Error('Job offer not found');
-      }
-      throw error;
-    }
+    // Append a cache-busting timestamp query parameter
+    const timestamp = new Date().getTime();
+    const endpoint = API_ENDPOINTS.JOB_OFFER.GENERATE_PDF.replace(':id', custom_job_offer_id) + `?ts=${timestamp}`;
+
+    return await this.handleApiResponse(
+      () => apiService.getPdf(endpoint),
+      `generate PDF for job offer ${custom_job_offer_id}`
+    );
   }
 
   /**
@@ -127,17 +140,14 @@ class JobOfferService {
    * @returns {Promise} API response with paginated job offers data
    */
   async getAdvancedPaginatedJobOffers(params = {}) {
-    const queryParams = new URLSearchParams();
+    // Use BaseService method to build query string
+    const queryString = this.buildQueryString(params);
+    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryString}`;
 
-    // Add parameters to query string, filtering out empty values
-    Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        queryParams.append(key, params[key]);
-      }
-    });
-
-    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryParams.toString()}`;
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch advanced paginated job offers'
+    );
   }
 
   /**
@@ -146,17 +156,14 @@ class JobOfferService {
    * @returns {Promise} API response with paginated job offers
    */
   async getPaginatedJobOffers(params = {}) {
-    const queryParams = new URLSearchParams();
+    // Use BaseService method to build query string
+    const queryString = this.buildQueryString(params);
+    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryString}`;
 
-    // Add parameters to query string
-    Object.keys(params).forEach(key => {
-      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-        queryParams.append(key, params[key]);
-      }
-    });
-
-    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryParams.toString()}`;
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch paginated job offers'
+    );
   }
 
   /**
@@ -169,9 +176,8 @@ class JobOfferService {
    * @returns {Promise} API response with matching job offers
    */
   async searchJobOffers(searchParams = {}) {
+    // Build search query parameters
     const queryParams = new URLSearchParams();
-
-    // Add search parameters to query string
     Object.keys(searchParams).forEach(key => {
       if (searchParams[key] !== undefined && searchParams[key] !== null && searchParams[key] !== '') {
         queryParams.append(`search_${key}`, searchParams[key]);
@@ -181,11 +187,14 @@ class JobOfferService {
     const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/search?${queryParams.toString()}`;
 
     try {
-      return await apiService.get(endpoint);
+      return await this.handleApiResponse(
+        () => apiService.get(endpoint),
+        'search job offers'
+      );
     } catch (error) {
-      // Handle 404 as a valid "no results" response
-      if (error.response && error.response.status === 404 && error.response.data) {
-        return error.response.data;
+      // Handle 404 as a valid "no results" response for search
+      if (error.status === 404) {
+        return error; // Return the structured error response from BaseService
       }
       throw error;
     }
@@ -198,13 +207,17 @@ class JobOfferService {
    * @returns {Promise} API response with job offers filtered by status
    */
   async getJobOffersByStatus(status, params = {}) {
-    const queryParams = new URLSearchParams({
+    const allParams = {
       acceptance_status: status,
       ...params
-    });
+    };
+    const queryString = this.buildQueryString(allParams);
+    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryString}`;
 
-    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryParams.toString()}`;
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      `fetch job offers with status ${status}`
+    );
   }
 
   /**
@@ -214,13 +227,17 @@ class JobOfferService {
    * @returns {Promise} API response with job offers filtered by position
    */
   async getJobOffersByPosition(positionName, params = {}) {
-    const queryParams = new URLSearchParams({
+    const allParams = {
       position_name: positionName,
       ...params
-    });
+    };
+    const queryString = this.buildQueryString(allParams);
+    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryString}`;
 
-    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryParams.toString()}`;
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      `fetch job offers for position ${positionName}`
+    );
   }
 
   /**
@@ -231,14 +248,18 @@ class JobOfferService {
    * @returns {Promise} API response with job offers within the date range
    */
   async getJobOffersByDateRange(dateFrom, dateTo, params = {}) {
-    const queryParams = new URLSearchParams({
+    const allParams = {
       date_from: dateFrom,
       date_to: dateTo,
       ...params
-    });
+    };
+    const queryString = this.buildQueryString(allParams);
+    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryString}`;
 
-    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}?${queryParams.toString()}`;
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      `fetch job offers from ${dateFrom} to ${dateTo}`
+    );
   }
 
   /**
@@ -247,7 +268,10 @@ class JobOfferService {
    */
   async getFilterOptions() {
     const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/filter-options`;
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch filter options'
+    );
   }
 
   /**
@@ -256,9 +280,12 @@ class JobOfferService {
    * @returns {Promise} API response with job offer statistics
    */
   async getJobOfferStatistics(params = {}) {
-    const queryParams = new URLSearchParams(params);
-    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/statistics?${queryParams.toString()}`;
-    return await apiService.get(endpoint);
+    const queryString = this.buildQueryString(params);
+    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/statistics?${queryString}`;
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch job offer statistics'
+    );
   }
 
   /**
@@ -274,7 +301,10 @@ class JobOfferService {
     };
 
     const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/bulk-update`;
-    return await apiService.put(endpoint, payload);
+    return await this.handleApiResponse(
+      () => apiService.put(endpoint, payload),
+      `bulk update ${jobOfferIds.length} job offers`
+    );
   }
 
   /**
@@ -288,7 +318,10 @@ class JobOfferService {
     };
 
     const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/bulk-delete`;
-    return await apiService.delete(endpoint, { data: payload });
+    return await this.handleApiResponse(
+      () => apiService.delete(endpoint, { data: payload }),
+      `bulk delete ${jobOfferIds.length} job offers`
+    );
   }
 
   /**
@@ -297,9 +330,12 @@ class JobOfferService {
    * @returns {Promise<Blob>} Excel file blob
    */
   async exportJobOffersToExcel(params = {}) {
-    const queryParams = new URLSearchParams(params);
-    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/export/excel?${queryParams.toString()}`;
-    return await apiService.getBlob(endpoint);
+    const queryString = this.buildQueryString(params);
+    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/export/excel?${queryString}`;
+    return await this.handleApiResponse(
+      () => apiService.getBlob(endpoint),
+      'export job offers to Excel'
+    );
   }
 
   /**
@@ -308,9 +344,84 @@ class JobOfferService {
    * @returns {Promise<Blob>} PDF file blob
    */
   async exportJobOffersToPDF(params = {}) {
-    const queryParams = new URLSearchParams(params);
-    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/export/pdf?${queryParams.toString()}`;
-    return await apiService.getPdf(endpoint);
+    const queryString = this.buildQueryString(params);
+    const endpoint = `${API_ENDPOINTS.JOB_OFFER.LIST}/export/pdf?${queryString}`;
+    return await this.handleApiResponse(
+      () => apiService.getPdf(endpoint),
+      'export job offers to PDF'
+    );
+  }
+
+  /**
+   * Validate job offer data before sending to API
+   * @param {Object} jobOfferData - Job offer data to validate
+   * @returns {Object} Validation result
+   */
+  validateJobOfferData(jobOfferData) {
+    // Use base class validation for required fields
+    const requiredValidation = this.validateRequiredFields(jobOfferData, [
+      'candidate_name',
+      'position_name',
+      'job_offer_id'
+    ]);
+
+    // Additional custom validations
+    const customErrors = {};
+
+    // Validate acceptance deadline date
+    if (jobOfferData.acceptance_deadline && !this.isValidDate(jobOfferData.acceptance_deadline)) {
+      customErrors.acceptance_deadline = ['Invalid acceptance deadline date format'];
+    }
+
+    // Validate job offer date
+    if (jobOfferData.date && !this.isValidDate(jobOfferData.date)) {
+      customErrors.date = ['Invalid job offer date format'];
+    }
+
+    // Validate acceptance status
+    if (jobOfferData.acceptance_status) {
+      const validStatuses = ['pending', 'accepted', 'rejected'];
+      if (!validStatuses.includes(jobOfferData.acceptance_status.toLowerCase())) {
+        customErrors.acceptance_status = [`Acceptance status must be one of: ${validStatuses.join(', ')}`];
+      }
+    }
+
+    // Combine validations
+    return this.combineValidations([
+      requiredValidation,
+      { isValid: Object.keys(customErrors).length === 0, errors: customErrors }
+    ]);
+  }
+
+  /**
+   * Create job offer with client-side validation
+   * @param {Object} jobOfferData - Job offer data
+   * @returns {Promise} API response
+   */
+  async createJobOfferWithValidation(jobOfferData) {
+    const validation = this.validateJobOfferData(jobOfferData);
+
+    if (!validation.isValid) {
+      throw this.createValidationError(validation.errors);
+    }
+
+    return await this.createJobOffer(jobOfferData);
+  }
+
+  /**
+   * Update job offer with client-side validation
+   * @param {number} id - Job offer ID
+   * @param {Object} jobOfferData - Job offer data
+   * @returns {Promise} API response
+   */
+  async updateJobOfferWithValidation(id, jobOfferData) {
+    const validation = this.validateJobOfferData(jobOfferData);
+
+    if (!validation.isValid) {
+      throw this.createValidationError(validation.errors);
+    }
+
+    return await this.updateJobOffer(id, jobOfferData);
   }
 }
 

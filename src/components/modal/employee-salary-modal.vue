@@ -306,8 +306,8 @@ export default {
       const tax = salaryByFTE * 0.03;
       const gross = salaryByFTE;
       const pvd = gross * 0.075;
-      const ssEmp = gross * 0.03;
-      const ssEmpr = gross * 0.03;
+      const ssEmp = gross * 0.05;
+      const ssEmpr = gross * 0.05;
       const salBonus = gross + compensation + month13;
       const pfHiSs = pvd + ssEmp + ssEmpr + healthEmployer + healthEmployee;
       const pf2ss2HiTax = (pvd * 2) + (ssEmp * 2) + healthEmployer + healthEmployee + tax;
@@ -323,8 +323,8 @@ export default {
         { label: 'COMPENSATION / REFUND', value: this.formatCurrency(compensation) },
         { label: '13th MONTH SALARY', value: this.formatCurrency(month13) },
         { label: 'PVD/SAVING FUND (7.5%)', value: this.formatCurrency(pvd) },
-        { label: 'EMPLOYER S.INSU 3%', value: this.formatCurrency(ssEmpr) },
-        { label: 'EMPLOYEE S.INSU 3%', value: this.formatCurrency(ssEmp) },
+        { label: 'EMPLOYER S.INSU 5%', value: this.formatCurrency(ssEmpr) },
+        { label: 'EMPLOYEE S.INSU 5%', value: this.formatCurrency(ssEmp) },
         { label: 'HEALTH WELFARE EMPLOYER', value: this.formatCurrency(healthEmployer) },
         { label: 'HEALTH WELFARE EMPLOYEE', value: this.formatCurrency(healthEmployee) },
         { label: 'TAX', value: this.formatCurrency(tax) },

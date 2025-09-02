@@ -26,96 +26,106 @@
       <!-- /Breadcrumb -->
 
       <!-- Main Tabs Navigation -->
-      <a-tabs v-model:activeKey="activeKey" type="card" class="mb-4">
-        <a-tab-pane key="1">
-          <template #tab>
-            <i class="ti ti-settings me-2"></i>Tax Settings
-          </template>
+      <ul class="nav nav-tabs mb-3 tab-style-6" id="tax-settings-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" :class="{ active: activeKey === '1' }" id="tax-settings-tab" data-bs-toggle="tab"
+            data-bs-target="#tax-settings-pane" type="button" role="tab" aria-controls="tax-settings-pane"
+            :aria-selected="activeKey === '1'" @click="setActiveTab('1')">
+            <i class="ti ti-settings me-1 align-middle d-inline-block"></i>Tax Settings
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" :class="{ active: activeKey === '2' }" id="tax-brackets-tab" data-bs-toggle="tab"
+            data-bs-target="#tax-brackets-pane" type="button" role="tab" aria-controls="tax-brackets-pane"
+            :aria-selected="activeKey === '2'" @click="setActiveTab('2')">
+            <i class="ti ti-list me-1 align-middle d-inline-block"></i>Tax Brackets
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" :class="{ active: activeKey === '3' }" id="tax-calculator-tab" data-bs-toggle="tab"
+            data-bs-target="#tax-calculator-pane" type="button" role="tab" aria-controls="tax-calculator-pane"
+            :aria-selected="activeKey === '3'" @click="setActiveTab('3')">
+            <i class="ti ti-calculator me-1 align-middle d-inline-block"></i>Tax Calculator
+          </button>
+        </li>
+      </ul>
+
+      <!-- Tab Content -->
+      <div class="tab-content" id="tax-settings-tabContent">
+        <!-- Tax Settings Tab -->
+        <div class="tab-pane fade p-0 border-bottom-0" :class="{ 'show active': activeKey === '1' }"
+          id="tax-settings-pane" role="tabpanel" aria-labelledby="tax-settings-tab" tabindex="0">
           <!-- Header Section -->
-          <div class="page-header d-flex justify-content-between align-items-center mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h3 class="page-title mb-0">Tax Settings</h3>
-              <p class="text-muted">Manage tax rates, brackets, and deduction settings for payroll</p>
+              <h1 class="h3 mb-1">Tax Settings Management</h1>
+              <p class="text-muted mb-0">Manage tax settings with advanced filtering, bulk operations, and year-based
+                controls.
+              </p>
             </div>
-            <div class="header-actions">
-              <div class="d-flex gap-2">
-                <button class="btn btn-outline-primary btn-sm d-flex align-items-center" @click="bulkUpdateTaxSettings"
-                  :disabled="selectedTaxSettingKeys.length === 0">
-                  <i class="ti ti-edit me-1"></i>Bulk Update ({{ selectedTaxSettingKeys.length }})
-                </button>
-                <button class="btn btn-primary d-flex align-items-center" @click="openAddTaxSettingModal">
-                  <i class="ti ti-circle-plus me-2"></i>Add Tax Setting
-                </button>
-              </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm d-flex align-items-center" @click="bulkUpdateTaxSettings"
+                :disabled="selectedTaxSettingKeys.length === 0">
+                <i class="ti ti-upload me-1"></i>Bulk Update
+              </button>
+              <button class="btn btn-primary btn-sm d-flex align-items-center" @click="openAddTaxSettingModal">
+                <i class="ti ti-plus me-1"></i>Create Setting
+              </button>
+              <button class="btn btn-outline-secondary btn-sm d-flex align-items-center" @click="exportToExcel">
+                <i class="ti ti-download me-1"></i>Export
+              </button>
             </div>
           </div>
 
-          <!-- Tax Rate Cards -->
-          <div class="row mb-4">
-            <div class="col-lg-3 col-md-6">
-              <div class="card border-0 bg-light-primary">
-                <div class="card-body">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                      <div class="avatar avatar-md bg-primary rounded-circle">
-                        <i class="ti ti-percentage text-white"></i>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                      <h6 class="card-title mb-1">Income Tax</h6>
-                      <p class="card-text mb-0 text-muted">{{ taxRates.incomeTax }}%</p>
-                    </div>
+          <!-- Filters Section -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <i class="ti ti-filter me-2"></i>
+                <h6 class="mb-0 me-3">Filters</h6>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="form-label small">Search</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="ti ti-search"></i></span>
+                    <input type="text" class="form-control" v-model="searchText" @input="handleSearch"
+                      placeholder="Search by setting key...">
                   </div>
                 </div>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="card border-0 bg-light-success">
-                <div class="card-body">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                      <div class="avatar avatar-md bg-success rounded-circle">
-                        <i class="ti ti-shield text-white"></i>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                      <h6 class="card-title mb-1">Social Security</h6>
-                      <p class="card-text mb-0 text-muted">{{ taxRates.socialSecurity }}%</p>
-                    </div>
-                  </div>
+                <div class="col-md-2">
+                  <label class="form-label small">Setting Type</label>
+                  <select class="form-select" v-model="filterSettingType" @change="applySettingTypeFilter">
+                    <option value="">All types</option>
+                    <option value="DEDUCTION">DEDUCTION</option>
+                    <option value="RATE">RATE</option>
+                    <option value="LIMIT">LIMIT</option>
+                  </select>
                 </div>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="card border-0 bg-light-warning">
-                <div class="card-body">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                      <div class="avatar avatar-md bg-warning rounded-circle">
-                        <i class="ti ti-coins text-white"></i>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                      <h6 class="card-title mb-1">Provident Fund</h6>
-                      <p class="card-text mb-0 text-muted">{{ taxRates.providentFund }}%</p>
-                    </div>
-                  </div>
+                <div class="col-md-2">
+                  <label class="form-label small">Effective Year</label>
+                  <select class="form-select" v-model="filterEffectiveYear" @change="applyEffectiveYearFilter">
+                    <option value="">All years</option>
+                    <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+                  </select>
                 </div>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="card border-0 bg-light-info">
-                <div class="card-body">
-                  <div class="d-flex align-items-center">
-                    <div class="flex-shrink-0">
-                      <div class="avatar avatar-md bg-info rounded-circle">
-                        <i class="ti ti-building text-white"></i>
-                      </div>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                      <h6 class="card-title mb-1">Corporate Tax</h6>
-                      <p class="card-text mb-0 text-muted">{{ taxRates.corporateTax }}%</p>
-                    </div>
+                <div class="col-md-2">
+                  <label class="form-label small">Status</label>
+                  <select class="form-select" v-model="filterIsSelected" @change="applyStatusFilter">
+                    <option value="">All status</option>
+                    <option value="true">Active</option>
+                    <option value="false">Inactive</option>
+                  </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                  <div class="d-flex gap-2 w-100">
+                    <span class="badge bg-secondary">{{ totalTaxSettings }} total settings</span>
+                    <span v-if="hasActiveFilters" class="badge bg-primary">{{ getActiveFiltersCount }} filters
+                      active</span>
+                    <button class="btn btn-outline-secondary btn-sm" @click="clearFilters"
+                      :disabled="!hasActiveFilters">
+                      <i class="ti ti-x me-1"></i>Clear filters
+                    </button>
                   </div>
                 </div>
               </div>
@@ -123,138 +133,192 @@
           </div>
 
           <!-- Tax Settings Table -->
-          <div class="row">
-            <div class="col-sm-12">
-              <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                  <div class="d-flex align-items-center">
-                    <h5 class="mb-0 me-3">Tax Configuration</h5>
-                    <div class="d-flex align-items-center text-muted small">
-                      <span class="me-2">Total: {{ totalTaxSettings }}</span>
-                      <span class="me-2">|</span>
-                      <span class="me-2">Active: {{ activeTaxSettings }}</span>
-                      <span class="me-2">|</span>
-                      <span>Year: {{ selectedYear }}</span>
-                    </div>
-                  </div>
-                  <div class="d-flex align-items-center flex-wrap row-gap-2">
-                    <div class="dropdown me-2">
-                      <a href="javascript:void(0);" class="btn btn-white border btn-sm d-inline-flex align-items-center"
-                        data-bs-toggle="dropdown">
-                        <i class="ti ti-file-export me-1"></i>Export
-                      </a>
-                      <ul class="dropdown-menu dropdown-menu-end p-3">
-                        <li>
-                          <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="exportToExcel">
-                            <i class="ti ti-file-type-xls me-1"></i>Export as Excel
-                          </a>
-                        </li>
-                        <li>
-                          <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="exportToPDF">
-                            <i class="ti ti-file-type-pdf me-1"></i>Export as PDF
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                    <div class="input-icon-end position-relative">
-                      <a-input v-model:value="searchText" placeholder="Search tax settings..." @input="handleSearch"
-                        style="width: 250px;" allow-clear>
-                        <template #suffix>
-                          <i class="ti ti-search"></i>
-                        </template>
-                      </a-input>
-                    </div>
-                  </div>
-                </div>
-                <div class="card-body p-0">
-                  <a-table :columns="taxSettingsColumns" :data-source="filteredTaxSettings"
-                    :pagination="taxSettingsPagination" :loading="taxSettingsLoading" row-key="id"
-                    :row-selection="taxSettingsRowSelection" size="middle" @change="handleTaxSettingsTableChange"
-                    :scroll="{ x: 1200 }">
-                    <!-- Setting Key column -->
-                    <template #bodyCell="{ column, record }">
-                      <template v-if="column.key === 'setting_key'">
-                        <div>
-                          <strong class="text-primary">{{ getSettingKeyLabel(record.setting_key) }}</strong>
-                          <br>
-                          <small class="text-muted">{{ record.setting_key }}</small>
+          <div class="card">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-borderless mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="border-0 ps-3" style="width: 200px;">
+                        <div class="d-flex align-items-center">
+                          Setting Key
+                          <button class="btn btn-sm btn-link text-muted p-0 ms-1"
+                            @click="handleTableSort('setting_key')">
+                            <i class="ti ti-arrows-sort" :class="getSortIcon('setting_key')"></i>
+                          </button>
                         </div>
-                      </template>
-
-                      <!-- Setting Value column -->
-                      <template v-if="column.key === 'setting_value'">
+                      </th>
+                      <th class="border-0" style="width: 120px;">
+                        <div class="d-flex align-items-center">
+                          Value
+                          <button class="btn btn-sm btn-link text-muted p-0 ms-1"
+                            @click="handleTableSort('setting_value')">
+                            <i class="ti ti-arrows-sort" :class="getSortIcon('setting_value')"></i>
+                          </button>
+                        </div>
+                      </th>
+                      <th class="border-0" style="width: 100px;">
+                        <div class="d-flex align-items-center">
+                          Type
+                          <button class="btn btn-sm btn-link text-muted p-0 ms-1"
+                            @click="handleTableSort('setting_type')">
+                            <i class="ti ti-arrows-sort" :class="getSortIcon('setting_type')"></i>
+                          </button>
+                        </div>
+                      </th>
+                      <th class="border-0">Description</th>
+                      <th class="border-0" style="width: 80px;">
+                        <div class="d-flex align-items-center">
+                          Year
+                          <button class="btn btn-sm btn-link text-muted p-0 ms-1"
+                            @click="handleTableSort('effective_year')">
+                            <i class="ti ti-arrows-sort" :class="getSortIcon('effective_year')"></i>
+                          </button>
+                        </div>
+                      </th>
+                      <th class="border-0" style="width: 80px;">Status</th>
+                      <th class="border-0 pe-3" style="width: 80px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="taxSettingsLoading">
+                      <td colspan="7" class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        Loading tax settings...
+                      </td>
+                    </tr>
+                    <tr v-else-if="!taxSettings.length">
+                      <td colspan="7" class="text-center py-4 text-muted">
+                        No tax settings found
+                      </td>
+                    </tr>
+                    <tr v-else v-for="record in taxSettings" :key="record.id" class="border-bottom">
+                      <td class="ps-3">
+                        <div>
+                          <strong>{{ record.setting_key }}</strong>
+                          <br>
+                          <small class="text-muted">{{ getSettingKeyLabel(record.setting_key) }}</small>
+                        </div>
+                      </td>
+                      <td>
                         <span class="fw-semibold" :class="getSettingValueClass(record.setting_type)">
                           {{ formatSettingValue(record.setting_value, record.setting_type) }}
                         </span>
-                      </template>
-
-                      <!-- Setting Type column -->
-                      <template v-if="column.key === 'setting_type'">
+                      </td>
+                      <td>
                         <span class="badge" :class="getSettingTypeBadgeClass(record.setting_type)">
-                          {{ getSettingTypeLabel(record.setting_type) }}
+                          {{ record.setting_type }}
                         </span>
-                      </template>
-
-                      <!-- Status column -->
-                      <template v-if="column.key === 'is_active'">
-                        <span :class="['badge', record.is_active ? 'badge-success' : 'badge-secondary']">
-                          {{ record.is_active ? 'Active' : 'Inactive' }}
-                        </span>
-                      </template>
-
-                      <!-- Effective Year column -->
-                      <template v-if="column.key === 'effective_year'">
-                        <span class="badge"
-                          :class="record.effective_year === selectedYear ? 'badge-primary' : 'badge-outline-secondary'">
-                          {{ record.effective_year }}
-                        </span>
-                      </template>
-
-                      <!-- Created At column -->
-                      <template v-if="column.key === 'created_at'">
-                        <div>
-                          <div class="small">{{ formatDate(record.created_at) }}</div>
-                          <div class="text-muted small">{{ formatTime(record.created_at) }}</div>
+                      </td>
+                      <td>
+                        <span class="text-muted">{{ record.description || getSettingKeyDescription(record.setting_key)
+                        }}</span>
+                      </td>
+                      <td>
+                        <span class="badge badge-primary">{{ record.effective_year }}</span>
+                      </td>
+                      <td>
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" :checked="record.is_selected"
+                            @change="toggleTaxSetting(record.id)" :disabled="taxSettingsLoading">
+                          <label class="form-check-label small"
+                            :class="record.is_selected ? 'text-success' : 'text-muted'">
+                            {{ record.is_selected ? 'Active' : 'Inactive' }}
+                          </label>
                         </div>
-                      </template>
-
-                      <!-- Action column -->
-                      <template v-if="column.key === 'action'">
-                        <div class="action-icon d-inline-flex">
-                          <a-tooltip title="Edit Tax Setting">
-                            <a href="javascript:void(0);" class="me-2" @click="editTaxSetting(record)">
-                              <i class="ti ti-edit"></i>
-                            </a>
-                          </a-tooltip>
-                          <a-tooltip title="Delete Tax Setting">
-                            <a href="javascript:void(0);" @click="confirmDeleteTaxSetting(record.id)"
-                              class="text-danger">
-                              <i class="ti ti-trash"></i>
-                            </a>
-                          </a-tooltip>
+                      </td>
+                      <td class="pe-3">
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown">
+                            <i class="ti ti-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                              <a class="dropdown-item" @click="editTaxSetting(record)">
+                                <i class="ti ti-edit me-2"></i>Edit
+                              </a>
+                            </li>
+                            <li>
+                              <a class="dropdown-item text-danger" @click="confirmDeleteTaxSetting(record.id)">
+                                <i class="ti ti-trash me-2"></i>Delete
+                              </a>
+                            </li>
+                          </ul>
                         </div>
-                      </template>
-                    </template>
-                  </a-table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Backend Pagination -->
+              <div class="pagination-wrapper p-3 border-top" v-if="total > 0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="text-muted small">
+                    Showing {{ getShowingText() }}
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center me-3">
+                      <label class="form-label me-2 mb-0 small">Show:</label>
+                      <select class="form-select form-select-sm" v-model="pageSize" @change="handlePageSizeChange"
+                        style="width: 80px;">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                      </select>
+                    </div>
+                    <nav>
+                      <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
+                          <button class="page-link" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
+                            <i class="ti ti-chevron-left"></i>
+                          </button>
+                        </li>
+                        <li class="page-item" :class="{ active: page === currentPage }" v-for="page in visiblePages"
+                          :key="page">
+                          <button class="page-link" @click="goToPage(page)">{{ page }}</button>
+                        </li>
+                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+                          <button class="page-link" @click="goToPage(currentPage + 1)"
+                            :disabled="currentPage === totalPages">
+                            <i class="ti ti-chevron-right"></i>
+                          </button>
+                        </li>
+                      </ul>
+                    </nav>
+                    <div class="d-flex align-items-center ms-3">
+                      <label class="form-label me-2 mb-0 small">Go to:</label>
+                      <input type="number" class="form-control form-control-sm" v-model.number="jumpToPage"
+                        @keyup.enter="handleJumpToPage" :min="1" :max="totalPages" style="width: 60px;">
+                      <button class="btn btn-sm btn-outline-secondary ms-1" @click="handleJumpToPage">
+                        <i class="ti ti-arrow-right"></i>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </a-tab-pane>
+        </div>
 
         <!-- Tax Brackets Tab -->
-        <a-tab-pane key="2">
-          <template #tab>
-            <i class="ti ti-list me-2"></i>Tax Brackets
-          </template>
-          <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div class="tab-pane fade p-0 border-bottom-0" :class="{ 'show active': activeKey === '2' }"
+          id="tax-brackets-pane" role="tabpanel" aria-labelledby="tax-brackets-tab" tabindex="0">
+          <!-- Header Section -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h3 class="page-title mb-0">Tax Brackets</h3>
-              <p class="text-muted">Configure income tax brackets and progressive tax rates for {{ selectedYear }}</p>
+              <h1 class="h3 mb-1">Tax Brackets Management</h1>
+              <p class="text-muted mb-0">Configure income tax brackets and progressive tax rates for {{ selectedYear }}.
+              </p>
             </div>
-            <div class="header-actions">
-              <button class="btn btn-primary d-flex align-items-center" @click="openAddTaxBracketModal">
-                <i class="ti ti-circle-plus me-2"></i>Add Tax Bracket
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary btn-sm d-flex align-items-center" @click="openAddTaxBracketModal">
+                <i class="ti ti-plus me-1"></i>Add Tax Bracket
+              </button>
+              <button class="btn btn-outline-secondary btn-sm d-flex align-items-center"
+                @click="exportTaxBracketsToExcel">
+                <i class="ti ti-download me-1"></i>Export
               </button>
             </div>
           </div>
@@ -331,61 +395,117 @@
             </div>
           </div>
 
-          <!-- Tax Brackets Table -->
-          <div class="row">
-            <div class="col-sm-12">
-              <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                  <div class="d-flex align-items-center">
-                    <h5 class="mb-0 me-3">Progressive Tax Brackets</h5>
-                    <div class="d-flex align-items-center text-muted small">
-                      <span class="me-2">Year: {{ selectedYear }}</span>
-                    </div>
-                  </div>
-                  <div class="d-flex align-items-center flex-wrap row-gap-2">
-                    <div class="dropdown me-2">
-                      <a href="javascript:void(0);" class="btn btn-white border btn-sm d-inline-flex align-items-center"
-                        data-bs-toggle="dropdown">
-                        <i class="ti ti-file-export me-1"></i>Export
-                      </a>
-                      <ul class="dropdown-menu dropdown-menu-end p-3">
-                        <li>
-                          <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                            @click="exportTaxBracketsToExcel">
-                            <i class="ti ti-file-type-xls me-1"></i>Export as Excel
-                          </a>
-                        </li>
-                        <li>
-                          <a href="javascript:void(0);" class="dropdown-item rounded-1" @click="exportTaxBracketsToPDF">
-                            <i class="ti ti-file-type-pdf me-1"></i>Export as PDF
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
-                    <div class="input-icon-end position-relative">
-                      <a-input v-model:value="taxBracketsSearchText" placeholder="Search tax brackets..."
-                        @input="handleTaxBracketsSearch" style="width: 250px;" allow-clear>
-                        <template #suffix>
-                          <i class="ti ti-search"></i>
-                        </template>
-                      </a-input>
-                    </div>
+          <!-- Filters Section -->
+          <div class="card mb-4">
+            <div class="card-body">
+              <div class="d-flex align-items-center mb-3">
+                <i class="ti ti-filter me-2"></i>
+                <h6 class="mb-0 me-3">Filters</h6>
+              </div>
+              <div class="row g-3">
+                <div class="col-md-3">
+                  <label class="form-label small">Search</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="ti ti-search"></i></span>
+                    <input type="text" class="form-control" v-model="taxBracketsSearchText"
+                      @input="handleTaxBracketsSearch" placeholder="Search by bracket order...">
                   </div>
                 </div>
-                <div class="card-body p-0">
-                  <a-table :columns="taxBracketsColumns" :data-source="filteredTaxBrackets"
-                    :pagination="taxBracketsPagination" :loading="taxBracketsLoading" row-key="id" size="middle"
-                    @change="handleTaxBracketsTableChange" :scroll="{ x: 800 }">
-                    <!-- Bracket Order column -->
-                    <template #bodyCell="{ column, record }">
-                      <template v-if="column.key === 'bracket_order'">
+                <div class="col-md-2">
+                  <label class="form-label small">Effective Year</label>
+                  <select class="form-select" v-model="taxBracketsFilters.effectiveYear"
+                    @change="applyTaxBracketsEffectiveYearFilter">
+                    <option value="">All years</option>
+                    <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+                  </select>
+                </div>
+                <div class="col-md-2">
+                  <label class="form-label small">Status</label>
+                  <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" v-model="taxBracketsFilters.activeOnly"
+                      @change="applyTaxBracketsActiveFilter">
+                    <label class="form-check-label small">Active only</label>
+                  </div>
+                </div>
+                <div class="col-md-5 d-flex align-items-end">
+                  <div class="d-flex gap-2 w-100">
+                    <span class="badge bg-secondary">{{ totalTaxBracketsCount }} total brackets</span>
+                    <button class="btn btn-outline-secondary btn-sm" @click="clearTaxBracketsFilters">
+                      <i class="ti ti-x me-1"></i>Clear filters
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tax Brackets Table -->
+          <div class="card">
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-borderless mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="border-0 ps-3" style="width: 80px;">
+                        <div class="d-flex align-items-center">
+                          Order
+                          <button class="btn btn-sm btn-link text-muted p-0 ms-1"
+                            @click="handleTaxBracketsTableSort('bracket_order')">
+                            <i class="ti ti-arrows-sort" :class="getTaxBracketsSortIcon('bracket_order')"></i>
+                          </button>
+                        </div>
+                      </th>
+                      <th class="border-0" style="width: 250px;">
+                        <div class="d-flex align-items-center">
+                          Income Range
+                          <button class="btn btn-sm btn-link text-muted p-0 ms-1"
+                            @click="handleTaxBracketsTableSort('min_income')">
+                            <i class="ti ti-arrows-sort" :class="getTaxBracketsSortIcon('min_income')"></i>
+                          </button>
+                        </div>
+                      </th>
+                      <th class="border-0" style="width: 120px;">
+                        <div class="d-flex align-items-center">
+                          Tax Rate
+                          <button class="btn btn-sm btn-link text-muted p-0 ms-1"
+                            @click="handleTaxBracketsTableSort('tax_rate')">
+                            <i class="ti ti-arrows-sort" :class="getTaxBracketsSortIcon('tax_rate')"></i>
+                          </button>
+                        </div>
+                      </th>
+                      <th class="border-0">Description</th>
+                      <th class="border-0" style="width: 80px;">
+                        <div class="d-flex align-items-center">
+                          Year
+                          <button class="btn btn-sm btn-link text-muted p-0 ms-1"
+                            @click="handleTaxBracketsTableSort('effective_year')">
+                            <i class="ti ti-arrows-sort" :class="getTaxBracketsSortIcon('effective_year')"></i>
+                          </button>
+                        </div>
+                      </th>
+                      <th class="border-0" style="width: 80px;">Status</th>
+                      <th class="border-0 pe-3" style="width: 80px;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="taxBracketsLoading">
+                      <td colspan="7" class="text-center py-4">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        Loading tax brackets...
+                      </td>
+                    </tr>
+                    <tr v-else-if="!taxBrackets.length">
+                      <td colspan="7" class="text-center py-4 text-muted">
+                        No tax brackets found
+                      </td>
+                    </tr>
+                    <tr v-else v-for="record in taxBrackets" :key="record.id" class="border-bottom">
+                      <td class="ps-3">
                         <div class="text-center">
                           <span class="badge badge-primary">{{ record.bracket_order }}</span>
                         </div>
-                      </template>
-
-                      <!-- Income Range column -->
-                      <template v-if="column.key === 'income_range'">
+                      </td>
+                      <td>
                         <div>
                           <strong class="text-primary">{{ formatIncomeRange(record.min_income, record.max_income)
                             }}</strong>
@@ -396,165 +516,261 @@
                             <small class="text-muted">Max: {{ formatCurrency(record.max_income) }}</small>
                           </span>
                         </div>
-                      </template>
-
-                      <!-- Tax Rate column -->
-                      <template v-if="column.key === 'tax_rate'">
+                      </td>
+                      <td>
                         <span class="fw-semibold" :class="getTaxRateClass(record.tax_rate)">
                           {{ record.tax_rate }}%
                         </span>
-                      </template>
-
-                      <!-- Status column -->
-                      <template v-if="column.key === 'is_active'">
+                      </td>
+                      <td>
+                        <span class="text-muted">{{ record.description || `${record.tax_rate}% tax bracket` }}</span>
+                      </td>
+                      <td>
+                        <span class="badge badge-primary">{{ record.effective_year }}</span>
+                      </td>
+                      <td>
                         <span :class="['badge', record.is_active ? 'badge-success' : 'badge-secondary']">
                           {{ record.is_active ? 'Active' : 'Inactive' }}
                         </span>
-                      </template>
-
-                      <!-- Action column -->
-                      <template v-if="column.key === 'action'">
-                        <div class="action-icon d-inline-flex">
-                          <a-tooltip title="Edit Tax Bracket">
-                            <a href="javascript:void(0);" class="me-2" @click="editTaxBracket(record)">
-                              <i class="ti ti-edit"></i>
-                            </a>
-                          </a-tooltip>
-                          <a-tooltip title="Delete Tax Bracket">
-                            <a href="javascript:void(0);" @click="confirmDeleteTaxBracket(record.id)"
-                              class="text-danger">
-                              <i class="ti ti-trash"></i>
-                            </a>
-                          </a-tooltip>
+                      </td>
+                      <td class="pe-3">
+                        <div class="dropdown">
+                          <button class="btn btn-sm btn-link text-muted" data-bs-toggle="dropdown">
+                            <i class="ti ti-dots-vertical"></i>
+                          </button>
+                          <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                              <a class="dropdown-item" @click="editTaxBracket(record)">
+                                <i class="ti ti-edit me-2"></i>Edit
+                              </a>
+                            </li>
+                            <li>
+                              <a class="dropdown-item text-danger" @click="confirmDeleteTaxBracket(record.id)">
+                                <i class="ti ti-trash me-2"></i>Delete
+                              </a>
+                            </li>
+                          </ul>
                         </div>
-                      </template>
-                    </template>
-                  </a-table>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Backend Pagination -->
+              <div class="pagination-wrapper p-3 border-top" v-if="taxBracketsTotal > 0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="text-muted small">
+                    Showing {{ getTaxBracketsShowingText() }}
+                  </div>
+                  <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center me-3">
+                      <label class="form-label me-2 mb-0 small">Show:</label>
+                      <select class="form-select form-select-sm" v-model="taxBracketsPageSize"
+                        @change="handleTaxBracketsPageSizeChange" style="width: 80px;">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                      </select>
+                    </div>
+                    <nav>
+                      <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" :class="{ disabled: taxBracketsCurrentPage === 1 }">
+                          <button class="page-link" @click="goToTaxBracketsPage(taxBracketsCurrentPage - 1)"
+                            :disabled="taxBracketsCurrentPage === 1">
+                            <i class="ti ti-chevron-left"></i>
+                          </button>
+                        </li>
+                        <li class="page-item" :class="{ active: page === taxBracketsCurrentPage }"
+                          v-for="page in taxBracketsVisiblePages" :key="page">
+                          <button class="page-link" @click="goToTaxBracketsPage(page)">{{ page }}</button>
+                        </li>
+                        <li class="page-item" :class="{ disabled: taxBracketsCurrentPage === taxBracketsTotalPages }">
+                          <button class="page-link" @click="goToTaxBracketsPage(taxBracketsCurrentPage + 1)"
+                            :disabled="taxBracketsCurrentPage === taxBracketsTotalPages">
+                            <i class="ti ti-chevron-right"></i>
+                          </button>
+                        </li>
+                      </ul>
+                    </nav>
+                    <div class="d-flex align-items-center ms-3">
+                      <label class="form-label me-2 mb-0 small">Go to:</label>
+                      <input type="number" class="form-control form-control-sm" v-model.number="taxBracketsJumpToPage"
+                        @keyup.enter="handleTaxBracketsJumpToPage" :min="1" :max="taxBracketsTotalPages"
+                        style="width: 60px;">
+                      <button class="btn btn-sm btn-outline-secondary ms-1" @click="handleTaxBracketsJumpToPage">
+                        <i class="ti ti-arrow-right"></i>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </a-tab-pane>
+        </div>
 
         <!-- Tax Calculator Tab -->
-        <a-tab-pane key="3">
-          <template #tab>
-            <i class="ti ti-calculator me-2"></i>Tax Calculator
-          </template>
-          <div class="page-header d-flex justify-content-between align-items-center mb-4">
+        <div class="tab-pane fade p-0 border-bottom-0" :class="{ 'show active': activeKey === '3' }"
+          id="tax-calculator-pane" role="tabpanel" aria-labelledby="tax-calculator-tab" tabindex="0">
+          <!-- Header Section -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-              <h3 class="page-title mb-0">Tax Calculator</h3>
-              <p class="text-muted">Calculate income tax, social security, and other deductions for {{ selectedYear }}
-              </p>
+              <h1 class="h3 mb-1">Tax Calculator</h1>
+              <p class="text-muted mb-0">Calculate income tax, social security, and other deductions for {{ selectedYear
+              }}</p>
             </div>
-            <div class="header-actions">
-              <div class="d-flex align-items-center">
-                <button class="btn btn-outline-primary btn-sm me-2" @click="saveCalculation"
-                  :disabled="!hasCalculationResults">
-                  <i class="ti ti-device-floppy me-1"></i>Save Calculation
-                </button>
-                <button class="btn btn-outline-secondary btn-sm me-2" @click="printCalculation"
-                  :disabled="!hasCalculationResults">
-                  <i class="ti ti-printer me-1"></i>Print
-                </button>
-                <button class="btn btn-outline-info btn-sm" @click="resetCalculator">
-                  <i class="ti ti-refresh me-1"></i>Reset
-                </button>
-              </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm d-flex align-items-center" @click="saveCalculation"
+                :disabled="!hasCalculationResults">
+                <i class="ti ti-device-floppy me-1"></i>Save Calculation
+              </button>
+              <button class="btn btn-outline-secondary btn-sm d-flex align-items-center" @click="printCalculation"
+                :disabled="!hasCalculationResults">
+                <i class="ti ti-printer me-1"></i>Print
+              </button>
+              <button class="btn btn-primary btn-sm d-flex align-items-center" @click="resetCalculator">
+                <i class="ti ti-refresh me-1"></i>Reset
+              </button>
             </div>
           </div>
 
           <!-- Tax Calculator Content -->
           <div class="row">
             <div class="col-lg-8">
-              <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                  <h5 class="mb-0">Employee Tax Calculator</h5>
-                  <div class="d-flex align-items-center">
-                    <label class="form-label me-2 mb-0 small">Calculation Year:</label>
-                    <select class="form-select form-select-sm" v-model="calculator.calculationYear"
-                      @change="calculateTaxRealTime" style="width: 100px;">
-                      <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
-                    </select>
-                  </div>
-                </div>
+              <!-- Payroll Calculation Card -->
+              <div class="card mb-4">
                 <div class="card-body">
+                  <div class="d-flex align-items-center mb-3">
+                    <div class="avatar avatar-md bg-primary rounded-circle me-3">
+                      <i class="ti ti-calculator text-white"></i>
+                    </div>
+                    <div>
+                      <h5 class="mb-1">Payroll Calculation</h5>
+                      <p class="text-muted mb-0">Calculate Thai Revenue Department compliant payroll with employment
+                        deductions and personal allowances</p>
+                    </div>
+                  </div>
+
                   <form @submit.prevent="calculateTax">
-                    <div class="row mb-3">
-                      <div class="col-md-6">
-                        <label class="form-label">Monthly Salary <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                          <span class="input-group-text">฿</span>
-                          <input type="number" class="form-control" v-model="calculator.monthlySalary"
-                            placeholder="Enter monthly salary" @input="calculateTaxRealTime" step="0.01" min="0">
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <label class="form-label">Annual Salary</label>
-                        <div class="input-group">
-                          <span class="input-group-text">฿</span>
-                          <input type="number" class="form-control" v-model="calculator.annualSalary"
-                            placeholder="Auto-calculated" readonly>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="row mb-3">
-                      <div class="col-md-6">
-                        <label class="form-label">Allowances</label>
-                        <div class="input-group">
-                          <span class="input-group-text">฿</span>
-                          <input type="number" class="form-control" v-model="calculator.allowances" placeholder="0"
-                            @input="calculateTaxRealTime" step="0.01" min="0">
-                        </div>
-                        <div class="form-text">
-                          <small>Housing, transportation, and other allowances</small>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <label class="form-label">Other Income</label>
-                        <div class="input-group">
-                          <span class="input-group-text">฿</span>
-                          <input type="number" class="form-control" v-model="calculator.otherIncome" placeholder="0"
-                            @input="calculateTaxRealTime" step="0.01" min="0">
-                        </div>
-                        <div class="form-text">
-                          <small>Bonuses, commissions, and other income</small>
-                        </div>
-                      </div>
-                    </div>
-
+                    <!-- Main Input Fields -->
                     <div class="row mb-4">
-                      <div class="col-md-6">
-                        <label class="form-label">Additional Deductions</label>
-                        <div class="input-group">
-                          <span class="input-group-text">฿</span>
-                          <input type="number" class="form-control" v-model="calculator.deductions" placeholder="0"
-                            @input="calculateTaxRealTime" step="0.01" min="0">
-                        </div>
-                        <div class="form-text">
-                          <small>Insurance, donations, and other deductible expenses</small>
-                        </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Employee ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" v-model="calculator.employeeId"
+                          placeholder="Enter employee ID">
                       </div>
-                      <div class="col-md-6">
-                        <label class="form-label">Dependents</label>
-                        <input type="number" class="form-control" v-model="calculator.dependents" placeholder="0"
-                          @input="calculateTaxRealTime" min="0" max="10">
-                        <div class="form-text">
-                          <small>Number of dependent children or family members</small>
+                      <div class="col-md-4">
+                        <label class="form-label">Monthly Gross Salary (฿) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" v-model="calculator.monthlySalary" placeholder="50000"
+                          @input="calculateTaxRealTime" step="0.01" min="0">
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Tax Year</label>
+                        <select class="form-select" v-model="calculator.calculationYear" @change="calculateTaxRealTime">
+                          <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- Additional Income Section -->
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0">Additional Income</h6>
+                        <button type="button" class="btn btn-sm btn-outline-success" @click="addIncomeItem">
+                          <i class="ti ti-plus me-1"></i>Add Income
+                        </button>
+                      </div>
+                      <div v-if="calculator.additionalIncomes.length === 0" class="text-muted text-center py-3">
+                        <i class="ti ti-plus-circle me-2"></i>No additional income items. Click "Add Income" to add
+                        items.
+                      </div>
+                      <div v-else>
+                        <div v-for="(income, index) in calculator.additionalIncomes" :key="index"
+                          class="border rounded p-3 mb-2">
+                          <div class="row align-items-end">
+                            <div class="col-md-6">
+                              <label class="form-label small">Income Type</label>
+                              <select class="form-select form-select-sm" v-model="income.type"
+                                @change="calculateTaxRealTime">
+                                <option value="allowances">Allowances</option>
+                                <option value="bonus">Bonus</option>
+                                <option value="commission">Commission</option>
+                                <option value="overtime">Overtime</option>
+                                <option value="other">Other Income</option>
+                              </select>
+                            </div>
+                            <div class="col-md-5">
+                              <label class="form-label small">Amount (฿)</label>
+                              <input type="number" class="form-control form-control-sm" v-model="income.amount"
+                                @input="calculateTaxRealTime" step="0.01" min="0" placeholder="0">
+                            </div>
+                            <div class="col-md-1">
+                              <button type="button" class="btn btn-sm btn-outline-danger"
+                                @click="removeIncomeItem(index)">
+                                <i class="ti ti-trash"></i>
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center">
-                      <button type="submit" class="btn btn-primary" :disabled="calculatorLoading">
+                    <!-- Additional Deductions Section -->
+                    <div class="mb-4">
+                      <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h6 class="mb-0">Additional Deductions</h6>
+                        <button type="button" class="btn btn-sm btn-outline-info" @click="addDeductionItem">
+                          <i class="ti ti-plus me-1"></i>Add Deduction
+                        </button>
+                      </div>
+                      <div v-if="calculator.additionalDeductions.length === 0" class="text-muted text-center py-3">
+                        <i class="ti ti-plus-circle me-2"></i>No additional deduction items. Click "Add Deduction" to
+                        add items.
+                      </div>
+                      <div v-else>
+                        <div v-for="(deduction, index) in calculator.additionalDeductions" :key="index"
+                          class="border rounded p-3 mb-2">
+                          <div class="row align-items-end">
+                            <div class="col-md-6">
+                              <label class="form-label small">Deduction Type</label>
+                              <select class="form-select form-select-sm" v-model="deduction.type"
+                                @change="calculateTaxRealTime">
+                                <option value="insurance">Life Insurance</option>
+                                <option value="health_insurance">Health Insurance</option>
+                                <option value="donation">Charitable Donations</option>
+                                <option value="education">Education Expenses</option>
+                                <option value="housing">Housing Loan Interest</option>
+                                <option value="other">Other Deductions</option>
+                              </select>
+                            </div>
+                            <div class="col-md-5">
+                              <label class="form-label small">Amount (฿)</label>
+                              <input type="number" class="form-control form-control-sm" v-model="deduction.amount"
+                                @input="calculateTaxRealTime" step="0.01" min="0" placeholder="0">
+                            </div>
+                            <div class="col-md-1">
+                              <button type="button" class="btn btn-sm btn-outline-danger"
+                                @click="removeDeductionItem(index)">
+                                <i class="ti ti-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Calculate Button -->
+                    <div class="d-flex justify-content-center">
+                      <button type="submit" class="btn btn-primary btn-lg px-5"
+                        :disabled="calculatorLoading || !calculator.monthlySalary">
                         <span v-if="calculatorLoading" class="spinner-border spinner-border-sm me-2"
                           role="status"></span>
-                        <i v-else class="ti ti-calculator me-2"></i>Calculate Tax
+                        <i v-else class="ti ti-calculator me-2"></i>Calculate Payroll
                       </button>
-                      <div class="text-muted small">
-                        <i class="ti ti-info-circle me-1"></i>Calculation updates automatically as you type
-                      </div>
+                    </div>
+                    <div class="text-center text-muted small mt-2">
+                      <i class="ti ti-info-circle me-1"></i>Calculation updates automatically as you type
                     </div>
                   </form>
                 </div>
@@ -563,73 +779,69 @@
 
             <div class="col-lg-4">
               <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header">
                   <h5 class="mb-0">Tax Calculation Results</h5>
-                  <div v-if="hasCalculationResults" class="text-success small">
+                  <div v-if="hasCalculationResults" class="text-success small mt-1">
                     <i class="ti ti-check-circle me-1"></i>Calculated
                   </div>
                 </div>
                 <div class="card-body">
-                  <div class="tax-summary">
+                  <div class="tax-results-summary">
                     <!-- Gross Income -->
-                    <div class="summary-item d-flex justify-content-between mb-3">
-                      <span class="d-flex align-items-center">
-                        <i class="ti ti-coins me-2 text-primary"></i>Gross Income:
-                      </span>
-                      <strong class="text-primary">{{ formatCurrency(calculator.grossIncome) }}</strong>
+                    <div class="result-item d-flex justify-content-between align-items-center py-2">
+                      <span class="text-muted">Gross Income:</span>
+                      <strong class="text-dark">{{ formatCurrency(calculator.grossIncome) }}</strong>
                     </div>
 
-                    <!-- Personal Deductions -->
-                    <div class="summary-item d-flex justify-content-between mb-2">
-                      <span class="small text-muted">Personal Allowance:</span>
-                      <span class="small text-muted">{{ formatCurrency(calculator.personalDeductions) }}</span>
+                    <!-- Personal Allowance -->
+                    <div class="result-item d-flex justify-content-between align-items-center py-2">
+                      <span class="text-muted">Personal Allowance:</span>
+                      <strong class="text-dark">{{ formatCurrency(calculator.personalDeductions) }}</strong>
                     </div>
 
                     <!-- Taxable Income -->
-                    <div class="summary-item d-flex justify-content-between mb-3 p-2 bg-light rounded">
-                      <span class="fw-semibold">Taxable Income:</span>
-                      <strong class="text-info">{{ formatCurrency(calculator.taxableIncome) }}</strong>
+                    <div class="result-item d-flex justify-content-between align-items-center py-2 border-top">
+                      <span class="text-primary fw-semibold">Taxable Income:</span>
+                      <strong class="text-primary fs-6">{{ formatCurrency(calculator.taxableIncome) }}</strong>
                     </div>
 
-                    <hr>
 
-                    <!-- Tax Breakdown -->
-                    <div class="summary-item d-flex justify-content-between mb-2">
-                      <span class="d-flex align-items-center">
-                        <i class="ti ti-receipt-tax me-2 text-danger"></i>Income Tax:
-                      </span>
-                      <strong class="text-danger">{{ formatCurrency(calculator.incomeTax) }}</strong>
-                    </div>
-                    <div class="summary-item d-flex justify-content-between mb-2">
-                      <span class="d-flex align-items-center">
-                        <i class="ti ti-shield me-2 text-warning"></i>Social Security:
-                      </span>
-                      <strong class="text-warning">{{ formatCurrency(calculator.socialSecurity) }}</strong>
-                    </div>
-                    <div class="summary-item d-flex justify-content-between mb-3">
-                      <span class="d-flex align-items-center">
-                        <i class="ti ti-piggy-bank me-2 text-success"></i>Provident Fund:
-                      </span>
-                      <strong class="text-success">{{ formatCurrency(calculator.providentFund) }}</strong>
+                    <!-- Tax Deductions -->
+                    <div class="mt-3 mb-3">
+                      <div class="result-item d-flex justify-content-between align-items-center py-2">
+                        <span class="text-danger">Income Tax:</span>
+                        <strong class="text-danger">{{ formatCurrency(calculator.incomeTax) }}</strong>
+                      </div>
+                      <div class="result-item d-flex justify-content-between align-items-center py-2">
+                        <span class="text-warning">Social Security:</span>
+                        <strong class="text-warning">{{ formatCurrency(calculator.socialSecurity) }}</strong>
+                      </div>
+                      <div class="result-item d-flex justify-content-between align-items-center py-2">
+                        <span class="text-success">Provident Fund:</span>
+                        <strong class="text-success">{{ formatCurrency(calculator.providentFund) }}</strong>
+                      </div>
                     </div>
 
-                    <hr>
-
-                    <!-- Net Income -->
-                    <div class="summary-item d-flex justify-content-between mb-3 p-3 bg-success bg-opacity-10 rounded">
-                      <span class="fw-bold text-success">Net Income:</span>
-                      <strong class="text-success fs-5">{{ formatCurrency(calculator.netIncome) }}</strong>
+                    <!-- Net Income Highlight -->
+                    <div class="result-highlight bg-success bg-opacity-10 border border-success rounded-3 p-3 mt-4">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-success fw-bold fs-6">Net Income:</span>
+                        <div class="text-end">
+                          <div class="text-success fw-bold fs-4">{{ formatCurrency(calculator.netIncome) }}</div>
+                          <div class="text-muted small">***</div>
+                        </div>
+                      </div>
                     </div>
 
                     <!-- Tax Rates -->
-                    <div class="row text-center">
+                    <div class="row text-center mt-4">
                       <div class="col-6">
-                        <div class="small text-muted">Effective Rate</div>
-                        <div class="fw-semibold text-primary">{{ calculator.effectiveTaxRate }}%</div>
+                        <div class="small text-muted mb-1">Effective Rate</div>
+                        <div class="fw-bold text-primary fs-5">{{ calculator.effectiveTaxRate }}%</div>
                       </div>
                       <div class="col-6">
-                        <div class="small text-muted">Marginal Rate</div>
-                        <div class="fw-semibold text-warning">{{ calculator.marginalTaxRate }}%</div>
+                        <div class="small text-muted mb-1">Marginal Rate</div>
+                        <div class="fw-bold text-warning fs-5">{{ calculator.marginalTaxRate }}%</div>
                       </div>
                     </div>
                   </div>
@@ -657,8 +869,8 @@
               </div>
             </div>
           </div>
-        </a-tab-pane>
-      </a-tabs>
+        </div>
+      </div>
     </div>
 
     <layout-footer></layout-footer>
@@ -676,7 +888,6 @@
 
 <script>
 import moment from 'moment';
-import { Modal, message } from 'ant-design-vue';
 import { taxSettingsService } from '@/services/tax-settings.service';
 import { taxBracketsService } from '@/services/tax-brackets.service';
 import { taxCalculationsService } from '@/services/tax-calculations.service';
@@ -712,24 +923,45 @@ export default {
       editingTaxSetting: null,
       editingTaxBracket: null,
 
-      // Search
+      // Search and Filters
       searchText: '',
       taxBracketsSearchText: '',
+      taxBracketsFilters: {
+        effectiveYear: '',
+        activeOnly: false
+      },
+      // Backend Pagination (following employee-list pattern)
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
 
-      // Debounced search functions
-      debouncedTaxSettingsSearch: null,
+      // Sorting and Filtering state (following employee-list pattern)
+      sortedInfo: {},
+      filteredInfo: {},
+
+      // Individual filter states for custom dropdowns
+      filterSettingType: '',
+      filterEffectiveYear: '',
+      filterIsSelected: '',
+
+      // Jump to page input
+      jumpToPage: null,
+
+      // Debounced search function
+      debouncedSearch: null,
+
+      // Debounced functions
       debouncedTaxBracketsSearch: null,
       debouncedCalculation: null,
 
       // Tax Calculator data
       calculator: {
+        employeeId: '',
         monthlySalary: 0,
         annualSalary: 0,
-        allowances: 0,
-        otherIncome: 0,
-        deductions: 0,
-        dependents: 0,
         calculationYear: new Date().getFullYear(),
+        additionalIncomes: [],
+        additionalDeductions: [],
         grossIncome: 0,
         taxableIncome: 0,
         personalDeductions: 0,
@@ -755,213 +987,121 @@ export default {
       taxBrackets: [],
       rawTaxSettings: [],
       rawTaxBrackets: [],
+      allowedKeys: [],
 
       // Tax Settings Table configuration
       selectedTaxSettingKeys: [],
-      taxSettingsCurrentPage: 1,
-      taxSettingsPageSize: 10,
-      taxSettingsPagination: {
-        current: 1,
-        pageSize: 10,
-        total: 0,
-        pageSizeOptions: ['10', '20', '50', '100'],
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
-      },
 
-      // Tax Brackets Table configuration
+      // Tax Brackets Backend Pagination (following tax settings pattern)
       taxBracketsCurrentPage: 1,
       taxBracketsPageSize: 10,
-      taxBracketsPagination: {
-        current: 1,
-        pageSize: 10,
-        total: 0,
-        pageSizeOptions: ['10', '20', '50', '100'],
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
-      },
+      taxBracketsTotal: 0,
 
-      // Tax Settings Table columns
-      taxSettingsColumns: [
-        {
-          title: 'Setting Key',
-          dataIndex: 'setting_key',
-          key: 'setting_key',
-          sorter: true,
-          width: 200,
-          fixed: 'left'
-        },
-        {
-          title: 'Value',
-          dataIndex: 'setting_value',
-          key: 'setting_value',
-          sorter: true,
-          width: 130,
-          align: 'right'
-        },
-        {
-          title: 'Type',
-          dataIndex: 'setting_type',
-          key: 'setting_type',
-          width: 100,
-          filters: [
-            { text: 'Deduction', value: 'DEDUCTION' },
-            { text: 'Rate', value: 'RATE' },
-            { text: 'Limit', value: 'LIMIT' }
-          ]
-        },
-        {
-          title: 'Effective Year',
-          dataIndex: 'effective_year',
-          key: 'effective_year',
-          sorter: true,
-          width: 120,
-          align: 'center'
-        },
-        {
-          title: 'Status',
-          dataIndex: 'is_active',
-          key: 'is_active',
-          width: 100,
-          filters: [
-            { text: 'Active', value: true },
-            { text: 'Inactive', value: false }
-          ]
-        },
-        {
-          title: 'Description',
-          dataIndex: 'description',
-          key: 'description',
-          ellipsis: true,
-          width: 200
-        },
-        {
-          title: 'Created',
-          dataIndex: 'created_at',
-          key: 'created_at',
-          sorter: true,
-          width: 120
-        },
-        {
-          title: 'Action',
-          key: 'action',
-          width: 100,
-          fixed: 'right'
-        }
-      ],
+      // Tax Brackets Sorting and Filtering state
+      taxBracketsSortedInfo: {},
+      taxBracketsFilteredInfo: {},
 
-      // Tax Brackets Table columns
-      taxBracketsColumns: [
-        {
-          title: 'Order',
-          dataIndex: 'bracket_order',
-          key: 'bracket_order',
-          sorter: true,
-          width: 80,
-          align: 'center'
-        },
-        {
-          title: 'Income Range',
-          key: 'income_range',
-          width: 250
-        },
-        {
-          title: 'Tax Rate (%)',
-          dataIndex: 'tax_rate',
-          key: 'tax_rate',
-          sorter: true,
-          width: 120,
-          align: 'right'
-        },
-        {
-          title: 'Status',
-          dataIndex: 'is_active',
-          key: 'is_active',
-          width: 100,
-          filters: [
-            { text: 'Active', value: true },
-            { text: 'Inactive', value: false }
-          ]
-        },
-        {
-          title: 'Description',
-          dataIndex: 'description',
-          key: 'description',
-          ellipsis: true
-        },
-        {
-          title: 'Action',
-          key: 'action',
-          width: 100,
-          fixed: 'right'
-        }
-      ]
+      // Tax Brackets Jump to page input
+      taxBracketsJumpToPage: null,
+
+
+
+
     };
   },
 
   created() {
     // Initialize debounced functions
-    this.debouncedTaxSettingsSearch = debounce(this.performTaxSettingsSearch, 300);
+    this.debouncedSearch = debounce(this.performTaxSettingsSearch, 300);
     this.debouncedTaxBracketsSearch = debounce(this.performTaxBracketsSearch, 300);
     this.debouncedCalculation = debounce(this.performTaxCalculation, 500);
   },
 
   computed: {
-    // Tax Settings Row selection configuration
-    taxSettingsRowSelection() {
-      return {
-        selectedRowKeys: this.selectedTaxSettingKeys,
-        onChange: this.onTaxSettingsSelectChange,
-        getCheckboxProps: (record) => ({
-          disabled: false,
-          name: record.id,
-        }),
-      };
+    // Backend Pagination computed properties
+    totalPages() {
+      return Math.ceil(this.total / this.pageSize);
     },
 
-    // Filtered tax settings based on search
-    filteredTaxSettings() {
-      if (!Array.isArray(this.taxSettings)) return [];
+    visiblePages() {
+      const pages = [];
+      const maxVisible = 5;
+      const current = this.currentPage;
+      const total = this.totalPages;
 
-      if (!this.searchText) {
-        return this.taxSettings;
+      let start = Math.max(1, current - Math.floor(maxVisible / 2));
+      let end = Math.min(total, start + maxVisible - 1);
+
+      if (end - start + 1 < maxVisible) {
+        start = Math.max(1, end - maxVisible + 1);
       }
 
-      return this.taxSettings.filter(setting =>
-        this.getSettingKeyLabel(setting.setting_key).toLowerCase().includes(this.searchText.toLowerCase()) ||
-        setting.setting_key.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        setting.description?.toLowerCase().includes(this.searchText.toLowerCase()) ||
-        setting.setting_type.toLowerCase().includes(this.searchText.toLowerCase())
-      );
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      return pages;
     },
 
-    // Filtered tax brackets based on search
-    filteredTaxBrackets() {
-      if (!Array.isArray(this.taxBrackets)) return [];
+    // Tax Brackets Backend Pagination computed properties
+    taxBracketsTotalPages() {
+      return Math.ceil(this.taxBracketsTotal / this.taxBracketsPageSize);
+    },
 
-      if (!this.taxBracketsSearchText) {
-        return this.taxBrackets;
+    taxBracketsVisiblePages() {
+      const pages = [];
+      const maxVisible = 5;
+      const current = this.taxBracketsCurrentPage;
+      const total = this.taxBracketsTotalPages;
+
+      let start = Math.max(1, current - Math.floor(maxVisible / 2));
+      let end = Math.min(total, start + maxVisible - 1);
+
+      if (end - start + 1 < maxVisible) {
+        start = Math.max(1, end - maxVisible + 1);
       }
 
-      return this.taxBrackets.filter(bracket =>
-        bracket.description?.toLowerCase().includes(this.taxBracketsSearchText.toLowerCase()) ||
-        bracket.bracket_order.toString().includes(this.taxBracketsSearchText.toLowerCase())
-      );
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      return pages;
     },
 
     // Summary calculations
     totalTaxSettings() {
-      return this.taxSettings?.length || 0;
+      return this.total || 0;
     },
 
     activeTaxSettings() {
-      return this.taxSettings?.filter(setting => setting.is_active)?.length || 0;
+      return this.taxSettings?.filter(setting => setting.is_selected)?.length || 0;
+    },
+
+    // Filter tracking (following employee-list pattern)
+    hasActiveFilters() {
+      return this.searchText ||
+        this.filterSettingType ||
+        this.filterEffectiveYear ||
+        this.filterIsSelected ||
+        (this.sortedInfo && this.sortedInfo.field);
+    },
+
+    getActiveFiltersCount() {
+      let count = 0;
+      if (this.searchText) count++;
+      if (this.filterSettingType) count++;
+      if (this.filterEffectiveYear) count++;
+      if (this.filterIsSelected) count++;
+      if (this.sortedInfo && this.sortedInfo.field) count++;
+      return count;
     },
 
     totalTaxBrackets() {
-      return this.taxBrackets?.length || 0;
+      return this.taxBracketsTotal || 0;
+    },
+
+    totalTaxBracketsCount() {
+      return this.taxBracketsTotal || 0;
     },
 
     activeTaxBrackets() {
@@ -1009,6 +1149,9 @@ export default {
   mounted() {
     this.availableYears = this.generateAvailableYears();
     this.initializeData();
+
+    // Ensure the first tab is properly set as active
+    this.setActiveTab('1');
   },
 
   methods: {
@@ -1031,13 +1174,13 @@ export default {
 
         // If both failed, show a warning but don't break the UI
         if (this.taxSettings.length === 0 && this.taxBrackets.length === 0) {
-          message.warning('Unable to fetch tax data. Some features may not work properly.');
+          this.showMessage('Unable to fetch tax data. Some features may not work properly.', 'warning');
         }
 
         this.initializeCalculator();
       } catch (error) {
         console.error('Error initializing data:', error);
-        message.error('Failed to load tax data');
+        this.showMessage('Failed to load tax data', 'error');
       }
     },
 
@@ -1058,29 +1201,49 @@ export default {
           setting_key: 'PERSONAL_ALLOWANCE',
           setting_value: 60000,
           setting_type: 'DEDUCTION',
-          description: 'Personal allowance for tax calculation',
+          description: 'Personal allowance for income tax',
           effective_year: 2025,
-          is_active: true,
+          is_selected: true,
           created_at: '2025-01-01T00:00:00Z'
         },
         {
           id: 2,
-          setting_key: 'SSF_RATE',
-          setting_value: 5.0,
-          setting_type: 'RATE',
-          description: 'Social Security Fund contribution rate',
+          setting_key: 'SPOUSE_ALLOWANCE',
+          setting_value: 60000,
+          setting_type: 'DEDUCTION',
+          description: 'Spouse allowance for income tax',
           effective_year: 2025,
-          is_active: true,
+          is_selected: true,
           created_at: '2025-01-01T00:00:00Z'
         },
         {
           id: 3,
-          setting_key: 'PF_MIN_RATE',
-          setting_value: 3.0,
-          setting_type: 'RATE',
-          description: 'Provident Fund minimum contribution rate',
+          setting_key: 'CHILD_ALLOWANCE',
+          setting_value: 30000,
+          setting_type: 'DEDUCTION',
+          description: 'Child allowance per child',
+          effective_year: 2024,
+          is_selected: true,
+          created_at: '2024-01-01T00:00:00Z'
+        },
+        {
+          id: 4,
+          setting_key: 'SSF_MAX_MONTHLY',
+          setting_value: 750,
+          setting_type: 'LIMIT',
+          description: 'Maximum monthly SSF contribution',
           effective_year: 2025,
-          is_active: true,
+          is_selected: false,
+          created_at: '2025-01-01T00:00:00Z'
+        },
+        {
+          id: 5,
+          setting_key: 'SSF_RATE',
+          setting_value: 5,
+          setting_type: 'RATE',
+          description: 'Social Security Fund contribution rate (%)',
+          effective_year: 2025,
+          is_selected: true,
           created_at: '2025-01-01T00:00:00Z'
         }
       ];
@@ -1141,162 +1304,95 @@ export default {
       // Handled by watcher
     },
 
-    // Tax Settings API Methods
-    async fetchTaxSettings() {
+    // Tax Settings API Methods - Backend pagination (following employee-list pattern)
+    async fetchTaxSettings(params = {}) {
       this.taxSettingsLoading = true;
       try {
-        const response = await taxSettingsService.getTaxSettingsByYear(this.selectedYear);
-        if (response.success) {
-          // Ensure we always have an array, even if API returns unexpected data structure
-          let data = response.data;
-          if (data && typeof data === 'object' && data.data) {
-            data = data.data;
-          }
+        const queryParams = {
+          page: params.page || this.currentPage || 1,
+          per_page: params.per_page || this.pageSize,
+          ...params
+        };
 
-          // Transform nested structure to flat array
-          if (data && typeof data === 'object' && !Array.isArray(data)) {
-            console.log('Transforming nested tax settings data:', data);
-            const transformedData = this.transformTaxSettingsData(data, this.selectedYear);
-            console.log('Transformed tax settings data:', transformedData);
-            this.rawTaxSettings = transformedData;
-            this.taxSettings = transformedData;
-          } else if (Array.isArray(data)) {
-            this.rawTaxSettings = data;
-            this.taxSettings = data;
+        const response = await taxSettingsService.getTaxSettings(queryParams);
+
+        if (response.success && response.data) {
+          this.rawTaxSettings = response.data;
+          this.taxSettings = response.data;
+
+          // Update pagination properties from server response
+          if (response.pagination) {
+            this.total = response.pagination.total;
+            this.currentPage = response.pagination.current_page;
+            this.pageSize = response.pagination.per_page;
           } else {
-            console.warn('API returned unexpected data structure for tax settings:', data);
-            this.rawTaxSettings = [];
-            this.taxSettings = [];
+            this.total = response.data.length;
+            this.currentPage = 1;
           }
 
-          this.taxSettingsPagination.total = this.taxSettings.length;
           this.updateTaxRatesSummary();
+          this.showMessage('Tax settings loaded successfully', 'success');
         } else {
-          message.error(response.message || 'Failed to fetch tax settings');
           this.rawTaxSettings = [];
           this.taxSettings = [];
+          this.total = 0;
+          this.showMessage('No tax settings data received', 'error');
         }
       } catch (error) {
         console.error('Error fetching tax settings:', error);
-        message.warning('Using fallback tax settings data');
+        this.showMessage('Using fallback tax settings data', 'warning');
         // Use fallback data for development/testing
         this.rawTaxSettings = this.getFallbackTaxSettings();
         this.taxSettings = this.rawTaxSettings;
-        this.taxSettingsPagination.total = this.taxSettings.length;
+        this.total = this.taxSettings.length;
         this.updateTaxRatesSummary();
       } finally {
         this.taxSettingsLoading = false;
       }
     },
 
-    /**
-     * Transform nested tax settings data to flat array format
-     * @param {Object} nestedData - Nested data from API
-     * @param {number} year - The year for the settings
-     * @returns {Array} Transformed flat array
-     */
-    transformTaxSettingsData(nestedData, year) {
-      console.log('Starting transformation with data:', nestedData, 'and year:', year);
-      const transformed = [];
 
-      // Process DEDUCTION category
-      if (nestedData.DEDUCTION) {
-        console.log('Processing DEDUCTION category:', nestedData.DEDUCTION);
-        Object.entries(nestedData.DEDUCTION).forEach(([key, value]) => {
-          const item = {
-            id: `deduction_${key}`,
-            setting_key: key,
-            setting_value: value,
-            setting_type: 'DEDUCTION',
-            effective_year: year,
-            is_active: true,
-            description: this.getSettingKeyDescription(key),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          transformed.push(item);
-          console.log('Added DEDUCTION item:', item);
-        });
-      }
 
-      // Process RATE category
-      if (nestedData.RATE) {
-        console.log('Processing RATE category:', nestedData.RATE);
-        Object.entries(nestedData.RATE).forEach(([key, value]) => {
-          const item = {
-            id: `rate_${key}`,
-            setting_key: key,
-            setting_value: value,
-            setting_type: 'RATE',
-            effective_year: year,
-            is_active: true,
-            description: this.getSettingKeyDescription(key),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          transformed.push(item);
-          console.log('Added RATE item:', item);
-        });
-      }
-
-      // Process LIMIT category
-      if (nestedData.LIMIT) {
-        console.log('Processing LIMIT category:', nestedData.LIMIT);
-        Object.entries(nestedData.LIMIT).forEach(([key, value]) => {
-          const item = {
-            id: `limit_${key}`,
-            setting_key: key,
-            setting_value: value,
-            setting_type: 'LIMIT',
-            effective_year: year,
-            is_active: true,
-            description: this.getSettingKeyDescription(key),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          transformed.push(item);
-          console.log('Added LIMIT item:', item);
-        });
-      }
-
-      console.log('Final transformed array:', transformed);
-      return transformed;
-    },
-
-    async fetchTaxBrackets() {
+    // Tax Brackets API Methods - Backend pagination (following employee-list pattern)
+    async fetchTaxBrackets(params = {}) {
       this.taxBracketsLoading = true;
       try {
-        const response = await taxBracketsService.getTaxBracketsByYear(this.selectedYear);
-        if (response.success) {
-          // Ensure we always have an array, even if API returns unexpected data structure
-          let data = response.data;
-          if (data && typeof data === 'object' && data.data) {
-            data = data.data;
-          }
+        const queryParams = {
+          page: params.page || this.taxBracketsCurrentPage || 1,
+          per_page: params.per_page || this.taxBracketsPageSize,
+          ...params
+        };
 
-          // Ensure it's an array
-          if (Array.isArray(data)) {
-            this.rawTaxBrackets = data;
-            this.taxBrackets = data.sort((a, b) => a.bracket_order - b.bracket_order);
+        const response = await taxBracketsService.getTaxBrackets(queryParams);
+
+        if (response.success && response.data) {
+          this.rawTaxBrackets = response.data;
+          this.taxBrackets = response.data;
+
+          // Update pagination properties from server response
+          if (response.pagination) {
+            this.taxBracketsTotal = response.pagination.total;
+            this.taxBracketsCurrentPage = response.pagination.current_page;
+            this.taxBracketsPageSize = response.pagination.per_page;
           } else {
-            console.warn('API returned non-array data for tax brackets:', data);
-            this.rawTaxBrackets = [];
-            this.taxBrackets = [];
+            this.taxBracketsTotal = response.data.length;
+            this.taxBracketsCurrentPage = 1;
           }
 
-          this.taxBracketsPagination.total = this.taxBrackets.length;
+          this.showMessage('Tax brackets loaded successfully', 'success');
         } else {
-          message.error(response.message || 'Failed to fetch tax brackets');
           this.rawTaxBrackets = [];
           this.taxBrackets = [];
+          this.taxBracketsTotal = 0;
+          this.showMessage('No tax brackets data received', 'error');
         }
       } catch (error) {
         console.error('Error fetching tax brackets:', error);
-        message.warning('Using fallback tax brackets data');
+        this.showMessage('Using fallback tax brackets data', 'warning');
         // Use fallback data for development/testing
         this.rawTaxBrackets = this.getFallbackTaxBrackets();
         this.taxBrackets = this.rawTaxBrackets.sort((a, b) => a.bracket_order - b.bracket_order);
-        this.taxBracketsPagination.total = this.taxBrackets.length;
+        this.taxBracketsTotal = this.taxBrackets.length;
       } finally {
         this.taxBracketsLoading = false;
       }
@@ -1321,27 +1417,32 @@ export default {
         return defaultValue;
       }
 
-      const setting = this.taxSettings.find(s => s.setting_key === key && s.is_active);
+      const setting = this.taxSettings.find(s => s.setting_key === key && s.is_selected);
       return setting ? parseFloat(setting.setting_value) : defaultValue;
     },
 
     // Tax Calculator Methods
     async calculateTax() {
       if (!this.calculator.monthlySalary || this.calculator.monthlySalary <= 0) {
-        message.warning('Please enter a valid monthly salary');
+        this.showMessage('Please enter a valid monthly salary', 'warning');
         return;
       }
 
       this.calculatorLoading = true;
       try {
+        // Calculate totals from additional items
+        const totalAdditionalIncome = this.calculator.additionalIncomes.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+        const totalAdditionalDeductions = this.calculator.additionalDeductions.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+
         const calculationData = {
+          employee_id: this.calculator.employeeId,
           monthly_salary: parseFloat(this.calculator.monthlySalary) || 0,
           annual_salary: parseFloat(this.calculator.annualSalary) || 0,
-          allowances: parseFloat(this.calculator.allowances) || 0,
-          other_income: parseFloat(this.calculator.otherIncome) || 0,
-          deductions: parseFloat(this.calculator.deductions) || 0,
-          dependents: parseInt(this.calculator.dependents) || 0,
-          calculation_year: this.calculator.calculationYear
+          additional_income: totalAdditionalIncome,
+          additional_deductions: totalAdditionalDeductions,
+          calculation_year: this.calculator.calculationYear,
+          income_items: this.calculator.additionalIncomes,
+          deduction_items: this.calculator.additionalDeductions
         };
 
         // Try API calculation first, fallback to client-side
@@ -1356,13 +1457,14 @@ export default {
       } catch (error) {
         console.error('Error calculating tax:', error);
         // Fallback to client-side calculation
+        const totalAdditionalIncome = this.calculator.additionalIncomes.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+        const totalAdditionalDeductions = this.calculator.additionalDeductions.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+
         this.calculateTaxClientSide({
           monthly_salary: parseFloat(this.calculator.monthlySalary) || 0,
           annual_salary: parseFloat(this.calculator.annualSalary) || 0,
-          allowances: parseFloat(this.calculator.allowances) || 0,
-          other_income: parseFloat(this.calculator.otherIncome) || 0,
-          deductions: parseFloat(this.calculator.deductions) || 0,
-          dependents: parseInt(this.calculator.dependents) || 0
+          additional_income: totalAdditionalIncome,
+          additional_deductions: totalAdditionalDeductions
         });
       } finally {
         this.calculatorLoading = false;
@@ -1387,7 +1489,7 @@ export default {
       if (result.success) {
         this.updateCalculatorFromClientSide(result.data);
       } else {
-        message.error('Error calculating taxes');
+        this.showMessage('Error calculating taxes', 'error');
       }
     },
 
@@ -1419,13 +1521,12 @@ export default {
 
     resetCalculator() {
       this.calculator = {
+        employeeId: '',
         monthlySalary: 0,
         annualSalary: 0,
-        allowances: 0,
-        otherIncome: 0,
-        deductions: 0,
-        dependents: 0,
         calculationYear: this.selectedYear,
+        additionalIncomes: [],
+        additionalDeductions: [],
         grossIncome: 0,
         taxableIncome: 0,
         personalDeductions: 0,
@@ -1439,9 +1540,35 @@ export default {
       };
     },
 
+    // Additional Income Management
+    addIncomeItem() {
+      this.calculator.additionalIncomes.push({
+        type: 'allowances',
+        amount: 0
+      });
+    },
+
+    removeIncomeItem(index) {
+      this.calculator.additionalIncomes.splice(index, 1);
+      this.calculateTaxRealTime();
+    },
+
+    // Additional Deductions Management
+    addDeductionItem() {
+      this.calculator.additionalDeductions.push({
+        type: 'insurance',
+        amount: 0
+      });
+    },
+
+    removeDeductionItem(index) {
+      this.calculator.additionalDeductions.splice(index, 1);
+      this.calculateTaxRealTime();
+    },
+
     async saveCalculation() {
       if (!this.hasCalculationResults) {
-        message.warning('No calculation results to save');
+        this.showMessage('No calculation results to save', 'warning');
         return;
       }
 
@@ -1470,19 +1597,19 @@ export default {
         const response = await taxCalculationsService.saveCalculation(calculationData);
 
         if (response.success) {
-          message.success('Tax calculation saved successfully');
+          this.showMessage('Tax calculation saved successfully', 'success');
         } else {
-          message.error(response.message || 'Failed to save calculation');
+          this.showMessage(response.message || 'Failed to save calculation', 'error');
         }
       } catch (error) {
         console.error('Error saving calculation:', error);
-        message.error('Failed to save calculation');
+        this.showMessage('Failed to save calculation', 'error');
       }
     },
 
     printCalculation() {
       if (!this.hasCalculationResults) {
-        message.warning('No calculation results to print');
+        this.showMessage('No calculation results to print', 'warning');
         return;
       }
 
@@ -1515,15 +1642,15 @@ export default {
         }
 
         if (response.success) {
-          message.success(response.message);
+          this.showMessage(response.message, 'success');
           await this.fetchTaxSettings();
           this.editingTaxSetting = null;
         } else {
-          message.error(response.message || 'Operation failed');
+          this.showMessage(response.message || 'Operation failed', 'error');
         }
       } catch (error) {
         console.error('Error submitting tax setting:', error);
-        message.error('Failed to save tax setting');
+        this.showMessage('Failed to save tax setting', 'error');
       }
     },
 
@@ -1532,14 +1659,9 @@ export default {
     },
 
     confirmDeleteTaxSetting(id) {
-      Modal.confirm({
-        title: 'Delete Tax Setting',
-        content: 'Are you sure you want to delete this tax setting? This action cannot be undone.',
-        okText: 'Yes, Delete',
-        cancelText: 'Cancel',
-        okType: 'danger',
-        onOk: () => this.deleteTaxSetting(id)
-      });
+      if (confirm('Are you sure you want to delete this tax setting? This action cannot be undone.')) {
+        this.deleteTaxSetting(id);
+      }
     },
 
     async deleteTaxSetting(id) {
@@ -1547,27 +1669,48 @@ export default {
         const response = await taxSettingsService.deleteTaxSetting(id);
 
         if (response.success) {
-          message.success(response.message);
+          this.showMessage(response.message, 'success');
           await this.fetchTaxSettings();
           // Remove from selected keys if it was selected
           this.selectedTaxSettingKeys = this.selectedTaxSettingKeys.filter(key => key !== id);
         } else {
-          message.error(response.message || 'Failed to delete tax setting');
+          this.showMessage(response.message || 'Failed to delete tax setting', 'error');
         }
       } catch (error) {
         console.error('Error deleting tax setting:', error);
-        message.error('Failed to delete tax setting');
+        this.showMessage('Failed to delete tax setting', 'error');
       }
     },
 
     async bulkUpdateTaxSettings() {
       if (this.selectedTaxSettingKeys.length === 0) {
-        message.warning('Please select tax settings to update');
+        this.showMessage('Please select tax settings to update', 'warning');
         return;
       }
 
       // This would open a bulk update modal or perform bulk operations
-      message.info('Bulk update functionality to be implemented');
+      this.showMessage('Bulk update functionality to be implemented', 'info');
+    },
+
+    async toggleTaxSetting(id) {
+      try {
+        const response = await taxSettingsService.toggleTaxSetting(id);
+
+        if (response.success) {
+          // Update the local data
+          const setting = this.taxSettings.find(s => s.id === id);
+          if (setting) {
+            setting.is_selected = !setting.is_selected;
+          }
+
+          this.showMessage(response.message || 'Tax setting updated successfully', 'success');
+        } else {
+          this.showMessage(response.message || 'Failed to update tax setting', 'error');
+        }
+      } catch (error) {
+        console.error('Error toggling tax setting:', error);
+        this.showMessage('Failed to update tax setting', 'error');
+      }
     },
 
     // Tax Brackets Modal Methods
@@ -1594,15 +1737,15 @@ export default {
         }
 
         if (response.success) {
-          message.success(response.message);
+          this.showMessage(response.message, 'success');
           await this.fetchTaxBrackets();
           this.editingTaxBracket = null;
         } else {
-          message.error(response.message || 'Operation failed');
+          this.showMessage(response.message || 'Operation failed', 'error');
         }
       } catch (error) {
         console.error('Error submitting tax bracket:', error);
-        message.error('Failed to save tax bracket');
+        this.showMessage('Failed to save tax bracket', 'error');
       }
     },
 
@@ -1611,14 +1754,9 @@ export default {
     },
 
     confirmDeleteTaxBracket(id) {
-      Modal.confirm({
-        title: 'Delete Tax Bracket',
-        content: 'Are you sure you want to delete this tax bracket? This action cannot be undone.',
-        okText: 'Yes, Delete',
-        cancelText: 'Cancel',
-        okType: 'danger',
-        onOk: () => this.deleteTaxBracket(id)
-      });
+      if (confirm('Are you sure you want to delete this tax bracket? This action cannot be undone.')) {
+        this.deleteTaxBracket(id);
+      }
     },
 
     async deleteTaxBracket(id) {
@@ -1626,27 +1764,252 @@ export default {
         const response = await taxBracketsService.deleteTaxBracket(id);
 
         if (response.success) {
-          message.success(response.message);
+          this.showMessage(response.message, 'success');
           await this.fetchTaxBrackets();
         } else {
-          message.error(response.message || 'Failed to delete tax bracket');
+          this.showMessage(response.message || 'Failed to delete tax bracket', 'error');
         }
       } catch (error) {
         console.error('Error deleting tax bracket:', error);
-        message.error('Failed to delete tax bracket');
+        this.showMessage('Failed to delete tax bracket', 'error');
       }
     },
 
-    // Search Methods
+    // Search and Filter Methods (following employee-list pattern)
     handleSearch() {
-      if (this.debouncedTaxSettingsSearch) {
-        this.debouncedTaxSettingsSearch();
+      if (this.debouncedSearch) {
+        this.debouncedSearch();
       }
+    },
+
+    // TABLE CHANGE HANDLER (for sorting/filtering only)
+    handleTableChange(pagination, filters, sorter) {
+      console.log('Table change (sorting/filtering):', filters, sorter);
+
+      // Check if there's actually a meaningful change
+      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
+      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
+
+      // Only proceed if there's an actual filter or sort change
+      if (!hasFilterChange && !hasSorterChange) {
+        console.log('No meaningful change detected, skipping reload');
+        return;
+      }
+
+      // Update filter state
+      this.filteredInfo = filters;
+
+      // Only update sorter if it's a real sort operation (has field and order)
+      if (sorter && sorter.field && sorter.order) {
+        console.log('Applying sort:', sorter);
+        this.sortedInfo = sorter;
+      } else if (!sorter || (!sorter.field && !sorter.order)) {
+        console.log('Clearing sort (filtering only or no sort)');
+        this.sortedInfo = {};
+      }
+
+      // Reset to first page when filter/sort changes
+      this.currentPage = 1;
+
+      // Build complete parameters
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      // Fetch tax settings with new parameters
+      this.fetchTaxSettings(params);
+    },
+
+    // Handle table sorting
+    handleTableSort(column) {
+      const currentOrder = this.sortedInfo.field === column && this.sortedInfo.order === 'ascend' ? 'descend' : 'ascend';
+
+      this.sortedInfo = {
+        field: column,
+        order: currentOrder
+      };
+
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchTaxSettings(params);
+    },
+
+    // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING (following employee-list pattern)
+    handlePaginationChange(page, pageSize) {
+      console.log('Pagination change:', page, pageSize);
+      this.currentPage = page;
+      this.pageSize = pageSize || this.pageSize;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: page,
+        per_page: this.pageSize
+      });
+
+      this.fetchTaxSettings(params);
+    },
+
+    handleSizeChange(current, size) {
+      console.log('Size change:', current, size);
+      this.currentPage = 1; // Reset to first page when changing page size
+      this.pageSize = size;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: size
+      });
+
+      this.fetchTaxSettings(params);
+    },
+
+    // Helper method to build complete API parameters
+    buildApiParams(baseParams = {}) {
+      const params = {
+        page: this.currentPage,
+        per_page: this.pageSize,
+        ...baseParams
+      };
+
+      // Add sorting parameters ONLY when user has explicitly clicked on a column to sort
+      if (this.sortedInfo && this.sortedInfo.field && this.sortedInfo.order) {
+        const sortField = this.mapSortField(this.sortedInfo.field);
+        params.sort_by = sortField;
+        params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
+      }
+
+      // Add search parameter
+      if (this.searchText) {
+        params.search = this.searchText;
+      }
+
+      // Add filter parameters from custom filter dropdowns
+      if (this.filterSettingType) {
+        params.filter_setting_type = this.filterSettingType;
+      }
+      if (this.filterEffectiveYear) {
+        params.filter_effective_year = this.filterEffectiveYear;
+      }
+      if (this.filterIsSelected) {
+        params.filter_is_selected = this.filterIsSelected === 'true';
+      }
+
+      return params;
+    },
+
+    // Map frontend table field names to backend field names
+    mapSortField(field) {
+      const fieldMapping = {
+        'setting_key': 'setting_key',
+        'setting_value': 'setting_value',
+        'setting_type': 'setting_type',
+        'effective_year': 'effective_year'
+      };
+      return fieldMapping[field] || field;
     },
 
     performTaxSettingsSearch() {
-      // Search is handled by computed property filteredTaxSettings
-      // This method can be extended for server-side search
+      // Reset to first page when searching
+      this.currentPage = 1;
+
+      // Build parameters with search
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      this.fetchTaxSettings(params);
+    },
+
+
+
+    clearFilters() {
+      this.searchText = '';
+      this.filterSettingType = '';
+      this.filterEffectiveYear = '';
+      this.filterIsSelected = '';
+      this.currentPage = 1;
+      this.sortedInfo = {};
+      this.filteredInfo = {};
+
+      // Fetch with cleared filters
+      this.fetchTaxSettings();
+    },
+
+    // Individual filter methods (following employee-list pattern)
+    applySettingTypeFilter() {
+      this.currentPage = 1;
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+      this.fetchTaxSettings(params);
+    },
+
+    applyEffectiveYearFilter() {
+      this.currentPage = 1;
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+      this.fetchTaxSettings(params);
+    },
+
+    applyStatusFilter() {
+      this.currentPage = 1;
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+      this.fetchTaxSettings(params);
+    },
+
+    // Message helper method
+    showMessage(text, type = 'info') {
+      // Simple console logging for now, can be replaced with toast notifications
+      console.log(`${type.toUpperCase()}: ${text}`);
+      // You can integrate with your preferred notification system here
+    },
+
+    getSortIcon(column) {
+      if (this.sortedInfo.field !== column) {
+        return 'text-muted';
+      }
+      return this.sortedInfo.order === 'ascend' ? 'ti-arrow-up text-primary' : 'ti-arrow-down text-primary';
+    },
+
+    // Custom Pagination Methods
+    goToPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.handlePaginationChange(page, this.pageSize);
+      }
+    },
+
+    handleJumpToPage() {
+      if (this.jumpToPage && this.jumpToPage >= 1 && this.jumpToPage <= this.totalPages) {
+        this.goToPage(this.jumpToPage);
+        this.jumpToPage = null;
+      }
+    },
+
+    // Helper method for pagination text
+    getShowingText() {
+      if (this.total === 0) return 'No records found';
+
+      const start = (this.currentPage - 1) * this.pageSize + 1;
+      const end = Math.min(start + this.pageSize - 1, this.total);
+      return `${start}-${end} of ${this.total} items`;
+    },
+
+    // Handle page size change from select dropdown
+    handlePageSizeChange() {
+      this.handleSizeChange(this.currentPage, this.pageSize);
     },
 
     handleTaxBracketsSearch() {
@@ -1655,9 +2018,220 @@ export default {
       }
     },
 
+    // TAX BRACKETS TABLE CHANGE HANDLER (for sorting/filtering only)
+    handleTaxBracketsTableChange(pagination, filters, sorter) {
+      console.log('Tax Brackets Table change (sorting/filtering):', filters, sorter);
+
+      // Check if there's actually a meaningful change
+      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.taxBracketsFilteredInfo);
+      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.taxBracketsSortedInfo);
+
+      // Only proceed if there's an actual filter or sort change
+      if (!hasFilterChange && !hasSorterChange) {
+        console.log('No meaningful change detected, skipping reload');
+        return;
+      }
+
+      // Update filter state
+      this.taxBracketsFilteredInfo = filters;
+
+      // Only update sorter if it's a real sort operation (has field and order)
+      if (sorter && sorter.field && sorter.order) {
+        console.log('Applying sort:', sorter);
+        this.taxBracketsSortedInfo = sorter;
+      } else if (!sorter || (!sorter.field && !sorter.order)) {
+        console.log('Clearing sort (filtering only or no sort)');
+        this.taxBracketsSortedInfo = {};
+      }
+
+      // Reset to first page when filter/sort changes
+      this.taxBracketsCurrentPage = 1;
+
+      // Build complete parameters
+      const params = this.buildTaxBracketsApiParams({
+        page: 1,
+        per_page: this.taxBracketsPageSize
+      });
+
+      // Fetch tax brackets with new parameters
+      this.fetchTaxBrackets(params);
+    },
+
+    // Handle tax brackets table sorting
+    handleTaxBracketsTableSort(column) {
+      const currentOrder = this.taxBracketsSortedInfo.field === column && this.taxBracketsSortedInfo.order === 'ascend' ? 'descend' : 'ascend';
+
+      this.taxBracketsSortedInfo = {
+        field: column,
+        order: currentOrder
+      };
+
+      this.taxBracketsCurrentPage = 1;
+
+      const params = this.buildTaxBracketsApiParams({
+        page: 1,
+        per_page: this.taxBracketsPageSize
+      });
+
+      this.fetchTaxBrackets(params);
+    },
+
     performTaxBracketsSearch() {
-      // Search is handled by computed property filteredTaxBrackets
-      // This method can be extended for server-side search
+      // Reset to first page when searching
+      this.taxBracketsCurrentPage = 1;
+
+      // Build parameters with search
+      const params = this.buildTaxBracketsApiParams({
+        page: 1,
+        per_page: this.taxBracketsPageSize
+      });
+
+      this.fetchTaxBrackets(params);
+    },
+
+    // Tax Brackets Pagination Event Handlers (following employee-list pattern)
+    handleTaxBracketsPaginationChange(page, pageSize) {
+      console.log('Tax Brackets Pagination change:', page, pageSize);
+      this.taxBracketsCurrentPage = page;
+      this.taxBracketsPageSize = pageSize || this.taxBracketsPageSize;
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildTaxBracketsApiParams({
+        page: page,
+        per_page: this.taxBracketsPageSize
+      });
+
+      this.fetchTaxBrackets(params);
+    },
+
+    handleTaxBracketsPageSizeChange() {
+      this.taxBracketsCurrentPage = 1; // Reset to first page when changing page size
+
+      // Build complete parameters preserving current filters and sorting
+      const params = this.buildTaxBracketsApiParams({
+        page: 1,
+        per_page: this.taxBracketsPageSize
+      });
+
+      this.fetchTaxBrackets(params);
+    },
+
+    // Helper method to build complete Tax Brackets API parameters (following employee-list pattern)
+    buildTaxBracketsApiParams(baseParams = {}) {
+      const params = {
+        page: this.taxBracketsCurrentPage,
+        per_page: this.taxBracketsPageSize,
+        ...baseParams
+      };
+
+      // Add sorting parameters ONLY when user has explicitly clicked on a column to sort
+      if (this.taxBracketsSortedInfo && this.taxBracketsSortedInfo.field && this.taxBracketsSortedInfo.order) {
+        const sortField = this.mapTaxBracketsSortField(this.taxBracketsSortedInfo.field);
+        params.sort_by = sortField;
+        params.sort_order = this.taxBracketsSortedInfo.order === 'ascend' ? 'asc' : 'desc';
+      }
+
+      // Add search parameter (bracket_order search)
+      if (this.taxBracketsSearchText) {
+        params.search = this.taxBracketsSearchText;
+      }
+
+      // Add filter parameters
+      if (this.taxBracketsFilters.effectiveYear) {
+        params.filter_effective_year = this.taxBracketsFilters.effectiveYear;
+      }
+      if (this.taxBracketsFilters.activeOnly) {
+        params.filter_is_active = this.taxBracketsFilters.activeOnly;
+      }
+
+      return params;
+    },
+
+    // Map frontend field names to backend field names for tax brackets
+    mapTaxBracketsSortField(field) {
+      const fieldMapping = {
+        'bracket_order': 'bracket_order',
+        'min_income': 'min_income',
+        'max_income': 'max_income',
+        'tax_rate': 'tax_rate',
+        'effective_year': 'effective_year'
+      };
+      return fieldMapping[field] || field;
+    },
+
+    applyTaxBracketsFilters() {
+      this.taxBracketsCurrentPage = 1;
+
+      // Build parameters with filters
+      const params = this.buildTaxBracketsApiParams({
+        page: 1,
+        per_page: this.taxBracketsPageSize
+      });
+
+      this.fetchTaxBrackets(params);
+    },
+
+    clearTaxBracketsFilters() {
+      this.taxBracketsSearchText = '';
+      this.taxBracketsFilters = {
+        effectiveYear: '',
+        activeOnly: false
+      };
+      this.taxBracketsCurrentPage = 1;
+      this.taxBracketsSortedInfo = {};
+      this.taxBracketsFilteredInfo = {};
+
+      // Fetch with cleared filters
+      this.fetchTaxBrackets();
+    },
+
+    // Tax Brackets Individual filter methods (following employee-list pattern)
+    applyTaxBracketsEffectiveYearFilter() {
+      this.taxBracketsCurrentPage = 1;
+      const params = this.buildTaxBracketsApiParams({
+        page: 1,
+        per_page: this.taxBracketsPageSize
+      });
+      this.fetchTaxBrackets(params);
+    },
+
+    applyTaxBracketsActiveFilter() {
+      this.taxBracketsCurrentPage = 1;
+      const params = this.buildTaxBracketsApiParams({
+        page: 1,
+        per_page: this.taxBracketsPageSize
+      });
+      this.fetchTaxBrackets(params);
+    },
+
+    getTaxBracketsSortIcon(column) {
+      if (this.taxBracketsSortedInfo.field !== column) {
+        return 'text-muted';
+      }
+      return this.taxBracketsSortedInfo.order === 'ascend' ? 'ti-arrow-up text-primary' : 'ti-arrow-down text-primary';
+    },
+
+    // Tax Brackets Custom Pagination Methods
+    goToTaxBracketsPage(page) {
+      if (page >= 1 && page <= this.taxBracketsTotalPages) {
+        this.handleTaxBracketsPaginationChange(page, this.taxBracketsPageSize);
+      }
+    },
+
+    handleTaxBracketsJumpToPage() {
+      if (this.taxBracketsJumpToPage && this.taxBracketsJumpToPage >= 1 && this.taxBracketsJumpToPage <= this.taxBracketsTotalPages) {
+        this.goToTaxBracketsPage(this.taxBracketsJumpToPage);
+        this.taxBracketsJumpToPage = null;
+      }
+    },
+
+    // Helper method for tax brackets pagination text
+    getTaxBracketsShowingText() {
+      if (this.taxBracketsTotal === 0) return 'No records found';
+
+      const start = (this.taxBracketsCurrentPage - 1) * this.taxBracketsPageSize + 1;
+      const end = Math.min(start + this.taxBracketsPageSize - 1, this.taxBracketsTotal);
+      return `${start}-${end} of ${this.taxBracketsTotal} items`;
     },
 
     // Utility Methods
@@ -1693,15 +2267,15 @@ export default {
     getSettingKeyDescription(key) {
       const descriptions = {
         // DEDUCTION category
-        'PERSONAL_ALLOWANCE': 'Personal allowance for tax calculation',
-        'SPOUSE_ALLOWANCE': 'Allowance for spouse',
-        'CHILD_ALLOWANCE': 'Allowance per child',
+        'PERSONAL_ALLOWANCE': 'Personal allowance for income tax',
+        'SPOUSE_ALLOWANCE': 'Spouse allowance for income tax',
+        'CHILD_ALLOWANCE': 'Child allowance per child',
         'DISABILITY_ALLOWANCE': 'Allowance for disability',
         'EDUCATION_ALLOWANCE': 'Allowance for education expenses',
 
         // RATE category
         'PERSONAL_EXPENSE_RATE': 'Rate for personal expenses deduction',
-        'SSF_RATE': 'Social Security Fund contribution rate',
+        'SSF_RATE': 'Social Security Fund contribution rate (%)',
         'PF_MIN_RATE': 'Minimum Provident Fund contribution rate',
         'PF_MAX_RATE': 'Maximum Provident Fund contribution rate',
         'CHARITABLE_DONATION_RATE': 'Rate for charitable donations',
@@ -1753,13 +2327,13 @@ export default {
     getSettingTypeBadgeClass(type) {
       switch (type) {
         case 'RATE':
-          return 'badge-warning';
+          return 'bg-warning';
         case 'DEDUCTION':
-          return 'badge-success';
+          return 'bg-success';
         case 'LIMIT':
-          return 'badge-info';
+          return 'bg-info';
         default:
-          return 'badge-secondary';
+          return 'bg-secondary';
       }
     },
 
@@ -1771,34 +2345,16 @@ export default {
       return 'text-danger';
     },
 
-    // Table Event Handlers
-    handleTaxSettingsTableChange(pagination) {
-      this.taxSettingsCurrentPage = pagination.current;
-      this.taxSettingsPageSize = pagination.pageSize;
-      this.taxSettingsPagination.current = pagination.current;
-      this.taxSettingsPagination.pageSize = pagination.pageSize;
 
-      // Handle sorting and filtering here if needed for server-side operations
-    },
 
-    handleTaxBracketsTableChange(pagination) {
-      this.taxBracketsCurrentPage = pagination.current;
-      this.taxBracketsPageSize = pagination.pageSize;
-      this.taxBracketsPagination.current = pagination.current;
-      this.taxBracketsPagination.pageSize = pagination.pageSize;
 
-      // Handle sorting and filtering here if needed for server-side operations
-    },
 
-    // Row Selection Handlers
-    onTaxSettingsSelectChange(selectedRowKeys) {
-      this.selectedTaxSettingKeys = selectedRowKeys;
-    },
+
 
     // Export Functions
     async exportToExcel() {
       try {
-        message.loading('Exporting tax settings to Excel...', 0);
+        this.showMessage('Exporting tax settings to Excel...', 'info');
 
         const params = {
           year: this.selectedYear,
@@ -1818,22 +2374,19 @@ export default {
           link.remove();
           window.URL.revokeObjectURL(url);
 
-          message.destroy();
-          message.success('Tax settings exported successfully');
+          this.showMessage('Tax settings exported successfully', 'success');
         } else {
-          message.destroy();
-          message.error(response.message || 'Export failed');
+          this.showMessage(response.message || 'Export failed', 'error');
         }
       } catch (error) {
-        message.destroy();
         console.error('Error exporting to Excel:', error);
-        message.error('Failed to export tax settings');
+        this.showMessage('Failed to export tax settings', 'error');
       }
     },
 
     async exportToPDF() {
       try {
-        message.loading('Exporting tax settings to PDF...', 0);
+        this.showMessage('Exporting tax settings to PDF...', 'info');
 
         const params = {
           year: this.selectedYear,
@@ -1853,11 +2406,9 @@ export default {
           link.remove();
           window.URL.revokeObjectURL(url);
 
-          message.destroy();
-          message.success('Tax settings exported successfully');
+          this.showMessage('Tax settings exported successfully', 'success');
         } else {
-          message.destroy();
-          message.error(response.message || 'Export failed');
+          this.showMessage(response.message || 'Export failed', 'error');
         }
       } catch (error) {
         message.destroy();
@@ -1868,11 +2419,12 @@ export default {
 
     async exportTaxBracketsToExcel() {
       try {
-        message.loading('Exporting tax brackets to Excel...', 0);
+        this.showMessage('Exporting tax brackets to Excel...', 'info');
 
         const params = {
-          year: this.selectedYear,
-          search: this.taxBracketsSearchText
+          filter_effective_year: this.taxBracketsFilters.effectiveYear || this.selectedYear,
+          search: this.taxBracketsSearchText,
+          filter_is_active: this.taxBracketsFilters.activeOnly
         };
 
         const response = await taxBracketsService.exportToExcel(params);
@@ -1887,26 +2439,24 @@ export default {
           link.remove();
           window.URL.revokeObjectURL(url);
 
-          message.destroy();
-          message.success('Tax brackets exported successfully');
+          this.showMessage('Tax brackets exported successfully', 'success');
         } else {
-          message.destroy();
-          message.error(response.message || 'Export failed');
+          this.showMessage(response.message || 'Export failed', 'error');
         }
       } catch (error) {
-        message.destroy();
         console.error('Error exporting tax brackets to Excel:', error);
-        message.error('Failed to export tax brackets');
+        this.showMessage('Failed to export tax brackets', 'error');
       }
     },
 
     async exportTaxBracketsToPDF() {
       try {
-        message.loading('Exporting tax brackets to PDF...', 0);
+        this.showMessage('Exporting tax brackets to PDF...', 'info');
 
         const params = {
-          year: this.selectedYear,
-          search: this.taxBracketsSearchText
+          filter_effective_year: this.taxBracketsFilters.effectiveYear || this.selectedYear,
+          search: this.taxBracketsSearchText,
+          filter_is_active: this.taxBracketsFilters.activeOnly
         };
 
         const response = await taxBracketsService.exportToPDF(params);
@@ -1921,16 +2471,35 @@ export default {
           link.remove();
           window.URL.revokeObjectURL(url);
 
-          message.destroy();
-          message.success('Tax brackets exported successfully');
+          this.showMessage('Tax brackets exported successfully', 'success');
         } else {
-          message.destroy();
-          message.error(response.message || 'Export failed');
+          this.showMessage(response.message || 'Export failed', 'error');
         }
       } catch (error) {
-        message.destroy();
         console.error('Error exporting tax brackets to PDF:', error);
-        message.error('Failed to export tax brackets');
+        this.showMessage('Failed to export tax brackets', 'error');
+      }
+    },
+
+    // Set active tab with proper Bootstrap functionality
+    setActiveTab(tabKey) {
+      this.activeKey = tabKey;
+
+      // Handle tab-specific logic
+      if (tabKey === '1') {
+        this.fetchTaxSettings();
+      } else if (tabKey === '2') {
+        this.fetchTaxBrackets();
+      } else if (tabKey === '3') {
+        this.initializeCalculator();
+      }
+    },
+
+    // Initialize calculator for tab 3
+    initializeCalculator() {
+      if (this.activeKey === '3' && this.calculator.monthlySalary === 0) {
+        // Set default values or fetch employee data if needed
+        this.calculator.calculationYear = this.selectedYear;
       }
     },
 
@@ -2002,48 +2571,94 @@ export default {
 }
 
 /* Tax Calculator Styling */
-.tax-summary {
+.tax-results-summary {
   background-color: #f8f9fa;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 0.5rem;
 }
 
-.summary-item {
-  padding: 0.5rem 0;
+.result-item {
   border-bottom: 1px solid #e9ecef;
 }
 
-.summary-item:last-child {
+.result-item:last-child {
   border-bottom: none;
-  padding-top: 1rem;
 }
 
-/* Ant Design Tabs Custom Styling */
-.ant-tabs-card>.ant-tabs-nav .ant-tabs-tab {
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-bottom: none;
-  color: #6c757d;
+.result-highlight {
+  border-width: 2px !important;
 }
 
-.ant-tabs-card>.ant-tabs-nav .ant-tabs-tab-active {
-  background: #fff;
-  color: #0d6efd;
+.avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Additional Income/Deduction Items */
+.income-deduction-item {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+}
+
+.income-deduction-item:hover {
   border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
-.ant-tabs-card>.ant-tabs-nav .ant-tabs-tab:hover {
+/* Tab Style-6 Integration */
+.tab-style-6 .nav-link {
+  border: 1px solid #dee2e6;
+  border-bottom: 0;
+  background-color: #f8f9fa;
+  color: #6c757d;
+  margin-right: 2px;
+  transition: all 0.15s ease-in-out;
+}
+
+.tab-style-6 .nav-link:hover {
+  background-color: #e9ecef;
+  border-color: #dee2e6;
   color: #495057;
 }
 
-.ant-tabs-card .ant-tabs-content-holder {
-  border: 1px solid #dee2e6;
-  border-top: none;
-  background: #fff;
+.tab-style-6 .nav-link.active {
+  background-color: #fff;
+  border-color: #dee2e6 #dee2e6 #fff;
+  color: #0d6efd;
+  font-weight: 500;
 }
 
-.ant-tabs-card .ant-tabs-content {
+.tab-style-6 .nav-link i {
+  font-size: 1rem;
+}
+
+/* Tab content styling */
+#tax-settings-tabContent {
+  border: 1px solid #dee2e6;
+  border-top: 0;
+  background-color: #fff;
+}
+
+#tax-settings-tabContent .tab-pane {
   padding: 1.5rem;
+}
+
+/* Ensure proper fade transition */
+.tab-pane.fade {
+  transition: opacity 0.15s linear;
+}
+
+.tab-pane.fade:not(.show) {
+  opacity: 0;
+}
+
+.tab-pane.fade.show {
+  opacity: 1;
 }
 
 /* Collapse header functionality */
@@ -2058,6 +2673,39 @@ export default {
   transition: transform 0.3s ease;
 }
 
+/* Backend Pagination Styling */
+.pagination-wrapper {
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+  margin-top: 0;
+}
+
+.pagination .page-link {
+  border: 1px solid #dee2e6;
+  color: #6c757d;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.pagination .page-link:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: #6c757d;
+  background-color: #fff;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .nav-tabs .nav-link {
@@ -2067,6 +2715,15 @@ export default {
 
   .nav-tabs .nav-link i {
     display: none;
+  }
+
+  .pagination-wrapper .d-flex {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .pagination-wrapper .pagination {
+    justify-content: center;
   }
 }
 </style>

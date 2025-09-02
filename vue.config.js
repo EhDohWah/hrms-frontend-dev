@@ -28,13 +28,25 @@ module.exports = defineConfig({
     },
   },
 
-  // 1) Enable Webpack 5 filesystem caching instead of cache-loader
+  // 1) Enable Webpack 5 filesystem caching and Vue feature flags
   configureWebpack: {
     cache: {
       type: 'filesystem',
       // Optional: customize cache directory
       cacheDirectory: path.resolve(__dirname, 'node_modules/.cache/webpack'),
     },
+    plugins: [
+      new (require('webpack')).DefinePlugin({
+        // Vue 3 Feature Flags - Required for proper tree-shaking
+        __VUE_OPTIONS_API__: JSON.stringify(true),                    // Enable Options API support
+        __VUE_PROD_DEVTOOLS__: JSON.stringify(false),                 // Disable devtools in production
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false), // Disable hydration mismatch details in prod
+
+        // Additional Vue 3.5+ flags
+        __VUE_EXPERIMENTAL_ASYNC_COMPONENTS__: JSON.stringify(false),
+        __VUE_EXPERIMENTAL_EMIT_WARNINGS__: JSON.stringify(false)
+      })
+    ]
   },
 
   // 2) Remove any cache-loader usage injected by Vue CLI

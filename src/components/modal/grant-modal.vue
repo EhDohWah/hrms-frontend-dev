@@ -15,29 +15,53 @@
             <button type="button" class="btn-close" @click="restoredDataNotification.show = false"></button>
           </div>
           <form @submit.prevent="handleSubmit">
+            <!-- Success Message -->
             <div v-if="alertMessage && alertClass === 'alert-success'" class="success-msg">
+              <i class="ti ti-check-circle me-2"></i>
               {{ alertMessage }}
             </div>
 
+            <!-- Error Message -->
             <div v-if="alertMessage && alertClass === 'alert-danger'" class="error-msg">
+              <i class="ti ti-alert-circle me-2"></i>
               {{ alertMessage }}
+            </div>
+
+            <!-- Validation Summary (when there are multiple field errors) -->
+            <div v-if="hasValidationErrors" class="validation-summary mb-3">
+              <div class="alert alert-warning" role="alert">
+                <i class="ti ti-exclamation-triangle me-2"></i>
+                <strong>Please correct the following errors:</strong>
+                <ul class="mb-0 mt-2">
+                  <li v-for="(error, field) in validationErrors" :key="field" class="small">
+                    <strong>{{ getFieldDisplayName(field) }}:</strong> {{ error }}
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-subsidiary">Subsidiary</label>
-                  <select id="grant-subsidiary" v-model="formData.subsidiary" class="form-control"
-                    :class="{ 'is-invalid': validationErrors.subsidiary }" required @change="handleFormChange">
-                    <option value="" disabled>Select a subsidiary</option>
-                    <option v-for="subsidiary in subsidiaries" :key="subsidiary.id" :value="subsidiary.value" :class="[
-                      subsidiary.value === 'SMRU' ? 'text-primary' :
-                        subsidiary.value === 'BHF' ? 'text-primary' :
-                          'text-secondary'
-                    ]">
-                      {{ subsidiary.value }}
-                    </option>
-                  </select>
+                  <div style="display: flex; align-items: center;">
+                    <select id="grant-subsidiary" v-model="formData.subsidiary" class="form-control"
+                      :class="{ 'is-invalid': validationErrors.subsidiary }" required @change="handleFormChange"
+                      style="flex: 1;">
+                      <option value="" disabled>Select a subsidiary</option>
+                      <option v-for="subsidiary in subsidiaries" :key="subsidiary.id" :value="subsidiary.value" :class="[
+                        subsidiary.value === 'SMRU' ? 'text-primary' :
+                          subsidiary.value === 'BHF' ? 'text-primary' :
+                            'text-secondary'
+                      ]">
+                        {{ subsidiary.value }}
+                      </option>
+                    </select>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Select the subsidiary organization for this grant (SMRU or BHF)" style="margin-left: 8px;">
+                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                    </span>
+                  </div>
                   <div v-if="validationErrors.subsidiary" class="invalid-feedback">
                     {{ validationErrors.subsidiary }}
                   </div>
@@ -48,9 +72,16 @@
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-name">Grant Name</label>
-                  <input type="text" id="grant-name" v-model="formData.name" class="form-control"
-                    :class="{ 'is-invalid': validationErrors.name }" placeholder="e.g., UNICEF-EP" required
-                    @input="handleFormChange">
+                  <div style="display: flex; align-items: center;">
+                    <input type="text" id="grant-name" v-model="formData.name" class="form-control"
+                      :class="{ 'is-invalid': validationErrors.name }" placeholder="e.g., UNICEF-EP" required
+                      @input="handleFormChange" style="flex: 1;">
+                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Enter the full name of the grant project (e.g., UNICEF Emergency Preparedness)"
+                      style="margin-left: 8px;">
+                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                    </span>
+                  </div>
                   <div v-if="validationErrors.name" class="invalid-feedback">
                     {{ validationErrors.name }}
                   </div>
@@ -59,9 +90,15 @@
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-code">Grant Code</label>
-                  <input type="text" id="grant-code" v-model="formData.code" class="form-control"
-                    :class="{ 'is-invalid': validationErrors.code }" placeholder="e.g., B-24004" required
-                    @input="handleFormChange">
+                  <div style="display: flex; align-items: center;">
+                    <input type="text" id="grant-code" v-model="formData.code" class="form-control"
+                      :class="{ 'is-invalid': validationErrors.code }" placeholder="e.g., B-24004" required
+                      @input="handleFormChange" style="flex: 1;">
+                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Enter the unique grant code identifier (e.g., B-24004, A-23001)" style="margin-left: 8px;">
+                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                    </span>
+                  </div>
                   <div v-if="validationErrors.code" class="invalid-feedback">
                     {{ validationErrors.code }}
                   </div>
@@ -73,8 +110,16 @@
               <div class="col-md-12">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-description">Description</label>
-                  <textarea id="grant-description" v-model="formData.description" class="form-control" rows="3"
-                    @input="handleFormChange"></textarea>
+                  <div style="display: flex; align-items: flex-start;">
+                    <textarea id="grant-description" v-model="formData.description" class="form-control" rows="3"
+                      @input="handleFormChange" placeholder="Enter grant description and objectives..."
+                      style="flex: 1;"></textarea>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Provide a detailed description of the grant project, its objectives, and scope"
+                      style="margin-left: 8px; margin-top: 8px;">
+                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -83,13 +128,19 @@
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-end-date">End Date</label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                      :clearable="false" :input-format="dateFormat" v-model="formData.end_date"
-                      :class="{ 'is-invalid': validationErrors.end_date }"
-                      @update:model-value="handleDateChange('end_date', $event)" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
+                  <div style="display: flex; align-items: center;">
+                    <div class="input-icon-end position-relative" style="flex: 1;">
+                      <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                        :clearable="false" :input-format="dateFormat" v-model="formData.end_date"
+                        :class="{ 'is-invalid': validationErrors.end_date }"
+                        @update:model-value="handleDateChange('end_date', $event)" />
+                      <span class="input-icon-addon">
+                        <i class="ti ti-calendar text-gray-7"></i>
+                      </span>
+                    </div>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Select the end date when this grant project will conclude" style="margin-left: 8px;">
+                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
                     </span>
                   </div>
                   <div v-if="validationErrors.end_date" class="invalid-feedback">
@@ -114,15 +165,19 @@
 </template>
 
 <script>
-import { Modal } from 'bootstrap';
+import { Modal, Tooltip as BootstrapTooltip } from 'bootstrap';
 import { ref, createVNode, nextTick } from 'vue';
 import { message, Modal as AntModal } from 'ant-design-vue';
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue';
 import { useLookupStore } from '@/stores/lookupStore';
 import { useFormPersistenceStore } from '@/stores/formPersistenceStore';
+import { grantService } from '@/services/grant.service';
 
 export default {
   name: 'GrantModal',
+  components: {
+    InfoCircleOutlined,
+  },
   setup() {
     const alertMessage = ref('');
     const alertClass = ref('');
@@ -163,6 +218,14 @@ export default {
       // Validation errors
       validationErrors: {}
     };
+  },
+
+  computed: {
+    // Check if there are any validation errors to show summary
+    hasValidationErrors() {
+      return Object.keys(this.validationErrors).length > 0 &&
+        !this.alertMessage; // Don't show summary if there's already an alert message
+    }
   },
 
   async created() {
@@ -225,6 +288,9 @@ export default {
 
       observer.observe(modalElement, { attributes: true });
     }
+
+    // Initialize tooltips on component mount
+    this.initializeTooltips();
   },
 
   beforeUnmount() {
@@ -246,9 +312,29 @@ export default {
   },
 
   methods: {
+    // Initialize Bootstrap tooltips
+    initializeTooltips() {
+      this.$nextTick(() => {
+        // Dispose of existing tooltips to prevent duplicates
+        const existingTooltips = document.querySelectorAll('#grant_modal [data-bs-toggle="tooltip"]');
+        existingTooltips.forEach(tooltipTriggerEl => {
+          const existingTooltip = BootstrapTooltip.getInstance(tooltipTriggerEl);
+          if (existingTooltip) {
+            existingTooltip.dispose();
+          }
+        });
+
+        // Initialize all tooltips within the modal
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('#grant_modal [data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new BootstrapTooltip(tooltipTriggerEl);
+        });
+      });
+    },
+
     // Called when modal is shown
     onModalShown() {
-      this.clearValidationErrors();
+      this.clearAllErrors();
 
       // Check for draft when opening for new grant
       const hasDraft = this.loadFormDraft();
@@ -261,6 +347,9 @@ export default {
       // Enable draft mode for tracking changes
       this.isDraftMode = true;
       this.hasUnsavedChanges = false;
+
+      // Initialize tooltips when modal is shown
+      this.initializeTooltips();
 
       console.log('📝 Grant modal ready for input - isDraftMode:', this.isDraftMode);
     },
@@ -531,24 +620,45 @@ export default {
 
     validateForm() {
       this.clearValidationErrors();
-      let isValid = true;
 
-      if (!this.formData.name?.trim()) {
-        this.validationErrors.name = 'Grant name is required';
-        isValid = false;
+      // Use service validation for consistency
+      try {
+        const validation = grantService.validateGrantData(this.formData);
+
+        if (!validation.isValid) {
+          // Map validation errors to form fields
+          Object.keys(validation.errors).forEach(field => {
+            if (Array.isArray(validation.errors[field]) && validation.errors[field].length > 0) {
+              this.validationErrors[field] = validation.errors[field][0];
+            }
+          });
+          return false;
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error during client-side validation:', error);
+
+        // Fallback to basic validation if service validation fails
+        let isValid = true;
+
+        if (!this.formData.name?.trim()) {
+          this.validationErrors.name = 'Grant name is required';
+          isValid = false;
+        }
+
+        if (!this.formData.code?.trim()) {
+          this.validationErrors.code = 'Grant code is required';
+          isValid = false;
+        }
+
+        if (!this.formData.subsidiary) {
+          this.validationErrors.subsidiary = 'Please select a subsidiary';
+          isValid = false;
+        }
+
+        return isValid;
       }
-
-      if (!this.formData.code?.trim()) {
-        this.validationErrors.code = 'Grant code is required';
-        isValid = false;
-      }
-
-      if (!this.formData.subsidiary) {
-        this.validationErrors.subsidiary = 'Please select a subsidiary';
-        isValid = false;
-      }
-
-      return isValid;
     },
 
     // Get subsidiary data from lookups
@@ -567,7 +677,7 @@ export default {
     async initSubsidiaries() {
       const lookupStore = useLookupStore();
       if (!lookupStore.lookups.length) {
-        await lookupStore.fetchAllLookups();
+        await lookupStore.fetchAllLookupLists();
       }
       this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
     },
@@ -591,6 +701,8 @@ export default {
     // Public method to open modal (called from parent)
     openModal() {
       if (this.modalInstance) {
+        // Clear any previous errors when opening modal
+        this.clearAllErrors();
         this.modalInstance.show();
       }
     },
@@ -602,6 +714,7 @@ export default {
         }
 
         this.isSubmitting = true;
+        this.clearValidationErrors();
 
         const submissionData = {
           ...this.formData,
@@ -610,31 +723,176 @@ export default {
 
         console.log('Formatted submission data:', submissionData);
 
-        this.$emit('add-grant', submissionData);
+        // Use the grant service directly (validation already done above)
+        const response = await grantService.createGrant(submissionData);
 
-        this.alertMessage = 'Grant added successfully!';
-        this.alertClass = 'alert-success';
+        // Handle successful response
+        if (response && response.success) {
+          this.alertMessage = response.message || 'Grant added successfully!';
+          this.alertClass = 'alert-success';
 
-        // Clear draft on successful submission
-        this.clearFormDraft();
-        this.hasUnsavedChanges = false;
-        this.isDraftMode = false;
+          // Clear draft on successful submission
+          this.clearFormDraft();
+          this.hasUnsavedChanges = false;
+          this.isDraftMode = false;
 
-        setTimeout(() => {
-          this.resetForm();
-          if (this.modalInstance) {
-            this.modalInstance.hide();
-          }
-        }, 1500);
+          // Emit success event to parent component (just notify of success)
+          this.$emit('add-grant', { success: true, grant: response.data });
+
+          // Show success message and close modal
+          setTimeout(() => {
+            this.resetForm();
+            if (this.modalInstance) {
+              this.modalInstance.hide();
+            }
+          }, 1500);
+        }
 
       } catch (error) {
         console.error('Error submitting form:', error);
-        this.alertMessage = error.response?.data?.message || 'Failed to add grant';
-        this.alertClass = 'alert-danger';
-        throw error;
+        this.handleSubmissionError(error);
       } finally {
         this.isSubmitting = false;
       }
+    },
+
+    // Handle different types of submission errors
+    handleSubmissionError(error) {
+      if (!error.status) {
+        // Network or unknown error
+        this.alertMessage = 'Network error. Please check your connection and try again.';
+        this.alertClass = 'alert-danger';
+        return;
+      }
+
+      switch (error.status) {
+        case 422:
+          // Validation errors from server
+          this.handleValidationErrors(error);
+          break;
+
+        case 404:
+          // Not found error
+          this.alertMessage = error.message || 'Resource not found. Please refresh and try again.';
+          this.alertClass = 'alert-danger';
+          break;
+
+        case 401:
+          // Unauthorized
+          this.alertMessage = 'Your session has expired. Please log in again.';
+          this.alertClass = 'alert-danger';
+          // Could emit event to parent to handle logout
+          break;
+
+        case 403:
+          // Forbidden
+          this.alertMessage = 'You do not have permission to create grants. Please contact your administrator.';
+          this.alertClass = 'alert-danger';
+          break;
+
+        case 500:
+          // Server error
+          this.alertMessage = 'Server error occurred. Please try again later or contact support.';
+          this.alertClass = 'alert-danger';
+          break;
+
+        default:
+          // Other HTTP errors
+          this.alertMessage = error.message || `An error occurred (${error.status}). Please try again.`;
+          this.alertClass = 'alert-danger';
+      }
+    },
+
+    // Handle validation errors from server (422)
+    handleValidationErrors(error) {
+      if (error.errors && typeof error.errors === 'object') {
+        // Map server validation errors to form fields
+        Object.keys(error.errors).forEach(field => {
+          if (Array.isArray(error.errors[field]) && error.errors[field].length > 0) {
+            this.validationErrors[field] = error.errors[field][0]; // Take first error message
+          }
+        });
+
+        // Show general validation message
+        this.alertMessage = error.message || 'Please correct the errors below and try again.';
+        this.alertClass = 'alert-danger';
+
+        // Scroll to first error field
+        this.scrollToFirstError();
+      } else {
+        // Fallback for validation errors without detailed field errors
+        this.alertMessage = error.message || 'Please check your input and try again.';
+        this.alertClass = 'alert-danger';
+      }
+    },
+
+    // Scroll to the first field with validation error
+    scrollToFirstError() {
+      this.$nextTick(() => {
+        const firstErrorField = document.querySelector('#grant_modal .is-invalid');
+        if (firstErrorField) {
+          firstErrorField.focus();
+          firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    },
+
+    // Get user-friendly field names for display
+    getFieldDisplayName(fieldName) {
+      const fieldNames = {
+        'name': 'Grant Name',
+        'code': 'Grant Code',
+        'subsidiary': 'Subsidiary',
+        'description': 'Description',
+        'end_date': 'End Date'
+      };
+      return fieldNames[fieldName] || fieldName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    },
+
+    // Show user-friendly toast messages for different error types
+    showErrorToast(error) {
+      let toastMessage = '';
+      let toastType = 'error';
+
+      if (!error.status) {
+        toastMessage = 'Network connection error. Please check your internet connection.';
+      } else {
+        switch (error.status) {
+          case 422:
+            toastMessage = 'Please check the form for validation errors.';
+            break;
+          case 401:
+            toastMessage = 'Session expired. Please log in again.';
+            break;
+          case 403:
+            toastMessage = 'You do not have permission to perform this action.';
+            break;
+          case 404:
+            toastMessage = 'Resource not found. Please refresh the page.';
+            break;
+          case 500:
+            toastMessage = 'Server error. Please try again later.';
+            break;
+          default:
+            toastMessage = error.message || 'An unexpected error occurred.';
+        }
+      }
+
+      // Use Ant Design message component for better UX
+      message.error(toastMessage);
+    },
+
+    // Clear all error states
+    clearAllErrors() {
+      this.clearValidationErrors();
+      this.validationErrors = {};
+    },
+
+    // Enhanced form reset with error clearing
+    resetFormCompletely() {
+      this.resetForm();
+      this.clearAllErrors();
+      this.isSubmitting = false;
     },
 
     resetForm() {
@@ -690,10 +948,13 @@ export default {
   color: #169b53;
   font-weight: bold;
   margin-bottom: 14px;
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: #f0f9f4;
   border: 1px solid #d4edda;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .error-msg {
@@ -701,10 +962,39 @@ export default {
   color: #e53e3e;
   font-weight: bold;
   margin-bottom: 14px;
-  padding: 8px 12px;
+  padding: 12px 16px;
   background: #fff5f5;
   border: 1px solid #f5c6cb;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Validation summary styles */
+.validation-summary .alert {
+  border-radius: 6px;
+  border: 1px solid #ffc107;
+  background-color: #fff9e6;
+  color: #856404;
+}
+
+.validation-summary .alert ul {
+  padding-left: 1.2rem;
+  margin-bottom: 0;
+}
+
+.validation-summary .alert li {
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.validation-summary .alert li:last-child {
+  margin-bottom: 0;
+}
+
+.validation-summary .alert strong {
+  color: #664d03;
 }
 
 /* Alert notification styles */
@@ -821,5 +1111,59 @@ export default {
 :deep(.ant-modal-confirm .ant-btn-danger) {
   background: #ff4d4f;
   border-color: #ff4d4f;
+}
+
+/* Bootstrap Tooltip styling enhancements */
+:deep(.tooltip) {
+  z-index: 9999 !important;
+}
+
+:deep(.tooltip-inner) {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  color: white !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  max-width: 250px !important;
+  text-align: left !important;
+}
+
+:deep(.tooltip.bs-tooltip-top .tooltip-arrow::before) {
+  border-top-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-bottom .tooltip-arrow::before) {
+  border-bottom-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-start .tooltip-arrow::before) {
+  border-left-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-end .tooltip-arrow::before) {
+  border-right-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* Input field container styling */
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Ensure tooltip icons don't interfere with input functionality */
+.tooltip-icon {
+  pointer-events: auto;
+  z-index: 1;
+}
+
+/* Modal content overflow fixes for tooltips */
+.modal-content {
+  overflow: visible !important;
+}
+
+.modal-body {
+  overflow: visible !important;
 }
 </style>

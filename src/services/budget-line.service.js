@@ -1,18 +1,21 @@
 // budget-line.service.js
 import { apiService } from '@/services/api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
+import { BaseService } from '@/services/base.service';
 
-class BudgetLineService {
+class BudgetLineService extends BaseService {
 
     // Fetch all budget lines with optional parameters for pagination, sorting, and filtering
     async getAllBudgetLines(params = {}) {
         try {
             // Build query string from parameters
-            const queryString = new URLSearchParams(params).toString();
+            const queryString = this.buildQueryString(params);
             const endpoint = `${API_ENDPOINTS.BUDGET_LINE.LIST}${queryString ? `?${queryString}` : ''}`;
 
-            const response = await apiService.get(endpoint);
-            return response; // This should return the full API response including pagination metadata
+            return await this.handleApiResponse(
+                () => apiService.get(endpoint),
+                'fetch budget lines'
+            );
         } catch (error) {
             console.error('Error fetching budget lines:', error);
             throw error;
@@ -40,17 +43,13 @@ class BudgetLineService {
 
     // Fetch paginated budget lines
     async getPaginatedBudgetLines(params = {}) {
-        const queryParams = new URLSearchParams();
+        const queryString = this.buildQueryString(params);
+        const endpoint = `${API_ENDPOINTS.BUDGET_LINE.PAGINATED || API_ENDPOINTS.BUDGET_LINE.LIST}?${queryString}`;
 
-        // Add parameters to query string
-        Object.keys(params).forEach(key => {
-            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-                queryParams.append(key, params[key]);
-            }
-        });
-
-        const endpoint = `${API_ENDPOINTS.BUDGET_LINE.PAGINATED || API_ENDPOINTS.BUDGET_LINE.LIST}?${queryParams.toString()}`;
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            'fetch paginated budget lines'
+        );
     }
 
     // Search budget line by code (handles 404 as valid response)
@@ -75,30 +74,45 @@ class BudgetLineService {
     // Fetch budget line by ID
     async getBudgetLineById(id) {
         const endpoint = API_ENDPOINTS.BUDGET_LINE.GET_BY_ID.replace(':id', id);
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            'fetch budget line by ID'
+        );
     }
 
     // Create a new budget line
     async createBudgetLine(budgetLineData) {
-        return await apiService.post(API_ENDPOINTS.BUDGET_LINE.CREATE, budgetLineData);
+        return await this.handleApiResponse(
+            () => apiService.post(API_ENDPOINTS.BUDGET_LINE.CREATE, budgetLineData),
+            'create budget line'
+        );
     }
 
     // Update an existing budget line
     async updateBudgetLine(id, budgetLineData) {
         const endpoint = API_ENDPOINTS.BUDGET_LINE.UPDATE.replace(':id', id);
-        return await apiService.put(endpoint, budgetLineData);
+        return await this.handleApiResponse(
+            () => apiService.put(endpoint, budgetLineData),
+            'update budget line'
+        );
     }
 
     // Delete a budget line
     async deleteBudgetLine(id) {
         const endpoint = API_ENDPOINTS.BUDGET_LINE.DELETE.replace(':id', id);
-        return await apiService.delete(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.delete(endpoint),
+            'delete budget line'
+        );
     }
 
     // Get budget line details
     async getBudgetLineDetails(id) {
         const endpoint = API_ENDPOINTS.BUDGET_LINE.DETAILS.replace(':id', id);
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            'fetch budget line details'
+        );
     }
 
     /**
@@ -120,17 +134,13 @@ class BudgetLineService {
      * @returns {Promise} API response with paginated budget lines data
      */
     async getAdvancedPaginatedBudgetLines(params = {}) {
-        const queryParams = new URLSearchParams();
+        const queryString = this.buildQueryString(params);
+        const endpoint = `${API_ENDPOINTS.BUDGET_LINE.ADVANCED_PAGINATED || API_ENDPOINTS.BUDGET_LINE.LIST}?${queryString}`;
 
-        // Add parameters to query string, filtering out empty values
-        Object.keys(params).forEach(key => {
-            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-                queryParams.append(key, params[key]);
-            }
-        });
-
-        const endpoint = `${API_ENDPOINTS.BUDGET_LINE.ADVANCED_PAGINATED || API_ENDPOINTS.BUDGET_LINE.LIST}?${queryParams.toString()}`;
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            'fetch advanced paginated budget lines'
+        );
     }
 
     /**
@@ -138,7 +148,78 @@ class BudgetLineService {
      * @returns {Promise} API response with available filter options
      */
     async getFilterOptions() {
-        return await apiService.get(API_ENDPOINTS.BUDGET_LINE.FILTER_OPTIONS || `${API_ENDPOINTS.BUDGET_LINE.LIST}/filter-options`);
+        return await this.handleApiResponse(
+            () => apiService.get(API_ENDPOINTS.BUDGET_LINE.FILTER_OPTIONS || `${API_ENDPOINTS.BUDGET_LINE.LIST}/filter-options`),
+            'fetch filter options'
+        );
+    }
+
+    /**
+     * Validate budget line data before sending to API
+     * @param {Object} budgetLineData - Budget line data to validate
+     * @returns {Object} Validation result
+     */
+    validateBudgetLineData(budgetLineData) {
+        // Use base class validation for required fields
+        const requiredValidation = this.validateRequiredFields(budgetLineData, ['budget_line_code', 'description']);
+
+        // Additional custom validations
+        const customErrors = {};
+
+        // Validate budget_line_code format (if needed)
+        if (budgetLineData.budget_line_code && budgetLineData.budget_line_code.length > 255) {
+            customErrors.budget_line_code = ['Budget line code must not exceed 255 characters'];
+        }
+
+        // Validate description length
+        if (budgetLineData.description && budgetLineData.description.length > 255) {
+            customErrors.description = ['Description must not exceed 255 characters'];
+        }
+
+        // Combine validations
+        return this.combineValidations([
+            requiredValidation,
+            { isValid: Object.keys(customErrors).length === 0, errors: customErrors }
+        ]);
+    }
+
+    /**
+     * Create budget line with client-side validation (for use in components)
+     * Note: This is a convenience method that validates before calling createBudgetLine.
+     * For better separation of concerns, consider doing validation in the component
+     * and calling createBudgetLine() directly.
+     * 
+     * @param {Object} budgetLineData - Budget line data
+     * @returns {Promise} API response
+     */
+    async createBudgetLineWithValidation(budgetLineData) {
+        const validation = this.validateBudgetLineData(budgetLineData);
+
+        if (!validation.isValid) {
+            throw this.createValidationError(validation.errors);
+        }
+
+        return await this.createBudgetLine(budgetLineData);
+    }
+
+    /**
+     * Update budget line with client-side validation (for use in components)
+     * Note: This is a convenience method that validates before calling updateBudgetLine.
+     * For better separation of concerns, consider doing validation in the component
+     * and calling updateBudgetLine() directly.
+     * 
+     * @param {number} id - Budget line ID
+     * @param {Object} budgetLineData - Budget line data
+     * @returns {Promise} API response
+     */
+    async updateBudgetLineWithValidation(id, budgetLineData) {
+        const validation = this.validateBudgetLineData(budgetLineData);
+
+        if (!validation.isValid) {
+            throw this.createValidationError(validation.errors);
+        }
+
+        return await this.updateBudgetLine(id, budgetLineData);
     }
 }
 

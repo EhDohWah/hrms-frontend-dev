@@ -18,6 +18,12 @@ class EmployeeService {
         return await apiService.put(endpoint, data);
     }
 
+    // Update bank information
+    async updateBankInformation(id, data) {
+        const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_BANK_INFORMATION.replace(':id', id);
+        return await apiService.put(endpoint, data);
+    }
+
     // Tree search
     async treeSearch(params = {}) {
         return await apiService.get(API_ENDPOINTS.EMPLOYEE.TREE_SEARCH, { params });

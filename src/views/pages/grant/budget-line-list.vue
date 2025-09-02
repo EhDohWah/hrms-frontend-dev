@@ -12,6 +12,12 @@
                             <i class="ti ti-circle-plus me-2"></i>Add Budget Line
                         </button>
                     </div>
+                    <div class="head-icons ms-2">
+                        <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
+                            data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
+                            <i class="ti ti-chevrons-up"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
             <!-- /Breadcrumb -->
@@ -189,6 +195,15 @@ export default {
         this.fetchBudgetLines();
     },
     methods: {
+
+
+        // Initialize Bootstrap tooltips
+        toggleHeader() {
+            console.log('toggleHeader');
+            document.getElementById("collapse-header").classList.toggle("active");
+            document.body.classList.toggle("header-collapse");
+        },
+        
         // UNIFIED API PARAMETER BUILDER
         buildApiParams(baseParams = {}) {
             const params = {
@@ -319,18 +334,49 @@ export default {
                         this.currentPage = 1;
                     }
 
-                    this.$message.success('Budget lines loaded successfully');
+                    // Only show success message on initial load or when explicitly needed
+                    if (!params.suppressSuccessMessage) {
+                        this.$message.success(response.message || 'Budget lines loaded successfully');
+                    }
                 } else {
                     // Handle legacy response format
                     this.budgetLines = response.data || [];
                     this.total = this.budgetLines.length;
-                    this.$message.success('Budget lines loaded successfully');
+                    if (!params.suppressSuccessMessage) {
+                        this.$message.success('Budget lines loaded successfully');
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching budget lines:', error);
-                this.$message.error('Failed to load budget lines');
                 this.budgetLines = [];
                 this.total = 0;
+
+                // Handle different error types from BaseService
+                if (error.status) {
+                    switch (error.status) {
+                        case 401:
+                            this.$message.error('Authentication required. Please log in again.');
+                            // Optionally redirect to login
+                            break;
+                        case 403:
+                            this.$message.error('You do not have permission to view budget lines.');
+                            break;
+                        case 404:
+                            this.$message.warning('Budget lines not found.');
+                            break;
+                        case 422:
+                            this.$message.error(error.message || 'Invalid request parameters.');
+                            break;
+                        case 500:
+                            this.$message.error('Server error occurred. Please try again later.');
+                            break;
+                        default:
+                            this.$message.error(error.message || 'Failed to load budget lines');
+                    }
+                } else {
+                    // Network or unknown errors
+                    this.$message.error('Network error. Please check your connection and try again.');
+                }
             } finally {
                 this.loading = false;
             }
@@ -373,7 +419,7 @@ export default {
 
             this.searchLoading = true;
             try {
-                const response = await budgetLineService.getBudgetLineByCode(this.searchBudgetLineCode);
+                const response = await budgetLineService.searchBudgetLineByCode(this.searchBudgetLineCode.trim());
 
                 // Check if the API returned success
                 if (response.success === true && response.data) {
@@ -388,17 +434,42 @@ export default {
                     // Handle API response with success: false (404 - Budget line not found)
                     this.budgetLines = [];
                     this.total = 0;
-                    this.$message.warning(response.message || 'No budget line found with this code');
+                    this.$message.warning(response.message || `No budget line found with code "${this.searchBudgetLineCode}"`);
                 }
 
                 return response;
             } catch (error) {
-                // Only network errors, auth errors, or parsing errors reach here
-                console.error('Error fetching budget line by code:', error);
-                this.$message.error('Network error: Failed to fetch budget line by code');
-                // Clear budget lines on error
+                console.error('Error searching budget line by code:', error);
                 this.budgetLines = [];
                 this.total = 0;
+
+                // Handle different error types from BaseService
+                if (error.status) {
+                    switch (error.status) {
+                        case 401:
+                            this.$message.error('Authentication required. Please log in again.');
+                            break;
+                        case 403:
+                            this.$message.error('You do not have permission to search budget lines.');
+                            break;
+                        case 404:
+                            // 404 should be handled as a valid response in searchBudgetLineByCode
+                            // If we reach here, it's an unexpected 404
+                            this.$message.warning(`Budget line with code "${this.searchBudgetLineCode}" not found.`);
+                            break;
+                        case 422:
+                            this.$message.error(error.message || 'Invalid search parameters.');
+                            break;
+                        case 500:
+                            this.$message.error('Server error occurred while searching. Please try again later.');
+                            break;
+                        default:
+                            this.$message.error(error.message || 'Failed to search budget line');
+                    }
+                } else {
+                    // Network or unknown errors
+                    this.$message.error('Network error. Please check your connection and try again.');
+                }
             } finally {
                 this.searchLoading = false;
             }
@@ -417,7 +488,7 @@ export default {
         confirmDelete(record) {
             AntModal.confirm({
                 title: 'Are you sure you want to delete this budget line?',
-                content: 'This action cannot be undone.',
+                content: `This will permanently delete budget line "${record.budget_line_code}". This action cannot be undone.`,
                 centered: true,
                 okText: 'Yes, delete',
                 okType: 'danger',
@@ -425,14 +496,43 @@ export default {
                 onOk: async () => {
                     this.loading = true;
                     try {
-                        await budgetLineService.deleteBudgetLine(record.id);
-                        this.$message.success('Budget line deleted successfully');
+                        const response = await budgetLineService.deleteBudgetLine(record.id);
+                        this.$message.success(response.message || `Budget line "${record.budget_line_code}" deleted successfully`);
 
                         // Refresh with current parameters to maintain pagination/filters
-                        const params = this.buildApiParams();
+                        const params = this.buildApiParams({ suppressSuccessMessage: true });
                         await this.fetchBudgetLines(params);
                     } catch (error) {
-                        this.$message.error('Failed to delete budget line');
+                        console.error('Error deleting budget line:', error);
+
+                        // Handle different error types from BaseService
+                        if (error.status) {
+                            switch (error.status) {
+                                case 401:
+                                    this.$message.error('Authentication required. Please log in again.');
+                                    break;
+                                case 403:
+                                    this.$message.error('You do not have permission to delete this budget line.');
+                                    break;
+                                case 404:
+                                    this.$message.warning(`Budget line "${record.budget_line_code}" not found. It may have already been deleted.`);
+                                    // Refresh the list to reflect current state
+                                    const params = this.buildApiParams({ suppressSuccessMessage: true });
+                                    await this.fetchBudgetLines(params);
+                                    break;
+                                case 422:
+                                    this.$message.error(error.message || 'Cannot delete this budget line. It may be in use.');
+                                    break;
+                                case 500:
+                                    this.$message.error('Server error occurred while deleting. Please try again later.');
+                                    break;
+                                default:
+                                    this.$message.error(error.message || `Failed to delete budget line "${record.budget_line_code}"`);
+                            }
+                        } else {
+                            // Network or unknown errors
+                            this.$message.error('Network error. Please check your connection and try again.');
+                        }
                     } finally {
                         this.loading = false;
                     }
@@ -442,7 +542,7 @@ export default {
 
         onSaved() {
             // Refresh with current parameters to maintain pagination/filters
-            const params = this.buildApiParams();
+            const params = this.buildApiParams({ suppressSuccessMessage: true });
             this.fetchBudgetLines(params);
         },
 

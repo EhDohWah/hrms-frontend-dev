@@ -5,12 +5,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Add Travel Request</h4>
-          <button
-            type="button" 
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -20,37 +15,23 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Purpose of Travel</label>
-                  <input 
-                    type="text"
-                    v-model="formData.purposeOfTravel"
-                    class="form-control"
-                    placeholder="Enter purpose"
-                  />
+                  <input type="text" v-model="formData.purposeOfTravel" class="form-control"
+                    placeholder="Enter purpose" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Destination</label>
-                  <input
-                    type="text"
-                    v-model="formData.destination" 
-                    class="form-control"
-                    placeholder="Enter destination"
-                  />
+                  <input type="text" v-model="formData.destination" class="form-control"
+                    placeholder="Enter destination" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">From</label>
                   <div class="input-icon-end position-relative">
-                    <date-picker
-                      v-model="formData.fromDate"
-                      class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                    />
+                    <date-picker v-model="formData.fromDate" class="form-control datetimepicker"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -61,14 +42,8 @@
                 <div class="mb-3">
                   <label class="form-label">To</label>
                   <div class="input-icon-end position-relative">
-                    <date-picker
-                      v-model="formData.toDate"
-                      class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                    />
+                    <date-picker v-model="formData.toDate" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                      :editable="true" :clearable="false" :input-format="dateFormat" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
@@ -78,23 +53,14 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Description</label>
-                  <textarea 
-                    v-model="formData.description"
-                    class="form-control" 
-                    rows="3"
-                    placeholder="Enter travel details"
-                  ></textarea>
+                  <textarea v-model="formData.description" class="form-control" rows="3"
+                    placeholder="Enter travel details"></textarea>
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Attachments</label>
-                  <input 
-                    type="file"
-                    class="form-control"
-                    multiple
-                    @change="handleFileUpload"
-                  />
+                  <input type="file" class="form-control" multiple @change="handleFileUpload" />
                 </div>
               </div>
             </div>

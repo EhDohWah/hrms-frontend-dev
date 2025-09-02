@@ -1,13 +1,17 @@
 // grant.service.js
 import { apiService } from '@/services/api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
+import { BaseService } from '@/services/base.service';
 
-class GrantService {
+class GrantService extends BaseService {
 
   // Fetch a grant by code
   async getGrantByCode(code) {
     const endpoint = API_ENDPOINTS.GRANT.GET_BY_CODE.replace(':code', code);
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch grant by code'
+    );
   }
 
   // Fetch a grant by code for search (handles 404 as valid response)
@@ -31,7 +35,10 @@ class GrantService {
   // Fetch a grant by id
   async getGrantById(id) {
     const endpoint = API_ENDPOINTS.GRANT.GET_BY_ID.replace(':id', id);
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch grant by ID'
+    );
   }
 
   // Fetch all grants
@@ -40,9 +47,11 @@ class GrantService {
       // Build query string from parameters
       const queryString = new URLSearchParams(params).toString();
       const endpoint = `${API_ENDPOINTS.GRANT.LIST}${queryString ? `?${queryString}` : ''}`;
-      
-      const response = await apiService.get(endpoint);
-      return response; // This should return the full API response including pagination metadata
+
+      return await this.handleApiResponse(
+        () => apiService.get(endpoint),
+        'fetch grants list'
+      );
     } catch (error) {
       console.error('Error fetching grants:', error);
       throw error;
@@ -61,68 +70,104 @@ class GrantService {
     });
 
     const endpoint = `${API_ENDPOINTS.GRANT.PAGINATED}?${queryParams.toString()}`;
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch paginated grants'
+    );
   }
 
   // Fetch all grant items
   async getAllGrantItems() {
-    return await apiService.get(API_ENDPOINTS.GRANT.ITEMS.LIST);
+    return await this.handleApiResponse(
+      () => apiService.get(API_ENDPOINTS.GRANT.ITEMS.LIST),
+      'fetch grant items'
+    );
   }
 
   // Create a new grant
   async createGrant(grantData) {
-    return await apiService.post(API_ENDPOINTS.GRANT.CREATE, grantData);
+    return await this.handleApiResponse(
+      () => apiService.post(API_ENDPOINTS.GRANT.CREATE, grantData),
+      'create grant'
+    );
   }
 
   // Create a new grant item
   async createGrantItem(itemData) {
-    return await apiService.post(API_ENDPOINTS.GRANT.ITEMS.CREATE, itemData);
+    return await this.handleApiResponse(
+      () => apiService.post(API_ENDPOINTS.GRANT.ITEMS.CREATE, itemData),
+      'create grant item'
+    );
   }
 
   // Update an existing grant
   async updateGrant(id, grantData) {
     const endpoint = API_ENDPOINTS.GRANT.UPDATE.replace(':id', id);
-    return await apiService.put(endpoint, grantData);
+    return await this.handleApiResponse(
+      () => apiService.put(endpoint, grantData),
+      'update grant'
+    );
   }
 
   // Delete a grant
   async deleteGrant(id) {
     const endpoint = API_ENDPOINTS.GRANT.DELETE.replace(':id', id);
-    return await apiService.delete(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.delete(endpoint),
+      'delete grant'
+    );
   }
 
   // Delete a grant item
   async deleteGrantItem(id) {
     const endpoint = API_ENDPOINTS.GRANT.ITEMS.DELETE.replace(':id', id);
-    return await apiService.delete(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.delete(endpoint),
+      'delete grant item'
+    );
   }
 
   // Upload grant file
   async uploadGrantFile(formData) {
-    return await apiService.postFormData(API_ENDPOINTS.GRANT.UPLOAD, formData);
+    return await this.handleApiResponse(
+      () => apiService.postFormData(API_ENDPOINTS.GRANT.UPLOAD, formData),
+      'upload grant file'
+    );
   }
 
   // Get grant details
   async getGrantDetails(id) {
     const endpoint = API_ENDPOINTS.GRANT.DETAILS.replace(':id', id);
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch grant details'
+    );
   }
 
   // Get grant item details
   async getGrantItemDetails(id) {
     const endpoint = API_ENDPOINTS.GRANT.ITEMS.DETAILS.replace(':id', id);
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch grant item details'
+    );
   }
 
   // Update a grant item
   async updateGrantItem(id, itemData) {
     const endpoint = API_ENDPOINTS.GRANT.ITEMS.UPDATE.replace(':id', id);
-    return await apiService.put(endpoint, itemData);
+    return await this.handleApiResponse(
+      () => apiService.put(endpoint, itemData),
+      'update grant item'
+    );
   }
 
   // Get grant positions
   async getGrantPositions() {
-    return await apiService.get(API_ENDPOINTS.GRANT.GRANT_POSITIONS);
+    return await this.handleApiResponse(
+      () => apiService.get(API_ENDPOINTS.GRANT.GRANT_POSITIONS),
+      'fetch grant positions'
+    );
   }
 
   /**
@@ -154,7 +199,10 @@ class GrantService {
     });
 
     const endpoint = `${API_ENDPOINTS.GRANT.ADVANCED_PAGINATED}?${queryParams.toString()}`;
-    return await apiService.get(endpoint);
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      'fetch advanced paginated grants'
+    );
   }
 
   /**
@@ -162,7 +210,116 @@ class GrantService {
    * @returns {Promise} API response with available filter options
    */
   async getFilterOptions() {
-    return await apiService.get(API_ENDPOINTS.GRANT.FILTER_OPTIONS);
+    return await this.handleApiResponse(
+      () => apiService.get(API_ENDPOINTS.GRANT.FILTER_OPTIONS),
+      'fetch filter options'
+    );
+  }
+
+  /**
+   * Validate grant data before sending to API
+   * @param {Object} grantData - Grant data to validate
+   * @returns {Object} Validation result
+   */
+  validateGrantData(grantData) {
+    // Use base class validation for required fields
+    const requiredValidation = this.validateRequiredFields(grantData, ['code', 'name', 'subsidiary']);
+
+    // Additional custom validations
+    const customErrors = {};
+
+    if (grantData.end_date && !this.isValidDate(grantData.end_date)) {
+      customErrors.end_date = ['Invalid date format'];
+    }
+
+    // Combine validations
+    return this.combineValidations([
+      requiredValidation,
+      { isValid: Object.keys(customErrors).length === 0, errors: customErrors }
+    ]);
+  }
+
+  /**
+   * Validate grant item data before sending to API
+   * @param {Object} itemData - Grant item data to validate
+   * @returns {Object} Validation result
+   */
+  validateGrantItemData(itemData) {
+    // Use base class validation for required fields
+    const requiredValidation = this.validateRequiredFields(itemData, ['grant_id']);
+
+    // Use base class validation for numeric fields
+    const numericValidation = this.validateNumericFields(itemData, [
+      { field: 'grant_salary', min: 0 },
+      { field: 'grant_benefit', min: 0 },
+      { field: 'grant_level_of_effort', min: 0, max: 1 }
+    ]);
+
+    // Combine validations
+    return this.combineValidations([requiredValidation, numericValidation]);
+  }
+
+  /**
+ * Create grant with client-side validation (for use in components)
+ * Note: This is a convenience method that validates before calling createGrant.
+ * For better separation of concerns, consider doing validation in the component
+ * and calling createGrant() directly.
+ * 
+ * @param {Object} grantData - Grant data
+ * @returns {Promise} API response
+ */
+  async createGrantWithValidation(grantData) {
+    const validation = this.validateGrantData(grantData);
+
+    if (!validation.isValid) {
+      throw this.createValidationError(validation.errors);
+    }
+
+    return await this.createGrant(grantData);
+  }
+
+  /**
+   * Create grant item with client-side validation (for use in components)
+   * Note: This is a convenience method that validates before calling createGrantItem.
+   * For better separation of concerns, consider doing validation in the component
+   * and calling createGrantItem() directly.
+   * 
+   * @param {Object} itemData - Grant item data
+   * @returns {Promise} API response
+   */
+  async createGrantItemWithValidation(itemData) {
+    const validation = this.validateGrantItemData(itemData);
+
+    if (!validation.isValid) {
+      throw this.createValidationError(validation.errors);
+    }
+
+    return await this.createGrantItem(itemData);
+  }
+
+  /**
+   * Upload grant file with validation
+   * @param {File} file - File to upload
+   * @returns {Promise} API response
+   */
+  async uploadGrantFileWithValidation(file) {
+    const validation = this.validateFile(file, {
+      maxSize: 10 * 1024 * 1024, // 10MB
+      allowedTypes: [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+        'application/vnd.ms-excel', // .xls
+        'text/csv' // .csv
+      ]
+    });
+
+    if (!validation.isValid) {
+      throw this.createValidationError(validation.errors);
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return await this.uploadGrantFile(formData);
   }
 }
 

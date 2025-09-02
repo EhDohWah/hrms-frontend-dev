@@ -58,18 +58,36 @@
               <template #expandedRowRender="{ record }">
                 <div>
                   <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 8px;">
-                    <p style="margin-bottom: 0; font-weight: bold">Grant Position</p>
-                    <a-button class="editable-add-btn" @click="handleAddItem(record.id)">Add Position</a-button>
+                    <div class="d-flex align-items-center">
+                      <p style="margin-bottom: 0; font-weight: bold">Grant Position</p>
+                      <div v-if="Object.keys(editableData).length > 0" class="editing-mode-indicator ms-2">
+                        <span class="badge badge-soft-warning">
+                          <i class="ti ti-edit me-1"></i>Editing Mode
+                        </span>
+                        <small class="text-muted ms-2">Calculated columns are hidden during editing</small>
+                      </div>
+                    </div>
+                    <a-button class="editable-add-btn" @click="handleAddItem(record.id)"
+                      :disabled="Object.keys(editableData).length > 0">
+                      Add Position
+                    </a-button>
                   </div>
                   <a-table :columns="innerColumns" :data-source="record.items || []" :pagination="false" row-key="id"
-                    bordered size="small">
+                    bordered size="small" :key="`inner-table-${record.id}-${Object.keys(editableData).length}`">
 
                     <template #bodyCell="{ column, text, record: itemRecord }">
                       <template v-if="column.dataIndex === 'grant_position'">
                         <div>
                           <template v-if="editableData[itemRecord.id]">
-                            <a-input v-model:value="editableData[itemRecord.id][column.dataIndex]"
-                              style="margin: -5px 0" />
+                            <div style="display: flex; align-items: center; margin: -5px 0;">
+                              <a-input v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                                placeholder="Enter position title" style="flex: 1;" />
+                              <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Enter the job position or title for this grant (e.g., Research Assistant, Project Manager)"
+                                style="margin-left: 8px;">
+                                <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                              </span>
+                            </div>
                           </template>
                           <template v-else>
                             {{ text || ' ' }}
@@ -80,8 +98,15 @@
                       <template v-else-if="column.dataIndex === 'grant_salary'">
                         <div>
                           <template v-if="editableData[itemRecord.id]">
-                            <a-input-number v-model:value="editableData[itemRecord.id][column.dataIndex]"
-                              style="margin: -5px 0; width: 100%" />
+                            <div style="display: flex; align-items: center; margin: -5px 0;">
+                              <a-input-number v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                                placeholder="Enter salary amount" style="flex: 1;" />
+                              <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Enter the monthly salary amount in THB for this position"
+                                style="margin-left: 8px;">
+                                <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                              </span>
+                            </div>
                           </template>
                           <template v-else>
                             {{ formatCurrency(text) }}
@@ -92,8 +117,15 @@
                       <template v-else-if="column.dataIndex === 'grant_benefit'">
                         <div>
                           <template v-if="editableData[itemRecord.id]">
-                            <a-input-number v-model:value="editableData[itemRecord.id][column.dataIndex]"
-                              style="margin: -5px 0; width: 100%" />
+                            <div style="display: flex; align-items: center; margin: -5px 0;">
+                              <a-input-number v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                                placeholder="Enter benefit amount" style="flex: 1;" />
+                              <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Enter the monthly benefit amount in THB (insurance, allowances, etc.)"
+                                style="margin-left: 8px;">
+                                <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                              </span>
+                            </div>
                           </template>
                           <template v-else>
                             {{ formatCurrency(text) }}
@@ -104,8 +136,15 @@
                       <template v-else-if="column.dataIndex === 'grant_level_of_effort'">
                         <div>
                           <template v-if="editableData[itemRecord.id]">
-                            <a-input-number v-model:value="editableData[itemRecord.id][column.dataIndex]"
-                              style="margin: -5px 0; width: 100%" :min="0" :max="100" />
+                            <div style="display: flex; align-items: center; margin: -5px 0;">
+                              <a-input-number v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                                placeholder="Enter percentage" style="flex: 1;" :min="0" :max="100" addon-after="%" />
+                              <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Enter the level of effort as a percentage (0-100%). This represents how much time is allocated to this grant"
+                                style="margin-left: 8px;">
+                                <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                              </span>
+                            </div>
                           </template>
                           <template v-else>
                             {{ (text || 0) * 100 }}%
@@ -116,8 +155,15 @@
                       <template v-else-if="column.dataIndex === 'grant_position_number'">
                         <div>
                           <template v-if="editableData[itemRecord.id]">
-                            <a-input v-model:value="editableData[itemRecord.id][column.dataIndex]"
-                              style="margin: -5px 0; width: 100%" />
+                            <div style="display: flex; align-items: center; margin: -5px 0;">
+                              <a-input v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                                placeholder="Enter position number" style="flex: 1;" />
+                              <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Enter the position number or identifier for this grant position"
+                                style="margin-left: 8px;">
+                                <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                              </span>
+                            </div>
                           </template>
                           <template v-else>
                             {{ text || ' ' }}
@@ -132,7 +178,7 @@
 
                       <template v-else-if="column.dataIndex === 'actions'">
                         <div class="editable-row-operations">
-                          <span v-if="editableData[itemRecord.id]">
+                          <span v-if="editableData[itemRecord.id]" class="d-flex align-items-center gap-3">
                             <a-typography-link @click="save(itemRecord.id)">Save</a-typography-link>
                             <a-popconfirm title="Sure to cancel?" @confirm="cancel(itemRecord.id)"
                               :destroyTooltipOnHide="true">
@@ -177,6 +223,14 @@
                   ]">
                     {{ record.subsidiary }}
                   </span>
+                </template>
+
+                <template v-if="column.dataIndex === 'description'">
+                  <a-tooltip :title="record.description" placement="topLeft">
+                    <span class="text-muted">
+                      {{ truncateText(record.description, 60) }}
+                    </span>
+                  </a-tooltip>
                 </template>
 
               </template>
@@ -225,7 +279,8 @@
 </template>
 
 <script>
-import { Toast, Modal as BootstrapModal } from 'bootstrap';
+import { Toast, Modal as BootstrapModal, Tooltip as BootstrapTooltip } from 'bootstrap';
+import { InfoCircleOutlined } from '@ant-design/icons-vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import GrantModal from '@/components/modal/grant-modal.vue';
 import GrantModalUpdate from '@/components/modal/grant-modal-update.vue';
@@ -249,6 +304,7 @@ export default {
     LayoutHeader,
     LayoutSidebar,
     LayoutFooter,
+    InfoCircleOutlined,
   },
   data() {
     return {
@@ -277,36 +333,36 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
-      innerColumns: [
+      baseInnerColumns: [
         {
           title: 'Position',
           dataIndex: 'grant_position',
           key: 'grant_position',
+          width: 200
+        },
+        {
+          title: 'Salary (THB)',
+          dataIndex: 'grant_salary',
+          key: 'grant_salary',
           width: 150
         },
         {
-          title: 'Salary',
-          dataIndex: 'grant_salary',
-          key: 'grant_salary',
-          width: 120
-        },
-        {
-          title: 'Benefit',
+          title: 'Benefit (THB)',
           dataIndex: 'grant_benefit',
           key: 'grant_benefit',
-          width: 120
+          width: 150
         },
         {
-          title: 'Effort',
+          title: 'Effort (%)',
           dataIndex: 'grant_level_of_effort',
           key: 'grant_level_of_effort',
-          width: 130
+          width: 150
         },
         {
-          title: 'Position Number',
+          title: 'Position No.',
           dataIndex: 'grant_position_number',
           key: 'grant_position_number',
-          width: 100
+          width: 120
         },
         {
           title: 'Cost Monthly',
@@ -330,7 +386,8 @@ export default {
           title: 'Actions',
           dataIndex: 'actions',
           key: 'actions',
-          width: 80
+          width: 120,
+          fixed: 'right'
         }
       ]
     };
@@ -392,8 +449,10 @@ export default {
           title: 'Description',
           dataIndex: 'description',
           key: 'description',
-          width: 250,
-          ellipsis: true
+          width: 180,
+          ellipsis: {
+            showTitle: true
+          }
         },
         {
           title: 'Actions',
@@ -411,6 +470,21 @@ export default {
         key: grant.id,
         description: grant.description || 'No description'
       }));
+    },
+
+    // Dynamic inner columns based on editing state
+    innerColumns() {
+      const hasEditingItems = Object.keys(this.editableData).length > 0;
+
+      if (hasEditingItems) {
+        // When editing, hide calculated columns and show only editable fields
+        return this.baseInnerColumns.filter(col =>
+          ['grant_position', 'grant_salary', 'grant_benefit', 'grant_level_of_effort', 'grant_position_number', 'actions'].includes(col.dataIndex)
+        );
+      } else {
+        // When not editing, show all columns
+        return this.baseInnerColumns;
+      }
     }
 
 
@@ -450,8 +524,31 @@ export default {
     this.grantUploadModalInstance = BootstrapModal.getInstance(grantUploadModalEl) || new BootstrapModal(grantUploadModalEl);
 
     this.fetchGrants();
+
+    // Initialize tooltips on component mount
+    this.initializeTooltips();
   },
   methods: {
+    // Initialize Bootstrap tooltips
+    initializeTooltips() {
+      this.$nextTick(() => {
+        // Dispose of existing tooltips to prevent duplicates
+        const existingTooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        existingTooltips.forEach(tooltipTriggerEl => {
+          const existingTooltip = BootstrapTooltip.getInstance(tooltipTriggerEl);
+          if (existingTooltip) {
+            existingTooltip.dispose();
+          }
+        });
+
+        // Initialize all tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new BootstrapTooltip(tooltipTriggerEl);
+        });
+      });
+    },
+
     // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING
     handlePaginationChange(page, pageSize) {
       console.log('Pagination change:', page, pageSize);
@@ -573,6 +670,9 @@ export default {
 
         // Set the item in edit mode
         this.editableData[newItem.id] = { ...newItem };
+
+        // Initialize tooltips after adding new item
+        this.initializeTooltips();
       }
     },
 
@@ -585,6 +685,12 @@ export default {
           ...cloneDeep(item),
           grant_level_of_effort: item.grant_level_of_effort ? Math.round(parseFloat(item.grant_level_of_effort) * 100) : 0
         };
+
+        // Initialize tooltips after entering edit mode
+        this.initializeTooltips();
+
+        // Force table re-render to show/hide columns
+        this.$forceUpdate();
       }
     },
 
@@ -636,6 +742,10 @@ export default {
 
         delete this.editableData[id];
         this.$message.success(itemData.__isNew ? 'Grant item created' : 'Grant item updated');
+
+        // Force table re-render to show/hide columns
+        this.$forceUpdate();
+
         this.fetchGrants();
       } catch (error) {
         console.error('Error saving grant item:', error);
@@ -660,6 +770,9 @@ export default {
 
       // Remove from editable data
       delete this.editableData[id];
+
+      // Force table re-render to show/hide columns
+      this.$forceUpdate();
     },
 
     // Confirm delete grant item
@@ -919,6 +1032,12 @@ export default {
       }).format(value);
     },
 
+    truncateText(text, maxLength = 60) {
+      if (!text) return 'No description';
+      if (text.length <= maxLength) return text;
+      return text.substring(0, maxLength) + '...';
+    },
+
     toggleHeader() {
       console.log('toggleHeader');
       document.getElementById("collapse-header").classList.toggle("active");
@@ -964,17 +1083,18 @@ export default {
       this.grantModalUpdateInstance.show();
     },
 
-    async handleAddGrant(formData) {
+    async handleAddGrant(grantData) {
+      // The grant has already been created by the modal
+      // This method now just handles the UI updates after successful creation
       this.loading = true;
       try {
-        // Add new grant
-        await this.grantService.createGrant(formData);
+        // Show success message (grant was already created in modal)
         this.$message.success('Grant created successfully');
-        // Refresh the grants list
-        this.fetchGrants();
+        // Refresh the grants list to show the new grant
+        await this.fetchGrants();
       } catch (error) {
-        console.error('Error adding grant:', error);
-        this.$message.error('Failed to create grant');
+        console.error('Error refreshing grants list:', error);
+        this.$message.error('Failed to refresh grants list');
       } finally {
         this.loading = false;
       }
@@ -1166,4 +1286,137 @@ export default {
   overflow: visible !important;
   margin-bottom: 20px;
 }
-</style> 
+
+/* Bootstrap Tooltip styling enhancements */
+:deep(.tooltip) {
+  z-index: 9999 !important;
+}
+
+:deep(.tooltip-inner) {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  color: white !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  max-width: 250px !important;
+  text-align: left !important;
+}
+
+:deep(.tooltip.bs-tooltip-top .tooltip-arrow::before) {
+  border-top-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-bottom .tooltip-arrow::before) {
+  border-bottom-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-start .tooltip-arrow::before) {
+  border-left-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-end .tooltip-arrow::before) {
+  border-right-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* Table cell overflow fixes for tooltips */
+:deep(.ant-table-tbody > tr > td) {
+  overflow: visible !important;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  overflow: visible !important;
+}
+
+/* Ensure tooltip icons don't interfere with input functionality */
+.tooltip-icon {
+  pointer-events: auto;
+  z-index: 1;
+}
+
+/* Input field container styling */
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Ensure proper spacing and alignment */
+:deep(.ant-input-number) {
+  width: 100% !important;
+}
+
+:deep(.ant-input-number-group-addon) {
+  background-color: #fafafa !important;
+  border-color: #d9d9d9 !important;
+}
+
+/* Editing mode indicator styling */
+.editing-mode-indicator .badge {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+
+.editing-mode-indicator small {
+  font-size: 10px;
+}
+
+/* Improved inline editing experience */
+:deep(.ant-table-small > .ant-table-content > .ant-table-body > table > .ant-table-tbody > tr > td) {
+  padding: 8px 4px !important;
+}
+
+/* Better input field spacing in editing mode */
+:deep(.ant-input),
+:deep(.ant-input-number) {
+  min-height: 32px !important;
+}
+
+/* Ensure tooltip icons are properly positioned */
+.tooltip-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive table improvements */
+:deep(.ant-table-small) {
+  font-size: 13px;
+}
+
+:deep(.ant-table-small .ant-table-thead > tr > th) {
+  padding: 8px 6px !important;
+  font-weight: 600;
+  background-color: #fafafa;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+/* Disable "Add Position" button styling when editing */
+.editable-add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Better visual separation for editing rows */
+:deep(.ant-table-tbody > tr.ant-table-row-selected > td) {
+  background-color: #f0f9ff !important;
+}
+
+/* Improved action buttons spacing */
+.editable-row-operations {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.editable-row-operations a {
+  margin-right: 0 !important;
+}
+
+/* Badge styling for editing mode */
+.badge-soft-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+</style>

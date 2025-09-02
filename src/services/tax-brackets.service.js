@@ -6,25 +6,27 @@ class TaxBracketsService {
     }
 
     /**
-     * Get all tax brackets
-     * @param {Object} params - Query parameters (page, limit, search, year, etc.)
+     * Get all tax brackets with advanced filtering and pagination
+     * @param {Object} params - Query parameters (page, per_page, search, filter_effective_year, sort_by, sort_order)
      * @returns {Promise<Object>} API response with tax brackets data
      */
     async getTaxBrackets(params = {}) {
         try {
-            const response = await apiService.get(this.baseURL, { params });
-            return {
-                success: true,
-                data: response.data,
-                message: 'Tax brackets retrieved successfully'
-            };
+            // Build query parameters object
+            const queryParams = new URLSearchParams();
+
+            // Add all parameters from params object
+            Object.keys(params).forEach(key => {
+                if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+                    queryParams.append(key, params[key]);
+                }
+            });
+
+            const response = await apiService.get(`${this.baseURL}?${queryParams.toString()}`);
+            return response; // This should return the full API response including pagination metadata
         } catch (error) {
             console.error('Error fetching tax brackets:', error);
-            return {
-                success: false,
-                message: error.response?.data?.message || 'Failed to fetch tax brackets',
-                errors: error.response?.data?.errors || null
-            };
+            throw error;
         }
     }
 
@@ -35,11 +37,13 @@ class TaxBracketsService {
      */
     async getTaxBracketsByYear(year) {
         try {
-            const response = await apiService.get(`${this.baseURL}?year=${year}`);
+            const params = { filter_effective_year: year };
+            const response = await apiService.get(this.baseURL, { params });
             return {
                 success: true,
-                data: response.data,
-                message: 'Tax brackets retrieved successfully'
+                data: response.data?.data || response.data,
+                pagination: response.data?.pagination || null,
+                message: response.data?.message || 'Tax brackets retrieved successfully'
             };
         } catch (error) {
             console.error('Error fetching tax brackets by year:', error);
@@ -61,8 +65,8 @@ class TaxBracketsService {
             const response = await apiService.get(`${this.baseURL}/${id}`);
             return {
                 success: true,
-                data: response.data,
-                message: 'Tax bracket retrieved successfully'
+                data: response.data?.data || response.data,
+                message: response.data?.message || 'Tax bracket retrieved successfully'
             };
         } catch (error) {
             console.error('Error fetching tax bracket:', error);
@@ -84,8 +88,8 @@ class TaxBracketsService {
             const response = await apiService.post(this.baseURL, taxBracketData);
             return {
                 success: true,
-                data: response.data,
-                message: 'Tax bracket created successfully'
+                data: response.data?.data || response.data,
+                message: response.data?.message || 'Tax bracket created successfully'
             };
         } catch (error) {
             console.error('Error creating tax bracket:', error);
@@ -108,8 +112,8 @@ class TaxBracketsService {
             const response = await apiService.put(`${this.baseURL}/${id}`, taxBracketData);
             return {
                 success: true,
-                data: response.data,
-                message: 'Tax bracket updated successfully'
+                data: response.data?.data || response.data,
+                message: response.data?.message || 'Tax bracket updated successfully'
             };
         } catch (error) {
             console.error('Error updating tax bracket:', error);
@@ -131,8 +135,8 @@ class TaxBracketsService {
             const response = await apiService.delete(`${this.baseURL}/${id}`);
             return {
                 success: true,
-                data: response.data,
-                message: 'Tax bracket deleted successfully'
+                data: response.data?.data || response.data,
+                message: response.data?.message || 'Tax bracket deleted successfully'
             };
         } catch (error) {
             console.error('Error deleting tax bracket:', error);
@@ -156,8 +160,8 @@ class TaxBracketsService {
             const response = await apiService.get(url);
             return {
                 success: true,
-                data: response.data,
-                message: 'Tax calculated successfully'
+                data: response.data?.data || response.data,
+                message: response.data?.message || 'Tax calculated successfully'
             };
         } catch (error) {
             console.error('Error calculating tax:', error);

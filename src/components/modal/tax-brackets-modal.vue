@@ -145,7 +145,7 @@
                                             <div class="d-flex justify-content-between">
                                                 <span>Tax for this bracket:</span>
                                                 <strong class="text-primary">{{ formatCurrency(quickTaxResult)
-                                                    }}</strong>
+                                                }}</strong>
                                             </div>
                                         </div>
                                     </div>
@@ -662,8 +662,12 @@ export default {
                 };
 
                 const key = this.editMode ? `taxBracketEditForm_${this.formData.id}` : 'taxBracketForm';
-                this.formPersistenceStore.saveFormSection('taxBrackets', key, draftData);
-                console.log('💾 Tax bracket form draft saved automatically');
+                if (this.formPersistenceStore && typeof this.formPersistenceStore.saveFormSection === 'function') {
+                    this.formPersistenceStore.saveFormSection('taxBrackets', key, draftData);
+                    console.log('💾 Tax bracket form draft saved automatically');
+                } else {
+                    console.warn('⚠️ FormPersistenceStore not available, skipping draft save');
+                }
             } catch (error) {
                 console.error('❌ Error saving tax bracket form draft:', error);
             }
@@ -671,6 +675,11 @@ export default {
 
         loadFormDraft() {
             try {
+                if (!this.formPersistenceStore || typeof this.formPersistenceStore.checkForSavedData !== 'function') {
+                    console.warn('⚠️ FormPersistenceStore not available, skipping draft load');
+                    return false;
+                }
+
                 const savedData = this.formPersistenceStore.checkForSavedData('taxBrackets');
 
                 if (savedData.hasSavedData) {
@@ -704,9 +713,13 @@ export default {
 
         clearFormDraft() {
             try {
-                const key = this.editMode ? `taxBracketEditForm_${this.formData.id}` : 'taxBracketForm';
-                this.formPersistenceStore.clearFormSection('taxBrackets', key);
-                console.log('🗑️ Tax bracket form draft cleared');
+                if (this.formPersistenceStore && typeof this.formPersistenceStore.clearFormSection === 'function') {
+                    const key = this.editMode ? `taxBracketEditForm_${this.formData.id}` : 'taxBracketForm';
+                    this.formPersistenceStore.clearFormSection('taxBrackets', key);
+                    console.log('🗑️ Tax bracket form draft cleared');
+                } else {
+                    console.warn('⚠️ FormPersistenceStore not available, skipping draft clear');
+                }
             } catch (error) {
                 console.error('❌ Error clearing tax bracket form draft:', error);
             }

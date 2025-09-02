@@ -7,6 +7,12 @@ class EmploymentService {
         return await apiService.get(API_ENDPOINTS.EMPLOYMENT.LIST);
     }
 
+    // Get funding allocations for an employment
+    async getFundingAllocations(employmentId) {
+        const endpoint = API_ENDPOINTS.EMPLOYMENT.FUNDING_ALLOCATIONS.replace(':id', employmentId);
+        return await apiService.get(endpoint);
+    }
+
     // Get all employments with query parameters (similar to grant service)
     async getAllEmployments(params = {}) {
         try {

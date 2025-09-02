@@ -613,8 +613,12 @@ export default {
                 };
 
                 const key = this.editMode ? `taxSettingEditForm_${this.formData.id}` : 'taxSettingForm';
-                this.formPersistenceStore.saveFormSection('taxSettings', key, draftData);
-                console.log('💾 Tax setting form draft saved automatically');
+                if (this.formPersistenceStore && typeof this.formPersistenceStore.saveFormSection === 'function') {
+                    this.formPersistenceStore.saveFormSection('taxSettings', key, draftData);
+                    console.log('💾 Tax setting form draft saved automatically');
+                } else {
+                    console.warn('⚠️ FormPersistenceStore not available, skipping draft save');
+                }
             } catch (error) {
                 console.error('❌ Error saving tax setting form draft:', error);
             }
@@ -622,6 +626,11 @@ export default {
 
         loadFormDraft() {
             try {
+                if (!this.formPersistenceStore || typeof this.formPersistenceStore.checkForSavedData !== 'function') {
+                    console.warn('⚠️ FormPersistenceStore not available, skipping draft load');
+                    return false;
+                }
+
                 const savedData = this.formPersistenceStore.checkForSavedData('taxSettings');
 
                 if (savedData.hasSavedData) {
@@ -655,9 +664,13 @@ export default {
 
         clearFormDraft() {
             try {
-                const key = this.editMode ? `taxSettingEditForm_${this.formData.id}` : 'taxSettingForm';
-                this.formPersistenceStore.clearFormSection('taxSettings', key);
-                console.log('🗑️ Tax setting form draft cleared');
+                if (this.formPersistenceStore && typeof this.formPersistenceStore.clearFormSection === 'function') {
+                    const key = this.editMode ? `taxSettingEditForm_${this.formData.id}` : 'taxSettingForm';
+                    this.formPersistenceStore.clearFormSection('taxSettings', key);
+                    console.log('🗑️ Tax setting form draft cleared');
+                } else {
+                    console.warn('⚠️ FormPersistenceStore not available, skipping draft clear');
+                }
             } catch (error) {
                 console.error('❌ Error clearing tax setting form draft:', error);
             }

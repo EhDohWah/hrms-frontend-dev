@@ -198,7 +198,7 @@ import sideBarData from "@/assets/json/sidebar-menuone.json";
 import { Modal, notification } from 'ant-design-vue'
 import { notification as antNotification } from 'ant-design-vue';
 import eventBus from '@/plugins/eventBus';
-import { disconnectEcho, getEcho  } from '@/plugins/echo';
+import { disconnectEcho, getEcho } from '@/plugins/echo';
 
 export default {
   data() {

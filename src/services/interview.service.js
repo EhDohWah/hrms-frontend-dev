@@ -1,16 +1,19 @@
 import { apiService } from '@/services/api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
+import { BaseService } from '@/services/base.service';
 
-class InterviewService {
+class InterviewService extends BaseService {
   // Fetch all interviews with query parameters for server-side pagination, filtering, and sorting
   async getAll(params = {}) {
     try {
-      // Build query string from parameters
-      const queryString = new URLSearchParams(params).toString();
+      // Build query string from parameters using BaseService method
+      const queryString = this.buildQueryString(params);
       const endpoint = `${API_ENDPOINTS.INTERVIEW.LIST}${queryString ? `?${queryString}` : ''}`;
 
-      const response = await apiService.get(endpoint);
-      return response; // This should return the full API response including pagination metadata
+      return await this.handleApiResponse(
+        () => apiService.get(endpoint),
+        'fetch interviews list'
+      );
     } catch (error) {
       console.error('Error fetching interviews:', error);
       throw error;
@@ -19,7 +22,10 @@ class InterviewService {
 
   // Fetch all interviews (legacy method for backward compatibility)
   async getAllInterviews() {
-    return await apiService.get(API_ENDPOINTS.INTERVIEW.LIST);
+    return await this.handleApiResponse(
+      () => apiService.get(API_ENDPOINTS.INTERVIEW.LIST),
+      'fetch all interviews'
+    );
   }
 
   // Get interview by candidate name
@@ -44,117 +50,120 @@ class InterviewService {
   async getInterviewById(id) {
     const endpoint = API_ENDPOINTS.INTERVIEW.DETAILS.replace(':id', id);
 
-    try {
-      return await apiService.get(endpoint);
-    } catch (error) {
-      return this.handleServiceError(error, `interview with ID ${id}`);
-    }
+    return await this.handleApiResponse(
+      () => apiService.get(endpoint),
+      `fetch interview with ID ${id}`
+    );
   }
 
   // Create a new interview with enhanced error handling
   async createInterview(interviewData) {
-    try {
-      return await apiService.post(API_ENDPOINTS.INTERVIEW.CREATE, interviewData);
-    } catch (error) {
-      return this.handleServiceError(error, 'interview creation');
-    }
+    return await this.handleApiResponse(
+      () => apiService.post(API_ENDPOINTS.INTERVIEW.CREATE, interviewData),
+      'create interview'
+    );
   }
 
   // Update an existing interview with enhanced error handling
   async updateInterview(id, interviewData) {
     const endpoint = API_ENDPOINTS.INTERVIEW.UPDATE.replace(':id', id);
 
-    try {
-      return await apiService.put(endpoint, interviewData);
-    } catch (error) {
-      return this.handleServiceError(error, `interview update for ID ${id}`);
-    }
+    return await this.handleApiResponse(
+      () => apiService.put(endpoint, interviewData),
+      `update interview with ID ${id}`
+    );
   }
 
   // Delete an interview with enhanced error handling
   async deleteInterview(id) {
     const endpoint = API_ENDPOINTS.INTERVIEW.DELETE.replace(':id', id);
 
-    try {
-      return await apiService.delete(endpoint);
-    } catch (error) {
-      return this.handleServiceError(error, `interview deletion for ID ${id}`);
-    }
+    return await this.handleApiResponse(
+      () => apiService.delete(endpoint),
+      `delete interview with ID ${id}`
+    );
   }
 
-  // Centralized error handling method
-  handleServiceError(error, operation) {
-    if (error.response) {
-      const { status, data } = error.response;
+  /**
+   * Validate interview data before sending to API
+   * @param {Object} interviewData - Interview data to validate
+   * @returns {Object} Validation result
+   */
+  validateInterviewData(interviewData) {
+    // Use base class validation for required fields
+    const requiredValidation = this.validateRequiredFields(interviewData, [
+      'candidate_name',
+      'phone',
+      'job_position',
+      'interviewer_name',
+      'interview_date',
+      'interview_status'
+    ]);
 
-      switch (status) {
-        case 404:
-          return {
-            success: false,
-            message: data.message || `The requested ${operation} was not found.`,
-            error_code: 'NOT_FOUND',
-            data: null
-          };
+    // Additional custom validations
+    const customErrors = {};
 
-        case 422:
-          return {
-            success: false,
-            message: data.message || 'Validation failed. Please check your input.',
-            errors: data.errors || {},
-            error_code: 'VALIDATION_ERROR',
-            data: null
-          };
-
-        case 500:
-          return {
-            success: false,
-            message: data.message || `Server error occurred during ${operation}. Please try again later.`,
-            error_code: 'SERVER_ERROR',
-            data: null
-          };
-
-        case 403:
-          return {
-            success: false,
-            message: data.message || `You don't have permission to perform ${operation}.`,
-            error_code: 'FORBIDDEN',
-            data: null
-          };
-
-        case 401:
-          return {
-            success: false,
-            message: data.message || 'Authentication required. Please log in again.',
-            error_code: 'UNAUTHORIZED',
-            data: null
-          };
-
-        default:
-          return {
-            success: false,
-            message: data.message || `An error occurred during ${operation}.`,
-            error_code: 'UNKNOWN_ERROR',
-            status: status,
-            data: null
-          };
+    // Validate phone number format
+    if (interviewData.phone) {
+      const cleanPhone = interviewData.phone.replace(/\D/g, '');
+      if (cleanPhone.length !== 10 && cleanPhone.length !== 11) {
+        customErrors.phone = ['Phone number must be 10 digits (Thai) or 11 digits (Myanmar)'];
+      } else if (cleanPhone.length === 10 && !cleanPhone.startsWith('0')) {
+        customErrors.phone = ['Thai phone number must start with 0'];
+      } else if (cleanPhone.length === 11 && !cleanPhone.startsWith('09')) {
+        customErrors.phone = ['Myanmar phone number must start with 09'];
       }
-    } else if (error.request) {
-      // Network error
-      return {
-        success: false,
-        message: `Network error during ${operation}. Please check your connection and try again.`,
-        error_code: 'NETWORK_ERROR',
-        data: null
-      };
-    } else {
-      // Other error
-      return {
-        success: false,
-        message: error.message || `An unexpected error occurred during ${operation}.`,
-        error_code: 'UNKNOWN_ERROR',
-        data: null
-      };
     }
+
+    // Validate score if provided
+    if (interviewData.score !== undefined && interviewData.score !== null && interviewData.score !== '') {
+      const score = parseFloat(interviewData.score);
+      if (isNaN(score) || score < 0 || score > 100) {
+        customErrors.score = ['Score must be a number between 0 and 100'];
+      }
+    }
+
+    // Validate interview date
+    if (interviewData.interview_date && !this.isValidDate(interviewData.interview_date)) {
+      customErrors.interview_date = ['Invalid date format'];
+    }
+
+    // Combine validations
+    return this.combineValidations([
+      requiredValidation,
+      { isValid: Object.keys(customErrors).length === 0, errors: customErrors }
+    ]);
+  }
+
+  /**
+   * Create interview with client-side validation
+   * @param {Object} interviewData - Interview data
+   * @returns {Promise} API response
+   */
+  async createInterviewWithValidation(interviewData) {
+    const validation = this.validateInterviewData(interviewData);
+
+    if (!validation.isValid) {
+      throw this.createValidationError(validation.errors);
+    }
+
+    return await this.createInterview(interviewData);
+  }
+
+  /**
+   * Update interview with client-side validation
+   * @param {number} id - Interview ID
+   * @param {Object} interviewData - Interview data
+   * @returns {Promise} API response
+   */
+  async updateInterviewWithValidation(id, interviewData) {
+    const validation = this.validateInterviewData(interviewData);
+
+    if (!validation.isValid) {
+      throw this.createValidationError(validation.errors);
+    }
+
+    return await this.updateInterview(id, interviewData);
   }
 }
 

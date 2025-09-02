@@ -4,7 +4,7 @@
       <div class="modal-content new-modal-design">
         <div class="modal-header-new">
           <h2 class="modal-title-new" id="employmentModalLabel">
-            {{ editMode ? 'Edit Employment' : 'Add Employment' }}
+            Add Employment
           </h2>
           <button type="button" class="btn-close-custom" @click="handleModalClose" aria-label="Close">
             <i class="ti ti-x"></i>
@@ -23,10 +23,15 @@
             <div class="spinner-border spinner-border-sm" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
-            Loading employment data...
+            <div v-if="!dataLoaded">
+              Loading form data for the first time...
+            </div>
+            <div v-else>
+              Loading employment data...
+            </div>
           </div>
 
-          <form @submit.prevent="handleSubmit" ref="mainForm">
+          <form @submit.prevent="handleSubmit" ref="mainForm" :class="{ 'form-loading': isLoadingData && !dataLoaded }">
             <div v-if="alertMessage && alertClass === 'alert-success'" class="success-msg">
               {{ alertMessage }}
             </div>
@@ -39,11 +44,46 @@
             <div class="date-row">
               <div class="form-group" style="flex: 2.3;"> <!-- 70% width -->
                 <label class="form-label required">Employee</label>
-                <a-tree-select v-model:value="formData.employee_id" @change="onEmployeeChange" show-search
-                  style="width: 100%;" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
-                  placeholder="Select employee" allow-clear tree-default-expand-all :tree-data="employeeTreeData"
-                  tree-node-filter-prop="title" :getPopupContainer="getPopupContainer"
-                  :class="{ 'is-invalid': validationErrors.employee_id }" required @input="saveFormState" />
+                <div class="custom-tree-select" :class="{ 'is-invalid': validationErrors.employee_id }">
+                  <div class="form-control tree-select-input" @click="toggleEmployeeDropdown"
+                    :class="{ 'is-invalid': validationErrors.employee_id }">
+                    <span v-if="selectedEmployeeDisplay" class="selected-text">{{ selectedEmployeeDisplay }}</span>
+                    <span v-else class="placeholder-text">Select employee</span>
+                    <i class="ti ti-chevron-down dropdown-icon" :class="{ 'rotated': showEmployeeDropdown }"></i>
+                  </div>
+
+                  <!-- Custom Dropdown -->
+                  <div v-if="showEmployeeDropdown" class="tree-dropdown" ref="employeeDropdown">
+                    <div class="dropdown-header">
+                      <input type="text" class="form-control form-control-sm search-input"
+                        placeholder="Search employees..." v-model="employeeSearchTerm" @input="filterEmployees"
+                        ref="employeeSearchInput">
+                    </div>
+                    <div class="dropdown-body">
+                      <div v-for="subsidiary in filteredEmployeeTree" :key="subsidiary.key" class="subsidiary-group">
+                        <div class="subsidiary-header" @click="toggleSubsidiary(subsidiary.key)">
+                          <i class="ti" :class="subsidiary.expanded ? 'ti-chevron-down' : 'ti-chevron-right'"></i>
+                          <span class="subsidiary-name">{{ subsidiary.title }}</span>
+                          <span class="employee-count">({{ subsidiary.children?.length || 0 }})</span>
+                        </div>
+                        <div v-if="subsidiary.expanded" class="employees-list">
+                          <div v-for="employee in subsidiary.children" :key="employee.key" class="employee-item"
+                            :class="{ 'selected': formData.employee_id === employee.value }"
+                            @click="selectEmployee(employee)">
+                            <span class="employee-name">{{ employee.title }}</span>
+                            <small class="employee-info">ID: {{ employee.staff_id || 'N/A' }}</small>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- No results message -->
+                      <div v-if="filteredEmployeeTree.length === 0" class="no-results">
+                        <i class="ti ti-search"></i>
+                        <span>No employees found</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div v-if="validationErrors.employee_id" class="invalid-feedback">
                   {{ validationErrors.employee_id }}
                 </div>
@@ -78,12 +118,14 @@
               </div>
             </div>
 
+            <!-- Row 2: Employment Type + Pay Method (2 columns) -->
             <div class="date-row">
               <div class="form-group">
                 <label class="form-label required">Employment Type</label>
                 <select class="form-control" v-model="formData.employment_type"
-                  :class="{ 'is-invalid': validationErrors.employment_type }" required @change="saveFormState">
-                  <option disabled value="">Select Type</option>
+                  :class="{ 'is-invalid': validationErrors.employment_type }" required @change="saveFormState"
+                  :disabled="isLoadingData">
+                  <option disabled value="">{{ isLoadingData ? 'Loading types...' : 'Select Type' }}</option>
                   <option v-for="type in employmentTypes" :key="type.id" :value="type.value">
                     {{ type.value }}
                   </option>
@@ -106,7 +148,10 @@
                   {{ validationErrors.pay_method }}
                 </div>
               </div>
+            </div>
 
+            <!-- Row 3: Department Position + Section Department (2 columns) -->
+            <div class="date-row">
               <div class="form-group">
                 <label class="form-label required">Department Position</label>
                 <select class="form-control" v-model="formData.department_position_id"
@@ -118,6 +163,22 @@
                 </select>
                 <div v-if="validationErrors.department_position_id" class="invalid-feedback">
                   {{ validationErrors.department_position_id }}
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Section Department</label>
+                <select class="form-control" v-model="formData.section_department"
+                  :class="{ 'is-invalid': validationErrors.section_department }" @change="saveFormState"
+                  :disabled="isLoadingData">
+                  <option disabled value="">{{ isLoadingData ? 'Loading sections...' : 'Select Section Department' }}
+                  </option>
+                  <option v-for="section in sectionDepartments" :key="section.id" :value="section.value">
+                    {{ section.value }}
+                  </option>
+                </select>
+                <div v-if="validationErrors.section_department" class="invalid-feedback">
+                  {{ validationErrors.section_department }}
                 </div>
               </div>
             </div>
@@ -456,8 +517,8 @@
             <div class="btn-row">
               <button type="button" class="btn btn-cancel" @click="handleModalClose">Cancel</button>
               <button type="submit" class="btn btn-save" :disabled="isSubmitting || isLoadingData">
-                <span v-if="isSubmitting">{{ editMode ? 'Updating...' : 'Saving...' }}</span>
-                <span v-else>{{ editMode ? 'Update' : 'Save' }}</span>
+                <span v-if="isSubmitting">Saving...</span>
+                <span v-else>Save Employment</span>
               </button>
             </div>
           </form>
@@ -479,29 +540,30 @@ import { workLocationService } from '@/services/worklocation.service';
 import { employeeGrantAllocationService } from '@/services/employee-grant-allocation.service';
 import { useLookupStore } from '@/stores/lookupStore';
 import { useFormPersistenceStore } from '@/stores/formPersistenceStore';
+import { useSharedDataStore } from '@/stores/sharedDataStore';
 
 export default {
   name: 'EmploymentModal',
   setup() {
-    const editMode = ref(false);
-    const employmentData = ref(null);
     const alertMessage = ref('');
     const alertClass = ref('');
     return {
-      editMode,
-      employmentData,
       alertMessage,
       alertClass
     };
   },
   data() {
     return {
+      // Performance optimization flag
+      dataLoaded: false,
+
       formData: {
         employment_id: null,
         employee_id: '',
         employment_type: '',
         pay_method: '',
         department_position_id: '',
+        section_department: '',
         work_location_id: '',
         start_date: '',
         end_date: '',
@@ -564,6 +626,7 @@ export default {
       departmentPositions: [],
       workLocations: [],
       employmentTypes: [],
+      sectionDepartments: [],
       payMethods: [
         { id: 1, value: 'Transferred to bank' },
         { id: 2, value: 'Cash cheque' }
@@ -571,6 +634,12 @@ export default {
       grantOptions: [],
       orgFundedOptions: [],
       grantPositions: {},
+
+      // Custom tree select properties
+      showEmployeeDropdown: false,
+      employeeSearchTerm: '',
+      filteredEmployeeTree: [],
+      selectedEmployeeDisplay: '',
 
       // Computed options for dropdowns
       grantPositionOptions: [],
@@ -622,10 +691,7 @@ export default {
             this.formData.probation_pass_date = new Date(this.formData.probation_pass_date);
           }
 
-          // Load funding allocations when employment data is set
-          if (this.editMode && newVal.id) {
-            this.loadEmployeeFundingAllocations(newVal.id);
-          }
+          // This is for add mode only - no need to load existing funding allocations
 
           // Set selected employee info if available
           if (newVal.employee) {
@@ -677,8 +743,9 @@ export default {
       // Mark component as ready
       this.isComponentReady = true;
 
-      // Load initial data
-      await this.loadInitialData();
+      // Don't load initial data here - load only when modal opens
+      // This improves page load performance significantly
+      console.log('📝 Employment modal component created, data will load when opened');
     } catch (error) {
       console.error('Error during component initialization:', error);
     }
@@ -706,11 +773,14 @@ export default {
         if (!this.isDraftMode) {
           this.resetForm();
         }
-        this.editMode = false;
+        // No edit mode in this component
         this.employmentData = null;
         this.cleanupModalBackdrops();
       });
     }
+
+    // Add click outside listener for custom tree select
+    document.addEventListener('click', this.handleClickOutside);
   },
 
   beforeUnmount() {
@@ -726,6 +796,9 @@ export default {
         console.error('Error disposing modal:', error);
       }
     }
+
+    // Remove click outside listener
+    document.removeEventListener('click', this.handleClickOutside);
 
     // Remove any lingering backdrops
     this.cleanupModalBackdrops();
@@ -743,7 +816,7 @@ export default {
           fundingAllocations: [...this.fundingAllocations],
           currentAllocation: { ...this.currentAllocation },
           selectedEmployeeInfo: this.selectedEmployeeInfo,
-          editMode: this.editMode,
+          // Always in add mode
           timestamp: Date.now()
         };
 
@@ -1016,15 +1089,38 @@ export default {
 
     async loadInitialData() {
       this.isLoadingData = true;
-      await Promise.all([
-        this.fetchEmployees(),
-        this.fetchDepartmentPositions(),
-        this.fetchWorkLocations(),
-        this.initFetchLookups(), // Single optimized method instead of two separate calls
-        this.loadGrantStructure(),
-        this.loadOrgFundedOptions()
-      ]);
-      this.isLoadingData = false;
+
+      try {
+        console.log('📥 Loading employment modal data using shared store...');
+        const sharedStore = useSharedDataStore();
+
+        // Load all dropdown data in parallel using shared store
+        await Promise.all([
+          sharedStore.loadAllDropdownData({
+            includeEmployees: true,
+            includeDepartmentPositions: true,
+            includeWorkLocations: true,
+            includeGrantStructure: true, // Include for funding allocations
+            force: false // Use cache if available
+          }),
+          this.initFetchLookups() // Still need lookups for employment types
+        ]);
+
+        // Copy data from shared store to local properties for reactivity
+        this.employeeTreeData = sharedStore.getEmployeeTreeData;
+        this.departmentPositions = sharedStore.getDepartmentPositions;
+        this.workLocations = sharedStore.getWorkLocations;
+        this.grantOptions = sharedStore.getGrantOptions;
+        this.grantPositions = sharedStore.getGrantPositions;
+
+        console.log('✅ Employment modal data loaded from shared store');
+      } catch (error) {
+        console.error('❌ Error loading employment modal data:', error);
+        this.alertMessage = `Failed to load form data: ${error.message}`;
+        this.alertClass = 'alert-danger';
+      } finally {
+        this.isLoadingData = false;
+      }
     },
 
     // Clear validation errors
@@ -1070,25 +1166,16 @@ export default {
         isValid = false;
       }
 
-      // Validate funding allocations based on mode
-      if (!this.editMode) {
-        // For create mode, allocations are required
-        if (this.fundingAllocations.length === 0) {
-          this.alertMessage = 'Please add at least one funding allocation';
-          this.alertClass = 'alert-danger';
-          isValid = false;
-        } else if (this.totalEffort !== 100) {
-          this.alertMessage = `Total effort must equal 100%. Current total: ${this.totalEffort}%`;
-          this.alertClass = 'alert-danger';
-          isValid = false;
-        }
-      } else {
-        // For update mode, allocations are optional, but if provided must total 100%
-        if (this.fundingAllocations.length > 0 && this.totalEffort !== 100) {
-          this.alertMessage = `If allocations are provided, total effort must equal 100%. Current total: ${this.totalEffort}%`;
-          this.alertClass = 'alert-danger';
-          isValid = false;
-        }
+      // Validate funding allocations for create mode
+      // For create mode, allocations are required
+      if (this.fundingAllocations.length === 0) {
+        this.alertMessage = 'Please add at least one funding allocation';
+        this.alertClass = 'alert-danger';
+        isValid = false;
+      } else if (this.totalEffort !== 100) {
+        this.alertMessage = `Total effort must equal 100%. Current total: ${this.totalEffort}%`;
+        this.alertClass = 'alert-danger';
+        isValid = false;
       }
 
       return isValid;
@@ -1133,124 +1220,9 @@ export default {
       return isValid;
     },
 
-    async loadGrantStructure() {
-      try {
-        this.isLoadingData = true;
-        console.log('🔄 Loading grant structure from API...');
+    // Removed loadGrantStructure method - now handled by shared store
 
-        const response = await employeeGrantAllocationService.getGrantStructure();
-
-        console.log('📥 Grant Structure Response:', response);
-
-        let grantData;
-        if (response && response.success && response.data) {
-          grantData = response.data;
-        } else if (response && Array.isArray(response)) {
-          grantData = response;
-        } else {
-          console.error('❌ Unable to find grant data in response structure');
-          this.grantOptions = [];
-          this.grantPositions = {};
-          return;
-        }
-
-        if (!Array.isArray(grantData)) {
-          console.error('❌ Grant data is not an array:', grantData);
-          this.grantOptions = [];
-          this.grantPositions = {};
-          return;
-        }
-
-        // Build flat grantOptions for select dropdown
-        this.grantOptions = grantData.map(grant => ({
-          id: grant.id,
-          name: grant.name,
-          code: grant.code
-        }));
-
-        // Build mapping for dependent dropdowns with position_slots
-        const positionsMap = {};
-        grantData.forEach(grant => {
-          if (grant.grant_items && Array.isArray(grant.grant_items)) {
-            positionsMap[grant.id] = grant.grant_items.map(item => {
-              const positionSlots = (item.position_slots || []).map(slot => ({
-                id: slot.id,
-                slot_number: slot.slot_number,
-                budget_line: {
-                  id: slot.budget_line.id,
-                  name: slot.budget_line.name,
-                  description: slot.budget_line.description
-                }
-              }));
-
-              return {
-                id: item.id,
-                name: item.name,
-                grant_salary: item.grant_salary, // Include grant_salary
-                grant_benefit: item.grant_benefit, // Include grant_benefit
-                grant_level_of_effort: item.grant_level_of_effort, // Include grant_level_of_effort
-                position_slots: positionSlots
-              };
-            });
-          } else {
-            positionsMap[grant.id] = [];
-          }
-        });
-
-        this.grantPositions = positionsMap;
-        console.log('✅ Grant structure loaded successfully');
-
-      } catch (error) {
-        console.error('❌ Error loading grant structure:', error);
-        this.alertMessage = `Failed to load grant structure: ${error.message}`;
-        this.alertClass = 'alert-danger';
-      } finally {
-        this.isLoadingData = false;
-      }
-    },
-
-    loadOrgFundedOptions() {
-      // This is now covered by loadDepartmentPositions which is called on demand
-    },
-
-    async fetchEmployees() {
-      try {
-        const response = await employeeService.treeSearch();
-        this.employeeTreeData = response.data || [];
-      } catch (error) {
-        console.error('Error loading employees:', error);
-        this.alertMessage = 'Failed to load employees';
-        this.alertClass = 'alert-danger';
-      }
-    },
-
-    async fetchDepartmentPositions() {
-      try {
-        const response = await departmentPositionService.getAllDepartmentPositions();
-        if (response.data) {
-          this.departmentPositions = response.data;
-          console.log('📋 Department positions loaded:', this.departmentPositions.length, 'positions');
-          console.log('📋 First few positions:', this.departmentPositions.slice(0, 3));
-        }
-      } catch (error) {
-        console.error('Error fetching department positions:', error);
-        this.alertMessage = 'Failed to load department positions';
-        this.alertClass = 'alert-danger';
-      }
-    },
-
-    async fetchWorkLocations() {
-      try {
-        const response = await workLocationService.getAllWorkLocations();
-        if (response.data) {
-          this.workLocations = response.data;
-        }
-      } catch (error) {
-        console.error('Error fetching work locations:', error);
-        this.alertMessage = 'Failed to load work locations';
-        this.alertClass = 'alert-danger';
-      }
-    },
+    // Removed individual fetch methods - now using shared store for better performance
 
     // OPTIMIZED: Single method to fetch all required lookups
     async initFetchLookups() {
@@ -1259,19 +1231,42 @@ export default {
 
         // Only fetch lookups if they haven't been loaded yet
         if (!lookupStore.lookups.length) {
-          console.log('🔄 Fetching lookups from API...');
-          await lookupStore.fetchAllLookups();
-          console.log('✅ Lookups fetched successfully');
+          console.log('🔄 Fetching all lookup lists from new API endpoint...');
+          await lookupStore.fetchAllLookupLists();
+          console.log('✅ All lookup lists fetched successfully');
         } else {
           console.log('✅ Lookups already loaded from store');
         }
 
-        // Get employment types from the store
+        // Get employment types and section departments from the store
         this.employmentTypes = lookupStore.getLookupsByType('employment_type');
+        this.sectionDepartments = lookupStore.getLookupsByType('section_department');
 
-        // Pay methods are now hardcoded in data() section
-        console.log(`📊 Loaded ${this.employmentTypes.length} employment types`);
+        // Debug logging
+        console.log(`📊 Loaded ${this.employmentTypes.length} employment types:`, this.employmentTypes);
+        console.log(`📊 Loaded ${this.sectionDepartments.length} section departments:`, this.sectionDepartments);
         console.log(`📊 Using ${this.payMethods.length} hardcoded pay methods`);
+        console.log('🔍 Full lookupsByType from store:', lookupStore.lookupsByType);
+        console.log('🔍 Available lookup types:', lookupStore.lookupTypes);
+
+        // If no data loaded, try alternative approaches
+        if (this.employmentTypes.length === 0) {
+          console.log('⚠️ No employment types loaded, checking alternative data sources...');
+          // Try to get data directly from lookupsByType
+          if (lookupStore.lookupsByType.employment_type) {
+            this.employmentTypes = lookupStore.lookupsByType.employment_type;
+            console.log('✅ Found employment types in lookupsByType:', this.employmentTypes);
+          }
+        }
+
+        if (this.sectionDepartments.length === 0) {
+          console.log('⚠️ No section departments loaded, checking alternative data sources...');
+          // Try to get data directly from lookupsByType
+          if (lookupStore.lookupsByType.section_department) {
+            this.sectionDepartments = lookupStore.lookupsByType.section_department;
+            console.log('✅ Found section departments in lookupsByType:', this.sectionDepartments);
+          }
+        }
 
       } catch (error) {
         console.error('❌ Error loading lookups:', error);
@@ -1283,10 +1278,15 @@ export default {
     onEmployeeChange() {
       if (this.formData.employee_id) {
         console.log('Employee selected:', this.formData.employee_id);
-        const employee = this.findEmployeeInTree(this.employeeTreeData, this.formData.employee_id);
+        const sharedStore = useSharedDataStore();
+        const employee = sharedStore.findEmployeeInTree(this.formData.employee_id);
+
         if (employee) {
+          // Set display text for custom tree select
+          this.selectedEmployeeDisplay = employee.title;
+
           // Get subsidiary from parent node in tree structure
-          const subsidiary = this.getEmployeeSubsidiary(this.employeeTreeData, this.formData.employee_id);
+          const subsidiary = sharedStore.getEmployeeSubsidiary(this.formData.employee_id);
 
           this.selectedEmployeeInfo = {
             name: employee.title,
@@ -1300,6 +1300,7 @@ export default {
         }
       } else {
         this.selectedEmployeeInfo = null;
+        this.selectedEmployeeDisplay = '';
         // Reset benefits when no employee is selected
         this.formData.pvd = false;
         this.formData.saving_fund = false;
@@ -1307,31 +1308,7 @@ export default {
       this.saveFormState();
     },
 
-    findEmployeeInTree(tree, id) {
-      for (const node of tree) {
-        if (node.value === id) {
-          return node;
-        }
-        if (node.children && node.children.length > 0) {
-          const found = this.findEmployeeInTree(node.children, id);
-          if (found) return found;
-        }
-      }
-      return null;
-    },
-
-    // Helper method to get subsidiary from parent node
-    getEmployeeSubsidiary(tree, employeeId) {
-      for (const subsidiaryNode of tree) {
-        if (subsidiaryNode.children && subsidiaryNode.children.length > 0) {
-          const employee = subsidiaryNode.children.find(emp => emp.value === employeeId);
-          if (employee) {
-            return subsidiaryNode.title; // Parent node title is the subsidiary name
-          }
-        }
-      }
-      return null;
-    },
+    // Removed findEmployeeInTree and getEmployeeSubsidiary - now handled by shared store
 
     // Auto-select benefits based on employee status
     autoSelectBenefitsBasedOnStatus(status) {
@@ -1372,9 +1349,11 @@ export default {
         this.currentAllocation.position_slot_id = '';
         this.grantPositionOptions = [];
         this.positionSlotOptions = [];
-        // Load department positions if not already loaded
+        // Load department positions if not already loaded using shared store
         if (this.departmentPositions.length === 0) {
-          await this.fetchDepartmentPositions();
+          const sharedStore = useSharedDataStore();
+          await sharedStore.fetchDepartmentPositions();
+          this.departmentPositions = sharedStore.getDepartmentPositions;
         }
       } else {
         this.currentAllocation.allocation_type = 'grant';
@@ -1634,52 +1613,28 @@ export default {
       }).format(value);
     },
 
-    openModal() {
+    async openModal() {
       this.clearValidationErrors();
 
-      if (this.editMode && this.employmentData) {
-        // Editing existing employment - clear any draft and load employment data
-        this.clearFormDraft();
-        this.isDraftMode = false;
+      // Always ensure initial data is loaded before proceeding
+      if (!this.dataLoaded) {
+        console.log('📥 Loading modal data for first time...');
+        await this.loadInitialData();
+        this.dataLoaded = true;
+      }
+
+      // Creating new employment - check for draft
+      const hasDraft = this.loadFormDraft();
+
+      if (!hasDraft) {
+        // No draft, start fresh
+        this.resetForm();
+        this.isDraftMode = true;
         this.hasUnsavedChanges = false;
         this.restoredDataNotification.show = false;
-
-        this.formData = { ...this.employmentData };
-
-        // Ensure department_position_id is properly set
-        if (this.employmentData.department_position_id) {
-          // Convert to number to match dropdown option values
-          this.formData.department_position_id = parseInt(this.employmentData.department_position_id);
-          console.log('🔧 Setting department_position_id from API in openModal:', this.employmentData.department_position_id, '-> converted to:', this.formData.department_position_id);
-        }
-
-        // Set selected employee info if available
-        if (this.employmentData.employee) {
-          this.selectedEmployeeInfo = {
-            name: `${this.employmentData.employee.first_name_en || ''} ${this.employmentData.employee.last_name_en || ''}`.trim(),
-            staff_id: this.employmentData.employee.staff_id || 'N/A',
-            subsidiary: this.employmentData.employee.subsidiary || 'N/A'
-          };
-        }
-
-        // Load existing funding allocations if editing
-        if (this.employmentData.id) {
-          this.loadEmployeeFundingAllocations(this.employmentData.id);
-        }
       } else {
-        // Creating new employment - check for draft
-        const hasDraft = this.loadFormDraft();
-
-        if (!hasDraft) {
-          // No draft, start fresh
-          this.resetForm();
-          this.isDraftMode = true;
-          this.hasUnsavedChanges = false;
-          this.restoredDataNotification.show = false;
-        } else {
-          // Draft loaded, notification already shown
-          this.isDraftMode = true;
-        }
+        // Draft loaded, notification already shown
+        this.isDraftMode = true;
       }
 
       if (this.modalInstance) {
@@ -1698,13 +1653,16 @@ export default {
         console.log('Loading funding allocations for employment:', employmentId);
         this.isLoadingData = true;
 
-        // Since the employment data already contains employee_funding_allocations,
-        // we can use that data directly from this.employmentData
-        if (this.employmentData && this.employmentData.employee_funding_allocations) {
-          console.log('Found existing funding allocations:', this.employmentData.employee_funding_allocations);
+        // Call the API to get funding allocations
+        const response = await employmentService.getFundingAllocations(employmentId);
+        console.log('API Response for funding allocations:', response);
 
-          // Map the existing allocations to our internal format
-          this.fundingAllocations = this.employmentData.employee_funding_allocations.map(allocation => {
+        if (response.success && response.data && response.data.funding_allocations) {
+          const allocationsData = response.data.funding_allocations;
+          console.log('Found funding allocations from API:', allocationsData);
+
+          // Map the API response to our internal format
+          this.fundingAllocations = allocationsData.map(allocation => {
             // Convert level_of_effort from decimal string to percentage number
             const effortPercentage = parseFloat(allocation.level_of_effort) * 100;
 
@@ -1713,27 +1671,28 @@ export default {
               return {
                 id: allocation.id,
                 allocation_type: 'org_funded',
-                grant_id: allocation.org_funded_id || '',
+                grant_id: allocation.org_funded?.grant?.id || '',
                 grant_items_id: '',
                 position_slot_id: '',
-                department_position_id: parseInt(this.employmentData.department_position_id) || '', // Use employment's department_position_id
+                department_position_id: allocation.org_funded?.department_position?.id || '',
                 level_of_effort: effortPercentage,
 
                 // Additional data for display purposes
                 _original: {
-                  grant_name: 'Org Funded',
-                  grant_code: '',
+                  grant_name: allocation.org_funded?.grant?.name || 'Other Fund',
+                  grant_code: allocation.org_funded?.grant?.code || '',
                   grant_position: '',
                   slot_number: '',
                   budget_line_code: '',
                   allocated_amount: allocation.allocated_amount,
+                  formatted_allocated_amount: allocation.formatted_allocated_amount,
                   start_date: allocation.start_date,
                   end_date: allocation.end_date,
                   org_funded_name: 'Org Funded'
                 }
               };
             } else {
-              // Handle grant allocations
+              // Handle grant allocations (position_slot based)
               return {
                 id: allocation.id,
                 allocation_type: 'grant',
@@ -1747,10 +1706,11 @@ export default {
                 _original: {
                   grant_name: allocation.position_slot?.grant_item?.grant?.name || 'Unknown Grant',
                   grant_code: allocation.position_slot?.grant_item?.grant?.code || '',
-                  grant_position: allocation.position_slot?.grant_item?.grant_position || '',
+                  grant_position: allocation.position_slot?.grant_item?.name || '',
                   slot_number: allocation.position_slot?.slot_number || '',
-                  budget_line_code: allocation.position_slot?.budget_line?.budget_line_code || '',
+                  budget_line_code: allocation.position_slot?.budget_line?.name || '',
                   allocated_amount: allocation.allocated_amount,
+                  formatted_allocated_amount: allocation.formatted_allocated_amount,
                   start_date: allocation.start_date,
                   end_date: allocation.end_date
                 }
@@ -1758,17 +1718,23 @@ export default {
             }
           });
 
-          console.log('Mapped funding allocations:', this.fundingAllocations);
+          console.log('Mapped funding allocations from API:', this.fundingAllocations);
         } else {
-          console.log('No existing funding allocations found');
+          console.log('No funding allocations found in API response');
           this.fundingAllocations = [];
         }
 
       } catch (error) {
-        console.error('Error loading funding allocations:', error);
+        console.error('Error loading funding allocations from API:', error);
         this.fundingAllocations = [];
-        this.alertMessage = 'Failed to load existing funding allocations';
-        this.alertClass = 'alert-danger';
+
+        // Only show error message if it's not a 404 (no allocations found)
+        if (error.response?.status !== 404) {
+          this.alertMessage = 'Failed to load existing funding allocations';
+          this.alertClass = 'alert-danger';
+        } else {
+          console.log('No funding allocations exist for this employment (404 response)');
+        }
       } finally {
         this.isLoadingData = false;
       }
@@ -1785,6 +1751,7 @@ export default {
         start_date: this.formatDateForAPI(this.formData.start_date),
         end_date: this.formatDateForAPI(this.formData.end_date),
         department_position_id: this.formData.department_position_id || null,
+        section_department: this.formData.section_department || null,
         work_location_id: this.formData.work_location_id || null,
         position_salary: this.formData.position_salary,
         probation_salary: this.formData.probation_salary || null,
@@ -1795,52 +1762,10 @@ export default {
       };
 
       // For create mode, all fields are required as per backend create validation
-      if (!this.editMode) {
-        return {
-          ...basePayload,
-          // Funding allocation data - required for create
-          allocations: this.fundingAllocations.map(allocation => {
-            const isOrgFunded = allocation.allocation_type === 'org_funded';
-            const calculatedSalary = this.calculateSalaryFromEffort(allocation.level_of_effort);
-
-            if (isOrgFunded) {
-              return {
-                allocation_type: 'org_funded',
-                grant_id: allocation.grant_id,
-                level_of_effort: allocation.level_of_effort,
-                allocated_amount: calculatedSalary
-              };
-            } else {
-              return {
-                allocation_type: 'grant',
-                position_slot_id: allocation.position_slot_id,
-                level_of_effort: allocation.level_of_effort,
-                allocated_amount: calculatedSalary
-              };
-            }
-          })
-        };
-      }
-
-      // For update mode, only include changed fields and optionally include allocations
-      const updatePayload = {};
-
-      // Only include fields that have values (backend update method accepts nullable fields)
-      Object.keys(basePayload).forEach(key => {
-        const value = basePayload[key];
-        if (value !== null && value !== undefined && value !== '') {
-          updatePayload[key] = value;
-        }
-      });
-
-      // Always include boolean fields for updates (they can be false)
-      updatePayload.health_welfare = !!this.formData.health_welfare;
-      updatePayload.pvd = !!this.formData.pvd;
-      updatePayload.saving_fund = !!this.formData.saving_fund;
-
-      // Include allocations if they exist (optional for updates)
-      if (this.fundingAllocations.length > 0) {
-        updatePayload.allocations = this.fundingAllocations.map(allocation => {
+      return {
+        ...basePayload,
+        // Funding allocation data - required for create
+        allocations: this.fundingAllocations.map(allocation => {
           const isOrgFunded = allocation.allocation_type === 'org_funded';
           const calculatedSalary = this.calculateSalaryFromEffort(allocation.level_of_effort);
 
@@ -1859,19 +1784,16 @@ export default {
               allocated_amount: calculatedSalary
             };
           }
-        });
-      }
-
-      return updatePayload;
+        })
+      };
     },
 
     async handleSubmit() {
       try {
-        console.log('Submitting employment with funding allocations...', {
+        console.log('Creating employment with funding allocations...', {
           formData: this.formData,
           fundingAllocations: this.fundingAllocations,
-          totalAllocations: this.fundingAllocations.length,
-          editMode: this.editMode
+          totalAllocations: this.fundingAllocations.length
         });
 
         if (!this.validateForm()) {
@@ -1886,18 +1808,12 @@ export default {
 
         console.log('Payload for API:', payload);
 
-        let response;
-        if (this.editMode) {
-          // For editing, use the improved update API with optional allocations
-          response = await employmentService.updateEmployment(this.formData.employment_id || this.employmentData.id, payload);
-        } else {
-          // For creating, use the combined API that creates employment + funding allocations
-          response = await employmentService.createEmployment(payload);
-        }
+        // For creating, use the combined API that creates employment + funding allocations
+        const response = await employmentService.createEmployment(payload);
 
         console.log('API Response:', response);
 
-        this.alertMessage = this.editMode ? 'Employment Updated!' : 'Employment Created!';
+        this.alertMessage = 'Employment Created!';
         this.alertClass = 'alert-success';
 
         // Clear draft on successful submission
@@ -1913,9 +1829,9 @@ export default {
           }
         }, 1800);
 
-        this.$emit(this.editMode ? 'employment-updated' : 'employment-added', {
+        this.$emit('employment-added', {
           success: true,
-          message: this.editMode ? 'Employment updated successfully' : 'Employment created successfully',
+          message: 'Employment created successfully',
           data: response.data
         });
 
@@ -1956,6 +1872,7 @@ export default {
         employment_type: '',
         pay_method: '',
         department_position_id: '',
+        section_department: '',
         work_location_id: '',
         start_date: '',
         end_date: '',
@@ -1987,15 +1904,23 @@ export default {
       this.fundingAllocations = [];
       this.selectedEmployeeInfo = null;
       this.editingIndex = null;
-      this.editMode = false;
+      // Always in add mode
       this.isDraftMode = false;
       this.hasUnsavedChanges = false;
       this.restoredDataNotification.show = false;
       this.restoredDataNotification.timestamp = null;
       this.grantPositionOptions = [];
       this.positionSlotOptions = [];
+
+      // Reset custom tree select
+      this.showEmployeeDropdown = false;
+      this.employeeSearchTerm = '';
+      this.selectedEmployeeDisplay = '';
+      this.filteredEmployeeTree = [];
+
       this.clearValidationErrors();
       this.clearFormDraft();
+      // Keep dataLoaded as true to avoid reloading data unnecessarily
       console.log('Form reset complete. Memory cleared.');
     },
 
@@ -2014,6 +1939,74 @@ export default {
       }
 
       return null;
+    },
+
+    // Custom tree select methods
+    toggleEmployeeDropdown() {
+      this.showEmployeeDropdown = !this.showEmployeeDropdown;
+      if (this.showEmployeeDropdown) {
+        this.initializeEmployeeTree();
+        this.$nextTick(() => {
+          if (this.$refs.employeeSearchInput) {
+            this.$refs.employeeSearchInput.focus();
+          }
+        });
+      }
+    },
+
+    initializeEmployeeTree() {
+      // Initialize filtered tree with all data and expand subsidiaries
+      this.filteredEmployeeTree = this.employeeTreeData.map(subsidiary => ({
+        ...subsidiary,
+        expanded: true // Auto-expand all subsidiaries
+      }));
+    },
+
+    toggleSubsidiary(subsidiaryKey) {
+      const subsidiary = this.filteredEmployeeTree.find(s => s.key === subsidiaryKey);
+      if (subsidiary) {
+        subsidiary.expanded = !subsidiary.expanded;
+      }
+    },
+
+    selectEmployee(employee) {
+      this.formData.employee_id = employee.value;
+      this.selectedEmployeeDisplay = employee.title;
+      this.showEmployeeDropdown = false;
+      this.employeeSearchTerm = '';
+      this.onEmployeeChange();
+      this.saveFormState();
+    },
+
+    filterEmployees() {
+      if (!this.employeeSearchTerm.trim()) {
+        this.initializeEmployeeTree();
+        return;
+      }
+
+      const searchTerm = this.employeeSearchTerm.toLowerCase();
+      this.filteredEmployeeTree = this.employeeTreeData.map(subsidiary => {
+        const filteredChildren = subsidiary.children?.filter(employee =>
+          employee.title.toLowerCase().includes(searchTerm) ||
+          (employee.staff_id && employee.staff_id.toLowerCase().includes(searchTerm))
+        ) || [];
+
+        return {
+          ...subsidiary,
+          children: filteredChildren,
+          expanded: filteredChildren.length > 0 // Auto-expand if has matching children
+        };
+      }).filter(subsidiary => subsidiary.children.length > 0);
+    },
+
+    // Click outside handler to close dropdown
+    handleClickOutside(event) {
+      if (this.showEmployeeDropdown) {
+        const treeSelectElement = event.target.closest('.custom-tree-select');
+        if (!treeSelectElement) {
+          this.showEmployeeDropdown = false;
+        }
+      }
     },
 
     // getPopupContainer ensures the dropdown is appended to document.body
@@ -2515,5 +2508,251 @@ select {
   padding: 2px 6px;
   border-radius: 3px;
   font-weight: 500;
+}
+
+/* Loading state styles */
+.form-loading {
+  position: relative;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.form-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 10;
+  border-radius: 6px;
+}
+
+/* Enhanced loading messages */
+.text-center {
+  position: relative;
+  z-index: 20;
+}
+
+/* Loading spinner improvements */
+.spinner-border-sm {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-width: 0.15em;
+}
+
+/* Loading text styling */
+.text-center div {
+  margin-top: 8px;
+  color: #6c757d;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+/* Custom Tree Select Styles */
+.custom-tree-select {
+  position: relative;
+  width: 100%;
+}
+
+.tree-select-input {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  position: relative;
+  min-height: 38px;
+  padding: 7px 12px;
+}
+
+.tree-select-input:hover {
+  border-color: #4a7fff;
+}
+
+.selected-text {
+  color: #1d2636;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.placeholder-text {
+  color: #6c757d;
+  font-style: italic;
+}
+
+.dropdown-icon {
+  margin-left: 8px;
+  transition: transform 0.2s ease;
+  color: #6c757d;
+}
+
+.dropdown-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.tree-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #c9d2e2;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1050;
+  max-height: 400px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.dropdown-header {
+  padding: 12px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.search-input {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 0.9em;
+}
+
+.search-input:focus {
+  border-color: #4a7fff;
+  box-shadow: 0 0 0 0.2rem rgba(74, 127, 255, 0.25);
+  outline: none;
+}
+
+.dropdown-body {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.subsidiary-group {
+  margin-bottom: 4px;
+}
+
+.subsidiary-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  font-weight: 600;
+  color: #495057;
+  transition: background-color 0.15s ease;
+}
+
+.subsidiary-header:hover {
+  background: #e9ecef;
+}
+
+.subsidiary-header i {
+  margin-right: 8px;
+  font-size: 0.8em;
+  transition: transform 0.15s ease;
+}
+
+.subsidiary-name {
+  flex: 1;
+}
+
+.employee-count {
+  color: #6c757d;
+  font-size: 0.85em;
+  font-weight: 400;
+}
+
+.employees-list {
+  background: white;
+}
+
+.employee-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 24px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f3f4;
+  transition: background-color 0.15s ease;
+}
+
+.employee-item:hover {
+  background: #f8f9fa;
+}
+
+.employee-item.selected {
+  background: #e3f2fd;
+  border-left: 3px solid #4a7fff;
+}
+
+.employee-name {
+  font-weight: 500;
+  color: #1d2636;
+  margin-bottom: 2px;
+}
+
+.employee-info {
+  color: #6c757d;
+  font-size: 0.8em;
+}
+
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #6c757d;
+  text-align: center;
+}
+
+.no-results i {
+  font-size: 2em;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* Custom scrollbar for dropdown */
+.dropdown-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.dropdown-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.dropdown-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tree-dropdown {
+    max-height: 300px;
+  }
+
+  .dropdown-body {
+    max-height: 220px;
+  }
+
+  .employee-item {
+    padding: 8px 16px;
+  }
+
+  .subsidiary-header {
+    padding: 6px 12px;
+  }
 }
 </style>

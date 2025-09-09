@@ -10,7 +10,6 @@
             </div>
         </template>
     </ReportRow>
-
     <OverallInterviewReportModal ref="overallInterviewReportModal" :pdf-url="pdfUrl" />
 </template>
 
@@ -141,6 +140,7 @@ export default {
                 message.error({ content: 'Failed to generate PDF. Please try again.', key: 'pdfExport' });
             }
         },
+        
         async exportExcel() {
             try {
                 // Get the start_date and end_date that we store as data attributes

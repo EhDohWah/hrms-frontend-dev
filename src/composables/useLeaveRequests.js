@@ -89,8 +89,28 @@ export function useLeaveRequests() {
                 }
 
                 // Update stats
-                if (response.stats) {
-                    Object.assign(stats, response.stats);
+                if (response.statistics) {
+                    console.log('📊 Raw statistics from API:', response.statistics);
+                    const newStats = {
+                        totalRequests: response.statistics.totalRequests || 0,
+                        pendingRequests: response.statistics.pendingRequests || 0,
+                        approvedRequests: response.statistics.approvedRequests || 0,
+                        declinedRequests: response.statistics.declinedRequests || 0,
+                        cancelledRequests: response.statistics.cancelledRequests || 0,
+                        thisMonth: response.statistics.thisMonthRequests || 0,
+                        thisWeek: response.statistics.thisWeekRequests || 0
+                    };
+
+                    // Clear existing stats first to ensure reactivity
+                    Object.keys(stats).forEach(key => {
+                        if (stats[key] !== undefined) stats[key] = 0;
+                    });
+
+                    // Then assign new values
+                    Object.assign(stats, newStats);
+                    console.log('📊 Statistics updated:', { old: response.statistics, new: stats });
+                } else {
+                    console.warn('⚠️ No statistics found in API response');
                 }
             } else {
                 showToast('Failed to fetch leave requests', 'error');
@@ -228,9 +248,64 @@ export function useLeaveRequests() {
         }
     };
 
+    // Helper function to calculate statistics from current data
+    const calculateStatistics = () => {
+        const currentRequests = leaveRequests.value || [];
+
+        const statistics = {
+            totalRequests: currentRequests.length,
+            pendingRequests: currentRequests.filter(req => req.status === 'pending').length,
+            approvedRequests: currentRequests.filter(req => req.status === 'approved').length,
+            declinedRequests: currentRequests.filter(req => req.status === 'declined').length,
+            cancelledRequests: currentRequests.filter(req => req.status === 'cancelled').length,
+            thisMonth: currentRequests.filter(req => {
+                const requestDate = new Date(req.createdAt);
+                const now = new Date();
+                return requestDate.getMonth() === now.getMonth() && requestDate.getFullYear() === now.getFullYear();
+            }).length,
+            thisWeek: currentRequests.filter(req => {
+                const requestDate = new Date(req.createdAt);
+                const now = new Date();
+                const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
+                return requestDate >= weekStart;
+            }).length
+        };
+
+        return statistics;
+    };
+
+    // Helper function to update statistics in UI
+    const updateStatisticsUI = (newStats) => {
+        console.log('🔄 Updating statistics UI with:', newStats);
+
+        // Clear existing stats first
+        Object.keys(stats).forEach(key => {
+            if (stats[key] !== undefined) stats[key] = 0;
+        });
+
+        // Update with new values
+        Object.assign(stats, {
+            totalRequests: newStats.totalRequests || 0,
+            pendingRequests: newStats.pendingRequests || 0,
+            approvedRequests: newStats.approvedRequests || 0,
+            declinedRequests: newStats.declinedRequests || 0,
+            cancelledRequests: newStats.cancelledRequests || 0,
+            thisMonth: newStats.thisMonth || 0,
+            thisWeek: newStats.thisWeek || 0
+        });
+
+        console.log('✅ Statistics UI updated:', stats);
+    };
+
     const updateRequestStatus = async (id, status, approverData = {}) => {
         try {
             setLoading('updateStatus', true);
+            console.log('🔄 Updating leave request status:', { id, status });
+
+            // Find the current request and store old status for calculation
+            const currentRequest = leaveRequests.value.find(req => req.id === id);
+            const oldStatus = currentRequest?.status;
+            console.log('📋 Current request found:', { id, oldStatus, newStatus: status });
 
             const response = await leaveService.updateLeaveRequest(id, { status });
 
@@ -246,7 +321,24 @@ export function useLeaveRequests() {
 
             if (response.success) {
                 showToast(`Leave request ${status} successfully`, 'success');
-                await fetchLeaveRequests(); // Refresh the list
+                console.log('✅ Status update successful, updating local data...');
+
+                // Update the local request status immediately
+                if (currentRequest) {
+                    currentRequest.status = status;
+                    console.log('📝 Local request status updated:', currentRequest);
+                }
+
+                // Calculate and update statistics immediately from local data
+                const calculatedStats = calculateStatistics();
+                updateStatisticsUI(calculatedStats);
+
+                // Also refresh from backend to ensure consistency (with delay)
+                setTimeout(async () => {
+                    console.log('🔄 Refreshing from backend for consistency...');
+                    await fetchLeaveRequests();
+                }, 200);
+
                 return { success: true };
             } else {
                 showToast(response.message || `Failed to ${status} leave request`, 'error');
@@ -373,6 +465,8 @@ export function useLeaveRequests() {
         deleteLeaveRequest,
         updateRequestStatus,
         bulkUpdateRequests,
+        calculateStatistics,
+        updateStatisticsUI,
 
         // Pagination
         goToPage,

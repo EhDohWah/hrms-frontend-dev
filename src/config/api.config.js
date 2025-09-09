@@ -308,6 +308,29 @@ export const API_ENDPOINTS = {
         INTERVIEW_EXPORT_PDF: '/reports/interview-report/export-pdf',
         JOB_OFFER_EXPORT_PDF: '/reports/job-offer-report/export-pdf',
         INTERVIEW_EXPORT_EXCEL: '/reports/interview-report/export-excel',
+        LEAVE_EXPORT_PDF: '/reports/leave-request-report/export-pdf',
+        LEAVE_EXPORT_EXCEL: '/reports/leave-request-report/export-excel',
+        LEAVE_EXPORT_CSV: '/reports/leave-request-report/export-csv',
+        EMPLOYEE_PERSONAL_DATA_EXPORT_PDF: '/reports/employee-personal-data-report/export-pdf',
+        EMPLOYEE_PERSONAL_DATA_EXPORT_EXCEL: '/reports/employee-personal-data-report/export-excel',
+        EMPLOYMENT_DATA_EXPORT_PDF: '/reports/employment-data-report/export-pdf',
+        EMPLOYMENT_DATA_EXPORT_EXCEL: '/reports/employment-data-report/export-excel',
+        TOTAL_GRANT_EXPORT_PDF: '/reports/total-grant-report/export-pdf',
+        TOTAL_GRANT_EXPORT_EXCEL: '/reports/total-grant-report/export-excel',
+        TRAINING_ATTENDANCE_EXPORT_PDF: '/reports/training-attendance-report/export-pdf',
+        TRAINING_ATTENDANCE_EXPORT_EXCEL: '/reports/training-attendance-report/export-excel',
+        TRAINING_ATTENDANCE_EXPORT_CSV: '/reports/training-attendance-report/export-csv',
+        EMPLOYEE_TRAINING_HISTORY_EXPORT_PDF: '/reports/employee-training-history-report/export-pdf',
+        EMPLOYEE_TRAINING_HISTORY_EXPORT_EXCEL: '/reports/employee-training-history-report/export-excel',
+        EMPLOYEE_TRAINING_HISTORY_EXPORT_CSV: '/reports/employee-training-history-report/export-csv',
+        PAYROLL_EXPORT_PDF: '/reports/payroll-report/export-pdf',
+        PAYROLL_EXPORT_EXCEL: '/reports/payroll-report/export-excel',
+        INDIVIDUAL_LEAVE_EXPORT_PDF: '/reports/leave-request-report/export-individual-pdf',
+        INDIVIDUAL_LEAVE_EXPORT_EXCEL: '/reports/individual-leave-request-report/export-excel',
+        INDIVIDUAL_LEAVE_EXPORT_CSV: '/reports/individual-leave-request-report/export-csv',
+        TRAVEL_EXPORT_PDF: '/reports/travel-report/export-pdf',
+        TRAVEL_EXPORT_EXCEL: '/reports/travel-report/export-excel',
+        TRAVEL_EXPORT_CSV: '/reports/travel-report/export-csv',
     },
 
     // Notification endpoints
@@ -381,6 +404,17 @@ export const API_ENDPOINTS = {
         VALIDATE_INPUTS: '/tax-calculations/validate-inputs',
         COMPLIANCE_CHECK: '/tax-calculations/compliance-check',
         THAI_REPORT: '/tax-calculations/thai-report'
+    },
+
+    // Resignation endpoints
+    RESIGNATION: {
+        LIST: '/resignations',
+        CREATE: '/resignations',
+        UPDATE: '/resignations/:id',
+        DELETE: '/resignations/:id',
+        DETAILS: '/resignations/:id',
+        ACKNOWLEDGE: '/resignations/:id/acknowledge',
+        BULK_DELETE: '/resignations/bulk-delete'
     }
 
 };

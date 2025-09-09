@@ -521,6 +521,8 @@ const routes = [
       { path: '', redirect: '/leave/admin/leaves-admin' },
       { path: "leaves-admin", component: lazyView('pages/hrm/attendance/leaves/leaves-admin') },
       { path: "leave-settings", component: lazyView('pages/hrm/attendance/leaves/leave-settings') },
+      { path: "leave-types", component: lazyView('pages/hrm/attendance/leaves/leave-types') },
+      { path: "leave-balances", component: lazyView('pages/hrm/attendance/leaves/leave-balances') },
     ]
   },
   {
@@ -578,6 +580,13 @@ const routes = [
       { path: "positions", component: lazyView('pages/hrm/employees/employee-positions') },
       { path: "policy", component: lazyView('pages/hrm/employees/employee-policy') },
       { path: "site", component: lazyView('pages/hrm/employees/employee-sites') },
+      {
+        path: "employee-resignation",
+        component: lazyView('pages/hrm/employees/employee-resignation'),
+        meta: {
+          title: 'Employee Resignation'
+        }
+      },
     ]
   },
   {

@@ -1,31 +1,35 @@
 import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
+import { BaseService } from './base.service';
 
-class EmploymentService {
+class EmploymentService extends BaseService {
     // Get all employments (legacy method - kept for backward compatibility)
     async getEmployments() {
-        return await apiService.get(API_ENDPOINTS.EMPLOYMENT.LIST);
+        return await this.handleApiResponse(
+            () => apiService.get(API_ENDPOINTS.EMPLOYMENT.LIST),
+            'fetch employments list'
+        );
     }
 
     // Get funding allocations for an employment
     async getFundingAllocations(employmentId) {
         const endpoint = API_ENDPOINTS.EMPLOYMENT.FUNDING_ALLOCATIONS.replace(':id', employmentId);
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            `fetch funding allocations for employment ${employmentId}`
+        );
     }
 
     // Get all employments with query parameters (similar to grant service)
     async getAllEmployments(params = {}) {
-        try {
-            // Build query string from parameters
-            const queryString = new URLSearchParams(params).toString();
-            const endpoint = `${API_ENDPOINTS.EMPLOYMENT.LIST}${queryString ? `?${queryString}` : ''}`;
+        // Build query string from parameters
+        const queryString = this.buildQueryString(params);
+        const endpoint = `${API_ENDPOINTS.EMPLOYMENT.LIST}${queryString ? `?${queryString}` : ''}`;
 
-            const response = await apiService.get(endpoint);
-            return response; // This should return the full API response including pagination metadata
-        } catch (error) {
-            console.error('Error fetching employments:', error);
-            throw error;
-        }
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            'fetch employments with parameters'
+        );
     }
 
     // Search employments by staff ID (handles 404 as valid response)
@@ -49,41 +53,62 @@ class EmploymentService {
     // Get employment details
     async getEmploymentDetails(id) {
         const endpoint = API_ENDPOINTS.EMPLOYMENT.DETAILS.replace(':id', id);
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            `fetch employment details for ID ${id}`
+        );
     }
 
     // Get employment by ID (similar to grant service)
     async getEmploymentById(id) {
         const endpoint = API_ENDPOINTS.EMPLOYMENT.DETAILS.replace(':id', id);
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            `fetch employment by ID ${id}`
+        );
     }
 
     // Create employment
     async createEmployment(data) {
-        return await apiService.post(API_ENDPOINTS.EMPLOYMENT.CREATE, data);
+        return await this.handleApiResponse(
+            () => apiService.post(API_ENDPOINTS.EMPLOYMENT.CREATE, data),
+            'create employment with funding allocations'
+        );
     }
 
     // Update employment
     async updateEmployment(id, data) {
         const endpoint = API_ENDPOINTS.EMPLOYMENT.UPDATE.replace(':id', id);
-        return await apiService.put(endpoint, data);
+        return await this.handleApiResponse(
+            () => apiService.put(endpoint, data),
+            `update employment with ID ${id}`
+        );
     }
 
     // Delete employment
     async deleteEmployment(id) {
         const endpoint = API_ENDPOINTS.EMPLOYMENT.DELETE.replace(':id', id);
-        return await apiService.delete(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.delete(endpoint),
+            `delete employment with ID ${id}`
+        );
     }
 
     // Add grant allocation
     async addGrantAllocation(data) {
-        return await apiService.post(API_ENDPOINTS.EMPLOYMENT.ADD_GRANT_ALLOCATION, data);
+        return await this.handleApiResponse(
+            () => apiService.post(API_ENDPOINTS.EMPLOYMENT.ADD_GRANT_ALLOCATION, data),
+            'add grant allocation to employment'
+        );
     }
 
     // Delete grant allocation
     async deleteGrantAllocation(id) {
         const endpoint = API_ENDPOINTS.EMPLOYMENT.DELETE_GRANT_ALLOCATION.replace(':id', id);
-        return await apiService.delete(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.delete(endpoint),
+            `delete grant allocation with ID ${id}`
+        );
     }
 
     /**
@@ -102,17 +127,14 @@ class EmploymentService {
      * @returns {Promise} API response with paginated employments data
      */
     async getAdvancedPaginatedEmployments(params = {}) {
-        const queryParams = new URLSearchParams();
+        // Build query string from parameters using BaseService method
+        const queryString = this.buildQueryString(params);
+        const endpoint = `${API_ENDPOINTS.EMPLOYMENT.PAGINATED || API_ENDPOINTS.EMPLOYMENT.LIST}${queryString ? `?${queryString}` : ''}`;
 
-        // Add parameters to query string, filtering out empty values
-        Object.keys(params).forEach(key => {
-            if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-                queryParams.append(key, params[key]);
-            }
-        });
-
-        const endpoint = `${API_ENDPOINTS.EMPLOYMENT.PAGINATED || API_ENDPOINTS.EMPLOYMENT.LIST}?${queryParams.toString()}`;
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            'fetch advanced paginated employments'
+        );
     }
 
     /**
@@ -120,7 +142,10 @@ class EmploymentService {
      * @returns {Promise} API response with available filter options
      */
     async getFilterOptions() {
-        return await apiService.get(API_ENDPOINTS.EMPLOYMENT.FILTER_OPTIONS || `${API_ENDPOINTS.EMPLOYMENT.LIST}/filter-options`);
+        return await this.handleApiResponse(
+            () => apiService.get(API_ENDPOINTS.EMPLOYMENT.FILTER_OPTIONS || `${API_ENDPOINTS.EMPLOYMENT.LIST}/filter-options`),
+            'fetch employment filter options'
+        );
     }
 }
 

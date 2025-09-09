@@ -556,6 +556,87 @@
           </div>
           <!-- End of Employee Children Information -->
 
+          <!-- Leave Balance Information -->
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <h6>Leave Balance Information ({{ new Date().getFullYear() }})</h6>
+          </div>
+          <div class="card">
+            <div class="card-body p-0">
+              <div v-if="leaveBalances && leaveBalances.length > 0">
+                <div v-for="(balance, index) in leaveBalances" :key="balance.id || index" class="p-3"
+                  :class="{ 'border-bottom': index < leaveBalances.length - 1 }">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center mb-2">
+                        <i class="ti ti-calendar-time me-2 text-primary"></i>
+                        <span class="fw-medium text-dark">{{ balance.leave_type?.name || 'Unknown Leave Type' }}</span>
+                        <span v-if="balance.leave_type?.requires_attachment" class="badge badge-soft-warning ms-2"
+                          title="Requires attachment">
+                          <i class="ti ti-paperclip me-1"></i>Attachment Required
+                        </span>
+                      </div>
+
+                      <div class="d-flex align-items-center mb-2">
+                        <span class="badge me-2"
+                          :class="getRemainingDaysClass(balance.remaining_days, balance.total_days)">
+                          <i class="ti ti-calendar-check me-1"></i>
+                          {{ Number(balance.remaining_days || 0).toFixed(1) }} days remaining
+                        </span>
+                      </div>
+
+                      <div class="row text-sm">
+                        <div class="col-4">
+                          <span class="text-muted">Total Allocated:</span><br>
+                          <span class="fw-medium text-dark">{{ Number(balance.total_days || 0).toFixed(1) }} days</span>
+                        </div>
+                        <div class="col-4">
+                          <span class="text-muted">Days Used:</span><br>
+                          <span class="fw-medium text-warning">{{ Number(balance.used_days || 0).toFixed(1) }}
+                            days</span>
+                        </div>
+                        <div class="col-4">
+                          <span class="text-muted">Year:</span><br>
+                          <span class="fw-medium text-info">{{ balance.year || new Date().getFullYear() }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="ms-3">
+                      <!-- Progress bar showing usage -->
+                      <div class="d-flex flex-column align-items-end">
+                        <small class="text-muted mb-1">Usage</small>
+                        <div class="progress" style="width: 120px; height: 10px;">
+                          <div class="progress-bar"
+                            :class="getUsageProgressClass(balance.used_days, balance.total_days)"
+                            :style="`width: ${getUsagePercentage(balance.used_days, balance.total_days)}%`">
+                          </div>
+                        </div>
+                        <small class="text-muted mt-1">{{ getUsagePercentage(balance.used_days, balance.total_days)
+                        }}%</small>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Leave type description (if available) -->
+                  <div v-if="balance.leave_type?.description" class="mt-2 pt-2 border-top">
+                    <small class="text-muted">
+                      <i class="ti ti-info-circle me-1"></i>
+                      {{ balance.leave_type.description }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="p-3">
+                <div class="text-center py-3">
+                  <i class="ti ti-calendar-off text-muted mb-2" style="font-size: 2rem;"></i>
+                  <p class="text-muted mb-0">No leave balance information available</p>
+                  <small class="text-muted">Leave balances will appear here once allocated</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- End of Leave Balance Information -->
+
 
         </div>
 
@@ -1541,6 +1622,7 @@ export default {
     return {
       employee: null,
       loading: true,
+      leaveBalances: [],
 
       showEditModal: false,
       selectedEmployee: null,
@@ -1714,6 +1796,10 @@ export default {
         // Call the store action to get employee details
         this.employee = await employeeStore.getEmployeeDetails(id);
         console.log("this.employee", this.employee);
+
+        // Extract leave balances from employee data (if available)
+        this.loadLeaveBalancesFromEmployee();
+
         // Show success message using ant-design message
         this.$message.success('Employee details loaded successfully');
       } catch (error) {
@@ -2024,6 +2110,61 @@ export default {
     },
 
     // ===== END BENEFICIARY CRUD METHODS =====
+
+    // ===== LEAVE BALANCE METHODS =====
+
+    // Load leave balances from employee data (already included in employee API response)
+    loadLeaveBalancesFromEmployee() {
+      try {
+        if (this.employee && this.employee.leave_balances && Array.isArray(this.employee.leave_balances)) {
+          // Filter out leave types with 0 total days to show only relevant leave balances
+          this.leaveBalances = this.employee.leave_balances.filter(balance =>
+            parseFloat(balance.total_days || 0) > 0
+          );
+          console.log("Leave balances loaded from employee data:", this.leaveBalances);
+        } else {
+          this.leaveBalances = [];
+          console.warn("No leave balance data found in employee response");
+        }
+      } catch (error) {
+        console.error("Error processing leave balances from employee data:", error);
+        this.leaveBalances = [];
+      }
+    },
+
+    // Calculate usage percentage for progress bar
+    getUsagePercentage(usedDays, totalDays) {
+      if (!totalDays || totalDays === 0) return 0;
+      const percentage = (Number(usedDays || 0) / Number(totalDays)) * 100;
+      return Math.min(Math.round(percentage), 100); // Cap at 100%
+    },
+
+    // Get progress bar class based on usage percentage
+    getUsageProgressClass(usedDays, totalDays) {
+      const percentage = this.getUsagePercentage(usedDays, totalDays);
+
+      if (percentage >= 90) return 'bg-danger';
+      if (percentage >= 75) return 'bg-warning';
+      if (percentage >= 50) return 'bg-info';
+      return 'bg-success';
+    },
+
+    // Get badge class for remaining days display
+    getRemainingDaysClass(remainingDays, totalDays) {
+      const remaining = Number(remainingDays || 0);
+      const total = Number(totalDays || 0);
+
+      if (total === 0) return 'badge-soft-secondary';
+
+      const percentage = (remaining / total) * 100;
+
+      if (percentage <= 10) return 'badge-soft-danger';
+      if (percentage <= 25) return 'badge-soft-warning';
+      if (percentage <= 50) return 'badge-soft-info';
+      return 'badge-soft-success';
+    },
+
+    // ===== END LEAVE BALANCE METHODS =====
   },
 };
 </script>

@@ -9,6 +9,16 @@ const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 
 export default {
+  props: {
+    selectedLeaveRequest: {
+      type: Object,
+      default: null
+    },
+    isEditMode: {
+      type: Boolean,
+      default: false
+    }
+  },
   setup() {
     const { showSuccess, showError } = useToast();
     return {
@@ -112,10 +122,16 @@ export default {
 
     // Get display text for selected employee
     selectedEmployeeDisplay() {
-      if (!this.formData.employee_id) return '';
+      const employeeId = this.isEditMode ? this.editFormData.employee_id : this.formData.employee_id;
+      if (!employeeId) return this.employeeSearchQuery || '';
 
-      const employee = this.employees.find(emp => emp.id === this.formData.employee_id);
-      return employee ? `${employee.staff_id} - ${employee.name} [${employee.subsidiary}]` : '';
+      const employee = this.employees.find(emp => emp.id === employeeId);
+      return employee ? `${employee.staff_id} - ${employee.name} [${employee.subsidiary}]` : this.employeeSearchQuery || '';
+    },
+
+    // Check if we're in edit mode
+    isCurrentlyEditing() {
+      return this.selectedLeaveRequest && this.selectedLeaveRequest.id;
     }
   },
 
@@ -137,15 +153,78 @@ export default {
       console.log('📋 Leave Type ID changed:', oldVal, '→', newVal);
       this.loadLeaveBalance();
       this.loadLeaveTypeDetails();
+    },
+
+    // Watch for selected leave request changes to populate edit form
+    selectedLeaveRequest: {
+      handler(newVal, oldVal) {
+        console.log('👀 selectedLeaveRequest watcher triggered:', { newVal, oldVal });
+        if (newVal && newVal.id) {
+          // Only populate if this is a different leave request or if we're switching to edit mode
+          if (!oldVal || oldVal.id !== newVal.id) {
+            console.log('📝 Populating form for different leave request');
+            this.populateEditForm(newVal);
+          }
+        } else {
+          console.log('🔄 Resetting form - no leave request selected');
+          this.resetForm();
+        }
+      },
+      immediate: false,
+      deep: true
+    },
+
+    // Auto-calculate total days for edit form
+    'editFormData.start_date'() {
+      this.updateEditTotalDays();
+    },
+    'editFormData.end_date'() {
+      this.updateEditTotalDays();
+    },
+
+    // Load leave balance when employee or leave type changes in edit form
+    'editFormData.employee_id'(newVal, oldVal) {
+      console.log('👤 Edit Employee ID changed:', oldVal, '→', newVal);
+      this.loadEditLeaveBalance();
+    },
+    'editFormData.leave_type_id'(newVal, oldVal) {
+      console.log('📋 Edit Leave Type ID changed:', oldVal, '→', newVal);
+      this.loadEditLeaveBalance();
     }
   },
 
   mounted() {
     this.loadEmployees();
     this.loadLeaveTypes();
+
+    // Initialize modal event listeners for proper cleanup
+    this.initializeModalEventListeners();
+
+    // Listen for custom populate edit form event (fallback)
+    document.addEventListener('populate-edit-form', (event) => {
+      if (event.detail) {
+        this.populateEditForm(event.detail);
+      }
+    });
+  },
+
+  beforeUnmount() {
+    // Clean up any remaining backdrops when component is destroyed
+    this.cleanupModalBackdrops();
   },
 
   methods: {
+    // Initialize modal event listeners for proper backdrop cleanup
+    initializeModalEventListeners() {
+      const modalElement = document.getElementById('add_leaves');
+      if (modalElement) {
+        // Clean up when modal is hidden
+        modalElement.addEventListener('hidden.bs.modal', () => {
+          this.cleanupModalBackdrops();
+        });
+      }
+    },
+
     // Load employees from backend using tree search
     async loadEmployees() {
       try {
@@ -218,7 +297,8 @@ export default {
       try {
         const response = await leaveService.getLeaveTypes();
         if (response.success && response.data) {
-          this.leaveTypes = response.data;
+          // Sort leave types to put "Other" at the bottom
+          this.leaveTypes = this.sortLeaveTypes(response.data);
         } else {
           this.leaveTypes = [];
         }
@@ -231,6 +311,25 @@ export default {
           { id: 3, name: 'Annual Leave', requires_attachment: false, default_duration: 5 }
         ];
       }
+    },
+
+    // Sort leave types to put "Other" at the bottom
+    sortLeaveTypes(leaveTypes) {
+      if (!leaveTypes || !Array.isArray(leaveTypes)) return [];
+
+      return leaveTypes.sort((a, b) => {
+        const aName = (a.name || '').toLowerCase().trim();
+        const bName = (b.name || '').toLowerCase().trim();
+
+        // If 'a' is "Other", put it at the end (return positive value)
+        if (aName === 'other') return 1;
+
+        // If 'b' is "Other", put 'a' before it (return negative value)
+        if (bName === 'other') return -1;
+
+        // For all other items, maintain their original order
+        return 0;
+      });
     },
 
     // Load leave type details
@@ -285,6 +384,45 @@ export default {
       this.formData.total_days = this.calculatedDays;
     },
 
+    // Update total days calculation for edit form
+    updateEditTotalDays() {
+      if (this.editFormData.start_date && this.editFormData.end_date) {
+        const start = new Date(this.editFormData.start_date);
+        const end = new Date(this.editFormData.end_date);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        this.editFormData.total_days = diffDays;
+      } else {
+        this.editFormData.total_days = 0;
+      }
+    },
+
+    // Load leave balance for edit form
+    async loadEditLeaveBalance() {
+      if (!this.editFormData.employee_id || !this.editFormData.leave_type_id) {
+        this.availableBalance = 0;
+        return;
+      }
+
+      try {
+        console.log(`🔄 Loading edit leave balance for employee ${this.editFormData.employee_id}, leave type ${this.editFormData.leave_type_id}`);
+
+        const year = new Date().getFullYear();
+        const response = await leaveService.getEmployeeLeaveBalance(this.editFormData.employee_id, this.editFormData.leave_type_id, year);
+
+        if (response.success && response.data) {
+          this.availableBalance = parseFloat(response.data.remaining_days) || 0;
+          console.log(`✅ Edit leave balance loaded: ${this.availableBalance} days remaining`);
+        } else {
+          this.availableBalance = 0;
+          console.warn('⚠️ No leave balance data found for edit form');
+        }
+      } catch (error) {
+        console.error('❌ Error loading edit leave balance:', error);
+        this.availableBalance = 0;
+      }
+    },
+
     // Add document to the list
     addDocument() {
       if (this.newDocument.document_name && this.newDocument.document_url) {
@@ -310,43 +448,44 @@ export default {
     },
 
     // Validate form before submission
-    validateForm() {
+    validateForm(formData = null) {
+      const dataToValidate = formData || this.formData;
       console.log('🔍 Starting form validation...');
-      console.log('📋 Current formData:', JSON.stringify(this.formData, null, 2));
+      console.log('📋 Current formData:', JSON.stringify(dataToValidate, null, 2));
 
       this.errors = {};
 
-      if (!this.formData.employee_id) {
+      if (!dataToValidate.employee_id) {
         this.errors.employee_id = 'Employee is required';
         console.log('❌ Validation error: Missing employee_id');
       }
 
-      if (!this.formData.leave_type_id) {
+      if (!dataToValidate.leave_type_id) {
         this.errors.leave_type_id = 'Leave type is required';
         console.log('❌ Validation error: Missing leave_type_id');
       }
 
-      if (!this.formData.start_date) {
+      if (!dataToValidate.start_date) {
         this.errors.start_date = 'Start date is required';
         console.log('❌ Validation error: Missing start_date');
       }
 
-      if (!this.formData.end_date) {
+      if (!dataToValidate.end_date) {
         this.errors.end_date = 'End date is required';
         console.log('❌ Validation error: Missing end_date');
       }
 
-      if (this.formData.total_days <= 0) {
+      if (dataToValidate.total_days <= 0) {
         this.errors.total_days = 'Total days must be greater than 0';
-        console.log('❌ Validation error: Invalid total_days:', this.formData.total_days);
+        console.log('❌ Validation error: Invalid total_days:', dataToValidate.total_days);
       }
 
-      if (this.availableBalance > 0 && this.formData.total_days > this.availableBalance) {
-        this.errors.total_days = `Insufficient leave balance. Available: ${this.availableBalance} days, Requested: ${this.formData.total_days} days`;
+      if (this.availableBalance > 0 && dataToValidate.total_days > this.availableBalance) {
+        this.errors.total_days = `Insufficient leave balance. Available: ${this.availableBalance} days, Requested: ${dataToValidate.total_days} days`;
         console.log('❌ Validation error: Insufficient balance');
       }
 
-      if (this.requiresAttachment && this.formData.documents.length === 0) {
+      if (this.requiresAttachment && dataToValidate.documents.length === 0) {
         this.errors.documents = 'This leave type requires document attachments';
         console.log('❌ Validation error: Missing required attachments');
       }
@@ -359,7 +498,11 @@ export default {
 
     // Submit form to backend
     async submitForm() {
-      if (!this.validateForm()) {
+      // Determine if we're editing or creating
+      const isEditing = this.isCurrentlyEditing;
+      const formDataToUse = isEditing ? this.editFormData : this.formData;
+
+      if (!this.validateForm(formDataToUse)) {
         return;
       }
 
@@ -368,36 +511,37 @@ export default {
       try {
         // Debug form data before creating payload
         console.log('🔍 Form data before creating payload:', {
-          employee_id: this.formData.employee_id,
-          leave_type_id: this.formData.leave_type_id,
-          start_date: this.formData.start_date,
-          end_date: this.formData.end_date,
-          total_days: this.formData.total_days,
-          reason: this.formData.reason,
-          documents: this.formData.documents
+          employee_id: formDataToUse.employee_id,
+          leave_type_id: formDataToUse.leave_type_id,
+          start_date: formDataToUse.start_date,
+          end_date: formDataToUse.end_date,
+          total_days: formDataToUse.total_days,
+          reason: formDataToUse.reason,
+          documents: formDataToUse.documents,
+          isEditing
         });
 
         // Validate required fields have values
-        if (!this.formData.employee_id) {
+        if (!formDataToUse.employee_id) {
           console.error('❌ Missing employee_id');
           this.showError('Please select an employee');
           return;
         }
 
-        if (!this.formData.leave_type_id) {
+        if (!formDataToUse.leave_type_id) {
           console.error('❌ Missing leave_type_id');
           this.showError('Please select a leave type');
           return;
         }
 
         const payload = {
-          employeeId: parseInt(this.formData.employee_id),
-          leaveTypeId: parseInt(this.formData.leave_type_id),
-          startDate: this.formData.start_date,
-          endDate: this.formData.end_date,
-          totalDays: parseFloat(this.formData.total_days) || 0,
-          reason: this.formData.reason || null,
-          attachments: this.formData.documents.length > 0 ? this.formData.documents.map(doc => ({
+          employeeId: parseInt(formDataToUse.employee_id),
+          leaveTypeId: parseInt(formDataToUse.leave_type_id),
+          startDate: formDataToUse.start_date,
+          endDate: formDataToUse.end_date,
+          totalDays: parseFloat(formDataToUse.total_days) || 0,
+          reason: formDataToUse.reason || null,
+          attachments: formDataToUse.documents.length > 0 ? formDataToUse.documents.map(doc => ({
             documentName: doc.document_name,
             documentUrl: doc.document_url,
             description: doc.description
@@ -406,29 +550,39 @@ export default {
 
         console.log('📤 Payload being sent:', JSON.stringify(payload, null, 2));
 
-        const response = await leaveService.createLeaveRequest(payload);
+        let response;
+        if (isEditing) {
+          // Update existing leave request using the ID from editFormData
+          const leaveRequestId = formDataToUse.id || this.selectedLeaveRequest.id;
+          console.log('🔄 Updating leave request with ID:', leaveRequestId);
+          response = await leaveService.updateLeaveRequest(leaveRequestId, payload);
+        } else {
+          // Create new leave request
+          console.log('➕ Creating new leave request');
+          response = await leaveService.createLeaveRequest(payload);
+        }
 
         if (response.success) {
           // Success - emit event to parent, show notification, and close modal
-          console.log('✅ Leave request created successfully:', response.data);
+          console.log(`✅ Leave request ${isEditing ? 'updated' : 'created'} successfully:`, response.data);
 
           // Show success notification
-          this.showSuccess(response.message || 'Leave request created successfully');
+          this.showSuccess(response.message || `Leave request ${isEditing ? 'updated' : 'created'} successfully`);
 
           // Emit event to parent component to refresh the table
           this.$emit('leave-request-created', response.data);
 
           // Close modal after a brief delay to show the notification
           setTimeout(() => {
-            this.closeModal();
+            this.safeCloseModal();
           }, 1500);
 
         } else {
-          this.showError(response.message || 'Error creating leave request');
+          this.showError(response.message || `Error ${isEditing ? 'updating' : 'creating'} leave request`);
         }
 
       } catch (error) {
-        console.error('Error creating leave request:', error);
+        console.error(`Error ${isEditing ? 'updating' : 'creating'} leave request:`, error);
 
         if (error.response && error.response.status === 422) {
           // Validation errors
@@ -438,7 +592,7 @@ export default {
           // Insufficient balance
           this.showError(error.response.data.message);
         } else {
-          this.showError('An error occurred while creating the leave request');
+          this.showError(`An error occurred while ${isEditing ? 'updating' : 'creating'} the leave request`);
         }
       } finally {
         this.isLoading = false;
@@ -448,6 +602,15 @@ export default {
     // Reset form data
     resetForm() {
       this.formData = {
+        employee_id: null,
+        leave_type_id: null,
+        start_date: null,
+        end_date: null,
+        total_days: 0,
+        reason: '',
+        documents: []
+      };
+      this.editFormData = {
         employee_id: null,
         leave_type_id: null,
         start_date: null,
@@ -467,6 +630,60 @@ export default {
       this.showNotification = false;
       this.notificationMessage = '';
       this.notificationClass = 'alert-success';
+    },
+
+    // Populate edit form with selected leave request data
+    populateEditForm(leaveRequest) {
+      console.log('📝 Populating edit form with:', leaveRequest);
+
+      // Format dates properly for form inputs
+      const formatDateForInput = (dateStr) => {
+        if (!dateStr) return '';
+        try {
+          const date = new Date(dateStr);
+          return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+        } catch (error) {
+          console.error('Error formatting date:', error);
+          return '';
+        }
+      };
+
+      this.editFormData = {
+        id: leaveRequest.id,
+        employee_id: leaveRequest.employeeId || leaveRequest.employee_id,
+        leave_type_id: leaveRequest.leaveTypeId || leaveRequest.leave_type_id,
+        start_date: formatDateForInput(leaveRequest.startDate || leaveRequest.start_date),
+        end_date: formatDateForInput(leaveRequest.endDate || leaveRequest.end_date),
+        total_days: leaveRequest.totalDays || leaveRequest.total_days || 0,
+        reason: leaveRequest.reason || '',
+        documents: leaveRequest.attachments || leaveRequest.documents || []
+      };
+
+      // Set employee search query for display in edit form
+      if (leaveRequest.employee) {
+        this.employeeSearchQuery = `${leaveRequest.employee.staffId || leaveRequest.employee.staff_id || ''} - ${leaveRequest.employee.name || leaveRequest.employee.first_name_en + ' ' + leaveRequest.employee.last_name_en || ''} [${leaveRequest.employee.subsidiary || ''}]`;
+      }
+
+      // Update form data for create mode (backup)
+      if (!this.isEditMode) {
+        this.formData = { ...this.editFormData };
+      }
+
+      console.log('✅ Edit form populated:', this.editFormData);
+      console.log('Employee search query set to:', this.employeeSearchQuery);
+
+      // Load leave balance for this combination
+      this.loadEditLeaveBalance();
+    },
+
+    // Method to open edit modal (called from parent)
+    openEditModal(leaveRequest) {
+      console.log('🔓 Opening edit modal with leave request:', leaveRequest);
+      this.populateEditForm(leaveRequest);
+
+      // Open the edit modal
+      const editModal = new Modal(document.getElementById('edit_leaves'));
+      editModal.show();
     },
 
     // Employee search methods
@@ -585,14 +802,133 @@ export default {
       // Reset form data
       this.resetForm();
 
-      // Close the Bootstrap modal
+      // Close the Bootstrap modal with proper cleanup
       const modalElement = document.getElementById('add_leaves');
       if (modalElement) {
         const modal = Modal.getInstance(modalElement);
         if (modal) {
+          modalElement.addEventListener('hidden.bs.modal', () => {
+            this.cleanupModalBackdrops();
+          }, { once: true });
+
           modal.hide();
         }
       }
+    },
+
+    // Safe modal close with promise-based cleanup
+    safeCloseModal() {
+      return new Promise((resolve) => {
+        // Reset form data first
+        this.resetForm();
+
+        this.$nextTick(() => {
+          const modalElement = document.getElementById('add_leaves');
+          if (modalElement) {
+            const modal = Modal.getInstance(modalElement);
+            if (modal) {
+              // Add event listener for when modal is fully hidden
+              modalElement.addEventListener('hidden.bs.modal', () => {
+                this.cleanupModalBackdrops();
+                resolve(true);
+              }, { once: true });
+
+              modal.hide();
+            } else {
+              this.cleanupModalBackdrops();
+              resolve(true);
+            }
+          } else {
+            this.cleanupModalBackdrops();
+            resolve(true);
+          }
+        });
+      });
+    },
+
+    // Clean up stray modal backdrops
+    cleanupModalBackdrops() {
+      // Use nextTick to ensure DOM updates are complete
+      this.$nextTick(() => {
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        const activeModals = document.querySelectorAll('.modal.show');
+
+        // Only remove backdrops if no active modals are present
+        if (activeModals.length === 0 && backdrops.length > 0) {
+          backdrops.forEach(backdrop => {
+            backdrop.remove();
+          });
+
+          // Also ensure body classes are cleaned up
+          document.body.classList.remove('modal-open');
+          document.body.style.removeProperty('overflow');
+          document.body.style.removeProperty('padding-right');
+        }
+      });
+    },
+
+    // Close edit modal and reset form data
+    closeEditModal() {
+      console.log('🚪 Closing edit modal and resetting form data');
+
+      // Reset all form data
+      this.resetEditForm();
+      this.resetForm();
+
+      // Clear selected leave request in parent component
+      this.$emit('clear-selection');
+
+      // Close the modal
+      const editModal = Modal.getInstance(document.getElementById('edit_leaves'));
+      if (editModal) {
+        editModal.hide();
+      }
+
+      // Clean up any modal backdrops
+      this.cleanupModalBackdrops();
+    },
+
+    // Test method to verify edit functionality
+    testEditMode(sampleData = null) {
+      const testData = sampleData || {
+        id: 1,
+        employee_id: 1,
+        leave_type_id: 1,
+        start_date: '2024-01-15',
+        end_date: '2024-01-17',
+        total_days: 3,
+        reason: 'Test leave request for editing',
+        employee: {
+          staff_id: 'EMP001',
+          name: 'John Doe',
+          subsidiary: 'SMRU'
+        }
+      };
+
+      console.log('🧪 Testing edit mode with data:', testData);
+      this.populateEditForm(testData);
+      return testData;
+    },
+
+    // Reset edit form specifically 
+    resetEditForm() {
+      this.editFormData = {
+        id: null,
+        employee_id: null,
+        leave_type_id: null,
+        start_date: null,
+        end_date: null,
+        total_days: 0,
+        reason: '',
+        documents: []
+      };
+      this.employeeSearchQuery = '';
+      this.availableBalance = 0;
+      this.errors = {};
+      this.showNotification = false;
+      this.notificationMessage = '';
+      this.notificationClass = 'alert-success';
+      console.log('🔄 Edit form reset');
     }
   }
 };
@@ -605,7 +941,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Add Leave</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <button type="button" class="btn-close custom-btn-close" @click="safeCloseModal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -803,7 +1139,7 @@ export default {
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">
+            <button type="button" class="btn btn-light me-2" @click="safeCloseModal">
               Cancel
             </button>
             <button type="submit" class="btn btn-primary" :disabled="isLoading">
@@ -822,75 +1158,108 @@ export default {
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">Edit Leave</h4>
-          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+          <h4 class="modal-title">{{ isCurrentlyEditing ? 'Edit Leave Request' : 'Edit Leave' }}</h4>
+          <button type="button" class="btn-close custom-btn-close" @click="closeEditModal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
         <form @submit.prevent="submitForm">
           <div class="modal-body pb-0">
             <div class="row">
+              <!-- Employee Selection (Read-only in edit mode) -->
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Employee Name</label>
-                  <vue-select :options="Employeename" id="employeeleaveone" placeholder="Anthony Lewis" />
+                  <input type="text" class="form-control" :value="selectedEmployeeDisplay" readonly />
                 </div>
               </div>
+
+              <!-- Leave Type Selection -->
               <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">Leave Type</label>
-                  <vue-select :options="Leavetype" id="employeeleavetypeone" placeholder="Medical Leave" />
+                  <label class="form-label">Leave Type <span class="text-danger">*</span></label>
+                  <select v-model="editFormData.leave_type_id" class="form-select"
+                    :class="{ 'is-invalid': errors.leave_type_id }">
+                    <option value="">Select Leave Type</option>
+                    <option v-for="leaveType in leaveTypes" :key="leaveType.id" :value="leaveType.id">
+                      {{ leaveType.name }}
+                    </option>
+                  </select>
+                  <div v-if="errors.leave_type_id" class="invalid-feedback">{{ errors.leave_type_id }}</div>
                 </div>
               </div>
-              <div class="col-md-6">
+
+              <!-- Available Leave Balance -->
+              <div v-if="editFormData.employee_id && editFormData.leave_type_id" class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">From </label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdate" class="form-control datetimepicker" value="14/01/24"
-                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
+                  <div class="alert alert-info d-flex justify-content-between align-items-center">
+                    <div>
+                      <i class="ti ti-info-circle me-2"></i>
+                      <strong>Available Leave Balance:</strong>
+                    </div>
+                    <div class="badge bg-primary fs-6 px-3 py-2">
+                      {{ availableBalance }} days
+                    </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Date Range -->
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">To </label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="startdateOne" class="form-control datetimepicker" value="15/01/24"
-                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
+                  <label class="form-label">From <span class="text-danger">*</span></label>
+                  <input type="date" v-model="editFormData.start_date" class="form-control"
+                    :class="{ 'is-invalid': errors.start_date }" />
+                  <div v-if="errors.start_date" class="invalid-feedback">{{ errors.start_date }}</div>
                 </div>
               </div>
+
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">No of Days</label>
-                  <input type="text" class="form-control" value="01" />
+                  <label class="form-label">To <span class="text-danger">*</span></label>
+                  <input type="date" v-model="editFormData.end_date" class="form-control"
+                    :class="{ 'is-invalid': errors.end_date }" :min="editFormData.start_date" />
+                  <div v-if="errors.end_date" class="invalid-feedback">{{ errors.end_date }}</div>
                 </div>
               </div>
+
+              <!-- Days Information -->
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Remaining Days</label>
-                  <input type="text" class="form-control" value="07" />
+                  <label class="form-label">Total Days <span class="text-danger">*</span></label>
+                  <input type="number" v-model="editFormData.total_days" class="form-control"
+                    :class="{ 'is-invalid': errors.total_days }" step="0.5" min="0.5" readonly />
+                  <div v-if="errors.total_days" class="invalid-feedback">{{ errors.total_days }}</div>
                 </div>
               </div>
+
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Available Balance</label>
+                  <input type="text" :value="availableBalance + ' days'" class="form-control" readonly />
+                  <small class="text-muted">Current leave balance</small>
+                </div>
+              </div>
+
+              <!-- Reason -->
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Reason</label>
-                  <textarea class="form-control" rows="3"> Going to Hospital </textarea>
+                  <textarea v-model="editFormData.reason" class="form-control" rows="3" maxlength="1000"
+                    placeholder="Enter reason for leave request"></textarea>
+                  <small class="text-muted">{{ editFormData.reason.length }}/1000 characters</small>
                 </div>
               </div>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">
+            <button type="button" class="btn btn-light me-2" @click="closeEditModal">
               Cancel
             </button>
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-primary" :disabled="isLoading">
+              <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+              {{ isLoading ? 'Saving...' : 'Save Changes' }}
+            </button>
           </div>
         </form>
       </div>
@@ -911,7 +1280,7 @@ export default {
             You want to delete all the marked items, this cant be undone once you delete.
           </p>
           <div class="d-flex justify-content-center">
-            <a href="javascript:void(0);" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</a>
+            <a href="javascript:void(0);" class="btn btn-light me-3" @click="safeCloseModal">Cancel</a>
             <router-link to="/leave/leaves-admin" class="btn btn-danger">Yes, Delete</router-link>
           </div>
         </div>

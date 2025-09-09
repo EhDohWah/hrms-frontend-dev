@@ -227,7 +227,11 @@
             <div class="empty-state">
               <i class="ti ti-calendar-x text-muted" style="font-size: 3rem;"></i>
               <h5 class="mt-3 text-muted">No leave requests found</h5>
-              <p class="text-muted">{{ filters.search ? 'Try adjusting your search criteria' : 'Start by creating a new leave request' }}</p>
+
+              <p class="text-muted">
+                {{ filters.search ? 'Try adjusting your search criteria' : 'Start by creating a new Leave request' }}
+              </p>
+
               <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#add_leaves"
                 @click="openCreateModal">
                 <i class="ti ti-plus me-2"></i>Add Leave Request
@@ -284,10 +288,10 @@
                 </template>
 
                 <template v-if="column.key === 'status'">
-                  <div class="dropdown">
-                    <a href="javascript:void(0);"
-                      class="dropdown-toggle btn btn-sm btn-white d-inline-flex align-items-center"
-                      data-bs-toggle="dropdown" :disabled="!canUpdateStatus(record)">
+                  <div class="dropdown position-relative" :id="`status-dropdown-${record.id}`" @click.stop>
+                    <button type="button"
+                      class="dropdown-toggle btn btn-sm btn-white d-inline-flex align-items-center border-0"
+                      @click.stop="toggleStatusDropdown(record.id)" :style="{ cursor: 'pointer' }">
                       <span class="rounded-circle d-flex justify-content-center align-items-center me-2"
                         :class="getStatusConfig(record.status).class.replace('badge ', 'bg-transparent-')"
                         style="width: 16px; height: 16px;">
@@ -295,13 +299,20 @@
                           :class="getStatusConfig(record.status).class.replace('badge bg-', 'text-').replace('-light', '')"></i>
                       </span>
                       {{ getStatusConfig(record.status).label }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end p-3" v-if="canUpdateStatus(record)">
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end p-3" v-if="activeStatusDropdown === record.id" :style="{
+                      display: 'block',
+                      position: 'absolute',
+                      top: '100%',
+                      right: '0',
+                      zIndex: 1000,
+                      minWidth: '200px'
+                    }" @click.stop>
                       <li v-for="status in statusOptions" :key="status.value">
                         <a href="javascript:void(0);"
                           class="dropdown-item rounded-1 d-flex justify-content-start align-items-center"
-                          @click="updateLeaveStatus(record.id, status.value)"
-                          :class="{ 'active': record.status === status.value }">
+                          @click.stop="updateLeaveStatus(record.id, status.value)"
+                          :class="{ 'active': record.status === status.value }" :style="{ cursor: 'pointer' }">
                           <span class="rounded-circle d-flex justify-content-center align-items-center me-2"
                             :class="`bg-transparent-${status.color}`" style="width: 16px; height: 16px;">
                             <i class="ti ti-point-filled" :class="`text-${status.color}`"></i>
@@ -372,17 +383,20 @@
   </div>
   <!-- /Page Wrapper -->
 
-  <leaves-admin-modal @leave-request-created="handleLeaveRequestCreated"></leaves-admin-modal>
+  <LeavesAdminModal ref="leavesAdminModal" :selectedLeaveRequest="selectedLeaveRequest"
+    @leave-request-created="handleLeaveRequestCreated" @clear-selection="clearSelectedLeaveRequest">
+  </LeavesAdminModal>
 </template>
 
 
 
 <script>
-import { ref, reactive, computed, onMounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
 import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
+import { Modal } from 'bootstrap';
 
 // Composables
 import { useLeaveRequests } from '@/composables/useLeaveRequests';
@@ -395,11 +409,13 @@ import { dateUtils, statusUtils, filterUtils } from '@/utils/leave.utils';
 
 // Components
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
+import LeavesAdminModal from '@/components/modal/leaves-admin-modal.vue';
 
 export default {
   name: 'LeavesAdmin',
   components: {
     indexBreadcrumb,
+    LeavesAdminModal,
   },
 
   setup() {
@@ -420,7 +436,9 @@ export default {
       previousPage,
       changePerPage,
       updateFilters,
-      setDateRange
+      setDateRange,
+      calculateStatistics,
+      updateStatisticsUI
     } = useLeaveRequests();
 
     const {
@@ -435,6 +453,7 @@ export default {
     const dateRangeInput = ref(null);
     const selectedLeaveRequest = ref(null);
     const searchTimeout = ref(null);
+    const activeStatusDropdown = ref(null);
 
     // Page data
     const title = ref("Leaves");
@@ -588,11 +607,28 @@ export default {
       // The modal will be opened by Bootstrap
     };
 
+    const leavesAdminModal = ref(null);
+
     const editLeaveRequest = (record) => {
+      console.log('🔧 Edit button clicked for leave request:', record);
       selectedLeaveRequest.value = record;
-      // Open edit modal
-      const modal = new bootstrap.Modal(document.getElementById('edit_leaves'));
-      modal.show();
+
+      // Use template ref to call the modal method
+      if (leavesAdminModal.value && typeof leavesAdminModal.value.openEditModal === 'function') {
+        leavesAdminModal.value.openEditModal(record);
+      } else {
+        console.warn('⚠️ Modal component or openEditModal method not found, using fallback');
+        // Fallback: Open modal directly
+        const modal = new Modal(document.getElementById('edit_leaves'));
+        modal.show();
+
+        // Use nextTick to ensure modal is open before populating
+        nextTick(() => {
+          if (leavesAdminModal.value && typeof leavesAdminModal.value.populateEditForm === 'function') {
+            leavesAdminModal.value.populateEditForm(record);
+          }
+        });
+      }
     };
 
     const confirmDeleteLeaveRequest = (record) => {
@@ -608,10 +644,62 @@ export default {
       }
     };
 
+    // Toggle status dropdown
+    const toggleStatusDropdown = (recordId) => {
+      console.log('🔽 Toggle dropdown for record:', recordId, 'Current active:', activeStatusDropdown.value);
+
+      if (activeStatusDropdown.value === recordId) {
+        activeStatusDropdown.value = null;
+        console.log('✅ Closed dropdown');
+      } else {
+        activeStatusDropdown.value = recordId;
+        console.log('✅ Opened dropdown for record:', recordId);
+
+        // Check if dropdown element exists
+        const dropdownElement = document.getElementById(`status-dropdown-${recordId}`);
+        console.log('📍 Dropdown element found:', !!dropdownElement);
+        if (dropdownElement) {
+          const menu = dropdownElement.querySelector('.dropdown-menu');
+          console.log('📋 Dropdown menu found:', !!menu);
+          if (menu) {
+            console.log('📐 Menu styles:', {
+              display: menu.style.display,
+              position: menu.style.position,
+              visibility: window.getComputedStyle(menu).visibility
+            });
+          }
+        }
+      }
+    };
+
+    // Close dropdown when clicking outside
+    const closeStatusDropdown = () => {
+      activeStatusDropdown.value = null;
+    };
+
     const updateLeaveStatus = async (id, status) => {
+      // Close the dropdown immediately to prevent UI issues
+      activeStatusDropdown.value = null;
+
+      console.log('🔄 Starting status update for ID:', id, 'to status:', status);
+      console.log('📊 Statistics before update:', JSON.stringify(stats));
+
       const result = await updateRequestStatus(id, status);
       if (result.success) {
+        console.log('✅ Status update completed');
+        console.log('📊 Statistics after update:', JSON.stringify(stats));
         showToast(`Leave request ${status} successfully`, 'success');
+
+        // Force an additional manual statistics calculation as backup
+        setTimeout(() => {
+          console.log('🔄 Manual statistics recalculation...');
+          const manualStats = calculateStatistics();
+          updateStatisticsUI(manualStats);
+          console.log('📊 Manual statistics update complete:', JSON.stringify(stats));
+        }, 100);
+
+      } else {
+        console.error('❌ Status update failed:', result);
       }
     };
 
@@ -672,6 +760,12 @@ export default {
       console.log('✅ Leave requests table refreshed');
     };
 
+    // Clear selected leave request (called when edit modal is closed)
+    const clearSelectedLeaveRequest = () => {
+      console.log('🗑️ Clearing selected leave request');
+      selectedLeaveRequest.value = null;
+    };
+
     // Date range picker setup
     const initializeDateRangePicker = () => {
       if (!dateRangeInput.value) return;
@@ -698,6 +792,14 @@ export default {
 
       // Initialize date range picker
       initializeDateRangePicker();
+
+      // Add click listener to close dropdown when clicking outside
+      document.addEventListener('click', closeStatusDropdown);
+    });
+
+    // Cleanup on unmount
+    onUnmounted(() => {
+      document.removeEventListener('click', closeStatusDropdown);
     });
 
     return {
@@ -707,6 +809,8 @@ export default {
       text1,
       dateRangeInput,
       selectedLeaveRequest,
+      leavesAdminModal,
+      activeStatusDropdown,
 
       // Composable data
       leaveRequests,
@@ -745,9 +849,12 @@ export default {
       editLeaveRequest,
       confirmDeleteLeaveRequest,
       updateLeaveStatus,
+      toggleStatusDropdown,
       viewEmployeeDetails,
       getVisiblePages,
       exportData,
+      calculateStatistics,
+      updateStatisticsUI,
 
       // Pagination methods
       goToPage,
@@ -757,6 +864,7 @@ export default {
 
       // Event handlers
       handleLeaveRequestCreated,
+      clearSelectedLeaveRequest,
     };
   },
 };

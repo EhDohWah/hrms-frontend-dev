@@ -275,7 +275,9 @@ export const dataMapper = {
             employee: backendData.employee ? {
                 id: backendData.employee.id,
                 staffId: backendData.employee.staff_id,
-                name: `${backendData.employee.first_name_en} ${backendData.employee.last_name_en}`,
+                firstNameEn: backendData.employee.first_name_en,
+                lastNameEn: backendData.employee.last_name_en,
+                name: `${backendData.employee.first_name_en} ${backendData.employee.last_name_en}`.trim(),
                 subsidiary: backendData.employee.subsidiary
             } : null,
             leaveTypeId: backendData.leave_type_id,
@@ -381,6 +383,7 @@ export const filterUtils = {
         const params = {};
 
         if (filters.page) params.page = filters.page;
+        if (filters.per_page) params.per_page = filters.per_page;
         if (filters.perPage) params.per_page = filters.perPage;
         if (filters.search) params.search = filters.search;
         if (filters.from) params.from = dateUtils.formatForAPI(filters.from);
@@ -390,8 +393,11 @@ export const filterUtils = {
         }
         if (filters.status) params.status = filters.status;
         if (filters.sortBy) params.sort_by = filters.sortBy;
+        if (filters.sort_by) params.sort_by = filters.sort_by;
         if (filters.employeeId) params.employee_id = filters.employeeId;
+        if (filters.employee_id) params.employee_id = filters.employee_id;
         if (filters.leaveTypeId) params.leave_type_id = filters.leaveTypeId;
+        if (filters.leave_type_id) params.leave_type_id = filters.leave_type_id;
         if (filters.year) params.year = filters.year;
 
         return params;

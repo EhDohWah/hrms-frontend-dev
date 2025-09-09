@@ -107,7 +107,7 @@
                   <small class="text-muted">Status:
                     <span :class="[
                       'badge badge-sm',
-                      selectedEmployeeInfo.status === 'Local ID' ? 'bg-success' :
+                      selectedEmployeeInfo.status === 'Local ID' || selectedEmployeeInfo.status === 'Local ID Staff' ? 'bg-success' :
                         selectedEmployeeInfo.status === 'Local non ID' || selectedEmployeeInfo.status === 'Local non ID Staff' ? 'bg-primary' :
                           selectedEmployeeInfo.status === 'Expats' ? 'bg-warning' : 'bg-secondary'
                     ]">
@@ -1116,7 +1116,9 @@ export default {
         console.log('✅ Employment modal data loaded from shared store');
       } catch (error) {
         console.error('❌ Error loading employment modal data:', error);
-        this.alertMessage = `Failed to load form data: ${error.message}`;
+        // Handle BaseService structured errors or raw axios errors
+        const errorMessage = error.error || error.response?.data?.error || error.response?.data?.message || error.message || 'Failed to load form data';
+        this.alertMessage = errorMessage;
         this.alertClass = 'alert-danger';
       } finally {
         this.isLoadingData = false;
@@ -1321,7 +1323,7 @@ export default {
       if (!status) return;
 
       // Auto-select based on status
-      if (status === 'Local ID') {
+      if (status === 'Local ID' || status === 'Local ID Staff') {
         this.formData.pvd = true;
         this.formData.saving_fund = false;
         console.log('✅ Auto-selected PVD for Local ID staff');
@@ -1729,8 +1731,10 @@ export default {
         this.fundingAllocations = [];
 
         // Only show error message if it's not a 404 (no allocations found)
-        if (error.response?.status !== 404) {
-          this.alertMessage = 'Failed to load existing funding allocations';
+        if (error.status !== 404 && error.response?.status !== 404) {
+          // Handle BaseService structured errors or raw axios errors
+          const errorMessage = error.error || error.response?.data?.error || error.response?.data?.message || 'Failed to load existing funding allocations';
+          this.alertMessage = errorMessage;
           this.alertClass = 'alert-danger';
         } else {
           console.log('No funding allocations exist for this employment (404 response)');
@@ -1813,7 +1817,8 @@ export default {
 
         console.log('API Response:', response);
 
-        this.alertMessage = 'Employment Created!';
+        // Use actual backend success message
+        this.alertMessage = response.message || 'Employment created successfully!';
         this.alertClass = 'alert-success';
 
         // Clear draft on successful submission
@@ -1827,37 +1832,58 @@ export default {
           if (this.modalInstance) {
             this.modalInstance.hide();
           }
-        }, 1800);
+        }, 2200); // Slightly longer to read the actual message
 
         this.$emit('employment-added', {
           success: true,
-          message: 'Employment created successfully',
+          message: response.message || 'Employment created successfully',
           data: response.data
         });
 
       } catch (error) {
         console.error('Error submitting form:', error);
 
-        // Handle validation errors from backend
-        if (error.response?.data?.errors) {
-          const errors = error.response.data.errors;
+        // Clear any previous validation errors
+        this.validationErrors = {};
 
-          // Handle array of errors
-          if (Array.isArray(errors)) {
-            this.alertMessage = errors.join(', ');
-          }
-          // Handle object of field errors
-          else if (typeof errors === 'object') {
-            this.validationErrors = errors;
-            this.alertMessage = 'Please fix the validation errors below';
+        // Handle BaseService structured errors
+        if (error.status && error.success === false) {
+          // This is a structured error from BaseService
+          if (error.errors && typeof error.errors === 'object' && !Array.isArray(error.errors)) {
+            // Handle field validation errors (422)
+            this.validationErrors = error.errors;
+            // Use the meaningful error message from backend
+            this.alertMessage = error.error || error.message || 'Validation failed';
           } else {
-            this.alertMessage = error.response.data.message || 'Validation failed';
+            // Handle business logic errors - prioritize 'error' field for meaningful messages
+            this.alertMessage = error.error || error.message || 'An error occurred';
           }
-        } else {
-          this.alertMessage = error.response?.data?.message || 'Failed to save employment';
+        }
+        // Handle raw axios errors (fallback)
+        else if (error.response?.data) {
+          const errorData = error.response.data;
+          // Prioritize 'error' field for meaningful error messages
+          this.alertMessage = errorData.error || errorData.message || 'An error occurred while saving employment';
+
+          // Handle validation errors
+          if (errorData.errors && typeof errorData.errors === 'object' && !Array.isArray(errorData.errors)) {
+            this.validationErrors = errorData.errors;
+          }
+        }
+        // Handle network or other errors
+        else {
+          this.alertMessage = error.message || 'Failed to save employment. Please try again.';
         }
 
         this.alertClass = 'alert-danger';
+
+        // Log the full error for debugging
+        console.error('Full error details:', {
+          structuredError: error.status ? error : null,
+          rawError: error.response?.data || error.message,
+          status: error.status || error.response?.status
+        });
+
         throw error; // Re-throw to be caught by saveAndCloseModal if needed
       } finally {
         this.isSubmitting = false;

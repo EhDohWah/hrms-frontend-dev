@@ -173,20 +173,20 @@ class ApiService {
         }
     }
 
-    // Get Interview Report Excel using GET with query parameters
+    // Get Interview Report Excel using POST
     async getInterviewReportExcel(startDate, endDate, endpoint) {
         try {
-            // Build the URL with query parameters
-            const url = new URL(this.getFullURL(endpoint));
-            url.searchParams.append('start_date', startDate);
-            url.searchParams.append('end_date', endDate);
-
-            const response = await fetch(url.toString(), {
-                method: 'GET',
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
                 headers: {
                     ...this.headers,
+                    'Content-Type': 'application/json',
                     'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
                 credentials: 'include'
             });
 
@@ -368,6 +368,812 @@ class ApiService {
                 error.message = 'Network Error: Server is not responding';
             }
             return Promise.reject(error);
+        }
+    }
+
+
+    // Leave Report Methods
+    async getLeaveReportPdf(startDate, endDate, workLocation, department, endpoint) {
+        try {
+            // Validate required parameters
+            if (!workLocation) {
+                throw new Error('Work location is required for leave report generation');
+            }
+            if (!department) {
+                throw new Error('Department is required for leave report generation');
+            }
+
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate,
+                work_location: workLocation,
+                department: department
+            };
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting leave report PDF:', error);
+            throw error;
+        }
+    }
+
+    async getLeaveReportExcel(startDate, endDate, workLocation, department, endpoint) {
+        try {
+            // Validate required parameters
+            if (!workLocation) {
+                throw new Error('Work location is required for leave report generation');
+            }
+            if (!department) {
+                throw new Error('Department is required for leave report generation');
+            }
+
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate,
+                work_location: workLocation,
+                department: department
+            };
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting leave report Excel:', error);
+            throw error;
+        }
+    }
+
+    async getLeaveReportCsv(startDate, endDate, workLocation, department, endpoint) {
+        try {
+            // Validate required parameters
+            if (!workLocation) {
+                throw new Error('Work location is required for leave report generation');
+            }
+            if (!department) {
+                throw new Error('Department is required for leave report generation');
+            }
+
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate,
+                work_location: workLocation,
+                department: department
+            };
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/csv'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting leave report CSV:', error);
+            throw error;
+        }
+    }
+
+    // Individual Leave Report Methods
+    async getIndividualLeaveReportPdf(startDate, endDate, staffId, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate,
+                staff_id: staffId
+            };
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting individual leave report PDF:', error);
+            throw error;
+        }
+    }
+
+    async getIndividualLeaveReportExcel(startDate, endDate, staffId, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate,
+                staff_id: staffId
+            };
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting individual leave report Excel:', error);
+            throw error;
+        }
+    }
+
+    async getIndividualLeaveReportCsv(startDate, endDate, staffId, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate,
+                staff_id: staffId
+            };
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/csv'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting individual leave report CSV:', error);
+            throw error;
+        }
+    }
+
+    // Get Employee Personal Data Report PDF using POST
+    async getEmployeePersonalDataReportPdf(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
+    // Get Employee Personal Data Report Excel using POST
+    async getEmployeePersonalDataReportExcel(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting employee personal data report Excel:', error);
+            throw error;
+        }
+    }
+
+    // Get Employment Data Report PDF using POST
+    async getEmploymentDataReportPdf(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
+    // Get Employment Data Report Excel using POST
+    async getEmploymentDataReportExcel(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting employment data report Excel:', error);
+            throw error;
+        }
+    }
+
+    // Get Total Grant Report PDF using POST
+    async getTotalGrantReportPdf(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
+    // Get Total Grant Report Excel using POST
+    async getTotalGrantReportExcel(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting total grant report Excel:', error);
+            throw error;
+        }
+    }
+
+    // Get Training Attendance Report PDF using POST
+    async getTrainingAttendanceReportPdf(startDate, endDate, trainingTitle, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate
+            };
+
+            // Add optional parameters if provided
+            if (trainingTitle) {
+                requestBody.training_title = trainingTitle;
+            }
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting training attendance report PDF:', error);
+            throw error;
+        }
+    }
+
+    // Get Training Attendance Report Excel using POST
+    async getTrainingAttendanceReportExcel(startDate, endDate, trainingTitle, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate
+            };
+
+            // Add optional parameters if provided
+            if (trainingTitle) {
+                requestBody.training_title = trainingTitle;
+            }
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting training attendance report Excel:', error);
+            throw error;
+        }
+    }
+
+    // Get Training Attendance Report CSV using POST
+    async getTrainingAttendanceReportCsv(startDate, endDate, trainingTitle, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate
+            };
+
+            // Add optional parameters if provided
+            if (trainingTitle) {
+                requestBody.training_title = trainingTitle;
+            }
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/csv'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting training attendance report CSV:', error);
+            throw error;
+        }
+    }
+
+    // Get Employee Training History Report PDF using POST
+    async getEmployeeTrainingHistoryReportPdf(startDate, endDate, staffId, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate
+            };
+
+            // Add optional parameters if provided
+            if (staffId) {
+                requestBody.staff_id = staffId;
+            }
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting employee training history report PDF:', error);
+            throw error;
+        }
+    }
+
+    // Get Employee Training History Report Excel using POST
+    async getEmployeeTrainingHistoryReportExcel(startDate, endDate, staffId, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate
+            };
+
+            // Add optional parameters if provided
+            if (staffId) {
+                requestBody.staff_id = staffId;
+            }
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting employee training history report Excel:', error);
+            throw error;
+        }
+    }
+
+    // Get Employee Training History Report CSV using POST
+    async getEmployeeTrainingHistoryReportCsv(startDate, endDate, staffId, endpoint) {
+        try {
+            // Prepare the request body with required parameters
+            const requestBody = {
+                start_date: startDate,
+                end_date: endDate
+            };
+
+            // Add optional parameters if provided
+            if (staffId) {
+                requestBody.staff_id = staffId;
+            }
+
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/csv'
+                },
+                body: JSON.stringify(requestBody),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting employee training history report CSV:', error);
+            throw error;
+        }
+    }
+
+    // Get Payroll Report PDF using POST
+    async getPayrollReportPdf(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
+    // Get Payroll Report Excel using POST
+    async getPayrollReportExcel(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting payroll report Excel:', error);
+            throw error;
+        }
+    }
+
+    // Get Travel Report PDF using POST
+    async getTravelReportPdf(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/pdf'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            if (!error.response) {
+                error.message = 'Network Error: Server is not responding';
+            }
+            return Promise.reject(error);
+        }
+    }
+
+    // Get Travel Report Excel using POST
+    async getTravelReportExcel(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            // Return the blob directly instead of parsing as JSON
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting travel report Excel:', error);
+            throw error;
+        }
+    }
+
+    // Get Travel Report CSV using POST
+    async getTravelReportCsv(startDate, endDate, endpoint) {
+        try {
+            const response = await fetch(this.getFullURL(endpoint), {
+                method: 'POST',
+                headers: {
+                    ...this.headers,
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/csv'
+                },
+                body: JSON.stringify({
+                    start_date: startDate,
+                    end_date: endDate
+                }),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const error = new Error(`HTTP error! Status: ${response.status}`);
+                error.response = response;
+                throw error;
+            }
+
+            return await response.blob();
+        } catch (error) {
+            console.error('Error getting travel report CSV:', error);
+            throw error;
         }
     }
 }

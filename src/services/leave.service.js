@@ -115,6 +115,14 @@ class LeaveService {
 
       const response = await apiService.get(endpoint);
 
+      // Debug log the response
+      console.log('📊 Leave requests API response:', {
+        success: response.success,
+        dataLength: response.data?.length,
+        hasStatistics: !!response.statistics,
+        statistics: response.statistics
+      });
+
       // Transform the response data
       if (response.success && response.data) {
         const transformedData = Array.isArray(response.data)
@@ -123,7 +131,10 @@ class LeaveService {
 
         return {
           ...response,
-          data: transformedData
+          data: transformedData,
+          // Preserve statistics from the original response
+          statistics: response.statistics,
+          pagination: response.pagination
         };
       }
 
@@ -363,13 +374,30 @@ class LeaveService {
   async getEmployeeLeaveBalance(employeeId, leaveTypeId, year = null) {
     try {
       const currentYear = year || new Date().getFullYear();
-      const endpoint = `leaves/balance/${employeeId}/${leaveTypeId}?year=${currentYear}`;
+      const endpoint = `/leaves/balance/${employeeId}/${leaveTypeId}?year=${currentYear}`;
 
       const response = await apiService.get(endpoint);
 
       return response;
     } catch (error) {
       console.error('Error fetching employee leave balance:', error);
+      throw error;
+    }
+  }
+
+  // Get all leave balances for a specific employee
+  async getEmployeeLeaveBalances(employeeId, year = null) {
+    try {
+      const currentYear = year || new Date().getFullYear();
+      const filters = {
+        employee_id: employeeId,
+        year: currentYear
+      };
+
+      const response = await this.getLeaveBalances(filters);
+      return response;
+    } catch (error) {
+      console.error('Error fetching employee leave balances:', error);
       throw error;
     }
   }

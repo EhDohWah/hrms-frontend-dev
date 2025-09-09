@@ -138,6 +138,11 @@
             "active_link": "/employee/employment-list"
           },
           {
+            "menuValue": "Employee Resignation",
+            "route": "/employee/employee-resignation",
+            "active_link": "/employee/employee-resignation"
+          },
+          {
             "menuValue": "Site Location",
             "route": "/employee/site",
             "active_link": "/employee/site"
@@ -147,6 +152,7 @@
             "route": "/employee/employee-details",
             "active_link": "/employee/employee-details"
           },
+        
           {
             "menuValue": "Departments",
             "route": "/employee/departments",
@@ -195,6 +201,16 @@
             "menuValue": "Leave Settings",
             "route": "/leave/admin/leave-settings",
             "active_link": "/leave/admin/leave-settings"
+          },
+          {
+            "menuValue": "Leave Types",
+            "route": "/leave/admin/leave-types",
+            "active_link": "/leave/admin/leave-types"
+          },
+          {
+            "menuValue": "Leave Balances",
+            "route": "/leave/admin/leave-balances",
+            "active_link": "/leave/admin/leave-balances"
           }
         ]
       },

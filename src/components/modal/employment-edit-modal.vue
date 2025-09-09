@@ -81,13 +81,14 @@
                             </div>
                         </div>
 
+                        <!-- Row 2: Employment Type + Pay Method (2 columns) -->
                         <div class="date-row">
                             <div class="form-group">
                                 <label class="form-label required">Employment Type</label>
                                 <select class="form-control" v-model="formData.employment_type"
                                     :class="{ 'is-invalid': validationErrors.employment_type }" required
-                                    @change="saveFormState">
-                                    <option disabled value="">Select Type</option>
+                                    @change="saveFormState" :disabled="isLoadingData">
+                                    <option disabled value="">{{ isLoadingData ? 'Loading types...' : 'Select Type' }}</option>
                                     <option v-for="type in employmentTypes" :key="type.id" :value="type.value">
                                         {{ type.value }}
                                     </option>
@@ -110,7 +111,10 @@
                                     {{ validationErrors.pay_method }}
                                 </div>
                             </div>
+                        </div>
 
+                        <!-- Row 3: Department Position + Section Department (2 columns) -->
+                        <div class="date-row">
                             <div class="form-group">
                                 <label class="form-label required">Department Position</label>
                                 <select class="form-control" v-model="formData.department_position_id"
@@ -124,6 +128,22 @@
                                 </select>
                                 <div v-if="validationErrors.department_position_id" class="invalid-feedback">
                                     {{ validationErrors.department_position_id }}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Section Department</label>
+                                <select class="form-control" v-model="formData.section_department"
+                                    :class="{ 'is-invalid': validationErrors.section_department }" @change="saveFormState"
+                                    :disabled="isLoadingData">
+                                    <option disabled value="">{{ isLoadingData ? 'Loading sections...' : 'Select Section Department' }}
+                                    </option>
+                                    <option v-for="section in sectionDepartments" :key="section.id" :value="section.value">
+                                        {{ section.value }}
+                                    </option>
+                                </select>
+                                <div v-if="validationErrors.section_department" class="invalid-feedback">
+                                    {{ validationErrors.section_department }}
                                 </div>
                             </div>
                         </div>
@@ -534,6 +554,7 @@ export default {
                 employment_type: '',
                 pay_method: '',
                 department_position_id: '',
+                section_department: '',
                 work_location_id: '',
                 start_date: '',
                 end_date: '',
@@ -583,6 +604,7 @@ export default {
             departmentPositions: [],
             workLocations: [],
             employmentTypes: [],
+            sectionDepartments: [],
             payMethods: [
                 { id: 1, value: 'Transferred to bank' },
                 { id: 2, value: 'Cash cheque' }
@@ -929,19 +951,42 @@ export default {
 
                 // Only fetch lookups if they haven't been loaded yet
                 if (!lookupStore.lookups.length) {
-                    console.log('🔄 Fetching lookups from API...');
+                    console.log('🔄 Fetching all lookup lists from new API endpoint...');
                     await lookupStore.fetchAllLookupLists();
-                    console.log('✅ Lookups fetched successfully');
+                    console.log('✅ All lookup lists fetched successfully');
                 } else {
                     console.log('✅ Lookups already loaded from store');
                 }
 
-                // Get employment types from the store
+                // Get employment types and section departments from the store
                 this.employmentTypes = lookupStore.getLookupsByType('employment_type');
+                this.sectionDepartments = lookupStore.getLookupsByType('section_department');
 
-                // Pay methods are now hardcoded in data() section
-                console.log(`📊 Loaded ${this.employmentTypes.length} employment types`);
+                // Debug logging
+                console.log(`📊 Loaded ${this.employmentTypes.length} employment types:`, this.employmentTypes);
+                console.log(`📊 Loaded ${this.sectionDepartments.length} section departments:`, this.sectionDepartments);
                 console.log(`📊 Using ${this.payMethods.length} hardcoded pay methods`);
+                console.log('🔍 Full lookupsByType from store:', lookupStore.lookupsByType);
+                console.log('🔍 Available lookup types:', lookupStore.lookupTypes);
+
+                // If no data loaded, try alternative approaches
+                if (this.employmentTypes.length === 0) {
+                    console.log('⚠️ No employment types loaded, checking alternative data sources...');
+                    // Try to get data directly from lookupsByType
+                    if (lookupStore.lookupsByType.employment_type) {
+                        this.employmentTypes = lookupStore.lookupsByType.employment_type;
+                        console.log('✅ Found employment types in lookupsByType:', this.employmentTypes);
+                    }
+                }
+
+                if (this.sectionDepartments.length === 0) {
+                    console.log('⚠️ No section departments loaded, checking alternative data sources...');
+                    // Try to get data directly from lookupsByType
+                    if (lookupStore.lookupsByType.section_department) {
+                        this.sectionDepartments = lookupStore.lookupsByType.section_department;
+                        console.log('✅ Found section departments in lookupsByType:', this.sectionDepartments);
+                    }
+                }
 
             } catch (error) {
                 console.error('❌ Error loading lookups:', error);
@@ -1451,6 +1496,7 @@ export default {
                 start_date: this.formatDateForAPI(this.formData.start_date),
                 end_date: this.formatDateForAPI(this.formData.end_date),
                 department_position_id: this.formData.department_position_id || null,
+                section_department: this.formData.section_department || null,
                 work_location_id: this.formData.work_location_id || null,
                 position_salary: this.formData.position_salary,
                 probation_salary: this.formData.probation_salary || null,

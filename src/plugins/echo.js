@@ -77,7 +77,7 @@ export function initEcho(token) {
         cluster: 'ap1',
         forceTLS: true,
         // For development on localhost
-        // authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
+        //authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
 
 
         // For production on Netlify

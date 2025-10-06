@@ -131,7 +131,7 @@ export default {
         name: '',
         code: '',
         description: '',
-        end_date: '',
+        end_date: null,
         subsidiary: ''
       },
       originalFormData: {},
@@ -617,7 +617,7 @@ export default {
         name: '',
         code: '',
         description: '',
-        end_date: '',
+        end_date: null,
         subsidiary: ''
       };
       this.originalFormData = {};

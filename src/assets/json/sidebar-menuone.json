@@ -33,7 +33,7 @@
             "active_link": "/dashboard/leads-dashboard"
           }
         ]
-      },      
+      },
       {
         "menuValue": "Super Admin",
         "hasSubRoute": true,
@@ -126,7 +126,7 @@
             "route": "/applications/events",
             "active_link": "/applications/events",
             "customSubmenuTwo": false
-          },          
+          },
           {
             "menuValue": "Email",
             "hasSubRoute": true,
@@ -284,9 +284,9 @@
                 "active_link": "/projects/projects-grid",
                 "active_link1": "/projects/projects-list"
               },
-              { 
-                "menuValue": "Tasks", 
-                "route": "/projects/tasks", 
+              {
+                "menuValue": "Tasks",
+                "route": "/projects/tasks",
                 "active_link": "/projects/tasks"
               },
               {
@@ -308,7 +308,7 @@
                 "active_link1": "/crm/contacts-grid",
                 "active_link2": "/crm/contact-details"
               },
-              { 
+              {
                 "menuValue": "Companies",
                 "route": "/crm/companies-crm",
                 "active_link": "/crm/companies-crm",
@@ -362,19 +362,14 @@
                 "active_link": "/employee/employee-grid"
               },
               {
-                "menuValue": "Employee Details",
-                "route": "/employee/employee-details",
-                "active_link": "/employee/employee-details"
-              },
-              {
                 "menuValue": "Departments",
                 "route": "/employee/departments",
                 "active_link": "/employee/departments"
               },
               {
-                "menuValue": "Designations",
-                "route": "/employee/designations",
-                "active_link": "/employee/designations"
+                "menuValue": "Positions",
+                "route": "/employee/positions",
+                "active_link": "/employee/positions"
               },
               {
                 "menuValue": "Policies",
@@ -413,18 +408,18 @@
             "subMenusTwo": [
               {
                 "menuValue": "Leaves (Admin)",
-                "route": "/leave/leaves-admin",
-                "active_link": "/leave/leaves-admin"
+                "route": "/leave/admin/leaves-admin",
+                "active_link": "/leave/admin/leaves-admin"
               },
               {
                 "menuValue": "Leave (Employee)",
-                "route": "/leave/leaves-employee",
-                "active_link": "/leave/leaves-employee"
+                "route": "/leave/employee/leaves-employee",
+                "active_link": "/leave/employee/leaves-employee"
               },
               {
                 "menuValue": "Leave Settings",
-                "route": "/leave/leave-settings",
-                "active_link": "/leave/leave-settings"
+                "route": "/leave/admin/leave-settings",
+                "active_link": "/leave/admin/leave-settings"
               },
               {
                 "menuValue": "Attendance (Admin)",
@@ -496,14 +491,9 @@
                 "active_link": "/training/training-list"
               },
               {
-                "menuValue": "Trainers",
-                "route": "/training/trainers",
-                "active_link": "/training/trainers"
-              },
-              {
-                "menuValue": "Training Type",
-                "route": "/training/training-type",
-                "active_link": "/training/training-type"
+                "menuValue": "Employee Training List",
+                "route": "/training/employee-training-list",
+                "active_link": "/training/employee-training-list"
               }
             ]
           },
@@ -541,18 +531,18 @@
             "subMenusTwo": [
               {
                 "menuValue": "Jobs",
-                "route": "/recuritment/job-grid",
-                "active_link": "/recuritment/job-grid"
+                "route": "/recruitment/job-grid",
+                "active_link": "/recruitment/job-grid"
               },
-              { 
+              {
                 "menuValue": "Candidates",
-                "route": "/recuritment/candidates-grid",
-                "active_link": "/recuritment/candidates-grid"
+                "route": "/recruitment/candidates-grid",
+                "active_link": "/recruitment/candidates-grid"
               },
               {
                 "menuValue": "Referrals",
-                "route": "/recuritment/refferals",
-                "active_link": "/recuritment/refferals"
+                "route": "/recruitment/refferals",
+                "active_link": "/recruitment/refferals"
               }
             ]
           },
@@ -1115,126 +1105,6 @@
             "active_link": "/content/faq"
           },
           {
-            "menuValue": "Login",
-            "customSubmenuTwo": true,
-            "subMenusTwo": [
-              {
-                "menuValue": "Cover",
-                "route": "/"
-              },
-              {
-                "menuValue": "Illustration",
-                "route": "/login-2"
-              },
-              {
-                "menuValue": "Basic",
-                "route": "/login-3"
-              }
-            ]
-          },
-          {
-            "menuValue": "Register",
-            "customSubmenuTwo": true,
-            "subMenusTwo": [
-              {
-                "menuValue": "Cover",
-                "route": "/register"
-              },
-              {
-                "menuValue": "Illustration",
-                "route": "/register-2"
-              },
-              {
-                "menuValue": "Basic",
-                "route": "/register-3"
-              }
-            ]
-          },
-          {
-            "menuValue": "Forgot Password",
-            "customSubmenuTwo": true,
-            "subMenusTwo": [
-              {
-                "menuValue": "Cover",
-                "route": "/forgot-password"
-              },
-              {
-                "menuValue": "Illustration",
-                "route": "/forgot-password-2"
-              },
-              {
-                "menuValue": "Basic",
-                "route": "/forgot-password-3"
-              }
-            ]
-          },
-          {
-            "menuValue": "Reset Password",
-            "customSubmenuTwo": true,
-            "subMenusTwo": [
-              {
-                "menuValue": "Cover",
-                "route": "/reset-password"
-              },
-              {
-                "menuValue": "Illustration",
-                "route": "/reset-password-2"
-              },
-              {
-                "menuValue": "Basic",
-                "route": "/reset-password-3"
-              }
-            ]
-          },
-          {
-            "menuValue": "Email Verification",
-            "customSubmenuTwo": true,
-            "subMenusTwo": [
-              {
-                "menuValue": "Cover",
-                "route": "/email-verification"
-              },
-              {
-                "menuValue": "Illustration",
-                "route": "/email-verification-2"
-              },
-              {
-                "menuValue": "Basic",
-                "route": "/email-verification-3"
-              }
-            ]
-          },
-          {
-            "menuValue": "2 Step Verification",
-            "customSubmenuTwo": true,
-            "subMenusTwo": [
-              {
-                "menuValue": "Cover",
-                "route": "/two-step-verification"
-              },
-              {
-                "menuValue": "Illustration",
-                "route": "/two-step-verification-2"
-              },
-              {
-                "menuValue": "Basic",
-                "route": "/two-step-verification-3"
-              }
-            ]
-          },
-          {
-            "menuValue": "Lock Screen",
-            "route": "/lock-screen"
-          },
-          {
-            "menuValue": "404 Error",
-            "route": "/error-404"
-          },
-          {
-            "menuValue": "500 Error",
-            "route": "/error-500"
-          },
-          {
             "menuValue": "Base UI",
             "active_link": "baseui",
             "customSubmenuTwo": true,
@@ -1249,14 +1119,14 @@
                 "route": "/baseui/ui-accordion",
                 "active_link": "/baseui/ui-accordion"
               },
-              { 
-                "menuValue": "Avatar", 
-                "route": "/baseui/ui-avatar", 
+              {
+                "menuValue": "Avatar",
+                "route": "/baseui/ui-avatar",
                 "active_link": "/baseui/ui-avatar"
               },
-              { 
-                "menuValue": "Badges", 
-                "route": "/baseui/ui-badges", 
+              {
+                "menuValue": "Badges",
+                "route": "/baseui/ui-badges",
                 "active_link": "/baseui/ui-badges"
               },
               {
@@ -1274,9 +1144,9 @@
                 "route": "/baseui/ui-breadcrumb",
                 "active_link": "/baseui/ui-breadcrumb"
               },
-              { 
-                "menuValue": "Cards", 
-                "route": "/baseui/ui-cards", 
+              {
+                "menuValue": "Cards",
+                "route": "/baseui/ui-cards",
                 "active_link": "/baseui/ui-cards"
               },
               {
@@ -1289,14 +1159,14 @@
                 "route": "/baseui/ui-dropdowns",
                 "active_link": "/baseui/ui-dropdowns"
               },
-              { 
-                "menuValue": "Grid", 
-                "route": "/baseui/ui-grid", 
+              {
+                "menuValue": "Grid",
+                "route": "/baseui/ui-grid",
                 "active_link": "/baseui/ui-grid"
               },
-              { 
-                "menuValue": "Images", 
-                "route": "/baseui/ui-images", 
+              {
+                "menuValue": "Images",
+                "route": "/baseui/ui-images",
                 "active_link": "/baseui/ui-images"
               },
               {
@@ -1304,14 +1174,14 @@
                 "route": "/baseui/ui-lightbox",
                 "active_link": "/baseui/ui-lightbox"
               },
-              { 
-                "menuValue": "Media", 
-                "route": "/baseui/ui-media", 
+              {
+                "menuValue": "Media",
+                "route": "/baseui/ui-media",
                 "active_link": "/baseui/ui-media"
               },
-              { 
-                "menuValue": "Modals", 
-                "route": "/baseui/ui-modals", 
+              {
+                "menuValue": "Modals",
+                "route": "/baseui/ui-modals",
                 "active_link": "/baseui/ui-modals"
               },
               {
@@ -1349,9 +1219,9 @@
                 "route": "/baseui/ui-typography",
                 "active_link": "/baseui/ui-typography"
               },
-              { 
-                "menuValue": "Videos", 
-                "route": "/baseui/ui-video", 
+              {
+                "menuValue": "Videos",
+                "route": "/baseui/ui-video",
                 "active_link": "/baseui/ui-video"
               }
             ]
@@ -1361,9 +1231,9 @@
             "active_link": "advancedui",
             "customSubmenuTwo": true,
             "subMenusTwo": [
-              { 
-                "menuValue": "Ribbon", 
-                "route": "/advancedui/ui-ribbon", 
+              {
+                "menuValue": "Ribbon",
+                "route": "/advancedui/ui-ribbon",
                 "active_link": "/advancedui/ui-ribbon"
               },
               {
@@ -1551,9 +1421,9 @@
                 "route": "/icons/icon-material",
                 "active_link": "/icons/icon-material"
               },
-              { 
-                "menuValue": "pe7 Icons", 
-                "route": "/icons/icon-pe7", 
+              {
+                "menuValue": "pe7 Icons",
+                "route": "/icons/icon-pe7",
                 "active_link": "/icons/icon-pe7"
               },
               {
@@ -1576,9 +1446,9 @@
                 "route": "/icons/icon-typicon",
                 "active_link": "/icons/icon-typicon"
               },
-              { 
-                "menuValue": "Flag Icons", 
-                "route": "/icons/icon-flag", 
+              {
+                "menuValue": "Flag Icons",
+                "route": "/icons/icon-flag",
                 "active_link": "/icons/icon-flag"
               }
             ]

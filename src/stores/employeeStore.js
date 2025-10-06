@@ -81,8 +81,8 @@ export const useEmployeeStore = defineStore('employee', {
 
         // Now branch on whether body is an array vs. object
         let items = Array.isArray(body) ? body : body.data;
-        let meta = res.meta;
-        let stats = res.statistics;
+        let meta = res.meta || res.pagination || body.meta || body.pagination || {};
+        let stats = res.statistics || body.statistics || {};
 
         //console.log('🔍 items:', items);
         //console.log('🔍 meta:', meta);
@@ -204,6 +204,17 @@ export const useEmployeeStore = defineStore('employee', {
         this.loading = true;
         this.error = null;
         const response = await employeeService.createEmployee(data);
+
+        // If successful, invalidate the shared data store cache
+        if (response && response.success) {
+          const { useSharedDataStore } = await import('@/stores/sharedDataStore');
+          const sharedStore = useSharedDataStore();
+          sharedStore.invalidateCache('employees');
+
+          // Optionally preload fresh employee data for better UX
+          await sharedStore.fetchEmployees(true);
+        }
+
         // Refresh employee list after creation
         return response;
       } catch (error) {

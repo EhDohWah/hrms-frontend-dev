@@ -1,9 +1,10 @@
 // src/stores/sharedDataStore.js
 import { defineStore } from 'pinia';
 import { employeeService } from '@/services/employee.service';
-import { departmentPositionService } from '@/services/department-position.service';
+import { departmentService } from '@/services/department.service';
+import { positionService } from '@/services/position.service';
 import { workLocationService } from '@/services/worklocation.service';
-import { employeeGrantAllocationService } from '@/services/employee-grant-allocation.service';
+import { employeeFundingAllocationService } from '@/services/employee-funding-allocation.service';
 import { useLookupStore } from '@/stores/lookupStore';
 
 /**
@@ -18,10 +19,13 @@ export const useSharedDataStore = defineStore('sharedData', {
         employeesLoaded: false,
         employeesLoading: false,
 
-        // Department positions
-        departmentPositions: [],
-        departmentPositionsLoaded: false,
-        departmentPositionsLoading: false,
+        // Separate departments and positions
+        departments: [],
+        departmentsLoaded: false,
+        departmentsLoading: false,
+        positions: [],
+        positionsLoaded: false,
+        positionsLoading: false,
 
         // Work locations
         workLocations: [],
@@ -38,7 +42,8 @@ export const useSharedDataStore = defineStore('sharedData', {
         // Cache timestamps for invalidation (24 hours)
         cacheTimestamps: {
             employees: null,
-            departmentPositions: null,
+            departments: null,
+            positions: null,
             workLocations: null,
             grantStructure: null
         },
@@ -53,9 +58,11 @@ export const useSharedDataStore = defineStore('sharedData', {
         getEmployees: (state) => state.employees,
         isEmployeesLoaded: (state) => state.employeesLoaded && !state.isEmployeesExpired,
 
-        // Department position getters
-        getDepartmentPositions: (state) => state.departmentPositions,
-        isDepartmentPositionsLoaded: (state) => state.departmentPositionsLoaded && !state.isDepartmentPositionsExpired,
+        // Getters for departments and positions
+        getDepartments: (state) => state.departments,
+        isDepartmentsLoaded: (state) => state.departmentsLoaded && !state.isDepartmentsExpired,
+        getPositions: (state) => state.positions,
+        isPositionsLoaded: (state) => state.positionsLoaded && !state.isPositionsExpired,
 
         // Work location getters
         getWorkLocations: (state) => state.workLocations,
@@ -73,10 +80,16 @@ export const useSharedDataStore = defineStore('sharedData', {
             return Date.now() - state.cacheTimestamps.employees > expirationTime;
         },
 
-        isDepartmentPositionsExpired: (state) => {
-            if (!state.cacheTimestamps.departmentPositions) return true;
+        isDepartmentsExpired: (state) => {
+            if (!state.cacheTimestamps.departments) return true;
             const expirationTime = 24 * 60 * 60 * 1000; // 24 hours
-            return Date.now() - state.cacheTimestamps.departmentPositions > expirationTime;
+            return Date.now() - state.cacheTimestamps.departments > expirationTime;
+        },
+
+        isPositionsExpired: (state) => {
+            if (!state.cacheTimestamps.positions) return true;
+            const expirationTime = 24 * 60 * 60 * 1000; // 24 hours
+            return Date.now() - state.cacheTimestamps.positions > expirationTime;
         },
 
         isWorkLocationsExpired: (state) => {
@@ -94,7 +107,8 @@ export const useSharedDataStore = defineStore('sharedData', {
         // Combined loading state
         isAnyLoading: (state) => {
             return state.employeesLoading ||
-                state.departmentPositionsLoading ||
+                state.departmentsLoading ||
+                state.positionsLoading ||
                 state.workLocationsLoading ||
                 state.grantStructureLoading;
         }
@@ -145,44 +159,87 @@ export const useSharedDataStore = defineStore('sharedData', {
             }
         },
 
-        /**
-         * Fetch department positions
-         */
-        async fetchDepartmentPositions(force = false) {
-            // Skip if already loaded and not expired, unless forced
-            if (this.isDepartmentPositionsLoaded && !force) {
-                console.log('✅ Department positions already loaded from cache');
-                return this.departmentPositions;
-            }
 
-            if (this.departmentPositionsLoading) {
-                console.log('⏳ Department positions already loading, waiting...');
-                while (this.departmentPositionsLoading) {
+        /**
+         * Fetch departments
+         */
+        async fetchDepartments(force = false, params = {}) {
+            if (this.isDepartmentsLoaded && !force) {
+                console.log('✅ Departments already loaded from cache');
+                return this.departments;
+            }
+            if (this.departmentsLoading) {
+                while (this.departmentsLoading) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
-                return this.departmentPositions;
+                return this.departments;
             }
-
-            this.departmentPositionsLoading = true;
+            this.departmentsLoading = true;
             this.error = null;
-
             try {
-                console.log('🔄 Fetching department positions...');
-                const response = await departmentPositionService.getAllDepartmentPositions();
+                // Prefer options endpoint for dropdowns
+                console.log('🔍 Calling departmentService.getDepartmentOptions()...');
+                const response = await departmentService.getDepartmentOptions(params);
+                console.log('📦 Department response:', response);
 
-                this.departmentPositions = response.data || [];
-                this.departmentPositionsLoaded = true;
-                this.cacheTimestamps.departmentPositions = Date.now();
-
-                console.log(`✅ Loaded ${this.departmentPositions.length} department positions`);
-                return this.departmentPositions;
+                // Handle the new API response format with success wrapper
+                let data;
+                if (response.success && response.data) {
+                    data = response.data;
+                } else {
+                    data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+                }
+                console.log('🔍 Processed department data:', data);
+                this.departments = data;
+                console.log('🏢 Departments stored:', this.departments);
+                this.departmentsLoaded = true;
+                this.cacheTimestamps.departments = Date.now();
+                return this.departments;
             } catch (error) {
-                console.error('❌ Error fetching department positions:', error);
-                this.error = `Failed to load department positions: ${error.message}`;
-                this.departmentPositions = [];
+                console.error('❌ Error fetching departments:', error);
+                this.error = `Failed to load departments: ${error.message}`;
+                this.departments = [];
                 throw error;
             } finally {
-                this.departmentPositionsLoading = false;
+                this.departmentsLoading = false;
+            }
+        },
+
+        /**
+         * Fetch positions (optionally by department)
+         */
+        async fetchPositions(force = false, params = {}) {
+            if (this.isPositionsLoaded && !force) {
+                console.log('✅ Positions already loaded from cache');
+                return this.positions;
+            }
+            if (this.positionsLoading) {
+                while (this.positionsLoading) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+                return this.positions;
+            }
+            this.positionsLoading = true;
+            this.error = null;
+            try {
+                // Prefer options endpoint for dropdowns
+                console.log('🔍 Calling positionService.getPositionOptions() with params:', params);
+                const response = await positionService.getPositionOptions(params);
+                console.log('📦 Position response:', response);
+                const data = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+                console.log('🔍 Processed position data:', data);
+                this.positions = data;
+                console.log('💼 Positions stored:', this.positions);
+                this.positionsLoaded = true;
+                this.cacheTimestamps.positions = Date.now();
+                return this.positions;
+            } catch (error) {
+                console.error('❌ Error fetching positions:', error);
+                this.error = `Failed to load positions: ${error.message}`;
+                this.positions = [];
+                throw error;
+            } finally {
+                this.positionsLoading = false;
             }
         },
 
@@ -233,12 +290,10 @@ export const useSharedDataStore = defineStore('sharedData', {
         async fetchGrantStructure(force = false) {
             // Skip if already loaded and not expired, unless forced
             if (this.isGrantStructureLoaded && !force) {
-                console.log('✅ Grant structure already loaded from cache');
                 return { grantOptions: this.grantOptions, grantPositions: this.grantPositions };
             }
 
             if (this.grantStructureLoading) {
-                console.log('⏳ Grant structure already loading, waiting...');
                 while (this.grantStructureLoading) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
@@ -249,19 +304,48 @@ export const useSharedDataStore = defineStore('sharedData', {
             this.error = null;
 
             try {
-                console.log('🔄 Fetching grant structure...');
-                const response = await employeeGrantAllocationService.getGrantStructure();
+                console.log('🔍 Calling employeeFundingAllocationService.getGrantStructure()...');
+                const response = await employeeFundingAllocationService.getGrantStructure();
+                console.log('📦 Grant structure response:', response);
 
                 let grantData;
+                console.log('🔍 Grant response format check:', {
+                    hasSuccess: !!response?.success,
+                    hasData: !!response?.data,
+                    isArray: Array.isArray(response),
+                    responseType: typeof response
+                });
+
                 if (response && response.success && response.data) {
                     grantData = response.data;
+                    console.log('📋 Using response.data format');
+                    console.log('🔍 Grant data structure:', grantData);
+
+                    // Handle case where data might be an object containing an array
+                    if (!Array.isArray(grantData) && grantData.grants) {
+                        grantData = grantData.grants;
+                        console.log('📋 Extracted grants array from data object');
+                    } else if (!Array.isArray(grantData) && typeof grantData === 'object') {
+                        // If it's an object, convert to array or find the array property
+                        const arrayKeys = Object.keys(grantData).filter(key => Array.isArray(grantData[key]));
+                        if (arrayKeys.length > 0) {
+                            grantData = grantData[arrayKeys[0]];
+                            console.log(`📋 Extracted array from property: ${arrayKeys[0]}`);
+                        } else {
+                            console.error('❌ No array found in grant data object:', grantData);
+                            throw new Error('Grant data object does not contain an array');
+                        }
+                    }
                 } else if (response && Array.isArray(response)) {
                     grantData = response;
+                    console.log('📋 Using direct array format');
                 } else {
+                    console.error('❌ Invalid response format:', response);
                     throw new Error('Invalid grant structure response format');
                 }
 
                 if (!Array.isArray(grantData)) {
+                    console.error('❌ Final grant data is not an array:', grantData);
                     throw new Error('Grant data is not an array');
                 }
 
@@ -271,6 +355,7 @@ export const useSharedDataStore = defineStore('sharedData', {
                     name: grant.name,
                     code: grant.code
                 }));
+                console.log('🎯 Grant options built:', this.grantOptions);
 
                 // Build mapping for dependent dropdowns with position_slots
                 const positionsMap = {};
@@ -279,12 +364,7 @@ export const useSharedDataStore = defineStore('sharedData', {
                         positionsMap[grant.id] = grant.grant_items.map(item => {
                             const positionSlots = (item.position_slots || []).map(slot => ({
                                 id: slot.id,
-                                slot_number: slot.slot_number,
-                                budget_line: {
-                                    id: slot.budget_line.id,
-                                    name: slot.budget_line.name,
-                                    description: slot.budget_line.description
-                                }
+                                slot_number: slot.slot_number
                             }));
 
                             return {
@@ -293,6 +373,8 @@ export const useSharedDataStore = defineStore('sharedData', {
                                 grant_salary: item.grant_salary,
                                 grant_benefit: item.grant_benefit,
                                 grant_level_of_effort: item.grant_level_of_effort,
+                                budgetline_code: item.budgetline_code,
+                                grant_position_number: item.grant_position_number,
                                 position_slots: positionSlots
                             };
                         });
@@ -326,7 +408,8 @@ export const useSharedDataStore = defineStore('sharedData', {
         async loadAllDropdownData(options = {}) {
             const {
                 includeEmployees = true,
-                includeDepartmentPositions = true,
+                includeDepartments = true,
+                includePositions = true,
                 includeWorkLocations = true,
                 includeGrantStructure = false, // Only load when needed for funding allocations
                 force = false
@@ -340,8 +423,11 @@ export const useSharedDataStore = defineStore('sharedData', {
             if (includeEmployees) {
                 promises.push(this.fetchEmployees(force));
             }
-            if (includeDepartmentPositions) {
-                promises.push(this.fetchDepartmentPositions(force));
+            if (includeDepartments) {
+                promises.push(this.fetchDepartments(force));
+            }
+            if (includePositions) {
+                promises.push(this.fetchPositions(force));
             }
             if (includeWorkLocations) {
                 promises.push(this.fetchWorkLocations(force));
@@ -432,10 +518,14 @@ export const useSharedDataStore = defineStore('sharedData', {
                 this.cacheTimestamps.employees = null;
                 this.employees = [];
                 this.employeeTreeData = [];
-            } else if (dataType === 'departmentPositions') {
-                this.departmentPositionsLoaded = false;
-                this.cacheTimestamps.departmentPositions = null;
-                this.departmentPositions = [];
+            } else if (dataType === 'departments') {
+                this.departmentsLoaded = false;
+                this.cacheTimestamps.departments = null;
+                this.departments = [];
+            } else if (dataType === 'positions') {
+                this.positionsLoaded = false;
+                this.cacheTimestamps.positions = null;
+                this.positions = [];
             } else if (dataType === 'workLocations') {
                 this.workLocationsLoaded = false;
                 this.cacheTimestamps.workLocations = null;
@@ -454,7 +544,8 @@ export const useSharedDataStore = defineStore('sharedData', {
          */
         invalidateAllCache() {
             this.invalidateCache('employees');
-            this.invalidateCache('departmentPositions');
+            this.invalidateCache('departments');
+            this.invalidateCache('positions');
             this.invalidateCache('workLocations');
             this.invalidateCache('grantStructure');
         },
@@ -468,9 +559,13 @@ export const useSharedDataStore = defineStore('sharedData', {
             this.employeesLoaded = false;
             this.employeesLoading = false;
 
-            this.departmentPositions = [];
-            this.departmentPositionsLoaded = false;
-            this.departmentPositionsLoading = false;
+            this.departments = [];
+            this.departmentsLoaded = false;
+            this.departmentsLoading = false;
+
+            this.positions = [];
+            this.positionsLoaded = false;
+            this.positionsLoading = false;
 
             this.workLocations = [];
             this.workLocationsLoaded = false;
@@ -484,7 +579,8 @@ export const useSharedDataStore = defineStore('sharedData', {
 
             this.cacheTimestamps = {
                 employees: null,
-                departmentPositions: null,
+                departments: null,
+                positions: null,
                 workLocations: null,
                 grantStructure: null
             };

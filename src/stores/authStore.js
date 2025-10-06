@@ -27,37 +27,38 @@ export const useAuthStore = defineStore('auth', {
     userPermissions: (state) => state.permissions,
     isAdmin: (state) => state.userRole === 'admin',
     isHRManager: (state) => state.userRole === 'hr-manager',
-    isHRAssistant: (state) => state.userRole === 'hr-assistant',
-    isEmployee: (state) => state.userRole === 'employee',
+    isHRAssistantSenior: (state) => state.userRole === 'hr-assistant-senior',
+    isHRAssistantJunior: (state) => state.userRole === 'hr-assistant-junior',
+    isSiteAdmin: (state) => state.userRole === 'site-admin',
   },
   actions: {
     // we need to update the user data in the storage after the profile picture, username, email, password is updated
     async updateUserData() {
       try {
         const response = await apiService.get(API_ENDPOINTS.AUTH.USER);
-        
+
         // The backend directly returns the user object with roles and permissions
         if (response) {
           // Update user data in store
           this.user = response;
-          
+
           // Update roles if available
           if (response.roles && response.roles.length) {
             this.userRole = response.roles[0].name.toLowerCase();
             this.setStorageItem(STORAGE_KEYS.USER_ROLE, this.userRole);
           }
-          
+
           // Update permissions if available
           if (response.permissions) {
             this.permissions = response.permissions;
             this.setStorageItem(STORAGE_KEYS.PERMISSIONS, this.permissions);
           }
-          
+
           // Save user data to storage
           this.setStorageItem(STORAGE_KEYS.USER, this.user);
           return this.user;
         }
-        
+
         console.log('User data response:', response);
         throw new Error('Failed to fetch user data: Invalid response structure');
       } catch (error) {
@@ -65,7 +66,7 @@ export const useAuthStore = defineStore('auth', {
         return null;
       }
     },
-    
+
     // --- Local Storage Helpers ---
     setStorageItem(key, value) {
       localStorage.setItem(key, typeof value === 'object' ? JSON.stringify(value) : value);
@@ -99,7 +100,7 @@ export const useAuthStore = defineStore('auth', {
       }, duration);
     },
 
-     // -------------------------
+    // -------------------------
     // Authentication Utilities
     // -------------------------
     // Returns the primary role (assumes first role is primary)
@@ -110,17 +111,17 @@ export const useAuthStore = defineStore('auth', {
 
     setAuthData(response) {
       if (!response || !response.user) return false;
-      
+
       // Clear any existing authentication data
       this.clearAuthData();
-      
+
       // Set token and update API headers
       if (response.access_token) {
         this.token = response.access_token;
         this.setStorageItem(STORAGE_KEYS.TOKEN, response.access_token);
         // Note: apiService.setAuthToken call is omitted as it's not in the selection scope
       }
-      
+
       // Save user data and role information if available
       if (response.user) {
         if (response.user.roles && response.user.roles.length > 0) {
@@ -129,21 +130,21 @@ export const useAuthStore = defineStore('auth', {
         }
         this.setStorageItem(STORAGE_KEYS.USER, response.user);
         this.user = response.user;
-        
+
         // Save permissions if available
         if (response.user.permissions) {
           this.permissions = response.user.permissions;
           this.setStorageItem(STORAGE_KEYS.PERMISSIONS, this.permissions);
         }
       }
-      
+
       // Set token expiration using response.expires_in (if provided) or default to 24 hours
       const expiresIn = response.expires_in ? response.expires_in * 1000 : 24 * 60 * 60 * 1000;
       const expirationTime = Date.now() + expiresIn;
       this.tokenExpiration = expirationTime;
       this.setStorageItem(STORAGE_KEYS.TOKEN_EXPIRATION, expirationTime.toString());
       this.setTokenTimer(expiresIn);
-      
+
       return true;
     },
 
@@ -185,9 +186,9 @@ export const useAuthStore = defineStore('auth', {
     async logout() {
       this.loading = true;
       let result = { success: true };
-      
+
       try {
-        if (this.token) {       
+        if (this.token) {
           await authService.logout();
         }
       } catch (error) {
@@ -196,7 +197,7 @@ export const useAuthStore = defineStore('auth', {
         this.clearAuthData();
         this.loading = false;
       }
-      
+
       return result;
     },
 
@@ -228,12 +229,14 @@ export const useAuthStore = defineStore('auth', {
           return '/dashboard/admin-dashboard';
         case 'hr-manager':
           return '/dashboard/hr-manager-dashboard';
-        case 'hr-assistant':
-          return '/dashboard/hr-assistant-dashboard';
-        case 'employee':
-          return '/dashboard/employee-dashboard';
+        case 'hr-assistant-senior':
+          return '/dashboard/hr-assistant-senior-dashboard';
+        case 'hr-assistant-junior':
+          return '/dashboard/hr-assistant-junior-dashboard';
+        case 'site-admin':
+          return '/dashboard/site-admin-dashboard';
         default:
-          return '/dashboard';
+          return '/dashboard/site-admin-dashboard';
       }
     },
 

@@ -2,17 +2,18 @@
 export const ROLE_HIERARCHY = {
     'admin': 1,
     'hr-manager': 2,
-    'hr-assistant': 3,
-    'manager': 4,
-    'employee': 5
+    'hr-assistant-senior': 3,
+    'hr-assistant-junior': 4,
+    'site-admin': 5
 };
 
 // Default routes for each role
 export const DEFAULT_ROUTES = {
     'admin': '/dashboard/admin-dashboard',
     'hr-manager': '/dashboard/hr-manager-dashboard',
-    'hr-assistant': '/dashboard/hr-assistant-dashboard',
-    'employee': '/dashboard/employee-dashboard'
+    'hr-assistant-senior': '/dashboard/hr-assistant-senior-dashboard',
+    'hr-assistant-junior': '/dashboard/hr-assistant-junior-dashboard',
+    'site-admin': '/dashboard/site-admin-dashboard'
 };
 
 // Role-based menu access configuration
@@ -26,26 +27,49 @@ export const ROLE_MENU_ACCESS = {
         ],
         allowedSubMenus: {
             'Dashboard': ['Admin Dashboard'],
-            'User Management': ['Users'],
+            'User Management': ['Users', 'Roles & Permissions'],
             'Lookups': ['Lookup List'],
-            'Department Positions': ['Department Position List']
+            'Department Positions': ['Department Position List'],
         },
         permissions: [
-            'view_all',
-            'manage_all',
-            'access_all_dashboards',
+            'admin.*',
+            'user.*',
+            'grant.*',
+            'interview.*',
+            'employee.*',
+            'employment.*',
+            'employment_history.*',
+            'children.*',
+            'questionnaire.*',
+            'language.*',
+            'reference.*',
+            'education.*',
+            'payroll.*',
+            'attendance.*',
+            'training.*',
+            'reports.*',
+            'travel_request.*',
+            'leave_request.*',
+            'job_offer.*',
+            'tax.*'
         ]
     },
     'hr-manager': {
         allowedMenus: [
             'Dashboard',
+            'User Management',
             'Recruitment',
             'Jobs',
             'Candidates',
             'Referrals',
             'Employee',
+            'Employment',
+            'Children',
+            'Questionnaire',
+            'Language',
+            'Reference',
+            'Education',
             'Tickets',
-            'Holidays',
             'Attendance',
             'Grants',
             'Payroll',
@@ -54,90 +78,167 @@ export const ROLE_MENU_ACCESS = {
             'Requests',
             'Leaves',
             'Travel',
-            'Training',
-            'Reports',
+            'Job Offers',
+            'Tax',
             'Recycle Bin'
         ],
         allowedSubMenus: {
             'Dashboard': ['HR Manager Dashboard'],
+            'User Management': ['Users', 'Roles & Permissions'],
             'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
-            'Travel': ['Travel (Admin)'],
+            'Travel': ['Travel (Admin)', 'Travel Requests'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
             'Recruitment': ['Interviews', 'Job Offers'],
-            'Employee': ['Employee Lists', 'Employment List', 'Site Location', 'Employee Resignation'],
+            'Employee': ['Employees', 'Employment Records', 'Site Location', 'Employee Resignation'],
+            'Employment': ['Employment List', 'Employment History'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items', 'Tax Settings'],
-            'Training': ['Training List', 'Training Type', 'Trainers', 'Employee Training'],
+            'Training': ['Training List', 'Employee Training'],
             'Reports': ['Report List'],
-            'Grants': ['Grants List', 'Grant Position', 'Budget Lines'],
+            'Grants': ['Grants List', 'Grant Position'],
             'Recycle Bin': ['Recycle Bin List']
         },
         permissions: [
-            'view_hr',
-            'manage_hr',
-            'view_employees',
-            'manage_employees',
-            'manage_grants',
-            'manage_requests',
-            'manage_leave',
-            'manage_recruitment'
+            'admin.*',
+            'user.*',
+            'grant.*',
+            'interview.*',
+            'employee.*',
+            'employment.*',
+            'employment_history.*',
+            'children.*',
+            'questionnaire.*',
+            'language.*',
+            'reference.*',
+            'education.*',
+            'payroll.*',
+            'attendance.*',
+            'training.*',
+            'reports.*',
+            'travel_request.*',
+            'leave_request.*',
+            'job_offer.*',
+            'tax.*'
         ]
     },
-    'hr-assistant': {
+    'hr-assistant-senior': {
         allowedMenus: [
             'Dashboard',
             'Recruitment',
             'Candidates',
             'Employee',
-            'Holidays',
+            'Employment',
+            'Children',
+            'Questionnaire',
+            'Language',
+            'Reference',
+            'Education',
             'Attendance',
             'Training',
             'Reports',
             'Requests',
             'Leaves',
             'Travel',
-            'Payroll',
-            'Training',
-            'Reports'
+            'Job Offers',
+            'Tax'
         ],
         allowedSubMenus: {
-            'Dashboard': ['HR Assistant Dashboard'],
-            'Leaves': ['Leaves (Admin)'],
+            'Dashboard': ['HR Assistant Senior Dashboard'],
+            'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
             'Travel': ['Travel (Admin)', 'Travel (Employee)'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
             'Recruitment': ['Interviews', 'Job Offers'],
-            'Employee': ['Employee Lists', 'Employment List', 'Site Location'],
+            'Employee': ['Employees', 'Employment Records', 'Site Location'],
+            'Employment': ['Employment List', 'Employment History'],
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items', 'Tax Settings'],
-            'Training': ['Training List', 'Training Type', 'Trainers', 'Employee Training'],
-            'Reports': ['Report List'],
+            'Training': ['Training List', 'Employee Training'],
+            'Reports': ['Report List']
         },
         permissions: [
-            'view_hr',
-            'view_employees',
-            'manage_grants',
-            'manage_requests',
-            'manage_leave',
-            'view_recruitment'
+            'admin.*',
+            'user.*',
+            'interview.*',
+            'employee.*',
+            'employment.*',
+            'employment_history.*',
+            'children.*',
+            'questionnaire.*',
+            'language.*',
+            'reference.*',
+            'education.*',
+            'payroll.*',
+            'attendance.*',
+            'training.*',
+            'reports.*',
+            'travel_request.*',
+            'leave_request.*',
+            'job_offer.*',
+            'tax.*'
         ]
     },
-    'employee': {
+    'hr-assistant-junior': {
         allowedMenus: [
             'Dashboard',
+            'Recruitment',
+            'Candidates',
+            'Employee',
+            'Children',
+            'Questionnaire',
+            'Language',
+            'Reference',
+            'Education',
             'Attendance',
+            'Training',
+            'Requests',
+            'Leaves',
+            'Travel',
+            'Job Offers',
+            'Tax'
+        ],
+        allowedSubMenus: {
+            'Dashboard': ['HR Assistant Junior Dashboard'],
+            'Leaves': ['Leaves (Admin)', 'Leave Types'],
+            'Travel': ['Travel (Admin)', 'Travel (Employee)'],
+            'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
+            'Recruitment': ['Interviews', 'Job Offers'],
+            'Employee': ['Employees', 'Site Location'],
+            'Training': ['Training List', 'Employee Training']
+        },
+        permissions: [
+            'admin.*',
+            'user.*',
+            'interview.*',
+            'employee.*',
+            'children.*',
+            'questionnaire.*',
+            'language.*',
+            'reference.*',
+            'education.*',
+            'attendance.*',
+            'training.*',
+            'travel_request.*',
+            'leave_request.*',
+            'job_offer.*',
+            'tax.*'
+        ]
+    },
+    'site-admin': {
+        allowedMenus: [
+            'Dashboard',
+            'Training',
             'Requests',
             'Leaves',
             'Travel'
         ],
         allowedSubMenus: {
-            'Dashboard': ['Employee Dashboard'],
-            'Leaves': ['Leave (Employee)'],
-            'Travel': ['Travel (Employee)'],
-            'Attendance': ['Attendance (Employee)', 'Timesheets']
+            'Dashboard': ['Site Admin Dashboard'],
+            'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
+            'Travel': ['Travel (Admin)', 'Travel Requests'],
+            'Training': ['Training List', 'Employee Training']
         },
         permissions: [
-            'view_self',
-            'view_requests',
-            'manage_leave',
-            'manage_travel'
+            'leave.*',
+            'travel.*',
+            'training.*'
         ]
     }
 };

@@ -9,7 +9,7 @@ export default {
   },
   methods: {
     submitForm() {
-      this.$router.push("/leave/leaves-admin");
+      this.$router.push("/leave/admin/leaves-admin");
     },
   },
 };
@@ -22,12 +22,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">New Custom Policy</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -37,11 +32,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Leave Type</label>
-                  <vue-select
-                    :options="Leavetype"
-                    id="leave-setting-type"
-                    placeholder="Select"
-                  />
+                  <vue-select :options="Leavetype" id="leave-setting-type" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -90,12 +81,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Annual Leave Settings</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -103,41 +89,22 @@ export default {
           <div class="contact-grids-tab">
             <ul class="nav nav-underline" id="myTab" role="tablist">
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link active"
-                  id="settings-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#settings-info"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                >
+                <button class="nav-link active" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-info"
+                  type="button" role="tab" aria-selected="true">
                   Settings
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="viwe-custom-policy-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#policy"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
+                <button class="nav-link" id="viwe-custom-policy-tab" data-bs-toggle="tab" data-bs-target="#policy"
+                  type="button" role="tab" aria-selected="false">
                   View Custom Policy
                 </button>
               </li>
             </ul>
           </div>
           <div class="tab-content" id="myTabContent">
-            <div
-              class="tab-pane fade show active"
-              id="settings-info"
-              role="tabpanel"
-              aria-labelledby="settings-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade show active" id="settings-info" role="tabpanel" aria-labelledby="settings-tab"
+              tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
@@ -151,22 +118,11 @@ export default {
                       <label class="form-label">Carry Forward</label>
                       <div class="d-flex align-items-center">
                         <div class="form-check me-2">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="flexRadio"
-                            id="flexRadio"
-                            checked=""
-                          />
+                          <input class="form-check-input" type="radio" name="flexRadio" id="flexRadio" checked="" />
                           <label class="form-label" for="flexRadio"> Yes </label>
                         </div>
                         <div class="form-check">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="flexRadio"
-                            id="flexRadioOne"
-                          />
+                          <input class="form-check-input" type="radio" name="flexRadio" id="flexRadioOne" />
                           <label class="form-label" for="flexRadioOne"> No </label>
                         </div>
                       </div>
@@ -183,22 +139,12 @@ export default {
                       <label class="form-label">Earned leave</label>
                       <div class="d-flex align-items-center">
                         <div class="form-check me-2">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="flexRadioOne"
-                            id="flexRadioTwo"
-                            checked=""
-                          />
+                          <input class="form-check-input" type="radio" name="flexRadioOne" id="flexRadioTwo"
+                            checked="" />
                           <label class="form-label" for="flexRadioTwo"> Yes </label>
                         </div>
                         <div class="form-check">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="flexRadioOne"
-                            id="flexRadioThree"
-                          />
+                          <input class="form-check-input" type="radio" name="flexRadioOne" id="flexRadioThree" />
                           <label class="form-label" for="flexRadioThree"> No </label>
                         </div>
                       </div>
@@ -207,31 +153,20 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
               </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="policy"
-              role="tabpanel"
-              aria-labelledby="viwe-custom-policy-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade" id="policy" role="tabpanel" aria-labelledby="viwe-custom-policy-tab"
+              tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -242,56 +177,28 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
-                            <span
-                              class="avatar group-counts bg-primary rounded-circle border-0 fs-10"
-                            >
+                            <span class="avatar group-counts bg-primary rounded-circle border-0 fs-10">
                               +1
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -300,28 +207,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployee"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployee" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -332,9 +231,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -345,34 +242,18 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a href="javascript:void(0);" class=""
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" class=""><i class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -381,28 +262,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeeone"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeeone" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -413,9 +286,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -426,30 +297,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -458,28 +315,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeetwo"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeetwo" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -490,9 +339,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -503,30 +350,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -535,28 +368,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeethree"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeethree" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -567,11 +392,7 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="button" class="btn btn-primary">Save Changes</button>
@@ -590,12 +411,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Sick Leave Settings</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -603,41 +419,22 @@ export default {
           <div class="contact-grids-tab">
             <ul class="nav nav-underline" id="myTab6" role="tablist">
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link active"
-                  id="settings-one-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#settings-one-info"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                >
+                <button class="nav-link active" id="settings-one-tab" data-bs-toggle="tab"
+                  data-bs-target="#settings-one-info" type="button" role="tab" aria-selected="true">
                   Settings
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="viwe-custom-policy-one-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#policy-one"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
+                <button class="nav-link" id="viwe-custom-policy-one-tab" data-bs-toggle="tab"
+                  data-bs-target="#policy-one" type="button" role="tab" aria-selected="false">
                   View Custom Policy
                 </button>
               </li>
             </ul>
           </div>
           <div class="tab-content" id="myTabContent6">
-            <div
-              class="tab-pane fade show active"
-              id="settings-one-info"
-              role="tabpanel"
-              aria-labelledby="settings-one-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade show active" id="settings-one-info" role="tabpanel"
+              aria-labelledby="settings-one-tab" tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
@@ -649,31 +446,20 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
               </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="policy-one"
-              role="tabpanel"
-              aria-labelledby="viwe-custom-policy-one-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade" id="policy-one" role="tabpanel" aria-labelledby="viwe-custom-policy-one-tab"
+              tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -684,56 +470,28 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
-                            <span
-                              class="avatar group-counts bg-primary rounded-circle border-0 fs-10"
-                            >
+                            <span class="avatar group-counts bg-primary rounded-circle border-0 fs-10">
                               +1
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -742,28 +500,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeefour"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeefour" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -774,9 +524,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -787,34 +535,18 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a href="javascript:void(0);" class=""
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" class=""><i class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -823,28 +555,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeefive"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeefive" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -855,9 +579,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -868,30 +590,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -900,28 +608,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeesix"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeesix" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -932,9 +632,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -945,30 +643,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -977,28 +661,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeseven"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeseven" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1009,11 +685,7 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="button" class="btn btn-primary">Save Changes</button>
@@ -1032,12 +704,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Hospitalisation Settings</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1045,41 +712,22 @@ export default {
           <div class="contact-grids-tab">
             <ul class="nav nav-underline" id="myTab2" role="tablist">
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link active"
-                  id="settings-two-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#settings-two-info"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                >
+                <button class="nav-link active" id="settings-two-tab" data-bs-toggle="tab"
+                  data-bs-target="#settings-two-info" type="button" role="tab" aria-selected="true">
                   Settings
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="viwe-custom-policy-two-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#policy-two"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
+                <button class="nav-link" id="viwe-custom-policy-two-tab" data-bs-toggle="tab"
+                  data-bs-target="#policy-two" type="button" role="tab" aria-selected="false">
                   View Custom Policy
                 </button>
               </li>
             </ul>
           </div>
           <div class="tab-content" id="myTabContent2">
-            <div
-              class="tab-pane fade show active"
-              id="settings-two-info"
-              role="tabpanel"
-              aria-labelledby="settings-two-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade show active" id="settings-two-info" role="tabpanel"
+              aria-labelledby="settings-two-tab" tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
@@ -1091,31 +739,20 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
               </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="policy-two"
-              role="tabpanel"
-              aria-labelledby="viwe-custom-policy-two-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade" id="policy-two" role="tabpanel" aria-labelledby="viwe-custom-policy-two-tab"
+              tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -1126,56 +763,28 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
-                            <span
-                              class="avatar group-counts bg-primary rounded-circle border-0 fs-10"
-                            >
+                            <span class="avatar group-counts bg-primary rounded-circle border-0 fs-10">
                               +1
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -1184,28 +793,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeeight"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeeight" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1216,9 +817,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -1229,34 +828,18 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a href="javascript:void(0);" class=""
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" class=""><i class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -1265,28 +848,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="addemployeenine"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="addemployeenine" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1297,9 +872,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -1310,30 +883,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -1342,28 +901,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empeone"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empeone" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1374,9 +925,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -1387,30 +936,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -1419,28 +954,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empetwo"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empetwo" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1451,11 +978,7 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="button" class="btn btn-primary">Save Changes</button>
@@ -1474,12 +997,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Maternity Settings</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1487,47 +1005,27 @@ export default {
           <div class="contact-grids-tab">
             <ul class="nav nav-underline" id="myTab3" role="tablist">
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link active"
-                  id="settings-three-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#settings-three-info"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                >
+                <button class="nav-link active" id="settings-three-tab" data-bs-toggle="tab"
+                  data-bs-target="#settings-three-info" type="button" role="tab" aria-selected="true">
                   Settings
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="viwe-custom-policy-three-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#policy-three"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
+                <button class="nav-link" id="viwe-custom-policy-three-tab" data-bs-toggle="tab"
+                  data-bs-target="#policy-three" type="button" role="tab" aria-selected="false">
                   View Custom Policy
                 </button>
               </li>
             </ul>
           </div>
           <div class="tab-content" id="myTabContent3">
-            <div
-              class="tab-pane fade show active"
-              id="settings-three-info"
-              role="tabpanel"
-              aria-labelledby="settings-three-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade show active" id="settings-three-info" role="tabpanel"
+              aria-labelledby="settings-three-tab" tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Days <span class="text-gray">(Assigned to Female only)</span>
+                      <label class="form-label">Days <span class="text-gray">(Assigned to Female only)</span>
                       </label>
                       <input type="text" class="form-control" />
                     </div>
@@ -1535,31 +1033,20 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
               </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="policy-three"
-              role="tabpanel"
-              aria-labelledby="viwe-custom-policy-three-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade" id="policy-three" role="tabpanel" aria-labelledby="viwe-custom-policy-three-tab"
+              tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -1570,56 +1057,28 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
-                            <span
-                              class="avatar group-counts bg-primary rounded-circle border-0 fs-10"
-                            >
+                            <span class="avatar group-counts bg-primary rounded-circle border-0 fs-10">
                               +1
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -1628,28 +1087,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empethree"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empethree" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1660,9 +1111,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -1673,34 +1122,18 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a href="javascript:void(0);" class=""
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" class=""><i class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -1709,28 +1142,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empefour"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empefour" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1741,9 +1166,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -1754,30 +1177,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -1786,28 +1195,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empefive"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empefive" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1818,9 +1219,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -1831,30 +1230,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -1863,28 +1248,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empesix"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empesix" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1895,11 +1272,7 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="button" class="btn btn-primary">Save Changes</button>
@@ -1918,12 +1291,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Paternity Settings</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -1931,47 +1299,27 @@ export default {
           <div class="contact-grids-tab">
             <ul class="nav nav-underline" id="myTab4" role="tablist">
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link active"
-                  id="settings-four-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#settings-four-info"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                >
+                <button class="nav-link active" id="settings-four-tab" data-bs-toggle="tab"
+                  data-bs-target="#settings-four-info" type="button" role="tab" aria-selected="true">
                   Settings
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="viwe-custom-policy-four-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#policy-four"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
+                <button class="nav-link" id="viwe-custom-policy-four-tab" data-bs-toggle="tab"
+                  data-bs-target="#policy-four" type="button" role="tab" aria-selected="false">
                   View Custom Policy
                 </button>
               </li>
             </ul>
           </div>
           <div class="tab-content" id="myTabContent4">
-            <div
-              class="tab-pane fade show active"
-              id="settings-four-info"
-              role="tabpanel"
-              aria-labelledby="settings-four-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade show active" id="settings-four-info" role="tabpanel"
+              aria-labelledby="settings-four-tab" tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="mb-3">
-                      <label class="form-label"
-                        >Days <span class="text-gray">(Assigned to Female only)</span>
+                      <label class="form-label">Days <span class="text-gray">(Assigned to Female only)</span>
                       </label>
                       <input type="text" class="form-control" />
                     </div>
@@ -1979,31 +1327,20 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
               </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="policy-four"
-              role="tabpanel"
-              aria-labelledby="viwe-custom-policy-four-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade" id="policy-four" role="tabpanel" aria-labelledby="viwe-custom-policy-four-tab"
+              tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -2014,56 +1351,28 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
-                            <span
-                              class="avatar group-counts bg-primary rounded-circle border-0 fs-10"
-                            >
+                            <span class="avatar group-counts bg-primary rounded-circle border-0 fs-10">
                               +1
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -2072,28 +1381,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empeseven"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empeseven" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -2104,9 +1405,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -2117,34 +1416,18 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a href="javascript:void(0);" class=""
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" class=""><i class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -2153,28 +1436,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empeeight"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empeeight" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -2185,9 +1460,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -2198,30 +1471,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -2230,28 +1489,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empeten"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empeten" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -2262,9 +1513,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -2275,30 +1524,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -2307,28 +1542,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empeonetwo"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empeonetwo" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -2339,11 +1566,7 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="button" class="btn btn-primary">Save Changes</button>
@@ -2362,12 +1585,7 @@ export default {
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">LOP Settings</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
@@ -2375,41 +1593,22 @@ export default {
           <div class="contact-grids-tab">
             <ul class="nav nav-underline" id="myTab5" role="tablist">
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link active"
-                  id="settings-five-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#settings-five-info"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                >
+                <button class="nav-link active" id="settings-five-tab" data-bs-toggle="tab"
+                  data-bs-target="#settings-five-info" type="button" role="tab" aria-selected="true">
                   Settings
                 </button>
               </li>
               <li class="nav-item" role="presentation">
-                <button
-                  class="nav-link"
-                  id="viwe-custom-policy-five-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#policy-five"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                >
+                <button class="nav-link" id="viwe-custom-policy-five-tab" data-bs-toggle="tab"
+                  data-bs-target="#policy-five" type="button" role="tab" aria-selected="false">
                   View Custom Policy
                 </button>
               </li>
             </ul>
           </div>
           <div class="tab-content" id="myTabContent5">
-            <div
-              class="tab-pane fade show active"
-              id="settings-five-info"
-              role="tabpanel"
-              aria-labelledby="settings-five-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade show active" id="settings-five-info" role="tabpanel"
+              aria-labelledby="settings-five-tab" tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
@@ -2423,22 +1622,11 @@ export default {
                       <label class="form-label">Carry Forward</label>
                       <div class="d-flex align-items-center">
                         <div class="form-check me-2">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="flexRadio"
-                            id="flexRadio4"
-                            checked=""
-                          />
+                          <input class="form-check-input" type="radio" name="flexRadio" id="flexRadio4" checked="" />
                           <label class="form-label" for="flexRadio4"> Yes </label>
                         </div>
                         <div class="form-check">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="flexRadio"
-                            id="flexRadio5"
-                          />
+                          <input class="form-check-input" type="radio" name="flexRadio" id="flexRadio5" />
                           <label class="form-label" for="flexRadio5"> No </label>
                         </div>
                       </div>
@@ -2455,22 +1643,11 @@ export default {
                       <label class="form-label">Earned leave</label>
                       <div class="d-flex align-items-center">
                         <div class="form-check me-2">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="flexRadioOne"
-                            id="flexRadio6"
-                            checked=""
-                          />
+                          <input class="form-check-input" type="radio" name="flexRadioOne" id="flexRadio6" checked="" />
                           <label class="form-label" for="flexRadio6"> Yes </label>
                         </div>
                         <div class="form-check">
-                          <input
-                            class="form-check-input"
-                            type="radio"
-                            name="flexRadioOne"
-                            id="flexRadio7"
-                          />
+                          <input class="form-check-input" type="radio" name="flexRadioOne" id="flexRadio7" />
                           <label class="form-label" for="flexRadio7"> No </label>
                         </div>
                       </div>
@@ -2479,31 +1656,20 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="submit" class="btn btn-primary">Save Changes</button>
               </div>
             </div>
-            <div
-              class="tab-pane fade"
-              id="policy-five"
-              role="tabpanel"
-              aria-labelledby="viwe-custom-policy-five-tab"
-              tabindex="0"
-            >
+            <div class="tab-pane fade" id="policy-five" role="tabpanel" aria-labelledby="viwe-custom-policy-five-tab"
+              tabindex="0">
               <div class="modal-body pb-0">
                 <div class="row">
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -2514,56 +1680,28 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
-                            <span
-                              class="avatar group-counts bg-primary rounded-circle border-0 fs-10"
-                            >
+                            <span class="avatar group-counts bg-primary rounded-circle border-0 fs-10">
                               +1
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -2572,28 +1710,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="empeselect"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="empeselect" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -2604,9 +1734,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -2617,34 +1745,18 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-32.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-32.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a href="javascript:void(0);" class=""
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" class=""><i class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -2653,28 +1765,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="sophie"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="sophie" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -2685,9 +1789,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -2698,30 +1800,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-11.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-11.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-58.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-58.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -2730,28 +1818,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="cameron"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="cameron" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -2762,9 +1842,7 @@ export default {
                   <div class="col-md-12">
                     <div class="card border mb-3">
                       <div class="card-body pb-1">
-                        <div
-                          class="d-flex align-items-center justify-content-between mb-3"
-                        >
+                        <div class="d-flex align-items-center justify-content-between mb-3">
                           <div class="text-start">
                             <p class="mb-1">Policy Name</p>
                             <span class="text-dark fw-normal mb-0">2 Days Leave</span>
@@ -2775,30 +1853,16 @@ export default {
                           </div>
                           <div class="avatar-list-stacked avatar-group-sm">
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-09.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-09.jpg" class="rounded-circle" alt="img" />
                             </span>
                             <span class="avatar border-0">
-                              <img
-                                src="@/assets/img/users/user-13.jpg"
-                                class="rounded-circle"
-                                alt="img"
-                              />
+                              <img src="@/assets/img/users/user-13.jpg" class="rounded-circle" alt="img" />
                             </span>
                           </div>
                           <div class="action-icon d-inline-flex">
-                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"
-                              ><i class="ti ti-edit"></i
-                            ></a>
-                            <a
-                              href="javascript:void(0);"
-                              data-bs-toggle="modal"
-                              data-bs-target="#delete_modal"
-                              ><i class="ti ti-trash"></i
-                            ></a>
+                            <a href="javascript:void(0);" class="me-2 edit-leave-btn"><i class="ti ti-edit"></i></a>
+                            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#delete_modal"><i
+                                class="ti ti-trash"></i></a>
                           </div>
                         </div>
                         <div class="card border edit-leave-details">
@@ -2807,28 +1871,20 @@ export default {
                             <div class="row">
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >Policy Name
-                                    <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">Policy Name
+                                    <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-md-6">
                                 <div class="mb-3">
-                                  <label class="form-label"
-                                    >No of Days <span class="text-danger"> *</span></label
-                                  >
+                                  <label class="form-label">No of Days <span class="text-danger"> *</span></label>
                                   <input type="text" class="form-control" />
                                 </div>
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select
-                                  :options="Addemp"
-                                  id="doris"
-                                  placeholder="Select"
-                                />
+                                <vue-select :options="Addemp" id="doris" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -2839,11 +1895,7 @@ export default {
                 </div>
               </div>
               <div class="modal-footer">
-                <button
-                  type="button"
-                  class="btn btn-outline-light border me-2"
-                  data-bs-dismiss="modal"
-                >
+                <button type="button" class="btn btn-outline-light border me-2" data-bs-dismiss="modal">
                   Cancel
                 </button>
                 <button type="button" class="btn btn-primary">Save Changes</button>
@@ -2869,15 +1921,8 @@ export default {
             You want to delete all the marked items, this cant be undone once you delete.
           </p>
           <div class="d-flex justify-content-center">
-            <a
-              href="javascript:void(0);"
-              class="btn btn-light me-3"
-              data-bs-dismiss="modal"
-              >Cancel</a
-            >
-            <router-link to="/leave/leave-settings" class="btn btn-danger"
-              >Yes, Delete</router-link
-            >
+            <a href="javascript:void(0);" class="btn btn-light me-3" data-bs-dismiss="modal">Cancel</a>
+            <router-link to="/leave/leave-settings" class="btn btn-danger">Yes, Delete</router-link>
           </div>
         </div>
       </div>

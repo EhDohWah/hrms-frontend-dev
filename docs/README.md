@@ -1,3 +1,220 @@
+# HRMS Frontend Documentation
+
+> 📚 Comprehensive documentation for the HRMS Frontend application
+
+## 📖 Documentation Index
+
+### 🎨 Styling & Design System
+
+1. **[STYLING_QUICK_REFERENCE.md](./STYLING_QUICK_REFERENCE.md)** ⭐ START HERE
+   - Quick access to colors, typography, buttons, badges, forms, and tables
+   - Copy-paste ready code snippets
+   - Common layout patterns
+
+2. **[STYLING_ARCHITECTURE_DOCUMENTATION.md](./STYLING_ARCHITECTURE_DOCUMENTATION.md)**
+   - Complete SCSS architecture
+   - Color system (with 9-step scales)
+   - Typography system
+   - Component styling guide
+   - Performance optimizations
+
+3. **[HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md](./HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md)**
+   - Framework integration patterns
+   - When to use Bootstrap vs Ant Design
+   - List page implementation
+   - Modal implementation
+   - Conflict resolution
+
+### 🏗️ Architecture & Patterns
+
+4. **[HRMS_FRONTEND_ARCHITECTURE.md](./HRMS_FRONTEND_ARCHITECTURE.md)**
+   - Overall frontend architecture
+   - Component structure
+   - State management patterns
+
+5. **[Service Layer Architecture](#service-layer-architecture-guide)** (below)
+   - BaseService usage
+   - CRUD operations
+   - Validation patterns
+   - Error handling
+
+### 🔧 Component Guides
+
+6. **[components/ant-design-dropdown-guide.md](./components/ant-design-dropdown-guide.md)**
+   - Ant Design dropdown implementation
+   - Common dropdown patterns
+
+7. **[components/dropdown-quick-reference.md](./components/dropdown-quick-reference.md)**
+   - Quick dropdown reference
+
+### 🐛 Bug Fixes & Solutions
+
+8. **[BOOTSTRAP_DROPDOWN_FIX.md](./BOOTSTRAP_DROPDOWN_FIX.md)**
+   - Critical Bootstrap dropdown conflict fix
+   - Selective import patterns
+
+9. **[LEAVES_ADMIN_*.md](./)**
+   - Various leaves admin fixes and optimizations
+   - Checkbox functionality
+   - Performance optimizations
+
+### 📊 Feature Documentation
+
+10. **Report Components**
+    - [EMPLOYEE_PERSONAL_DATA_REPORT_DOCUMENTATION.md](./EMPLOYEE_PERSONAL_DATA_REPORT_DOCUMENTATION.md)
+    - [EMPLOYEE_TRAINING_DATA_REPORTS_DOCUMENTATION.md](./EMPLOYEE_TRAINING_DATA_REPORTS_DOCUMENTATION.md)
+    - [EMPLOYMENT_DATA_REPORT_DOCUMENTATION.md](./EMPLOYMENT_DATA_REPORT_DOCUMENTATION.md)
+    - [PAYROLL_REPORT_DOCUMENTATION.md](./PAYROLL_REPORT_DOCUMENTATION.md)
+    - [TRAVEL_REPORT_DOCUMENTATION.md](./TRAVEL_REPORT_DOCUMENTATION.md)
+    - [TOTAL_GRANT_REPORT_DOCUMENTATION.md](./TOTAL_GRANT_REPORT_DOCUMENTATION.md)
+
+11. **Other Features**
+    - [DYNAMIC_LOOKUP_SYSTEM_GUIDE.md](./DYNAMIC_LOOKUP_SYSTEM_GUIDE.md)
+    - [FAMILY_INFORMATION_MODAL_IMPLEMENTATION.md](./FAMILY_INFORMATION_MODAL_IMPLEMENTATION.md)
+    - [TRAVEL_REQUEST_FRONTEND_DOCUMENTATION.md](./TRAVEL_REQUEST_FRONTEND_DOCUMENTATION.md) - Complete travel request system guide
+    - [TRAVEL_REQUEST_STYLING_UPDATE_DOCUMENTATION.md](./TRAVEL_REQUEST_STYLING_UPDATE_DOCUMENTATION.md)
+
+### 🎯 Implementation Guides
+
+12. **[ADDING_NEW_FEATURE_GUIDE.md](./ADDING_NEW_FEATURE_GUIDE.md)**
+    - Step-by-step guide to add new features
+
+13. **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)**
+    - Summary of implementations
+
+---
+
+## 🚀 Quick Start
+
+### For New Developers
+
+1. **Understand the Design System**
+   - Start with [STYLING_QUICK_REFERENCE.md](./STYLING_QUICK_REFERENCE.md)
+   - Review [STYLING_ARCHITECTURE_DOCUMENTATION.md](./STYLING_ARCHITECTURE_DOCUMENTATION.md)
+
+2. **Learn the Hybrid Framework Approach**
+   - Read [HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md](./HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md)
+   - Understand when to use Bootstrap vs Ant Design
+
+3. **Study the Architecture**
+   - Review [HRMS_FRONTEND_ARCHITECTURE.md](./HRMS_FRONTEND_ARCHITECTURE.md)
+   - Understand the service layer (below)
+
+4. **Build Your First Feature**
+   - Follow [ADDING_NEW_FEATURE_GUIDE.md](./ADDING_NEW_FEATURE_GUIDE.md)
+
+### For Adding a New Page
+
+1. Use Bootstrap for layout (grid, cards)
+2. Use Ant Design for data tables
+3. Follow the list page pattern from [HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md](./HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md)
+4. Use documented colors from [STYLING_QUICK_REFERENCE.md](./STYLING_QUICK_REFERENCE.md)
+5. Import Bootstrap selectively: `import { Modal as BootstrapModal } from 'bootstrap'`
+
+### For Styling Components
+
+1. Check [STYLING_QUICK_REFERENCE.md](./STYLING_QUICK_REFERENCE.md) for copy-paste patterns
+2. Use documented color variables (never hardcode)
+3. Follow responsive patterns using mixins
+4. Add z-index fixes for Ant Design dropdowns
+
+---
+
+## 📋 Common Tasks
+
+### Task: Create a List Page with Table
+
+**Docs to Reference:**
+- [HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md](./HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md) → "List Page Implementation"
+- [STYLING_QUICK_REFERENCE.md](./STYLING_QUICK_REFERENCE.md) → "Table Quick Reference"
+
+### Task: Create a Modal Form
+
+**Docs to Reference:**
+- [HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md](./HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md) → "Modal Implementation"
+- [STYLING_QUICK_REFERENCE.md](./STYLING_QUICK_REFERENCE.md) → "Modal Quick Reference"
+
+### Task: Style Buttons/Badges
+
+**Docs to Reference:**
+- [STYLING_QUICK_REFERENCE.md](./STYLING_QUICK_REFERENCE.md) → "Button/Badge Quick Reference"
+- [STYLING_ARCHITECTURE_DOCUMENTATION.md](./STYLING_ARCHITECTURE_DOCUMENTATION.md) → "Component Styling Guide"
+
+### Task: Add API Service
+
+**Docs to Reference:**
+- [Service Layer Architecture](#service-layer-architecture-guide) (below)
+
+### Task: Fix Dropdown Issues
+
+**Docs to Reference:**
+- [BOOTSTRAP_DROPDOWN_FIX.md](./BOOTSTRAP_DROPDOWN_FIX.md)
+- [components/ant-design-dropdown-guide.md](./components/ant-design-dropdown-guide.md)
+
+---
+
+## 🎯 Design System Quick Access
+
+### Colors
+
+```scss
+$primary: #011b44;      // NetSuite blue
+$success: #03C95A;      // Green
+$danger: #E70D0D;       // Red
+$warning: #FFC107;      // Yellow
+```
+
+[→ Full Color Palette](./STYLING_ARCHITECTURE_DOCUMENTATION.md#color-system--theme-variables)
+
+### Typography
+
+```scss
+$font-size-14: 14px;   // Body (default)
+$font-size-18: 18px;   // Card titles
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+```
+
+[→ Full Typography System](./STYLING_ARCHITECTURE_DOCUMENTATION.md#typography-system)
+
+### Components
+
+- [Buttons](./STYLING_QUICK_REFERENCE.md#-button-quick-reference)
+- [Badges](./STYLING_QUICK_REFERENCE.md#-badge-quick-reference)
+- [Cards](./STYLING_QUICK_REFERENCE.md#-card-quick-reference)
+- [Forms](./STYLING_QUICK_REFERENCE.md#-form-quick-reference)
+- [Tables](./STYLING_QUICK_REFERENCE.md#-table-quick-reference)
+- [Modals](./STYLING_QUICK_REFERENCE.md#-modal-quick-reference)
+
+---
+
+## ⚡ Critical Information
+
+### Import Pattern (MUST FOLLOW)
+
+```javascript
+// ✅ CORRECT - Selective import
+import { Modal as BootstrapModal } from 'bootstrap';
+
+// ❌ WRONG - Causes conflicts
+import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
+```
+
+[→ Full Import Guide](./HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md#import-strategies)
+
+### Z-Index Hierarchy
+
+```
+Modal Backdrop:  1050
+Modal:          1055
+Dropdown:       9999
+Tooltip:        10000
+```
+
+[→ Conflict Resolution](./HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md#conflict-resolution)
+
+---
+
 # Service Layer Architecture Guide
 
 This guide explains how to use the BaseService class for consistent API handling across all service files.

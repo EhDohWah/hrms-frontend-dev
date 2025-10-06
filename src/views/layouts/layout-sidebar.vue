@@ -28,12 +28,14 @@ export default {
 					return '/dashboard/admin-dashboard';
 				case 'hr-manager':
 					return '/dashboard/hr-manager-dashboard';
-				case 'hr-assistant':
-					return '/dashboard/hr-assistant-dashboard';
-				case 'manager':
-				case 'employee':
+				case 'hr-assistant-senior':
+					return '/dashboard/hr-assistant-senior-dashboard';
+				case 'hr-assistant-junior':
+					return '/dashboard/hr-assistant-junior-dashboard';
+				case 'site-admin':
+					return '/dashboard/site-admin-dashboard';
 				default:
-					return '/dashboard/employee-dashboard';
+					return '/dashboard/site-admin-dashboard';
 			}
 		}
 	},

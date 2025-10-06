@@ -167,7 +167,8 @@
                       </select>
                     </td>
                     <td>
-                      <select v-if="editData.allocation_type === 'org_funded'" v-model="editData.department_position_id" class="edit-field">
+                      <select v-if="editData.allocation_type === 'org_funded'" v-model="editData.department_position_id"
+                        class="edit-field">
                         <option value="">Select department position</option>
                         <option v-for="position in departmentPositions" :key="position.id" :value="position.id">
                           {{ position.department }} - {{ position.position }}
@@ -176,7 +177,8 @@
                       <span v-else class="text-muted">-</span>
                     </td>
                     <td>
-                      <select v-if="editData.allocation_type !== 'org_funded'" v-model="editData.grant_items_id" @change="onEditGrantPositionChange" class="edit-field">
+                      <select v-if="editData.allocation_type !== 'org_funded'" v-model="editData.grant_items_id"
+                        @change="onEditGrantPositionChange" class="edit-field">
                         <option value="">Select position</option>
                         <option v-for="position in editGrantPositionOptions" :key="position.id" :value="position.id">
                           {{ position.name }}
@@ -185,7 +187,8 @@
                       <span v-else class="text-muted">-</span>
                     </td>
                     <td>
-                      <select v-if="editData.allocation_type !== 'org_funded'" v-model="editData.position_slot_id" class="edit-field">
+                      <select v-if="editData.allocation_type !== 'org_funded'" v-model="editData.position_slot_id"
+                        class="edit-field">
                         <option value="">Select position slot</option>
                         <option v-for="slot in editPositionSlotOptions" :key="slot.id" :value="slot.id">
                           Slot {{ slot.slot_number }} - {{ slot.budget_line.name }}
@@ -211,15 +214,18 @@
                     </td>
                     <td>{{ getGrantName(row.grant_id, row._original) }}</td>
                     <td>
-                      <span v-if="row.allocation_type === 'org_funded'">{{ getDepartmentPositionName(row.department_position_id) }}</span>
+                      <span v-if="row.allocation_type === 'org_funded'">{{
+                        getDepartmentPositionName(row.department_position_id) }}</span>
                       <span v-else class="text-muted">-</span>
                     </td>
                     <td>
-                      <span v-if="row.allocation_type !== 'org_funded'">{{ getGrantPositionName(row.grant_id, row.grant_items_id, row._original) }}</span>
+                      <span v-if="row.allocation_type !== 'org_funded'">{{ getGrantPositionName(row.grant_id,
+                        row.grant_items_id, row._original) }}</span>
                       <span v-else class="text-muted">-</span>
                     </td>
                     <td>
-                      <span v-if="row.allocation_type !== 'org_funded'">{{ getPositionSlotName(row.grant_id, row.grant_items_id, row.position_slot_id, row._original) }}</span>
+                      <span v-if="row.allocation_type !== 'org_funded'">{{ getPositionSlotName(row.grant_id,
+                        row.grant_items_id, row.position_slot_id, row._original) }}</span>
                       <span v-else class="text-muted">-</span>
                     </td>
                     <td>{{ row.level_of_effort }}%</td>
@@ -276,7 +282,6 @@ import * as bootstrap from 'bootstrap';
 import { grantService } from '@/services/grant.service';
 import { employeeService } from '@/services/employee.service';
 import { employeeGrantAllocationService } from '@/services/employee-grant-allocation.service';
-import { departmentPositionService } from '@/services/department-position.service';
 
 export default {
   name: 'GrantPositionModal',
@@ -576,7 +581,7 @@ export default {
 
     async onGrantChange() {
       console.log('Grant changed:', this.currentAllocation.grant_id);
-      
+
       if (this.isOrgFundGrant(this.currentAllocation.grant_id)) {
         await this.loadDepartmentPositions();
         this.currentAllocation.allocation_type = 'org_funded';
@@ -1322,6 +1327,13 @@ select {
   margin: 0;
 }
 
-.badge-org { background: #ffe6c1; color: #a37500; }
-.badge-grant { background: #d9f4ec; color: #278d4c; }
+.badge-org {
+  background: #ffe6c1;
+  color: #a37500;
+}
+
+.badge-grant {
+  background: #d9f4ec;
+  color: #278d4c;
+}
 </style>

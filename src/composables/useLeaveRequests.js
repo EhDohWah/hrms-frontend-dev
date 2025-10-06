@@ -1,483 +1,478 @@
 /**
- * Leave Requests Composable
- * Handles state management and operations for leave requests using Vue 3 Composition API
+ * Leave Requests Composable - Updated for Simplified Backend Structure
+ * Uses the new Pinia store and handles the simplified approval structure
  */
 
-import { ref, reactive, computed, watch } from 'vue';
-import { leaveService } from '@/services/leave.service';
-import { validationUtils, dateUtils } from '@/utils/leave.utils';
+import { computed } from 'vue';
+import { useLeaveStore } from '@/stores/leaveStore';
 import { useToast } from './useToast';
-import { useLoading } from './useLoading';
 
 export function useLeaveRequests() {
-    // State
-    const leaveRequests = ref([]);
-    const currentLeaveRequest = ref(null);
-    const pagination = reactive({
-        currentPage: 1,
-        perPage: 10,
-        total: 0,
-        lastPage: 1,
-        from: 0,
-        to: 0,
-        hasMorePages: false
-    });
-
-    const stats = reactive({
-        totalRequests: 0,
-        pendingRequests: 0,
-        approvedRequests: 0,
-        declinedRequests: 0,
-        cancelledRequests: 0,
-        thisMonth: 0,
-        thisWeek: 0
-    });
-
-    const filters = reactive({
-        page: 1,
-        perPage: 10,
-        search: '',
-        from: null,
-        to: null,
-        leaveTypes: [],
-        status: '',
-        sortBy: 'recently_added'
-    });
-
-    // Composables
+    // Store instance
+    const leaveStore = useLeaveStore();
     const { showToast } = useToast();
-    const { loading, setLoading } = useLoading();
 
-    // Computed
-    const hasLeaveRequests = computed(() => leaveRequests.value.length > 0);
-    const isFirstPage = computed(() => pagination.currentPage === 1);
-    const isLastPage = computed(() => pagination.currentPage === pagination.lastPage);
+    // Computed properties from store state
+    const leaveRequests = computed(() => leaveStore.leaveRequests);
+    const currentLeaveRequest = computed(() => leaveStore.currentLeaveRequest);
+    const statistics = computed(() => leaveStore.statistics);
+    const loading = computed(() => leaveStore.loading);
+    const submitting = computed(() => leaveStore.submitting);
+    const error = computed(() => leaveStore.error);
 
-    const filteredRequests = computed(() => {
-        if (!filters.search) return leaveRequests.value;
+    // Pagination computed properties
+    const pagination = computed(() => {
+        const current = leaveStore.currentPage || 1;
+        const size = leaveStore.pageSize || 10;
+        const totalRecords = leaveStore.total || 0;
+        const totalPagesCount = leaveStore.totalPages || 1;
 
-        const searchTerm = filters.search.toLowerCase();
-        return leaveRequests.value.filter(request => {
-            const employeeName = request.employee?.name?.toLowerCase() || '';
-            const staffId = request.employee?.staffId?.toLowerCase() || '';
-            const leaveType = request.leaveType?.name?.toLowerCase() || '';
+        // Calculate from and to for display
+        const from = totalRecords > 0 ? ((current - 1) * size) + 1 : 0;
+        const to = Math.min(current * size, totalRecords);
 
-            return employeeName.includes(searchTerm) ||
-                staffId.includes(searchTerm) ||
-                leaveType.includes(searchTerm);
-        });
+        return {
+            currentPage: current,
+            pageSize: size,
+            total: totalRecords,
+            totalPages: totalPagesCount,
+            lastPage: totalPagesCount, // Alias for backward compatibility
+            hasMorePages: leaveStore.hasMorePages,
+            from,
+            to
+        };
     });
+
+    // Filter computed properties
+    const filters = computed(() => ({
+        search: leaveStore.searchStaffId,
+        dateRange: leaveStore.dateRange,
+        filteredInfo: leaveStore.filteredInfo,
+        sortedInfo: leaveStore.sortedInfo
+    }));
+
+    // Stats computed (alias for statistics for backward compatibility)
+    const stats = computed(() => leaveStore.statistics);
+
+    // Convenience computed properties
+    const hasLeaveRequests = computed(() => leaveStore.leaveRequests.length > 0);
+    const isFirstPage = computed(() => leaveStore.currentPage === 1);
+    const isLastPage = computed(() => !leaveStore.hasMorePages);
 
     // Methods
-    const fetchLeaveRequests = async (resetPage = false) => {
+
+    /**
+     * Fetch detailed leave request by ID (for editing)
+     */
+    const fetchLeaveRequestById = async (id) => {
         try {
-            setLoading('leaveRequests', true);
+            const result = await leaveStore.fetchLeaveRequestById(id);
 
-            if (resetPage) {
-                filters.page = 1;
-                pagination.currentPage = 1;
+            if (!result.success) {
+                showToast(result.error || 'Failed to fetch leave request details', 'error');
             }
 
-            const response = await leaveService.getLeaveRequests(filters);
-
-            if (response.success) {
-                leaveRequests.value = response.data || [];
-
-                // Update pagination
-                if (response.pagination) {
-                    Object.assign(pagination, response.pagination);
-                }
-
-                // Update stats
-                if (response.statistics) {
-                    console.log('📊 Raw statistics from API:', response.statistics);
-                    const newStats = {
-                        totalRequests: response.statistics.totalRequests || 0,
-                        pendingRequests: response.statistics.pendingRequests || 0,
-                        approvedRequests: response.statistics.approvedRequests || 0,
-                        declinedRequests: response.statistics.declinedRequests || 0,
-                        cancelledRequests: response.statistics.cancelledRequests || 0,
-                        thisMonth: response.statistics.thisMonthRequests || 0,
-                        thisWeek: response.statistics.thisWeekRequests || 0
-                    };
-
-                    // Clear existing stats first to ensure reactivity
-                    Object.keys(stats).forEach(key => {
-                        if (stats[key] !== undefined) stats[key] = 0;
-                    });
-
-                    // Then assign new values
-                    Object.assign(stats, newStats);
-                    console.log('📊 Statistics updated:', { old: response.statistics, new: stats });
-                } else {
-                    console.warn('⚠️ No statistics found in API response');
-                }
-            } else {
-                showToast('Failed to fetch leave requests', 'error');
-            }
+            return result;
         } catch (error) {
-            console.error('Error fetching leave requests:', error);
-            showToast('Error fetching leave requests', 'error');
-        } finally {
-            setLoading('leaveRequests', false);
+            console.error('Error in fetchLeaveRequestById composable:', error);
+            showToast('Failed to fetch leave request details', 'error');
+            return { success: false, error: error.message };
         }
     };
 
-    const fetchLeaveRequest = async (id) => {
+    /**
+     * Get cached leave balance or fetch if needed
+     */
+    const getCachedLeaveBalance = async (employeeId, leaveTypeId, year = null) => {
         try {
-            setLoading('currentLeaveRequest', true);
+            const result = await leaveStore.getOrFetchLeaveBalance(employeeId, leaveTypeId, year);
 
-            const response = await leaveService.getLeaveRequestDetails(id);
-
-            if (response.success) {
-                currentLeaveRequest.value = response.data;
-                return response.data;
+            if (!result.success) {
+                showToast(result.error || 'Failed to fetch leave balance', 'error');
+            } else if (result.fromCache) {
+                console.log('✅ Leave balance loaded from cache');
             } else {
-                showToast('Failed to fetch leave request details', 'error');
-                return null;
+                console.log('🌐 Leave balance fetched from API and cached');
             }
+
+            return result;
         } catch (error) {
-            console.error('Error fetching leave request:', error);
-            showToast('Error fetching leave request details', 'error');
-            return null;
-        } finally {
-            setLoading('currentLeaveRequest', false);
+            console.error('Error in getCachedLeaveBalance composable:', error);
+            showToast('Failed to fetch leave balance', 'error');
+            return { success: false, error: error.message };
         }
     };
 
-    const createLeaveRequest = async (data) => {
+    /**
+     * Force refresh leave balance (invalidate cache and fetch fresh)
+     */
+    const refreshLeaveBalance = async (employeeId, leaveTypeId, year = null) => {
         try {
-            setLoading('createLeaveRequest', true);
+            const result = await leaveStore.refreshLeaveBalance(employeeId, leaveTypeId, year);
 
-            // Validate data
-            const validation = validationUtils.validateLeaveRequest(data);
-            if (!validation.isValid) {
-                showToast('Please fix validation errors', 'error');
-                return { success: false, errors: validation.errors };
+            if (!result.success) {
+                showToast(result.error || 'Failed to refresh leave balance', 'error');
+            } else {
+                console.log('🔄 Leave balance refreshed from API');
             }
 
-            // Calculate total days if not provided
-            if (!data.totalDays && data.startDate && data.endDate) {
-                data.totalDays = dateUtils.calculateDays(data.startDate, data.endDate);
+            return result;
+        } catch (error) {
+            console.error('Error in refreshLeaveBalance composable:', error);
+            showToast('Failed to refresh leave balance', 'error');
+            return { success: false, error: error.message };
+        }
+    };
+
+    /**
+     * Invalidate employee's leave cache
+     */
+    const invalidateEmployeeCache = (employeeId, leaveTypeId = null, year = null) => {
+        leaveStore.invalidateEmployeeLeaveCache(employeeId, leaveTypeId, year);
+    };
+
+    /**
+     * Clear all leave balance cache
+     */
+    const clearLeaveCache = () => {
+        leaveStore.clearLeaveBalanceCache();
+    };
+
+    /**
+     * Fetch leave requests with current filters and pagination
+     */
+    const fetchLeaveRequests = async (resetPage = false, additionalParams = {}) => {
+        if (resetPage) {
+            leaveStore.setPage(1);
+        }
+
+        try {
+            const result = await leaveStore.fetchLeaveRequests(additionalParams);
+
+            if (!result.success) {
+                showToast(result.error || 'Failed to fetch leave requests', 'error');
             }
 
-            const response = await leaveService.createLeaveRequest(data);
+            return result;
+        } catch (error) {
+            console.error('Error in fetchLeaveRequests composable:', error);
+            showToast('Failed to fetch leave requests', 'error');
+            return { success: false, error: error.message };
+        }
+    };
 
-            if (response.success) {
+    /**
+     * Create a new leave request
+     */
+    const createLeaveRequest = async (leaveRequestData) => {
+        try {
+            const result = await leaveStore.createLeaveRequest(leaveRequestData);
+
+            if (result.success) {
                 showToast('Leave request created successfully', 'success');
-                await fetchLeaveRequests(true); // Refresh the list
-                return { success: true, data: response.data };
             } else {
-                showToast(response.message || 'Failed to create leave request', 'error');
-                return { success: false, message: response.message };
+                showToast(result.error || 'Failed to create leave request', 'error');
             }
+
+            return result;
         } catch (error) {
-            console.error('Error creating leave request:', error);
-            const message = error.response?.data?.message || 'Error creating leave request';
-            showToast(message, 'error');
-            return { success: false, error: message };
-        } finally {
-            setLoading('createLeaveRequest', false);
+            console.error('Error in createLeaveRequest composable:', error);
+            showToast('Failed to create leave request', 'error');
+            return { success: false, error: error.message };
         }
     };
 
-    const updateLeaveRequest = async (id, data) => {
+    /**
+     * Update an existing leave request
+     */
+    const updateLeaveRequest = async (id, leaveRequestData) => {
         try {
-            setLoading('updateLeaveRequest', true);
+            const result = await leaveStore.updateLeaveRequest(id, leaveRequestData);
 
-            const response = await leaveService.updateLeaveRequest(id, data);
-
-            if (response.success) {
+            if (result.success) {
                 showToast('Leave request updated successfully', 'success');
-
-                // Update the local list
-                const index = leaveRequests.value.findIndex(req => req.id === id);
-                if (index !== -1) {
-                    leaveRequests.value[index] = response.data;
-                }
-
-                // Update current request if it matches
-                if (currentLeaveRequest.value?.id === id) {
-                    currentLeaveRequest.value = response.data;
-                }
-
-                return { success: true, data: response.data };
             } else {
-                showToast(response.message || 'Failed to update leave request', 'error');
-                return { success: false, message: response.message };
+                showToast(result.error || 'Failed to update leave request', 'error');
             }
+
+            return result;
         } catch (error) {
-            console.error('Error updating leave request:', error);
-            const message = error.response?.data?.message || 'Error updating leave request';
-            showToast(message, 'error');
-            return { success: false, error: message };
-        } finally {
-            setLoading('updateLeaveRequest', false);
+            console.error('Error in updateLeaveRequest composable:', error);
+            showToast('Failed to update leave request', 'error');
+            return { success: false, error: error.message };
         }
     };
 
+    /**
+     * Delete a leave request
+     */
     const deleteLeaveRequest = async (id) => {
         try {
-            setLoading('deleteLeaveRequest', true);
+            const result = await leaveStore.deleteLeaveRequest(id);
 
-            const response = await leaveService.deleteLeaveRequest(id);
-
-            if (response.success) {
+            if (result.success) {
                 showToast('Leave request deleted successfully', 'success');
-
-                // Remove from local list
-                leaveRequests.value = leaveRequests.value.filter(req => req.id !== id);
-
-                // Clear current request if it matches
-                if (currentLeaveRequest.value?.id === id) {
-                    currentLeaveRequest.value = null;
-                }
-
-                return { success: true };
             } else {
-                showToast(response.message || 'Failed to delete leave request', 'error');
-                return { success: false, message: response.message };
+                showToast(result.error || 'Failed to delete leave request', 'error');
             }
+
+            return result;
         } catch (error) {
-            console.error('Error deleting leave request:', error);
-            const message = error.response?.data?.message || 'Error deleting leave request';
-            showToast(message, 'error');
-            return { success: false, error: message };
-        } finally {
-            setLoading('deleteLeaveRequest', false);
+            console.error('Error in deleteLeaveRequest composable:', error);
+            showToast('Failed to delete leave request', 'error');
+            return { success: false, error: error.message };
         }
     };
 
-    // Helper function to calculate statistics from current data
-    const calculateStatistics = () => {
-        const currentRequests = leaveRequests.value || [];
-
-        const statistics = {
-            totalRequests: currentRequests.length,
-            pendingRequests: currentRequests.filter(req => req.status === 'pending').length,
-            approvedRequests: currentRequests.filter(req => req.status === 'approved').length,
-            declinedRequests: currentRequests.filter(req => req.status === 'declined').length,
-            cancelledRequests: currentRequests.filter(req => req.status === 'cancelled').length,
-            thisMonth: currentRequests.filter(req => {
-                const requestDate = new Date(req.createdAt);
-                const now = new Date();
-                return requestDate.getMonth() === now.getMonth() && requestDate.getFullYear() === now.getFullYear();
-            }).length,
-            thisWeek: currentRequests.filter(req => {
-                const requestDate = new Date(req.createdAt);
-                const now = new Date();
-                const weekStart = new Date(now.setDate(now.getDate() - now.getDay()));
-                return requestDate >= weekStart;
-            }).length
-        };
-
-        return statistics;
-    };
-
-    // Helper function to update statistics in UI
-    const updateStatisticsUI = (newStats) => {
-        console.log('🔄 Updating statistics UI with:', newStats);
-
-        // Clear existing stats first
-        Object.keys(stats).forEach(key => {
-            if (stats[key] !== undefined) stats[key] = 0;
-        });
-
-        // Update with new values
-        Object.assign(stats, {
-            totalRequests: newStats.totalRequests || 0,
-            pendingRequests: newStats.pendingRequests || 0,
-            approvedRequests: newStats.approvedRequests || 0,
-            declinedRequests: newStats.declinedRequests || 0,
-            cancelledRequests: newStats.cancelledRequests || 0,
-            thisMonth: newStats.thisMonth || 0,
-            thisWeek: newStats.thisWeek || 0
-        });
-
-        console.log('✅ Statistics UI updated:', stats);
-    };
-
-    const updateRequestStatus = async (id, status, approverData = {}) => {
+    /**
+     * Update request status (approval/rejection) - simplified for new structure
+     */
+    const updateRequestStatus = async (id, status, approvalData = {}) => {
         try {
-            setLoading('updateStatus', true);
-            console.log('🔄 Updating leave request status:', { id, status });
+            // In the simplified structure, status updates are just regular updates
+            const updateData = {
+                status,
+                ...approvalData
+            };
 
-            // Find the current request and store old status for calculation
-            const currentRequest = leaveRequests.value.find(req => req.id === id);
-            const oldStatus = currentRequest?.status;
-            console.log('📋 Current request found:', { id, oldStatus, newStatus: status });
+            const result = await leaveStore.updateLeaveRequest(id, updateData);
 
-            const response = await leaveService.updateLeaveRequest(id, { status });
-
-            if (response.success && approverData.approverName) {
-                // Create approval record
-                await leaveService.createLeaveApproval(id, {
-                    status,
-                    approverName: approverData.approverName,
-                    approverRole: approverData.approverRole || 'HR Manager',
-                    approverSignature: approverData.approverSignature
-                });
-            }
-
-            if (response.success) {
+            if (result.success) {
                 showToast(`Leave request ${status} successfully`, 'success');
-                console.log('✅ Status update successful, updating local data...');
-
-                // Update the local request status immediately
-                if (currentRequest) {
-                    currentRequest.status = status;
-                    console.log('📝 Local request status updated:', currentRequest);
-                }
-
-                // Calculate and update statistics immediately from local data
-                const calculatedStats = calculateStatistics();
-                updateStatisticsUI(calculatedStats);
-
-                // Also refresh from backend to ensure consistency (with delay)
-                setTimeout(async () => {
-                    console.log('🔄 Refreshing from backend for consistency...');
-                    await fetchLeaveRequests();
-                }, 200);
-
-                return { success: true };
             } else {
-                showToast(response.message || `Failed to ${status} leave request`, 'error');
-                return { success: false, message: response.message };
+                showToast(result.error || `Failed to ${status} leave request`, 'error');
             }
+
+            return result;
         } catch (error) {
-            console.error(`Error ${status} leave request:`, error);
-            const message = error.response?.data?.message || `Error ${status} leave request`;
-            showToast(message, 'error');
-            return { success: false, error: message };
-        } finally {
-            setLoading('updateStatus', false);
+            console.error('Error in updateRequestStatus composable:', error);
+            showToast(`Failed to ${status} leave request`, 'error');
+            return { success: false, error: error.message };
         }
     };
 
-    const bulkUpdateRequests = async (ids, data) => {
+    /**
+     * Get employee leave balance
+     */
+    const getEmployeeLeaveBalance = async (employeeId, leaveTypeId, year = null) => {
         try {
-            setLoading('bulkUpdate', true);
-
-            const response = await leaveService.bulkUpdateLeaveRequests(ids, data);
-
-            if (response.success) {
-                showToast('Leave requests updated successfully', 'success');
-                await fetchLeaveRequests(); // Refresh the list
-                return { success: true };
-            } else {
-                showToast(response.message || 'Failed to update leave requests', 'error');
-                return { success: false, message: response.message };
-            }
+            return await leaveStore.getEmployeeLeaveBalance(employeeId, leaveTypeId, year);
         } catch (error) {
-            console.error('Error bulk updating leave requests:', error);
-            const message = error.response?.data?.message || 'Error updating leave requests';
-            showToast(message, 'error');
-            return { success: false, error: message };
-        } finally {
-            setLoading('bulkUpdate', false);
+            console.error('Error in getEmployeeLeaveBalance composable:', error);
+            showToast('Failed to fetch leave balance', 'error');
+            return { success: false, error: error.message };
         }
     };
 
     // Pagination methods
     const goToPage = (page) => {
-        if (page >= 1 && page <= pagination.lastPage) {
-            filters.page = page;
-            fetchLeaveRequests();
-        }
+        leaveStore.setPage(page);
+        return fetchLeaveRequests();
     };
 
     const nextPage = () => {
-        if (pagination.hasMorePages) {
-            goToPage(pagination.currentPage + 1);
+        if (leaveStore.hasMorePages) {
+            leaveStore.nextPage();
+            return fetchLeaveRequests();
         }
+        return Promise.resolve({ success: true });
     };
 
     const previousPage = () => {
-        if (pagination.currentPage > 1) {
-            goToPage(pagination.currentPage - 1);
+        if (leaveStore.currentPage > 1) {
+            leaveStore.previousPage();
+            return fetchLeaveRequests();
         }
+        return Promise.resolve({ success: true });
     };
 
-    const changePerPage = (perPage) => {
-        filters.perPage = perPage;
-        filters.page = 1;
-        fetchLeaveRequests();
+    const changePerPage = (size) => {
+        leaveStore.setPageSize(size);
+        return fetchLeaveRequests();
     };
 
-    // Filter methods
+    // Filter and search methods
     const updateFilters = (newFilters) => {
-        Object.assign(filters, newFilters);
-        fetchLeaveRequests(true);
+        leaveStore.setFilters(newFilters);
+        return fetchLeaveRequests(true); // Reset to first page when filtering
+    };
+
+    const setDateRange = (range) => {
+        leaveStore.setDateRange(range);
+        return fetchLeaveRequests(true); // Reset to first page when filtering
+    };
+
+    const updateSearch = (staffId) => {
+        leaveStore.setSearch(staffId);
+        return fetchLeaveRequests(true); // Reset to first page when searching
+    };
+
+    const updateSorting = (sorting) => {
+        leaveStore.setSorting(sorting);
+        return fetchLeaveRequests(true); // Reset to first page when sorting
     };
 
     const clearFilters = () => {
-        Object.assign(filters, {
-            page: 1,
-            perPage: 10,
-            search: '',
-            from: null,
-            to: null,
-            leaveTypes: [],
-            status: '',
-            sortBy: 'recently_added'
-        });
-        fetchLeaveRequests(true);
+        leaveStore.clearFilters();
+        return fetchLeaveRequests(true);
     };
 
-    const setDateRange = (from, to) => {
-        filters.from = from;
-        filters.to = to;
-        fetchLeaveRequests(true);
+    // Statistics methods
+    const calculateStatistics = () => {
+        // Statistics are automatically calculated by the store when fetching requests
+        // This method is kept for backward compatibility
+        return leaveStore.statistics;
     };
 
-    // Watchers
-    watch(() => filters.search, (newSearch) => {
-        // Debounce search
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
+    const updateStatisticsUI = () => {
+        // UI updates are handled by reactivity
+        // This method is kept for backward compatibility
+        return Promise.resolve();
+    };
 
-        let searchTimeout = setTimeout(() => {
-            fetchLeaveRequests(true);
-        }, 500);
-    });
+    // Current request management
+    const setCurrentLeaveRequest = (leaveRequest) => {
+        leaveStore.setCurrentLeaveRequest(leaveRequest);
+    };
+
+    const clearCurrentLeaveRequest = () => {
+        leaveStore.clearCurrentLeaveRequest();
+    };
+
+    // Reset store
+    const resetStore = () => {
+        leaveStore.resetState();
+    };
 
     return {
         // State
         leaveRequests,
         currentLeaveRequest,
-        pagination,
-        stats,
-        filters,
+        statistics,
+        stats, // alias for backward compatibility
         loading,
+        submitting,
+        error,
+        pagination,
+        filters,
 
-        // Computed
+        // Computed convenience properties
         hasLeaveRequests,
         isFirstPage,
         isLastPage,
-        filteredRequests,
 
-        // Methods
+        // Core CRUD methods
         fetchLeaveRequests,
-        fetchLeaveRequest,
+        fetchLeaveRequestById,
         createLeaveRequest,
         updateLeaveRequest,
         deleteLeaveRequest,
         updateRequestStatus,
-        bulkUpdateRequests,
-        calculateStatistics,
-        updateStatisticsUI,
 
-        // Pagination
+        // Balance methods
+        getEmployeeLeaveBalance,
+        getCachedLeaveBalance,
+        refreshLeaveBalance,
+        invalidateEmployeeCache,
+        clearLeaveCache,
+
+        // Pagination methods
         goToPage,
         nextPage,
         previousPage,
         changePerPage,
 
-        // Filters
+        // Filter and search methods
         updateFilters,
+        setDateRange,
+        updateSearch,
+        updateSorting,
         clearFilters,
-        setDateRange
+
+        // Statistics methods (backward compatibility)
+        calculateStatistics,
+        updateStatisticsUI,
+
+        // Current request management
+        setCurrentLeaveRequest: (leaveRequest) => leaveStore.setCurrentLeaveRequest(leaveRequest),
+        clearCurrentLeaveRequest: () => leaveStore.clearCurrentLeaveRequest(),
+
+        // Utility methods
+        resetStore
     };
 }
 
+// Additional composable for leave types
+export function useLeaveTypes() {
+    const leaveStore = useLeaveStore();
+    const { showToast } = useToast();
+
+    const leaveTypes = computed(() => leaveStore.leaveTypes);
+    const leaveTypeOptions = computed(() => leaveStore.leaveTypeOptions);
+    const loading = computed(() => leaveStore.loading);
+
+    const fetchLeaveTypes = async (forceRefresh = false) => {
+        try {
+            const result = await leaveStore.fetchLeaveTypes(forceRefresh);
+
+            if (!result.success) {
+                showToast(result.error || 'Failed to fetch leave types', 'error');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error in fetchLeaveTypes composable:', error);
+            showToast('Failed to fetch leave types', 'error');
+            return { success: false, error: error.message };
+        }
+    };
+
+    return {
+        leaveTypes,
+        leaveTypeOptions,
+        loading,
+        fetchLeaveTypes
+    };
+}
+
+// Additional composable for leave balances
+export function useLeaveBalances() {
+    const leaveStore = useLeaveStore();
+    const { showToast } = useToast();
+
+    const leaveBalances = computed(() => leaveStore.leaveBalances);
+    const loading = computed(() => leaveStore.loading);
+
+    const fetchLeaveBalances = async (params = {}) => {
+        try {
+            const result = await leaveStore.fetchLeaveBalances(params);
+
+            if (!result.success) {
+                showToast(result.error || 'Failed to fetch leave balances', 'error');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error in fetchLeaveBalances composable:', error);
+            showToast('Failed to fetch leave balances', 'error');
+            return { success: false, error: error.message };
+        }
+    };
+
+    const getEmployeeLeaveBalance = async (employeeId, leaveTypeId, year = null) => {
+        try {
+            return await leaveStore.getEmployeeLeaveBalance(employeeId, leaveTypeId, year);
+        } catch (error) {
+            console.error('Error in getEmployeeLeaveBalance composable:', error);
+            showToast('Failed to fetch employee leave balance', 'error');
+            return { success: false, error: error.message };
+        }
+    };
+
+    return {
+        leaveBalances,
+        loading,
+        fetchLeaveBalances,
+        getEmployeeLeaveBalance
+    };
+}

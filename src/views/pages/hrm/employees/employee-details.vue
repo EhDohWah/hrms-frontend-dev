@@ -42,6 +42,7 @@
       <div v-else class="row">
         <!-- Employee Details -->
         <div class="col-xl-5 theiaStickySidebar">
+          <!-- Basic Information -->
           <div class="card card-bg-1">
             <div class="card-body p-0">
               <span class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2">
@@ -257,9 +258,9 @@
                   <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="d-inline-flex align-items-center">
                       <i class="ti ti-phone me-2"></i>
-                      Spouse Mobile
+                      Spouse Phone
                     </span>
-                    <p class="text-dark text-end">{{ employee.spouse_mobile || 'N/A' }}</p>
+                    <p class="text-dark text-end">{{ employee.spouse_phone_number || 'N/A' }}</p>
                   </div>
                 </template>
 
@@ -420,6 +421,327 @@
             </div>
           </div>
 
+          <!-- Bank Information, Family Information, Background Education Tab-->
+          <div class="tab-content custom-accordion-items">
+            <div class="tab-pane active show" id="bottom-justified-tab1" role="tabpanel">
+              <div class="accordion accordions-items-seperate" id="accordionExample">
+                <!-- Bank Information -->
+                <div class="accordion-item">
+                  <div class="accordion-header" id="headingTwo">
+                    <div class="accordion-button">
+                      <div class="d-flex align-items-center flex-fill">
+                        <h5>Bank Information</h5>
+                        <a href="javascript:void(0);" class="btn btn-sm btn-icon ms-auto" @click="openEditBankModal"><i
+                            class="ti ti-edit"></i></a>
+                        <a href="javascript:void(0);" class="d-flex align-items-center collapsed collapse-arrow"
+                          data-bs-toggle="collapse" data-bs-target="#primaryBorderTwo" aria-expanded="false"
+                          aria-controls="primaryBorderTwo">
+                          <i class="ti ti-chevron-down fs-18"></i>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="primaryBorderTwo" class="accordion-collapse collapse border-top" aria-labelledby="headingTwo"
+                    data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                      <div class="row">
+                        <div class="col-md-3">
+                          <span class="d-inline-flex align-items-center">
+                            Bank Name
+                          </span>
+                          <h6 class="d-flex align-items-center fw-medium mt-1">
+                            {{ employee.bank_name || 'N/A' }}
+                          </h6>
+                        </div>
+                        <div class="col-md-3">
+                          <span class="d-inline-flex align-items-center">
+                            Bank account no
+                          </span>
+                          <h6 class="d-flex align-items-center fw-medium mt-1">
+                            {{ employee.bank_account_number || 'N/A' }}
+                          </h6>
+                        </div>
+                        <div class="col-md-3">
+                          <span class="d-inline-flex align-items-center">
+                            Account Name
+                          </span>
+                          <h6 class="d-flex align-items-center fw-medium mt-1">
+                            {{ employee.bank_account_name || 'N/A' }}
+                          </h6>
+                        </div>
+                        <div class="col-md-3">
+                          <span class="d-inline-flex align-items-center"> Branch </span>
+                          <h6 class="d-flex align-items-center fw-medium mt-1">
+                            {{ employee.bank_branch || 'N/A' }}
+                          </h6>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Family Information -->
+                <div class="accordion-item">
+                  <div class="accordion-header" id="headingThree">
+                    <div class="accordion-button">
+                      <div class="d-flex align-items-center justify-content-between flex-fill">
+                        <h5>Family Information</h5>
+                        <div class="d-flex">
+                          <a href="javascript:void(0);" class="btn btn-icon btn-sm" @click="openFamilyEditModal"><i
+                              class="ti ti-edit"></i></a>
+                          <a href="javascript:void(0);" class="d-flex align-items-center collapsed collapse-arrow"
+                            data-bs-toggle="collapse" data-bs-target="#primaryBorderThree" aria-expanded="false"
+                            aria-controls="primaryBorderThree">
+                            <i class="ti ti-chevron-down fs-18"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="primaryBorderThree" class="accordion-collapse collapse border-top"
+                    aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                      <!-- Father Information Section -->
+                      <div class="mb-4">
+                        <h6 class="mb-3"><i class="ti ti-user me-2 text-primary"></i>Father Information</h6>
+                        <div class="row">
+                          <div class="col-md-4">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-user me-2"></i>Father's Name
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.father_name || 'N/A' }}
+                            </h6>
+                          </div>
+                          <div class="col-md-4">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-briefcase me-2"></i>Father's Occupation
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.father_occupation || 'N/A' }}
+                            </h6>
+                          </div>
+                          <div class="col-md-4">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-phone me-2"></i>Father's Phone
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.father_phone_number || 'N/A' }}
+                            </h6>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Mother Information Section -->
+                      <div class="mb-4">
+                        <hr class="my-3">
+                        <h6 class="mb-3"><i class="ti ti-user me-2 text-info"></i>Mother Information</h6>
+                        <div class="row">
+                          <div class="col-md-4">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-user me-2"></i>Mother's Name
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.mother_name || 'N/A' }}
+                            </h6>
+                          </div>
+                          <div class="col-md-4">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-briefcase me-2"></i>Mother's Occupation
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.mother_occupation || 'N/A' }}
+                            </h6>
+                          </div>
+                          <div class="col-md-4">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-phone me-2"></i>Mother's Phone
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.mother_phone_number || 'N/A' }}
+                            </h6>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Spouse Information Section -->
+                      <div class="mb-4">
+                        <hr class="my-3">
+                        <h6 class="mb-3"><i class="ti ti-heart me-2 text-success"></i>Spouse Information</h6>
+                        <div class="row">
+                          <div class="col-md-6">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-user me-2"></i>Spouse Name
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.spouse_name || 'N/A' }}
+                            </h6>
+                          </div>
+                          <div class="col-md-6">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-phone me-2"></i>Spouse Phone
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.spouse_phone_number || 'N/A' }}
+                            </h6>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Emergency Contact Section -->
+                      <div>
+                        <hr class="my-3">
+                        <h6 class="mb-3"><i class="ti ti-phone me-2 text-danger"></i>Emergency Contact</h6>
+                        <div class="row">
+                          <div class="col-md-6">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-user me-2"></i>Emergency Contact Name
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.emergency_contact_person_name || 'N/A' }}
+                            </h6>
+                          </div>
+                          <div class="col-md-6">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-heart me-2"></i>Relationship
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.emergency_contact_person_relationship || 'N/A' }}
+                            </h6>
+                          </div>
+                          <div class="col-md-6">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-phone me-2"></i>Emergency Contact Phone
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.emergency_contact_person_phone || 'N/A' }}
+                            </h6>
+                          </div>
+                          <div class="col-md-6">
+                            <span class="d-inline-flex align-items-center">
+                              <i class="ti ti-map-pin me-2"></i>Emergency Contact Address
+                            </span>
+                            <h6 class="d-flex align-items-center fw-medium mt-1">
+                              {{ employee.emergency_contact_person_address || 'N/A' }}
+                            </h6>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Education Details -->
+                <div class="accordion-item">
+                  <div class="accordion-header" id="headingFour">
+                    <div class="accordion-button">
+                      <div class="d-flex align-items-center justify-content-between flex-fill">
+                        <h5>Background Education</h5>
+                        <div class="d-flex">
+                          <a href="javascript:void(0);" class="btn btn-icon btn-sm"
+                            @click="$refs.employeeDetailsModal.openAddEducationModal()">
+                            <i class="ti ti-plus"></i>
+                          </a>
+                          <a href="javascript:void(0);" class="d-flex align-items-center collapsed collapse-arrow"
+                            data-bs-toggle="collapse" data-bs-target="#primaryBorderFour" aria-expanded="false"
+                            aria-controls="primaryBorderFour">
+                            <i class="ti ti-chevron-down fs-18"></i>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="primaryBorderFour" class="accordion-collapse collapse border-top"
+                    aria-labelledby="headingFour" data-bs-parent="#accordionExample">
+                    <div class="accordion-body">
+                      <div v-if="employee.employee_education && employee.employee_education.length > 0">
+                        <div v-for="(education, index) in employee.employee_education" :key="education.id || index"
+                          class="mb-4"
+                          :class="{ 'border-bottom pb-4': index < employee.employee_education.length - 1 }">
+                          <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                              <div class="row">
+                                <div class="col-md-6">
+                                  <span class="d-inline-flex align-items-center">
+                                    <i class="ti ti-school me-2"></i>School Name
+                                  </span>
+                                  <h6 class="d-flex align-items-center fw-medium mt-1">
+                                    {{ education.school_name || 'N/A' }}
+                                  </h6>
+                                </div>
+                                <div class="col-md-6">
+                                  <span class="d-inline-flex align-items-center">
+                                    <i class="ti ti-certificate me-2"></i>Degree
+                                  </span>
+                                  <h6 class="d-flex align-items-center fw-medium mt-1">
+                                    {{ education.degree || 'N/A' }}
+                                  </h6>
+                                </div>
+                                <div class="col-md-6">
+                                  <span class="d-inline-flex align-items-center">
+                                    <i class="ti ti-calendar me-2"></i>Start Date
+                                  </span>
+                                  <h6 class="d-flex align-items-center fw-medium mt-1">
+                                    {{ formatDate(education.start_date) || 'N/A' }}
+                                  </h6>
+                                </div>
+                                <div class="col-md-6">
+                                  <span class="d-inline-flex align-items-center">
+                                    <i class="ti ti-calendar me-2"></i>End Date
+                                  </span>
+                                  <h6 class="d-flex align-items-center fw-medium mt-1">
+                                    {{ formatDate(education.end_date) || 'N/A' }}
+                                  </h6>
+                                </div>
+                                <div class="col-md-12" v-if="education.start_date && education.end_date">
+                                  <span class="d-inline-flex align-items-center">
+                                    <i class="ti ti-clock me-2"></i>Duration
+                                  </span>
+                                  <h6 class="d-flex align-items-center fw-medium mt-1 text-primary">
+                                    {{ calculateStudyDuration(education.start_date, education.end_date) }}
+                                  </h6>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="dropdown">
+                              <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="dropdown">
+                                <i class="ti ti-dots-vertical"></i>
+                              </a>
+                              <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                  <a href="javascript:void(0);" class="dropdown-item"
+                                    @click="$refs.employeeDetailsModal.openEditEducationModal(education)">
+                                    <i class="ti ti-edit me-2"></i>Edit
+                                  </a>
+                                </li>
+                                <li>
+                                  <a href="javascript:void(0);" class="dropdown-item text-danger"
+                                    @click="$refs.employeeDetailsModal.deleteEducation(education.id)">
+                                    <i class="ti ti-trash me-2"></i>Delete
+                                  </a>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div v-else class="text-center py-4">
+                        <i class="ti ti-school text-muted mb-2" style="font-size: 2rem;"></i>
+                        <p class="text-muted mb-2">No education information available</p>
+                        <a href="javascript:void(0);" class="btn btn-sm btn-outline-primary"
+                          @click="$refs.employeeDetailsModal.openAddEducationModal()">
+                          <i class="ti ti-plus me-1"></i>Add First Education Record
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          <!-- End of Bank Information, Family Information, Background Education Tab-->
+
           <!-- Beneficiary Information -->
           <div class="d-flex align-items-center justify-content-between mb-2">
             <h6>Beneficiary Information</h6>
@@ -450,10 +772,10 @@
                       <div class="d-flex flex-column text-sm text-muted">
                         <span v-if="beneficiary.phone_number"><i class="ti ti-phone me-1"></i>{{
                           beneficiary.phone_number
-                        }}</span>
+                          }}</span>
                         <span v-if="beneficiary.beneficiary_email"><i class="ti ti-mail me-1"></i>{{
                           beneficiary.beneficiary_email
-                        }}</span>
+                          }}</span>
                       </div>
                     </div>
                     <div class="dropdown">
@@ -556,90 +878,10 @@
           </div>
           <!-- End of Employee Children Information -->
 
-          <!-- Leave Balance Information -->
-          <div class="d-flex align-items-center justify-content-between mb-2">
-            <h6>Leave Balance Information ({{ new Date().getFullYear() }})</h6>
-          </div>
-          <div class="card">
-            <div class="card-body p-0">
-              <div v-if="leaveBalances && leaveBalances.length > 0">
-                <div v-for="(balance, index) in leaveBalances" :key="balance.id || index" class="p-3"
-                  :class="{ 'border-bottom': index < leaveBalances.length - 1 }">
-                  <div class="d-flex align-items-center justify-content-between">
-                    <div class="flex-grow-1">
-                      <div class="d-flex align-items-center mb-2">
-                        <i class="ti ti-calendar-time me-2 text-primary"></i>
-                        <span class="fw-medium text-dark">{{ balance.leave_type?.name || 'Unknown Leave Type' }}</span>
-                        <span v-if="balance.leave_type?.requires_attachment" class="badge badge-soft-warning ms-2"
-                          title="Requires attachment">
-                          <i class="ti ti-paperclip me-1"></i>Attachment Required
-                        </span>
-                      </div>
-
-                      <div class="d-flex align-items-center mb-2">
-                        <span class="badge me-2"
-                          :class="getRemainingDaysClass(balance.remaining_days, balance.total_days)">
-                          <i class="ti ti-calendar-check me-1"></i>
-                          {{ Number(balance.remaining_days || 0).toFixed(1) }} days remaining
-                        </span>
-                      </div>
-
-                      <div class="row text-sm">
-                        <div class="col-4">
-                          <span class="text-muted">Total Allocated:</span><br>
-                          <span class="fw-medium text-dark">{{ Number(balance.total_days || 0).toFixed(1) }} days</span>
-                        </div>
-                        <div class="col-4">
-                          <span class="text-muted">Days Used:</span><br>
-                          <span class="fw-medium text-warning">{{ Number(balance.used_days || 0).toFixed(1) }}
-                            days</span>
-                        </div>
-                        <div class="col-4">
-                          <span class="text-muted">Year:</span><br>
-                          <span class="fw-medium text-info">{{ balance.year || new Date().getFullYear() }}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="ms-3">
-                      <!-- Progress bar showing usage -->
-                      <div class="d-flex flex-column align-items-end">
-                        <small class="text-muted mb-1">Usage</small>
-                        <div class="progress" style="width: 120px; height: 10px;">
-                          <div class="progress-bar"
-                            :class="getUsageProgressClass(balance.used_days, balance.total_days)"
-                            :style="`width: ${getUsagePercentage(balance.used_days, balance.total_days)}%`">
-                          </div>
-                        </div>
-                        <small class="text-muted mt-1">{{ getUsagePercentage(balance.used_days, balance.total_days)
-                        }}%</small>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Leave type description (if available) -->
-                  <div v-if="balance.leave_type?.description" class="mt-2 pt-2 border-top">
-                    <small class="text-muted">
-                      <i class="ti ti-info-circle me-1"></i>
-                      {{ balance.leave_type.description }}
-                    </small>
-                  </div>
-                </div>
-              </div>
-              <div v-else class="p-3">
-                <div class="text-center py-3">
-                  <i class="ti ti-calendar-off text-muted mb-2" style="font-size: 2rem;"></i>
-                  <p class="text-muted mb-0">No leave balance information available</p>
-                  <small class="text-muted">Leave balances will appear here once allocated</small>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- End of Leave Balance Information -->
-
-
         </div>
+        <!-- End of Employee Details-->
 
+        <!-- Grants, Funding Allocations Tab-->
         <div class="col-xl-7">
           <div>
             <div class="card">
@@ -1176,14 +1418,14 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-calendar-plus me-2"></i>Start Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.start_date) || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-calendar-event me-2"></i>End Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.end_date) || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1192,7 +1434,7 @@
                                         Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.probation_pass_date) ||
                                         'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1217,7 +1459,7 @@
                                       <span class="text-muted"><i class="ti ti-building me-2"></i>Department Position
                                         ID</span>
                                       <span class="fw-medium">{{ employee.employment?.department_position_id || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                 </ul>
@@ -1230,14 +1472,14 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-location me-2"></i>Work Location</span>
                                       <span class="fw-medium">{{ employee.employment?.work_location?.name || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-map-pin me-2"></i>Location Type</span>
                                       <span class="fw-medium">{{ employee.employment?.work_location?.type || 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1246,7 +1488,7 @@
                                         Salary</span>
                                       <span class="fw-medium">{{ employee.employment?.position_salary ?
                                         `${Number(employee.employment.position_salary).toLocaleString()} THB` : 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1254,7 +1496,7 @@
                                       <span class="text-muted"><i class="ti ti-cash me-2"></i>Probation Salary</span>
                                       <span class="fw-medium">{{ employee.employment?.probation_salary ?
                                         `${Number(employee.employment.probation_salary).toLocaleString()} THB` : 'N/A'
-                                      }}</span>
+                                        }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1330,7 +1572,7 @@
                                     <h6 class="mb-2"><i class="ti ti-user me-2"></i>Created By</h6>
                                     <p class="mb-0">{{ employee.employment?.created_by || 'N/A' }}</p>
                                     <small class="text-muted">{{ formatDate(employee.employment?.created_at) || 'N/A'
-                                    }}</small>
+                                      }}</small>
                                   </div>
                                 </div>
                               </div>
@@ -1340,7 +1582,7 @@
                                     <h6 class="mb-2"><i class="ti ti-user-edit me-2"></i>Updated By</h6>
                                     <p class="mb-0">{{ employee.employment?.updated_by || 'N/A' }}</p>
                                     <small class="text-muted">{{ formatDate(employee.employment?.updated_at) || 'N/A'
-                                    }}</small>
+                                      }}</small>
                                   </div>
                                 </div>
                               </div>
@@ -1404,199 +1646,90 @@
               </div>
             </div>
 
-            <div class="tab-content custom-accordion-items">
-              <div class="tab-pane active show" id="bottom-justified-tab1" role="tabpanel">
-                <div class="accordion accordions-items-seperate" id="accordionExample">
-                  <!-- Bank Information -->
-                  <div class="accordion-item">
-                    <div class="accordion-header" id="headingTwo">
-                      <div class="accordion-button">
-                        <div class="d-flex align-items-center flex-fill">
-                          <h5>Bank Information</h5>
-                          <a href="javascript:void(0);" class="btn btn-sm btn-icon ms-auto" data-bs-toggle="modal"
-                            data-bs-target="#edit_bank"><i class="ti ti-edit"></i></a>
-                          <a href="javascript:void(0);" class="d-flex align-items-center collapsed collapse-arrow"
-                            data-bs-toggle="collapse" data-bs-target="#primaryBorderTwo" aria-expanded="false"
-                            aria-controls="primaryBorderTwo">
-                            <i class="ti ti-chevron-down fs-18"></i>
-                          </a>
+            <!-- Leave Balance Information -->
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <h6>Leave Balance Information ({{ new Date().getFullYear() }})</h6>
+            </div>
+            <div class="card">
+              <div class="card-body p-0">
+                <div v-if="leaveBalances && leaveBalances.length > 0">
+                  <div v-for="(balance, index) in leaveBalances" :key="balance.id || index" class="p-3"
+                    :class="{ 'border-bottom': index < leaveBalances.length - 1 }">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center mb-2">
+                          <i class="ti ti-calendar-time me-2 text-primary"></i>
+                          <span class="fw-medium text-dark">{{ balance.leave_type?.name || 'Unknown Leave Type'
+                          }}</span>
+                          <span v-if="balance.leave_type?.requires_attachment" class="badge badge-soft-warning ms-2"
+                            title="Requires attachment">
+                            <i class="ti ti-paperclip me-1"></i>Attachment Required
+                          </span>
                         </div>
-                      </div>
-                    </div>
-                    <div id="primaryBorderTwo" class="accordion-collapse collapse border-top"
-                      aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-                      <div class="accordion-body">
-                        <div class="row">
-                          <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center">
-                              Bank Name
-                            </span>
-                            <h6 class="d-flex align-items-center fw-medium mt-1">
-                              {{ employee.bank_name || 'N/A' }}
-                            </h6>
-                          </div>
-                          <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center">
-                              Bank account no
-                            </span>
-                            <h6 class="d-flex align-items-center fw-medium mt-1">
-                              {{ employee.bank_account_number || 'N/A' }}
-                            </h6>
-                          </div>
-                          <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center">
-                              Account Name
-                            </span>
-                            <h6 class="d-flex align-items-center fw-medium mt-1">
-                              {{ employee.bank_account_name || 'N/A' }}
-                            </h6>
-                          </div>
-                          <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center"> Branch </span>
-                            <h6 class="d-flex align-items-center fw-medium mt-1">
-                              {{ employee.bank_branch || 'N/A' }}
-                            </h6>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
-                  <!-- Family Information -->
-                  <div class="accordion-item">
-                    <div class="accordion-header" id="headingThree">
-                      <div class="accordion-button">
-                        <div class="d-flex align-items-center justify-content-between flex-fill">
-                          <h5>Family Information</h5>
-                          <div class="d-flex">
-                            <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
-                              data-bs-target="#edit_familyinformation"><i class="ti ti-edit"></i></a>
-                            <a href="javascript:void(0);" class="d-flex align-items-center collapsed collapse-arrow"
-                              data-bs-toggle="collapse" data-bs-target="#primaryBorderThree" aria-expanded="false"
-                              aria-controls="primaryBorderThree">
-                              <i class="ti ti-chevron-down fs-18"></i>
-                            </a>
-                          </div>
+                        <div class="d-flex align-items-center mb-2">
+                          <span class="badge me-2"
+                            :class="getRemainingDaysClass(balance.remaining_days, balance.total_days)">
+                            <i class="ti ti-calendar-check me-1"></i>
+                            {{ Number(balance.remaining_days || 0).toFixed(1) }} days remaining
+                          </span>
                         </div>
-                      </div>
-                    </div>
-                    <div id="primaryBorderThree" class="accordion-collapse collapse border-top"
-                      aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-                      <div class="accordion-body">
-                        <div class="row">
-                          <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center"> Father </span>
-                            <h6 class="d-flex align-items-center fw-medium mt-1">
-                              {{ employee.father_name || 'N/A' }}
-                            </h6>
-                          </div>
-                          <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center">
-                              Father Occupation
-                            </span>
-                            <h6 class="d-flex align-items-center fw-medium mt-1">
-                              {{ employee.father_occupation || 'N/A' }}
-                            </h6>
-                          </div>
-                          <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center">
-                              Mother
-                            </span>
-                            <h6 class="d-flex align-items-center fw-medium mt-1">
-                              {{ employee.mother_name || 'N/A' }}
-                            </h6>
-                          </div>
-                          <div class="col-md-3">
-                            <span class="d-inline-flex align-items-center">
-                              Mother Occupation
-                            </span>
-                            <h6 class="d-flex align-items-center fw-medium mt-1">
-                              {{ employee.mother_occupation || 'N/A' }}
-                            </h6>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
-                  <!-- Education Details -->
-                  <div class="row">
-                    <div class="col-md-12">
-                      <div class="accordion-item">
-                        <div class="row">
-                          <div class="accordion-header" id="headingFour">
-                            <div class="accordion-button">
-                              <div class="d-flex align-items-center justify-content-between flex-fill">
-                                <h5>Background Education</h5>
-                                <div class="d-flex">
-                                  <a href="javascript:void(0);" class="btn btn-icon btn-sm" data-bs-toggle="modal"
-                                    data-bs-target="#edit_education"><i class="ti ti-edit"></i></a>
-                                  <a href="javascript:void(0);"
-                                    class="d-flex align-items-center collapsed collapse-arrow" data-bs-toggle="collapse"
-                                    data-bs-target="#primaryBorderFour" aria-expanded="false"
-                                    aria-controls="primaryBorderFour">
-                                    <i class="ti ti-chevron-down fs-18"></i>
-                                  </a>
-                                </div>
-                              </div>
+                        <div class="row text-sm">
+                          <div class="col-4">
+                            <span class="text-muted">Total Allocated:</span><br>
+                            <span class="fw-medium text-dark">{{ Number(balance.total_days || 0).toFixed(1) }}
+                              days</span>
+                          </div>
+                          <div class="col-4">
+                            <span class="text-muted">Days Used:</span><br>
+                            <span class="fw-medium text-warning">{{ Number(balance.used_days || 0).toFixed(1) }}
+                              days</span>
+                          </div>
+                          <div class="col-4">
+                            <span class="text-muted">Year:</span><br>
+                            <span class="fw-medium text-info">{{ balance.year || new Date().getFullYear() }}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="ms-3">
+                        <!-- Progress bar showing usage -->
+                        <div class="d-flex flex-column align-items-end">
+                          <small class="text-muted mb-1">Usage</small>
+                          <div class="progress" style="width: 120px; height: 10px;">
+                            <div class="progress-bar"
+                              :class="getUsageProgressClass(balance.used_days, balance.total_days)"
+                              :style="`width: ${getUsagePercentage(balance.used_days, balance.total_days)}%`">
                             </div>
                           </div>
-                          <div id="primaryBorderFour" class="accordion-collapse collapse border-top"
-                            aria-labelledby="headingFour" data-bs-parent="#accordionExample">
-                            <div class="accordion-body">
-                              <div>
-                                <div class="mb-3">
-                                  <div class="d-flex align-items-center justify-content-between">
-                                    <div>
-                                      <span class="d-inline-flex align-items-center fw-normal">
-                                        Oxford University
-                                      </span>
-                                      <h6 class="d-flex align-items-center mt-1">
-                                        Computer Science
-                                      </h6>
-                                    </div>
-                                    <p class="text-dark">2020 - 2022</p>
-                                  </div>
-                                </div>
-                                <div class="mb-3">
-                                  <div class="d-flex align-items-center justify-content-between">
-                                    <div>
-                                      <span class="d-inline-flex align-items-center fw-normal">
-                                        Cambridge University
-                                      </span>
-                                      <h6 class="d-flex align-items-center mt-1">
-                                        Computer Network & Systems
-                                      </h6>
-                                    </div>
-                                    <p class="text-dark">2016- 2019</p>
-                                  </div>
-                                </div>
-                                <div>
-                                  <div class="d-flex align-items-center justify-content-between">
-                                    <div>
-                                      <span class="d-inline-flex align-items-center fw-normal">
-                                        Oxford School
-                                      </span>
-                                      <h6 class="d-flex align-items-center mt-1">
-                                        Grade X
-                                      </h6>
-                                    </div>
-                                    <p class="text-dark">2012 - 2016</p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                          <small class="text-muted mt-1">{{ getUsagePercentage(balance.used_days, balance.total_days)
+                          }}%</small>
                         </div>
                       </div>
                     </div>
 
-
+                    <!-- Leave type description (if available) -->
+                    <div v-if="balance.leave_type?.description" class="mt-2 pt-2 border-top">
+                      <small class="text-muted">
+                        <i class="ti ti-info-circle me-1"></i>
+                        {{ balance.leave_type.description }}
+                      </small>
+                    </div>
                   </div>
-
+                </div>
+                <div v-else class="p-3">
+                  <div class="text-center py-3">
+                    <i class="ti ti-calendar-off text-muted mb-2" style="font-size: 2rem;"></i>
+                    <p class="text-muted mb-0">No leave balance information available</p>
+                    <small class="text-muted">Leave balances will appear here once allocated</small>
+                  </div>
                 </div>
               </div>
             </div>
+            <!-- End of Leave Balance Information -->
+
+            <!-- End of Grants, Funding Allocations Tab-->
           </div>
         </div>
         <!-- /Grants Tab -->
@@ -1614,6 +1747,7 @@ import { employmentService } from '@/services/employment.service';
 import { Modal } from 'bootstrap';
 import employeeChildrenService from "@/services/employee-children.service";
 import employeeBeneficiaryService from "@/services/employeeBeneficiary.service";
+import employeeEducationService from "@/services/employeeEducation.service";
 
 
 export default {
@@ -1660,6 +1794,11 @@ export default {
       const modalEL = document.getElementById('edit_personal');
       const bsModal = Modal.getOrCreateInstance(modalEL);
       bsModal.show();
+    },
+
+    // open family information edit modal
+    openFamilyEditModal() {
+      this.$refs.employeeDetailsModal.openFamilyModal(this.employee);
     },
 
     // open basic information edit modal
@@ -1786,6 +1925,10 @@ export default {
       }
 
       return age;
+    },
+
+    calculateStudyDuration(startDate, endDate) {
+      return employeeEducationService.calculateStudyDuration(startDate, endDate);
     },
 
     async fetchEmployeeDetails() {
@@ -2165,6 +2308,23 @@ export default {
     },
 
     // ===== END LEAVE BALANCE METHODS =====
+
+    // ===== BANK INFORMATION METHODS =====
+
+    // Open Edit Bank Modal
+    openEditBankModal() {
+      // Prepare bank data from employee object
+      const bankData = {
+        bank_name: this.employee.bank_name || '',
+        bank_account_number: this.employee.bank_account_number || '',
+        bank_account_name: this.employee.bank_account_name || '',
+        bank_branch: this.employee.bank_branch || '',
+      };
+
+      this.$refs.employeeDetailsModal.openBankModal(bankData);
+    },
+
+    // ===== END BANK INFORMATION METHODS =====
   },
 };
 </script>

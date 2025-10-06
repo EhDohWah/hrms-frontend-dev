@@ -31,6 +31,16 @@ class PayrollService {
   async getPayrolls(params = {}) {
     const queryParams = new URLSearchParams();
 
+    // Normalize pagination to be 1-based and valid
+    if (params && Object.prototype.hasOwnProperty.call(params, 'page')) {
+      const pageNum = Number(params.page);
+      params.page = Number.isFinite(pageNum) && pageNum >= 1 ? pageNum : 1;
+    }
+    if (params && Object.prototype.hasOwnProperty.call(params, 'per_page')) {
+      const perNum = Number(params.per_page);
+      params.per_page = Number.isFinite(perNum) && perNum > 0 ? perNum : 10;
+    }
+
     // Add all parameters to query string
     Object.keys(params).forEach(key => {
       if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
@@ -47,6 +57,16 @@ class PayrollService {
   // Search payrolls by staff ID or employee details
   async searchPayrolls(params = {}) {
     const queryParams = new URLSearchParams();
+
+    // Normalize pagination to be 1-based and valid for search too
+    if (params && Object.prototype.hasOwnProperty.call(params, 'page')) {
+      const pageNum = Number(params.page);
+      params.page = Number.isFinite(pageNum) && pageNum >= 1 ? pageNum : 1;
+    }
+    if (params && Object.prototype.hasOwnProperty.call(params, 'per_page')) {
+      const perNum = Number(params.per_page);
+      params.per_page = Number.isFinite(perNum) && perNum > 0 ? perNum : 10;
+    }
 
     Object.keys(params).forEach(key => {
       if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
@@ -102,6 +122,11 @@ class PayrollService {
   // Calculate payroll for multiple employees
   async bulkCalculatePayroll(bulkData) {
     return await apiService.post(API_ENDPOINTS.PAYROLL.BULK_CALCULATE, bulkData);
+  }
+
+  // Create bulk payroll for multiple employees
+  async createBulkPayroll(bulkData) {
+    return await apiService.post(API_ENDPOINTS.PAYROLL.BULK_CREATE || `${API_ENDPOINTS.PAYROLL.CREATE}/bulk`, bulkData);
   }
 }
 

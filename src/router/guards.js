@@ -41,10 +41,12 @@ export const authGuard = (to, from, next) => {
                 return next('/dashboard/admin-dashboard');
             case 'hr-manager':
                 return next('/dashboard/hr-manager-dashboard');
-            case 'hr-assistant':
-                return next('/dashboard/hr-assistant-dashboard');
-            case 'employee':
-                return next('/dashboard/employee-dashboard');
+            case 'hr-assistant-senior':
+                return next('/dashboard/hr-assistant-senior-dashboard');
+            case 'hr-assistant-junior':
+                return next('/dashboard/hr-assistant-junior-dashboard');
+            case 'site-admin':
+                return next('/dashboard/site-admin-dashboard');
             default:
                 return next('/login');
         }
@@ -64,12 +66,14 @@ export const authGuard = (to, from, next) => {
                 return next('/dashboard/admin-dashboard');
             case 'hr-manager':
                 return next('/dashboard/hr-manager-dashboard');
-            case 'hr-assistant':
-                return next('/dashboard/hr-assistant-dashboard');
-            case 'employee':
-                return next('/dashboard/employee-dashboard');
+            case 'hr-assistant-senior':
+                return next('/dashboard/hr-assistant-senior-dashboard');
+            case 'hr-assistant-junior':
+                return next('/dashboard/hr-assistant-junior-dashboard');
+            case 'site-admin':
+                return next('/dashboard/site-admin-dashboard');
             default:
-                return next('/dashboard/employee-dashboard');
+                return next('/dashboard/site-admin-dashboard');
         }
     }
 

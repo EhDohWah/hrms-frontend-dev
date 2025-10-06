@@ -198,8 +198,15 @@ export const dataMapper = {
             totalDays: backendData.total_days,
             reason: backendData.reason,
             status: backendData.status,
+            // New boolean approval structure matching updated API (v4.1)
+            supervisorApproved: backendData.supervisor_approved || false,
+            supervisorApprovedDate: backendData.supervisor_approved_date,
+            hrSiteAdminApproved: backendData.hr_site_admin_approved || false,
+            hrSiteAdminApprovedDate: backendData.hr_site_admin_approved_date,
+            attachmentNotes: backendData.attachment_notes,
             createdAt: backendData.created_at,
             updatedAt: backendData.updated_at,
+            // Legacy support for old approval structure (for migration compatibility)
             approvals: backendData.approvals?.map(approval => ({
                 id: approval.id,
                 approverRole: approval.approver_role,
@@ -208,6 +215,7 @@ export const dataMapper = {
                 approvalDate: approval.approval_date,
                 status: approval.status
             })) || [],
+            // Legacy support for old attachment structure (for migration compatibility)
             attachments: backendData.attachments?.map(attachment => ({
                 id: attachment.id,
                 documentName: attachment.document_name,
@@ -227,18 +235,22 @@ export const dataMapper = {
         if (!frontendData) return null;
 
         return {
-            employee_id: frontendData.employeeId,
-            leave_type_id: frontendData.leaveTypeId,
-            start_date: dateUtils.formatForAPI(frontendData.startDate),
-            end_date: dateUtils.formatForAPI(frontendData.endDate),
-            total_days: frontendData.totalDays,
+            // Handle both camelCase and snake_case input formats
+            employee_id: frontendData.employee_id || frontendData.employeeId,
+            leave_type_id: frontendData.leave_type_id || frontendData.leaveTypeId,
+            start_date: dateUtils.formatForAPI(frontendData.start_date || frontendData.startDate),
+            end_date: dateUtils.formatForAPI(frontendData.end_date || frontendData.endDate),
+            total_days: frontendData.total_days || frontendData.totalDays,
             reason: frontendData.reason,
             status: frontendData.status,
-            documents: frontendData.attachments?.map(attachment => ({
-                document_name: attachment.documentName,
-                document_url: attachment.documentUrl,
-                description: attachment.description
-            })) || []
+            // New boolean approval structure matching updated API (v4.1)
+            supervisor_approved: frontendData.supervisor_approved || frontendData.supervisorApproved || false,
+            supervisor_approved_date: frontendData.supervisor_approved_date || frontendData.supervisorApprovedDate ?
+                dateUtils.formatForAPI(frontendData.supervisor_approved_date || frontendData.supervisorApprovedDate) : null,
+            hr_site_admin_approved: frontendData.hr_site_admin_approved || frontendData.hrSiteAdminApproved || false,
+            hr_site_admin_approved_date: frontendData.hr_site_admin_approved_date || frontendData.hrSiteAdminApprovedDate ?
+                dateUtils.formatForAPI(frontendData.hr_site_admin_approved_date || frontendData.hrSiteAdminApprovedDate) : null,
+            attachment_notes: frontendData.attachment_notes || frontendData.attachmentNotes
         };
     },
 

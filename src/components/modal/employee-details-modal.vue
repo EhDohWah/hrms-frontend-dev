@@ -3,15 +3,15 @@
   <div class="modal fade" id="edit_employee">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
-        <div class="modal-header">
-          <div class="d-flex align-items-center">
-            <h4 class="modal-title me-2">Edit Employee</h4>
-            <span>Staff ID : {{ editFormData.staff_id }}</span>
+        <div class="modal-header d-flex justify-content-between align-items-center">
+          <h4 class="modal-title">Edit Employee</h4>
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-muted">Staff ID : <strong>{{ editFormData.staff_id }}</strong></span>
+            <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_employee')"
+              aria-label="Close">
+              <i class="ti ti-x"></i>
+            </button>
           </div>
-          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_employee')"
-            aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
         </div>
 
         <!-- Restored Data Notification -->
@@ -181,13 +181,15 @@
   <div class="modal fade" id="edit_personal">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header d-flex justify-content-between align-items-center">
           <h4 class="modal-title">Personal Information</h4>
-          <span>Staff ID : {{ personalFormData.staff_id }}</span>
-          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_personal')"
-            aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-muted">Staff ID : <strong>{{ personalFormData.staff_id }}</strong></span>
+            <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_personal')"
+              aria-label="Close">
+              <i class="ti ti-x"></i>
+            </button>
+          </div>
         </div>
 
         <!-- Restored Data Notification -->
@@ -489,7 +491,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">{{ isEditingBank ? 'Edit' : 'Add' }} Bank Information</h4>
+          <h4 class="modal-title">{{ isEditingBank ? 'Edit Bank Information' : 'Add Bank Information' }}</h4>
           <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_bank')"
             aria-label="Close">
             <i class="ti ti-x"></i>
@@ -547,7 +549,7 @@
             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
-              {{ isEditingBank ? 'Update' : 'Save' }}
+              {{ isEditingBank ? 'Update Bank Information' : 'Save' }}
             </button>
           </div>
         </form>
@@ -556,24 +558,31 @@
   </div>
   <!-- /Add/Edit Bank Information Modal -->
 
-  <!-- Add/Edit Family Information Modal -->
+  <!-- Add/Edit Parents & Emergency Contact Information Modal -->
   <div class="modal fade" id="edit_familyinformation">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">{{ isEditingFamily ? 'Edit' : 'Add' }} Family Information</h4>
-          <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_familyinformation')"
-            aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
+        <div class="modal-header d-flex justify-content-between align-items-center">
+          <h4 class="modal-title">Parents & Emergency Contact Information</h4>
+          <div class="d-flex align-items-center gap-3">
+            <span class="text-muted">Staff ID : <strong>{{ employee?.staff_id || 'N/A' }}</strong></span>
+            <button type="button" class="btn-close custom-btn-close" @click="handleModalClose('edit_familyinformation')"
+              aria-label="Close">
+              <i class="ti ti-x"></i>
+            </button>
+          </div>
         </div>
 
         <!-- Restored Data Notification -->
         <div v-if="restoredDataNotification.familyForm" class="alert alert-info alert-dismissible fade show mx-3 mt-2"
           role="alert">
           <i class="ti ti-info-circle me-2"></i>
-          Restored your previous unsaved changes
+          Restored your previous unsaved changes from {{ formatRestoredTime(restoredDataNotification.familyFormTime) }}
           <button type="button" class="btn-close" @click="restoredDataNotification.familyForm = false"></button>
+        </div>
+
+        <div v-if="alertMessageFamily" class="alert" :class="alertClassFamily" role="alert">
+          {{ alertMessageFamily }}
         </div>
 
         <form @submit.prevent="submitFamilyForm">
@@ -586,35 +595,22 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Father's Name</label>
-                  <input type="text" class="form-control" v-model="familyForm.father_name"
+                  <input type="text" class="form-control" v-model="familyForm.father_name" maxlength="100"
                     placeholder="Enter father's name" @input="saveFormState('familyForm')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Father's Occupation</label>
-                  <input type="text" class="form-control" v-model="familyForm.father_occupation"
+                  <input type="text" class="form-control" v-model="familyForm.father_occupation" maxlength="100"
                     placeholder="Enter father's occupation" @input="saveFormState('familyForm')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Father's Phone</label>
-                  <input type="tel" class="form-control" v-model="familyForm.father_phone"
+                  <input type="tel" class="form-control" v-model="familyForm.father_phone" maxlength="20"
                     placeholder="Enter father's phone" @input="saveFormState('familyForm')" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Father's Date of Birth</label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="familyForm.father_date_of_birth" class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy" :editable="true" :clearable="true" :input-format="dateFormat"
-                      @update:model-value="handleDateChange('familyForm', 'father_date_of_birth', $event)" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
                 </div>
               </div>
 
@@ -626,35 +622,42 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Mother's Name</label>
-                  <input type="text" class="form-control" v-model="familyForm.mother_name"
+                  <input type="text" class="form-control" v-model="familyForm.mother_name" maxlength="100"
                     placeholder="Enter mother's name" @input="saveFormState('familyForm')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Mother's Occupation</label>
-                  <input type="text" class="form-control" v-model="familyForm.mother_occupation"
+                  <input type="text" class="form-control" v-model="familyForm.mother_occupation" maxlength="100"
                     placeholder="Enter mother's occupation" @input="saveFormState('familyForm')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Mother's Phone</label>
-                  <input type="tel" class="form-control" v-model="familyForm.mother_phone"
+                  <input type="tel" class="form-control" v-model="familyForm.mother_phone" maxlength="20"
                     placeholder="Enter mother's phone" @input="saveFormState('familyForm')" />
+                </div>
+              </div>
+
+              <!-- Spouse Information -->
+              <div class="col-md-12">
+                <hr class="my-3">
+                <h6 class="mb-3"><i class="ti ti-heart me-2"></i>Spouse Information</h6>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Spouse Name</label>
+                  <input type="text" class="form-control" v-model="familyForm.spouse_name" maxlength="100"
+                    placeholder="Enter spouse name" @input="saveFormState('familyForm')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Mother's Date of Birth</label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker v-model="familyForm.mother_date_of_birth" class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy" :editable="true" :clearable="true" :input-format="dateFormat"
-                      @update:model-value="handleDateChange('familyForm', 'mother_date_of_birth', $event)" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
+                  <label class="form-label">Spouse Phone</label>
+                  <input type="tel" class="form-control" v-model="familyForm.spouse_phone_number" maxlength="20"
+                    placeholder="Enter spouse phone" @input="saveFormState('familyForm')" />
                 </div>
               </div>
 
@@ -666,7 +669,7 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Emergency Contact Name</label>
-                  <input type="text" class="form-control" v-model="familyForm.emergency_contact_name"
+                  <input type="text" class="form-control" v-model="familyForm.emergency_contact_name" maxlength="100"
                     placeholder="Enter emergency contact name" @input="saveFormState('familyForm')" />
                 </div>
               </div>
@@ -674,21 +677,14 @@
                 <div class="mb-3">
                   <label class="form-label">Emergency Contact Relationship</label>
                   <input type="text" class="form-control" v-model="familyForm.emergency_contact_relationship"
-                    placeholder="Enter relationship" @input="saveFormState('familyForm')" />
+                    maxlength="50" placeholder="Enter relationship" @input="saveFormState('familyForm')" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Emergency Contact Phone</label>
-                  <input type="tel" class="form-control" v-model="familyForm.emergency_contact_phone"
+                  <input type="tel" class="form-control" v-model="familyForm.emergency_contact_phone" maxlength="20"
                     placeholder="Enter emergency contact phone" @input="saveFormState('familyForm')" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Emergency Contact Address</label>
-                  <textarea class="form-control" v-model="familyForm.emergency_contact_address" rows="2"
-                    placeholder="Enter emergency contact address" @input="saveFormState('familyForm')"></textarea>
                 </div>
               </div>
             </div>
@@ -699,14 +695,14 @@
             <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
               <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
-              {{ isEditingFamily ? 'Update' : 'Save' }}
+              Update
             </button>
           </div>
         </form>
       </div>
     </div>
   </div>
-  <!-- /Add/Edit Family Information Modal -->
+  <!-- /Add/Edit Parents & Emergency Contact Information Modal -->
 
   <!-- Add/Edit Education Modal -->
   <div class="modal fade" id="edit_education">
@@ -731,51 +727,40 @@
         <form @submit.prevent="submitEducationForm">
           <div class="modal-body pb-0">
             <div class="row">
+              <!-- Education Information Header -->
+              <div class="col-md-12">
+                <h6 class="mb-3"><i class="ti ti-school me-2"></i>Educational Background Information</h6>
+              </div>
+
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Institution Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" v-model="educationForm.institution_name" required
-                    placeholder="Enter institution name" @input="saveFormState('educationForm')" />
+                  <label class="form-label">School/Institution Name <span class="text-danger"> *</span></label>
+                  <input type="text" class="form-control" v-model="educationForm.school_name" required
+                    placeholder="Enter school or institution name" @input="saveFormState('educationForm')"
+                    maxlength="100" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Degree/Qualification <span class="text-danger"> *</span></label>
                   <input type="text" class="form-control" v-model="educationForm.degree" required
-                    placeholder="Enter degree or qualification" @input="saveFormState('educationForm')" />
+                    placeholder="Enter degree or qualification obtained" @input="saveFormState('educationForm')"
+                    maxlength="100" />
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Field of Study</label>
-                  <input type="text" class="form-control" v-model="educationForm.field_of_study"
-                    placeholder="Enter field of study" @input="saveFormState('educationForm')" />
-                </div>
+
+              <!-- Study Period Section -->
+              <div class="col-md-12">
+                <hr class="my-3">
+                <h6 class="mb-3"><i class="ti ti-calendar me-2"></i>Study Period</h6>
               </div>
+
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">Education Level <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="educationForm.education_level" required
-                    @change="saveFormState('educationForm')">
-                    <option value="" disabled selected>Select Education Level</option>
-                    <option value="Primary School">Primary School</option>
-                    <option value="Secondary School">Secondary School</option>
-                    <option value="High School">High School</option>
-                    <option value="Diploma">Diploma</option>
-                    <option value="Bachelor's Degree">Bachelor's Degree</option>
-                    <option value="Master's Degree">Master's Degree</option>
-                    <option value="Doctoral Degree">Doctoral Degree</option>
-                    <option value="Professional Certificate">Professional Certificate</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Start Date</label>
+                  <label class="form-label">Start Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
                     <date-picker v-model="educationForm.start_date" class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy" :editable="true" :clearable="true" :input-format="dateFormat"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
                       @update:model-value="handleDateChange('educationForm', 'start_date', $event)" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
@@ -785,55 +770,15 @@
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
-                  <label class="form-label">End Date</label>
+                  <label class="form-label">End Date <span class="text-danger"> *</span></label>
                   <div class="input-icon-end position-relative">
                     <date-picker v-model="educationForm.end_date" class="form-control datetimepicker"
-                      placeholder="dd/mm/yyyy" :editable="true" :clearable="true" :input-format="dateFormat"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
                       @update:model-value="handleDateChange('educationForm', 'end_date', $event)" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
                   </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">GPA/Grade</label>
-                  <input type="text" class="form-control" v-model="educationForm.gpa" placeholder="Enter GPA or grade"
-                    @input="saveFormState('educationForm')" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Location</label>
-                  <input type="text" class="form-control" v-model="educationForm.location" placeholder="Enter location"
-                    @input="saveFormState('educationForm')" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Description/Notes</label>
-                  <textarea class="form-control" v-model="educationForm.description" rows="3"
-                    placeholder="Enter additional information about this education"
-                    @input="saveFormState('educationForm')"></textarea>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Status</label>
-                  <select class="form-select" v-model="educationForm.status" @change="saveFormState('educationForm')">
-                    <option value="" disabled selected>Select Status</option>
-                    <option value="Completed">Completed</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Discontinued">Discontinued</option>
-                  </select>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Honors/Awards</label>
-                  <input type="text" class="form-control" v-model="educationForm.honors"
-                    placeholder="Enter any honors or awards" @input="saveFormState('educationForm')" />
                 </div>
               </div>
             </div>
@@ -1035,6 +980,7 @@ import { ExclamationCircleOutlined } from '@ant-design/icons-vue'; // Add icon i
 import { useLookupStore } from "@/stores/lookupStore";
 import employeeService from "@/services/employee.service";
 import employeeChildrenService from "@/services/employee-children.service";
+import employeeEducationService from "@/services/employeeEducation.service";
 // Ant Design is globally imported in main.js
 
 const currentDate = ref(new Date());
@@ -1070,9 +1016,11 @@ export default {
       alertMessage: '',
       alertMessageBasic: '',
       alertMessagePersonal: '',
+      alertMessageFamily: '',
       alertClass: '',
       alertClassBasic: '',
       alertClassPersonal: '',
+      alertClassFamily: '',
       subsidiaries: [],
       genders: [],
       date_of_birth: '',
@@ -1108,6 +1056,7 @@ export default {
         educationForm: false,
         editFormTime: null,
         personalFormTime: null,
+        familyFormTime: null,
       },
 
       personalFormData: {
@@ -1169,30 +1118,23 @@ export default {
         father_name: '',
         father_occupation: '',
         father_phone: '',
-        father_date_of_birth: null,
         mother_name: '',
         mother_occupation: '',
         mother_phone: '',
-        mother_date_of_birth: null,
+        spouse_name: '',
+        spouse_phone_number: '',
         emergency_contact_name: '',
         emergency_contact_relationship: '',
         emergency_contact_phone: '',
-        emergency_contact_address: '',
       },
 
       educationForm: {
         id: null,
-        institution_name: '',
+        employee_id: '',
+        school_name: '',
         degree: '',
-        field_of_study: '',
-        education_level: '',
         start_date: null,
         end_date: null,
-        gpa: '',
-        location: '',
-        description: '',
-        status: '',
-        honors: '',
       },
 
       selectedLanguages: [],
@@ -1496,15 +1438,9 @@ export default {
 
         if (savedData.familyForm) {
           const familyData = { ...savedData.familyForm };
-          // Safely convert date fields
-          if (familyData.father_date_of_birth) {
-            familyData.father_date_of_birth = this.safeConvertToDate(familyData.father_date_of_birth);
-          }
-          if (familyData.mother_date_of_birth) {
-            familyData.mother_date_of_birth = this.safeConvertToDate(familyData.mother_date_of_birth);
-          }
           Object.assign(this.familyForm, familyData);
           this.restoredDataNotification.familyForm = true;
+          this.restoredDataNotification.familyFormTime = savedData.familyForm.timestamp || Date.now();
         }
 
         if (savedData.educationForm) {
@@ -1769,6 +1705,10 @@ export default {
         this.resetFamilyForm();
         this.resetEducationForm();
         this.resetChildForm();
+
+        // Reset alert messages
+        this.alertMessageFamily = '';
+        this.alertClassFamily = '';
       } catch (error) {
         console.error('Error resetting forms:', error);
       }
@@ -1952,22 +1892,22 @@ export default {
     async openBankModal(bankData = null) {
       if (this.isDestroyed) return;
 
-      if (bankData) {
-        // Edit mode
+      if (bankData && (bankData.bank_name || bankData.bank_account_number || bankData.bank_account_name || bankData.bank_branch)) {
+        // Edit mode - has existing bank data
         this.isEditingBank = true;
         this.bankForm = {
-          id: bankData.id,
+          id: bankData.id || null,
           bank_name: bankData.bank_name || '',
           bank_account_number: bankData.bank_account_number || '',
           bank_account_name: bankData.bank_account_name || '',
           bank_branch: bankData.bank_branch || '',
-          swift_code: bankData.swift_code || '',
-          account_type: bankData.account_type || '',
         };
+        console.log('Opening bank modal in edit mode with data:', this.bankForm);
       } else {
         // Add mode
         this.isEditingBank = false;
         this.resetBankForm();
+        console.log('Opening bank modal in add mode');
       }
 
       await this.safeShowModal('edit_bank');
@@ -1977,45 +1917,67 @@ export default {
     async submitFamilyForm() {
       if (this.isDestroyed) return;
 
+      this.loading = true;
+      this.error = null;
+      this.alertMessageFamily = '';
+      this.alertClassFamily = '';
+
       try {
         this.isSubmitting = true;
 
+        // Prepare payload according to backend API specification
         const payload = {
-          employee_id: this.employee.id,
           father_name: this.familyForm.father_name,
           father_occupation: this.familyForm.father_occupation,
           father_phone: this.familyForm.father_phone,
-          father_date_of_birth: this.formatDate(this.familyForm.father_date_of_birth),
           mother_name: this.familyForm.mother_name,
           mother_occupation: this.familyForm.mother_occupation,
           mother_phone: this.familyForm.mother_phone,
-          mother_date_of_birth: this.formatDate(this.familyForm.mother_date_of_birth),
+          spouse_name: this.familyForm.spouse_name,
+          spouse_phone_number: this.familyForm.spouse_phone_number,
           emergency_contact_name: this.familyForm.emergency_contact_name,
           emergency_contact_relationship: this.familyForm.emergency_contact_relationship,
           emergency_contact_phone: this.familyForm.emergency_contact_phone,
-          emergency_contact_address: this.familyForm.emergency_contact_address,
         };
 
-        // Add API call here
-        // const response = await familyService.createOrUpdateFamily(payload);
-        console.log('Family payload ready for API:', payload);
+        // Remove empty fields to avoid unnecessary API payload
+        Object.keys(payload).forEach(key => {
+          if (payload[key] === null || payload[key] === undefined || payload[key] === '') {
+            delete payload[key];
+          }
+        });
 
-        this.$message.success(`Family information ${this.isEditingFamily ? 'updated' : 'saved'} successfully`);
-        this.$emit('employee-updated');
+        console.log('Family payload for API:', payload);
 
-        // Clear saved form data after successful submission
-        this.clearFormSection(this.employee.id, 'familyForm');
-        this.markAsSaved(this.employee.id);
+        // Call the family information update API
+        const response = await employeeService.updateEmployeeFamilyInformation(this.employee.id, payload);
 
-        // Reset form
-        this.resetFamilyForm();
+        if (this.isDestroyed) return;
 
-        // Close modal
-        await this.safeHideModal('edit_familyinformation');
+        if (response && response.success) {
+          this.$emit('employee-updated', response.data);
+          this.alertMessageFamily = response.message || 'Family information updated successfully';
+          this.alertClassFamily = 'alert-success';
+
+          // Clear saved form data after successful submission
+          this.clearFormSection(this.employee.id, 'familyForm');
+          this.markAsSaved(this.employee.id);
+        } else {
+          this.alertMessageFamily = response?.message || 'Failed to update family information';
+          this.alertClassFamily = 'alert-danger';
+        }
+        return response;
       } catch (error) {
+        if (this.isDestroyed) return;
+
         console.error('Error submitting family form:', error);
-        this.$message.error('Error saving family information');
+
+        this.error = error.message || 'Failed to update family information';
+        this.alertMessageFamily = this.error;
+        this.alertClassFamily = 'alert-danger';
+        throw error;
       } finally {
+        this.loading = false;
         this.isSubmitting = false;
       }
     },
@@ -2029,15 +1991,14 @@ export default {
         father_name: '',
         father_occupation: '',
         father_phone: '',
-        father_date_of_birth: null,
         mother_name: '',
         mother_occupation: '',
         mother_phone: '',
-        mother_date_of_birth: null,
+        spouse_name: '',
+        spouse_phone_number: '',
         emergency_contact_name: '',
         emergency_contact_relationship: '',
         emergency_contact_phone: '',
-        emergency_contact_address: '',
       };
       this.isEditingFamily = false;
     },
@@ -2047,40 +2008,38 @@ export default {
       if (this.isDestroyed) return;
 
       if (familyData) {
-        // Edit mode
+        // Edit mode - populate with existing family data
         this.isEditingFamily = true;
         this.familyForm = {
           id: familyData.id,
           father_name: familyData.father_name || '',
           father_occupation: familyData.father_occupation || '',
-          father_phone: familyData.father_phone || '',
-          father_date_of_birth: this.safeConvertToDate(familyData.father_date_of_birth),
+          father_phone: familyData.father_phone_number || familyData.father_phone || '', // Handle both field names
           mother_name: familyData.mother_name || '',
           mother_occupation: familyData.mother_occupation || '',
-          mother_phone: familyData.mother_phone || '',
-          mother_date_of_birth: this.safeConvertToDate(familyData.mother_date_of_birth),
-          emergency_contact_name: familyData.emergency_contact_name || '',
-          emergency_contact_relationship: familyData.emergency_contact_relationship || '',
-          emergency_contact_phone: familyData.emergency_contact_phone || '',
-          emergency_contact_address: familyData.emergency_contact_address || '',
+          mother_phone: familyData.mother_phone_number || familyData.mother_phone || '', // Handle both field names
+          spouse_name: familyData.spouse_name || '',
+          spouse_phone_number: familyData.spouse_phone_number || '',
+          emergency_contact_name: familyData.emergency_contact_person_name || familyData.emergency_contact_name || '', // Handle backend field name
+          emergency_contact_relationship: familyData.emergency_contact_person_relationship || familyData.emergency_contact_relationship || '', // Handle backend field name
+          emergency_contact_phone: familyData.emergency_contact_person_phone || familyData.emergency_contact_phone || '', // Handle backend field name
         };
       } else {
-        // Add mode (populate with employee data if available)
+        // Add mode - populate with employee data if available
         this.isEditingFamily = false;
         this.familyForm = {
           id: null,
           father_name: this.employee?.father_name || '',
           father_occupation: this.employee?.father_occupation || '',
-          father_phone: '',
-          father_date_of_birth: null,
+          father_phone: this.employee?.father_phone_number || '',
           mother_name: this.employee?.mother_name || '',
           mother_occupation: this.employee?.mother_occupation || '',
-          mother_phone: '',
-          mother_date_of_birth: null,
-          emergency_contact_name: '',
-          emergency_contact_relationship: '',
-          emergency_contact_phone: '',
-          emergency_contact_address: '',
+          mother_phone: this.employee?.mother_phone_number || '',
+          spouse_name: this.employee?.spouse_name || '',
+          spouse_phone_number: this.employee?.spouse_phone_number || '',
+          emergency_contact_name: this.employee?.emergency_contact_person_name || '',
+          emergency_contact_relationship: this.employee?.emergency_contact_person_relationship || '',
+          emergency_contact_phone: this.employee?.emergency_contact_person_phone || '',
         };
       }
 
@@ -2094,46 +2053,68 @@ export default {
       try {
         this.isSubmitting = true;
 
-        // Validate required fields
-        if (!this.educationForm.institution_name || !this.educationForm.degree || !this.educationForm.education_level) {
-          this.$message.error('Please fill in all required fields');
+        // Validate using service validation
+        const validation = employeeEducationService.validateEducationData({
+          employee_id: this.employee.id,
+          school_name: this.educationForm.school_name,
+          degree: this.educationForm.degree,
+          start_date: this.educationForm.start_date,
+          end_date: this.educationForm.end_date,
+        });
+
+        if (!validation.isValid) {
+          this.$message.error(validation.errors[0]);
           return;
         }
 
+        // Prepare payload
         const payload = {
           employee_id: this.employee.id,
-          institution_name: this.educationForm.institution_name,
+          school_name: this.educationForm.school_name,
           degree: this.educationForm.degree,
-          field_of_study: this.educationForm.field_of_study,
-          education_level: this.educationForm.education_level,
-          start_date: this.formatDate(this.educationForm.start_date),
-          end_date: this.formatDate(this.educationForm.end_date),
-          gpa: this.educationForm.gpa,
-          location: this.educationForm.location,
-          description: this.educationForm.description,
-          status: this.educationForm.status,
-          honors: this.educationForm.honors,
+          start_date: employeeEducationService.formatDateForAPI(this.educationForm.start_date),
+          end_date: employeeEducationService.formatDateForAPI(this.educationForm.end_date),
+          created_by: this.$store?.state?.auth?.user?.username || 'system',
+          updated_by: this.$store?.state?.auth?.user?.username || 'system'
         };
 
-        // Add API call here
-        // const response = await educationService.createOrUpdateEducation(payload);
-        console.log('Education payload ready for API:', payload);
+        let response;
+        if (this.isEditingEducation && this.educationForm.id) {
+          // Update existing education
+          response = await employeeEducationService.updateEmployeeEducation(this.educationForm.id, payload);
+        } else {
+          // Create new education
+          response = await employeeEducationService.createEmployeeEducation(payload);
+        }
 
-        this.$message.success(`Education information ${this.isEditingEducation ? 'updated' : 'added'} successfully`);
-        this.$emit('employee-updated');
+        if (response && response.data) {
+          this.$message.success(`Education information ${this.isEditingEducation ? 'updated' : 'added'} successfully`);
+          this.$emit('employee-updated');
 
-        // Clear saved form data after successful submission
-        this.clearFormSection(this.employee.id, 'educationForm');
-        this.markAsSaved(this.employee.id);
+          // Clear saved form data after successful submission
+          this.clearFormSection(this.employee.id, 'educationForm');
+          this.markAsSaved(this.employee.id);
 
-        // Reset form
-        this.resetEducationForm();
+          // Reset form
+          this.resetEducationForm();
 
-        // Close modal
-        await this.safeHideModal('edit_education');
+          // Close modal
+          await this.safeHideModal('edit_education');
+        } else {
+          this.$message.error(`Failed to ${this.isEditingEducation ? 'update' : 'add'} education information`);
+        }
       } catch (error) {
         console.error('Error submitting education form:', error);
-        this.$message.error('Error saving education information');
+
+        // Handle validation errors from backend
+        if (error.response && error.response.status === 422 && error.response.data.errors) {
+          const errorMessages = Object.values(error.response.data.errors).flat();
+          this.$message.error(errorMessages[0] || 'Validation error occurred');
+        } else if (error.response && error.response.data && error.response.data.message) {
+          this.$message.error(error.response.data.message);
+        } else {
+          this.$message.error(`Error ${this.isEditingEducation ? 'updating' : 'adding'} education information: ` + (error.message || 'Unknown error'));
+        }
       } finally {
         this.isSubmitting = false;
       }
@@ -2145,17 +2126,11 @@ export default {
 
       this.educationForm = {
         id: null,
-        institution_name: '',
+        employee_id: '',
+        school_name: '',
         degree: '',
-        field_of_study: '',
-        education_level: '',
         start_date: null,
         end_date: null,
-        gpa: '',
-        location: '',
-        description: '',
-        status: '',
-        honors: '',
       };
       this.isEditingEducation = false;
     },
@@ -2169,25 +2144,76 @@ export default {
         this.isEditingEducation = true;
         this.educationForm = {
           id: educationData.id,
-          institution_name: educationData.institution_name || '',
+          employee_id: educationData.employee_id || this.employee.id,
+          school_name: educationData.school_name || '',
           degree: educationData.degree || '',
-          field_of_study: educationData.field_of_study || '',
-          education_level: educationData.education_level || '',
           start_date: this.safeConvertToDate(educationData.start_date),
           end_date: this.safeConvertToDate(educationData.end_date),
-          gpa: educationData.gpa || '',
-          location: educationData.location || '',
-          description: educationData.description || '',
-          status: educationData.status || '',
-          honors: educationData.honors || '',
         };
       } else {
-        // Add mode
+        // Add mode - restore saved form data if available  
         this.isEditingEducation = false;
-        this.resetEducationForm();
+        const savedData = await this.checkForSavedData(this.employee.id);
+
+        if (savedData?.data?.educationForm && !this.isEditingEducation) {
+          const educationData = { ...savedData.data.educationForm };
+          if (educationData.start_date) {
+            educationData.start_date = this.safeConvertToDate(educationData.start_date);
+          }
+          if (educationData.end_date) {
+            educationData.end_date = this.safeConvertToDate(educationData.end_date);
+          }
+          Object.assign(this.educationForm, educationData);
+          this.restoredDataNotification.educationForm = true;
+        } else {
+          this.resetEducationForm();
+        }
       }
 
       await this.safeShowModal('edit_education');
+    },
+
+    // Open Add Education Modal
+    async openAddEducationModal() {
+      await this.openEducationModal();
+    },
+
+    // Open Edit Education Modal
+    async openEditEducationModal(education) {
+      await this.openEducationModal(education);
+    },
+
+    // Delete Education
+    async deleteEducation(educationId) {
+      this.$confirm({
+        title: 'Confirm Delete',
+        content: 'Are you sure you want to delete this education record? This action cannot be undone.',
+        okText: 'Yes, Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        centered: true,
+        onOk: async () => {
+          try {
+            const response = await employeeEducationService.deleteEmployeeEducation(educationId);
+
+            if (response) {
+              this.$message.success('Education record deleted successfully');
+              this.$emit('employee-updated');
+            } else {
+              this.$message.error('Failed to delete education record');
+            }
+          } catch (error) {
+            console.error('Error deleting education:', error);
+            if (error.response && error.response.status === 404) {
+              this.$message.error('Education record not found or already deleted');
+            } else if (error.response && error.response.data && error.response.data.message) {
+              this.$message.error(error.response.data.message);
+            } else {
+              this.$message.error('Error deleting education record: ' + (error.message || 'Unknown error'));
+            }
+          }
+        }
+      });
     },
 
     // Create or Update Child
@@ -2608,14 +2634,7 @@ export default {
               if (formKey === 'childForm' && formData.date_of_birth) {
                 formData.date_of_birth = this.safeConvertToDate(formData.date_of_birth);
               }
-              if (formKey === 'familyForm') {
-                if (formData.father_date_of_birth) {
-                  formData.father_date_of_birth = this.safeConvertToDate(formData.father_date_of_birth);
-                }
-                if (formData.mother_date_of_birth) {
-                  formData.mother_date_of_birth = this.safeConvertToDate(formData.mother_date_of_birth);
-                }
-              }
+              // No date fields to convert for familyForm
               if (formKey === 'educationForm') {
                 if (formData.start_date) {
                   formData.start_date = this.safeConvertToDate(formData.start_date);
@@ -2639,6 +2658,7 @@ export default {
                 this.restoredDataNotification.bankForm = true;
               } else if (formKey === 'familyForm') {
                 this.restoredDataNotification.familyForm = true;
+                this.restoredDataNotification.familyFormTime = savedData.timestamp;
               } else if (formKey === 'educationForm') {
                 this.restoredDataNotification.educationForm = true;
               } else if (formKey === 'childForm' && !this.isEditingChild) {

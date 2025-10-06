@@ -68,35 +68,6 @@ export default {
       showPassword.value = !showPassword.value;
     };
 
-    const redirectBasedOnRole = (user) => {
-      if (!user || !user.role) {
-        router.push('/dashboard');
-        return;
-      }
-
-      // Convert role to lowercase for case-insensitive comparison
-      const role = user.role.toLowerCase();
-
-      switch (role) {
-        case 'admin':
-          router.push('/dashboard/admin-dashboard');
-          break;
-        case 'hr-manager':
-          router.push('/dashboard/hr-manager-dashboard');
-          break;
-        case 'hr-assistant':
-          router.push('/dashboard/hr-assistant-dashboard');
-          break;
-        case 'manager':
-          router.push('/dashboard/employee-dashboard');
-          break;
-        case 'employee':
-          router.push('/dashboard/employee-dashboard');
-          break;
-        default:
-          router.push('/dashboard');
-      }
-    };
 
     const handleLogin = async () => {
       try {

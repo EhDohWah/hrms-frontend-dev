@@ -34,5 +34,10 @@ export const employeeFundingAllocationService = {
     getByGrantItem(grantItemId) {
         const url = API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.BY_GRANT_ITEM.replace(':grantItemId', grantItemId);
         return apiService.get(url);
+    },
+
+    // Get grant structure for UI dropdowns
+    getGrantStructure() {
+        return apiService.get(API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.GRANT_STRUCTURE);
     }
 };

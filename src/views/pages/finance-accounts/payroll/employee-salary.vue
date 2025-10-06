@@ -29,8 +29,10 @@
           </div>
 
           <div class="mb-2">
-            <router-link to="/payroll/add-employee-salary" class="btn btn-primary d-flex align-items-center"><i
-                class="ti ti-circle-plus me-2"></i>Add Salary</router-link>
+            <button type="button" class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal"
+              data-bs-target="#bulk-payroll-modal">
+              <i class="ti ti-cash-banknote me-2"></i>Bulk Payroll Creation
+            </button>
           </div>
           <div class="head-icons ms-2">
             <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -177,8 +179,12 @@
                     </div>
                   </template>
 
-                  <template v-if="column.key === 'department_position'">
-                    <span class="text-muted">{{ record.department_position }}</span>
+                  <template v-if="column.key === 'department'">
+                    <span class="text-muted">{{ record.department }}</span>
+                  </template>
+
+                  <template v-if="column.key === 'position'">
+                    <span class="text-muted">{{ record.position }}</span>
                   </template>
 
                   <template v-if="column.key === 'funding_sources'">
@@ -257,7 +263,7 @@
     <layout-footer></layout-footer>
   </div>
   <!-- /Page Wrapper -->
-  <employee-salary-modal></employee-salary-modal>
+  <bulk-payroll-modal @refresh="fetchPayrolls" @payroll-created="handlePayrollCreated"></bulk-payroll-modal>
 </template>
 <script>
 import "daterangepicker/daterangepicker.css";
@@ -267,7 +273,7 @@ import moment from "moment";
 import DateRangePicker from "daterangepicker";
 import { payrollService } from '@/services/payroll.service';
 import { useLookupStore } from "@/stores/lookupStore";
-import { useDepartmentPositionStore } from "@/stores/departmentPositionStore";
+import { useSharedDataStore } from "@/stores/sharedDataStore";
 
 // Import Bootstrap or use global Bootstrap if available
 let bootstrap;
@@ -290,8 +296,13 @@ const formatCurrency = (value) => {
   return `฿${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
+import BulkPayrollModal from '@/components/modal/bulk-payroll-modal.vue';
+
 export default {
   name: 'EmployeeSalary',
+  components: {
+    BulkPayrollModal,
+  },
   data() {
     return {
       // Page metadata
@@ -353,9 +364,16 @@ export default {
           sortDirections: ['ascend', 'descend'],
         },
         {
-          title: 'Dept / Position',
-          dataIndex: 'department_position',
-          key: 'department_position',
+          title: 'Department',
+          dataIndex: 'department',
+          key: 'department',
+          sorter: false,
+          sortDirections: ['ascend', 'descend'],
+        },
+        {
+          title: 'Position',
+          dataIndex: 'position',
+          key: 'position',
           sorter: false,
           sortDirections: ['ascend', 'descend'],
         },
@@ -436,10 +454,10 @@ export default {
         key: payroll.id,
         id: payroll.id,
         subsidiary: payroll.employment?.employee?.subsidiary || 'N/A',
-        department_position: this.getDepartmentPosition(payroll),
         staff_id: payroll.employment?.employee?.staff_id || 'N/A',
         employeeName: this.getEmployeeName(payroll),
-        department: payroll.employment?.department_position?.department || 'N/A',
+        department: payroll.employment?.department?.name || 'N/A',
+        position: payroll.employment?.position?.title || 'N/A',
         basic_salary: formatCurrency(payroll.gross_salary),
         funding_sources: this.getFundingSources(payroll),
         payslip: 'Generate Slip',
@@ -505,9 +523,12 @@ export default {
 
     // Build API parameters from current state
     buildApiParams() {
+      // Ensure 1-based pagination and valid sizes
+      const current = Number(this.currentPage) || 1;
+      const perPage = Number(this.pageSize) || 10;
       const params = {
-        page: this.currentPage,
-        per_page: this.pageSize,
+        page: current < 1 ? 1 : current,
+        per_page: perPage < 1 ? 10 : perPage,
       };
 
       // Add search parameter
@@ -611,8 +632,8 @@ export default {
 
     // Handle pagination change
     handlePaginationChange(page, pageSize) {
-      this.currentPage = page;
-      this.pageSize = pageSize || this.pageSize;
+      this.currentPage = Number(page) > 0 ? Number(page) : 1;
+      this.pageSize = Number(pageSize) > 0 ? Number(pageSize) : this.pageSize;
       this.fetchPayrolls();
     },
 
@@ -627,8 +648,10 @@ export default {
     handleTableChange(pagination, filters, sorter) {
       // Update pagination
       if (pagination) {
-        this.currentPage = pagination.current;
-        this.pageSize = pagination.pageSize;
+        const nextPage = Number(pagination.current);
+        const nextSize = Number(pagination.pageSize);
+        this.currentPage = nextPage > 0 ? nextPage : 1;
+        this.pageSize = nextSize > 0 ? nextSize : this.pageSize;
       }
 
       // Update sorting
@@ -681,8 +704,8 @@ export default {
 
     // Get department and position
     getDepartmentPosition(payroll) {
-      const dept = payroll.employment?.department_position?.department || '';
-      const pos = payroll.employment?.department_position?.position || '';
+      const dept = payroll.employment?.department?.name || '';
+      const pos = payroll.employment?.position?.title || '';
       return dept && pos ? `${dept}/${pos}` : dept || pos || 'N/A';
     },
 
@@ -839,11 +862,11 @@ export default {
       this.availableSubsidiaries = this.subsidiaries.map(sub => sub.value).filter(Boolean);
     },
 
-    // Get departments from department position store
+    // Get departments from shared data store
     async fetchDepartments() {
       try {
-        const departmentPositionStore = useDepartmentPositionStore();
-        return departmentPositionStore.getAllDepartments;
+        const sharedStore = useSharedDataStore();
+        return await sharedStore.fetchDepartments(false, {});
       } catch (error) {
         console.error('Error fetching departments:', error);
         return [];
@@ -852,13 +875,20 @@ export default {
 
     // Initialize department data
     async initDepartments() {
-      const departmentPositionStore = useDepartmentPositionStore();
-      // If department positions aren't loaded yet, fetch them first
-      if (!departmentPositionStore.departmentPositions.length) {
-        await departmentPositionStore.fetchDepartmentPositions();
+      const sharedStore = useSharedDataStore();
+      // If departments aren't loaded yet, fetch them first
+      if (!sharedStore.isDepartmentsLoaded) {
+        await sharedStore.fetchDepartments(false, {});
       }
-      this.departments = departmentPositionStore.departmentPositions;
-      this.availableDepartments = departmentPositionStore.getAllDepartments;
+      this.departments = sharedStore.getDepartments || [];
+      this.availableDepartments = this.departments.map(dept => dept.name).filter(Boolean);
+    },
+
+    // Handle payroll created event from modal
+    handlePayrollCreated(data) {
+      console.log('Payroll created:', data);
+      // Refresh the payroll list
+      this.fetchPayrolls();
     },
   },
 

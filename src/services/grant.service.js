@@ -2,6 +2,7 @@
 import { apiService } from '@/services/api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
 import { BaseService } from '@/services/base.service';
+import { useSharedDataStore } from '@/stores/sharedDataStore';
 
 class GrantService extends BaseService {
 
@@ -94,10 +95,21 @@ class GrantService extends BaseService {
 
   // Create a new grant item
   async createGrantItem(itemData) {
-    return await this.handleApiResponse(
+    const result = await this.handleApiResponse(
       () => apiService.post(API_ENDPOINTS.GRANT.ITEMS.CREATE, itemData),
       'create grant item'
     );
+
+    // Invalidate grant structure cache after creating grant item
+    try {
+      const sharedStore = useSharedDataStore();
+      sharedStore.invalidateCache('grantStructure');
+      console.log('🗑️ Cache invalidated after creating grant item');
+    } catch (error) {
+      console.warn('⚠️ Failed to invalidate cache after creating grant item:', error);
+    }
+
+    return result;
   }
 
   // Update an existing grant
@@ -121,10 +133,21 @@ class GrantService extends BaseService {
   // Delete a grant item
   async deleteGrantItem(id) {
     const endpoint = API_ENDPOINTS.GRANT.ITEMS.DELETE.replace(':id', id);
-    return await this.handleApiResponse(
+    const result = await this.handleApiResponse(
       () => apiService.delete(endpoint),
       'delete grant item'
     );
+
+    // Invalidate grant structure cache after deleting grant item
+    try {
+      const sharedStore = useSharedDataStore();
+      sharedStore.invalidateCache('grantStructure');
+      console.log('🗑️ Cache invalidated after deleting grant item');
+    } catch (error) {
+      console.warn('⚠️ Failed to invalidate cache after deleting grant item:', error);
+    }
+
+    return result;
   }
 
   // Upload grant file
@@ -156,10 +179,21 @@ class GrantService extends BaseService {
   // Update a grant item
   async updateGrantItem(id, itemData) {
     const endpoint = API_ENDPOINTS.GRANT.ITEMS.UPDATE.replace(':id', id);
-    return await this.handleApiResponse(
+    const result = await this.handleApiResponse(
       () => apiService.put(endpoint, itemData),
       'update grant item'
     );
+
+    // Invalidate grant structure cache after updating grant item
+    try {
+      const sharedStore = useSharedDataStore();
+      sharedStore.invalidateCache('grantStructure');
+      console.log('🗑️ Cache invalidated after updating grant item');
+    } catch (error) {
+      console.warn('⚠️ Failed to invalidate cache after updating grant item:', error);
+    }
+
+    return result;
   }
 
   // Get grant positions
@@ -252,11 +286,29 @@ class GrantService extends BaseService {
     const numericValidation = this.validateNumericFields(itemData, [
       { field: 'grant_salary', min: 0 },
       { field: 'grant_benefit', min: 0 },
-      { field: 'grant_level_of_effort', min: 0, max: 1 }
+      { field: 'grant_level_of_effort', min: 0, max: 1 },
+      { field: 'grant_position_number', min: 1 }
     ]);
 
+    // Additional custom validations
+    const customErrors = {};
+
+    // Validate budget line code if provided
+    if (itemData.budgetline_code && typeof itemData.budgetline_code !== 'string') {
+      customErrors.budgetline_code = ['Budget line code must be a string'];
+    }
+
+    // Validate grant position if provided
+    if (itemData.grant_position && typeof itemData.grant_position !== 'string') {
+      customErrors.grant_position = ['Grant position must be a string'];
+    }
+
     // Combine validations
-    return this.combineValidations([requiredValidation, numericValidation]);
+    return this.combineValidations([
+      requiredValidation,
+      numericValidation,
+      { isValid: Object.keys(customErrors).length === 0, errors: customErrors }
+    ]);
   }
 
   /**

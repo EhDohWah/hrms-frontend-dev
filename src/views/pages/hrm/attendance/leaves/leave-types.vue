@@ -9,7 +9,7 @@
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
                 <index-breadcrumb :title="title" :text="text" :text1="text1" />
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-                    <div class="me-2 mb-2">
+                    <div class="mb-2 me-2">
                         <div class="dropdown">
                             <a href="javascript:void(0);"
                                 class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
@@ -30,11 +30,16 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="mb-2">
-                        <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
-                            @click="openCreateModal">
+                    <div class="mb-2 me-2">
+                        <button class="btn btn-primary d-flex align-items-center" @click="openCreateModal">
                             <i class="ti ti-circle-plus me-2"></i>Add Leave Type
-                        </a>
+                        </button>
+                    </div>
+                    <div class="mb-2 me-2">
+                        <button class="btn btn-danger d-flex align-items-center" @click="confirmDeleteSelected"
+                            :class="{ 'disabled': selectedRowKeys.length === 0 }">
+                            <i class="ti ti-trash me-2"></i>Delete Selected
+                        </button>
                     </div>
                     <div class="head-icons ms-2">
                         <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -46,420 +51,992 @@
             </div>
             <!-- /Breadcrumb -->
 
-            <!-- Filter Row -->
-            <div class="card">
-                <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-                    <h5>Leave Types</h5>
-                    <div class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3">
-                        <div class="me-3">
-                            <div class="input-icon-end position-relative">
-                                <input type="text" class="form-control date-range bookingrange"
-                                    placeholder="Search Leave Types" v-model="searchTerm" @input="handleSearch" />
-                                <span class="input-icon-addon">
-                                    <i class="ti ti-search text-gray-7"></i>
+            <!-- Leave Types Statistics -->
+            <div class="row statistics-row">
+                <!-- Total Leave Types -->
+                <div class="col-lg-3 col-md-6 d-flex">
+                    <div class="card flex-fill statistics-card">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center overflow-hidden">
+                                <div>
+                                    <span class="avatar avatar-lg bg-primary rounded-circle"><i
+                                            class="ti ti-calendar-event"></i></span>
+                                </div>
+                                <div class="ms-2 overflow-hidden">
+                                    <p class="fs-12 fw-medium mb-1 text-truncate">Total Leave Types</p>
+                                    <h4>{{ statistics.totalLeaveTypes || 0 }}</h4>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge badge-soft-primary badge-sm fw-normal">
+                                    <i class="ti ti-arrow-wave-right-down"></i>
+                                    100%
                                 </span>
                             </div>
                         </div>
-                        <div class="dropdown">
-                            <a href="javascript:void(0);"
-                                class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                                data-bs-toggle="dropdown">
-                                <i class="ti ti-sort-descending-2 me-2"></i>Sort by : Recently Added
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end p-3">
-                                <li>
-                                    <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                                        @click="setSortBy('recently_added')">
-                                        <i class="ti ti-circle-check me-2"></i>Recently Added
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                                        @click="setSortBy('ascending')">
-                                        <i class="ti ti-circle-check me-2"></i>Ascending
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                                        @click="setSortBy('descending')">
-                                        <i class="ti ti-circle-check me-2"></i>Descending
-                                    </a>
-                                </li>
-                            </ul>
+                    </div>
+                </div>
+                <!-- /Total Leave Types -->
+
+                <!-- Active Leave Types -->
+                <div class="col-lg-3 col-md-6 d-flex">
+                    <div class="card flex-fill statistics-card">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center overflow-hidden">
+                                <div>
+                                    <span class="avatar avatar-lg bg-success rounded-circle"><i
+                                            class="ti ti-check"></i></span>
+                                </div>
+                                <div class="ms-2 overflow-hidden">
+                                    <p class="fs-12 fw-medium mb-1 text-truncate">Active Types</p>
+                                    <h4>{{ statistics.activeLeaveTypes || 0 }}</h4>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge badge-soft-success badge-sm fw-normal">
+                                    <i class="ti ti-arrow-wave-right-down"></i>
+                                    {{ statistics.totalLeaveTypes > 0 ? Math.round((statistics.activeLeaveTypes /
+                                        statistics.totalLeaveTypes) * 100) : 0 }}%
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <!-- /Active Leave Types -->
 
-                <div class="card-body p-0">
-                    <div class="custom-datatable-filter table-responsive">
-                        <table class="table table-borderless custom-table">
-                            <thead class="thead-light">
-                                <tr>
-                                    <th class="no-sort">
-                                        <div class="form-check form-check-md">
-                                            <input class="form-check-input" type="checkbox" id="select-all"
-                                                v-model="selectAll" @change="toggleSelectAll" />
-                                            <label class="form-check-label" for="select-all"></label>
-                                        </div>
-                                    </th>
-                                    <th>Leave Type Name</th>
-                                    <th>Default Duration (Days)</th>
-                                    <th>Requires Attachment</th>
-                                    <th>Description</th>
-                                    <th>Created Date</th>
-                                    <th class="no-sort">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-if="loading.leaveTypes">
-                                    <td colspan="7" class="text-center">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-else-if="leaveTypes.length === 0">
-                                    <td colspan="7" class="text-center">No leave types found</td>
-                                </tr>
-                                <tr v-else v-for="leaveType in leaveTypes" :key="leaveType.id">
-                                    <td>
-                                        <div class="form-check form-check-md">
-                                            <input class="form-check-input" type="checkbox"
-                                                :id="`select-${leaveType.id}`" v-model="selectedItems"
-                                                :value="leaveType.id" />
-                                            <label class="form-check-label" :for="`select-${leaveType.id}`"></label>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <h6 class="fw-medium">{{ leaveType.name }}</h6>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-soft-info">
-                                            {{ leaveType.defaultDuration || 'N/A' }} {{ leaveType.defaultDuration ?
-                                                'days' : '' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span
-                                            :class="['badge', leaveType.requiresAttachment ? 'badge-soft-success' : 'badge-soft-secondary']">
-                                            {{ leaveType.requiresAttachment ? 'Yes' : 'No' }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="text-wrap" style="max-width: 200px;">
-                                            {{ leaveType.description || 'No description' }}
-                                        </span>
-                                    </td>
-                                    <td>{{ formatDate(leaveType.createdAt) }}</td>
-                                    <td>
-                                        <div class="dropdown table-action">
-                                            <a href="javascript:void(0);" class="action-icon dropdown-toggle"
-                                                data-bs-toggle="dropdown" aria-expanded="false">
-                                                <i class="fa fa-ellipsis-v"></i>
-                                            </a>
-                                            <div class="dropdown-menu dropdown-menu-end">
-                                                <a class="dropdown-item" href="javascript:void(0);"
-                                                    @click="openEditModal(leaveType)">
-                                                    <i class="ti ti-edit text-blue"></i> Edit
-                                                </a>
-                                                <a class="dropdown-item" href="javascript:void(0);"
-                                                    @click="confirmDelete(leaveType)">
-                                                    <i class="ti ti-trash text-danger"></i> Delete
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <!-- Attachment Required -->
+                <div class="col-lg-3 col-md-6 d-flex">
+                    <div class="card flex-fill statistics-card">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center overflow-hidden">
+                                <div>
+                                    <span class="avatar avatar-lg bg-warning rounded-circle"><i
+                                            class="ti ti-paperclip"></i></span>
+                                </div>
+                                <div class="ms-2 overflow-hidden">
+                                    <p class="fs-12 fw-medium mb-1 text-truncate">Require Attachment</p>
+                                    <h4>{{ statistics.attachmentRequired || 0 }}</h4>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge badge-soft-warning badge-sm fw-normal">
+                                    <i class="ti ti-arrow-wave-right-down"></i>
+                                    {{ statistics.totalLeaveTypes > 0 ? Math.round((statistics.attachmentRequired /
+                                        statistics.totalLeaveTypes) * 100) : 0 }}%
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <!-- /Attachment Required -->
 
-                <!-- Pagination -->
-                <div class="card-footer d-flex align-items-center justify-content-between flex-wrap">
-                    <p class="mb-0">
-                        Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }} of {{ pagination.total || 0 }}
-                        entries
-                    </p>
-                    <nav aria-label="Page Navigation">
-                        <ul class="pagination mb-0 justify-content-end">
-                            <li class="page-item" :class="{ disabled: pagination.currentPage <= 1 }">
-                                <a class="page-link" href="javascript:void(0);"
-                                    @click="changePage(pagination.currentPage - 1)">
-                                    <i class="ti ti-chevron-left"></i>
-                                </a>
-                            </li>
-                            <li v-for="page in paginationPages" :key="page" class="page-item"
-                                :class="{ active: page === pagination.currentPage }">
-                                <a class="page-link" href="javascript:void(0);" @click="changePage(page)">{{ page }}</a>
-                            </li>
-                            <li class="page-item" :class="{ disabled: pagination.currentPage >= pagination.lastPage }">
-                                <a class="page-link" href="javascript:void(0);"
-                                    @click="changePage(pagination.currentPage + 1)">
-                                    <i class="ti ti-chevron-right"></i>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
+                <!-- Recently Added -->
+                <div class="col-lg-3 col-md-6 d-flex">
+                    <div class="card flex-fill statistics-card">
+                        <div class="card-body d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center overflow-hidden">
+                                <div>
+                                    <span class="avatar avatar-lg bg-info rounded-circle"><i
+                                            class="ti ti-clock"></i></span>
+                                </div>
+                                <div class="ms-2 overflow-hidden">
+                                    <p class="fs-12 fw-medium mb-1 text-truncate">Recently Added</p>
+                                    <h4>{{ statistics.recentlyAdded || 0 }}</h4>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="badge badge-soft-info badge-sm fw-normal">
+                                    <i class="ti ti-arrow-wave-right-down"></i>
+                                    This Month
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Recently Added -->
+            </div>
+            <!-- /Leave Types Statistics -->
+
+            <!-- Leave Types List -->
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
+                    <h5>Leave Types</h5>
+                    <div class="d-flex align-items-center flex-wrap row-gap-2">
+                        <div class="me-2">
+                            <a-button class="me-2" @click="clearFiltersLocal">Clear filters</a-button>
+                            <a-button @click="clearAll">Clear filters and sorters</a-button>
+                        </div>
+                        <div class="input-icon-end">
+                            <a-input-search v-model:value="searchQuery" placeholder="Search leave types..."
+                                :loading="searchLoading" enter-button="Search" @search="handleSearch"
+                                style="width: 250px;" class="search-input-primary" />
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div v-if="loading.leaveTypes" class="text-center my-3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading leave types...</p>
+                    </div>
+                    <div v-else-if="!hasLeaveTypes" class="text-center py-5">
+                        <div class="empty-state">
+                            <i class="ti ti-calendar-x text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 text-muted">No leave types found</h5>
+                            <p class="text-muted">Start by creating a new leave type</p>
+                            <button class="btn btn-primary mt-2" @click="openCreateModal">
+                                <i class="ti ti-plus me-2"></i>Add Leave Type
+                            </button>
+                        </div>
+                    </div>
+                    <div v-else class="resize-observer-fix">
+                        <!-- Ant Design Table -->
+                        <a-table :columns="columns" :data-source="tableData" :pagination="false"
+                            :scroll="{ x: 1200, y: 'max-content' }" row-key="id" @change="handleTableChange"
+                            :row-selection="rowSelection" :loading="loading.leaveTypes">
+                            <!-- Custom cell rendering -->
+                            <template #bodyCell="{ column, record }">
+                                <template v-if="column.key === 'action'">
+                                    <div class="action-icon d-inline-flex">
+                                        <a href="javascript:void(0);" @click="editLeaveType(record)" class="me-2">
+                                            <i class="ti ti-edit"></i>
+                                        </a>
+                                        <a href="javascript:void(0);" @click="confirmDeleteLeaveType(record.id)">
+                                            <i class="ti ti-trash"></i>
+                                        </a>
+                                    </div>
+                                </template>
+
+                                <!-- Default Duration column -->
+                                <template v-if="column.key === 'defaultDuration'">
+                                    <span class="badge badge-soft-info">
+                                        {{ record.defaultDuration || 'N/A' }} {{ record.defaultDuration ? 'days' : '' }}
+                                    </span>
+                                </template>
+
+                                <!-- Requires Attachment column -->
+                                <template v-if="column.key === 'requiresAttachment'">
+                                    <span
+                                        :class="['badge', record.requiresAttachment ? 'badge-soft-success' : 'badge-soft-secondary']">
+                                        {{ record.requiresAttachment ? 'Yes' : 'No' }}
+                                    </span>
+                                </template>
+
+                                <!-- Description column -->
+                                <template v-if="column.key === 'description'">
+                                    <span class="text-wrap" style="max-width: 200px;">
+                                        {{ record.description || 'No description' }}
+                                    </span>
+                                </template>
+                            </template>
+                        </a-table>
+
+                        <!-- Ant Design Pagination -->
+                        <div class="pagination-wrapper">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="pagination-info">
+                                    Showing {{ paginationInfo.from }} to {{ paginationInfo.to }} of {{
+                                        paginationInfo.total }} entries
+                                </div>
+                                <a-pagination v-model:current="pagination.currentPage"
+                                    v-model:page-size="pagination.perPage" :total="pagination.total"
+                                    :show-size-changer="true" :show-quick-jumper="true"
+                                    :page-size-options="['10', '20', '50', '100']"
+                                    :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                                    @change="handlePaginationChange" @show-size-change="handleSizeChange" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+        <layout-footer></layout-footer>
     </div>
 
     <!-- Add/Edit Leave Type Modal -->
     <LeaveTypeModal :show="showModal" :isEditing="isEditing" :leaveType="selectedLeaveType" @close="closeModal"
         @save="handleSave" />
-
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="delete_modal" tabindex="-1" aria-labelledby="delete_modal" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Delete Leave Type</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Are you sure you want to delete <strong>{{ leaveTypeToDelete?.name }}</strong>?</p>
-                    <p class="text-danger">This action cannot be undone.</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" @click="handleDeleteLeaveType" :disabled="isDeleting">
-                        <span v-if="isDeleting" class="spinner-border spinner-border-sm me-2" role="status"></span>
-                        Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </template>
 
 <script>
+import { ref, computed, onMounted } from 'vue';
+import { Modal, Table, Modal as AntModal } from 'ant-design-vue';
+import { Modal as BootstrapModal } from 'bootstrap';
+import moment from 'moment';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import LeaveTypeModal from '@/components/modal/LeaveTypeModal.vue';
-import { useLeaveTypes } from '@/composables/useLeaveTypes';
+import LayoutHeader from '@/views/layouts/layout-header.vue';
+import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
+import LayoutFooter from '@/views/layouts/layout-footer.vue';
+import { leaveService } from '@/services/leave.service';
 import { useToast } from '@/composables/useToast';
 
 export default {
     name: 'LeaveTypes',
     components: {
         indexBreadcrumb,
-        LeaveTypeModal
+        LeaveTypeModal,
+        LayoutHeader,
+        LayoutSidebar,
+        LayoutFooter,
     },
     setup() {
         const { showToast } = useToast();
-        const {
-            leaveTypes,
-            pagination,
-            filters,
-            loading,
-            hasLeaveTypes,
-            isFirstPage,
-            isLastPage,
-            leaveTypeOptions,
-            fetchLeaveTypes,
-            createLeaveType,
-            updateLeaveType,
-            deleteLeaveType,
-            goToPage,
-            nextPage,
-            previousPage,
-            changePerPage,
-            updateFilters
-        } = useLeaveTypes();
 
-        return {
-            showToast,
-            leaveTypes,
-            pagination,
-            filters,
-            loading,
-            hasLeaveTypes,
-            isFirstPage,
-            isLastPage,
-            leaveTypeOptions,
-            fetchLeaveTypes,
-            createLeaveType,
-            updateLeaveType,
-            deleteLeaveType,
-            goToPage,
-            nextPage,
-            previousPage,
-            changePerPage,
-            updateFilters
-        };
-    },
-    data() {
-        return {
-            title: "Leave Types",
-            text: "Leave Management",
-            text1: "Leave Types",
+        // Reactive data - Following employees-list pattern
+        const searchQuery = ref('');
+        const searchLoading = ref(false);
+        const selectedRowKeys = ref([]);
+        const filteredInfo = ref({});
+        const sortedInfo = ref({});
 
-            // Local component state
-            selectedItems: [],
-            selectAll: false,
-            showModal: false,
-            isEditing: false,
-            selectedLeaveType: null,
-            leaveTypeToDelete: null,
-            isDeleting: false,
+        // Data properties (no store dependencies)
+        const leaveTypes = ref([]);
+        const loading = ref({
+            leaveTypes: false
+        });
 
-            // Local filters (sync with composable)
-            searchTerm: '',
-            sortBy: 'recently_added'
-        };
-    },
-    computed: {
-        paginationPages() {
-            const pages = [];
-            const start = Math.max(1, this.pagination.currentPage - 2);
-            const end = Math.min(this.pagination.lastPage, this.pagination.currentPage + 2);
+        // SEPARATE PAGINATION PROPERTIES - Following employees-list pattern
+        const currentPage = ref(1);
+        const pageSize = ref(10);
+        const total = ref(0);
 
-            for (let i = start; i <= end; i++) {
-                pages.push(i);
+        // Modal state
+        const showModal = ref(false);
+        const isEditing = ref(false);
+        const selectedLeaveType = ref(null);
+
+        // Statistics
+        const statistics = ref({
+            totalLeaveTypes: 0,
+            activeLeaveTypes: 0,
+            attachmentRequired: 0,
+            recentlyAdded: 0
+        });
+
+        // Page data
+        const title = ref("Leave Types");
+        const text = ref("Leave Management");
+        const text1 = ref("Leave Types");
+
+        // Computed properties
+        const hasLeaveTypes = computed(() => leaveTypes.value.length > 0);
+
+        // Create pagination object for template compatibility
+        const pagination = computed(() => ({
+            currentPage: currentPage.value,
+            perPage: pageSize.value,
+            total: total.value
+        }));
+
+        // Pagination info computed property
+        const paginationInfo = computed(() => {
+            const totalItems = pagination.value?.total || 0;
+            const current = pagination.value?.currentPage || 1;
+            const size = pagination.value?.perPage || 10;
+
+            if (totalItems === 0) {
+                return {
+                    from: 0,
+                    to: 0,
+                    total: 0
+                };
             }
-            return pages;
-        }
-    },
-    mounted() {
-        this.loadLeaveTypes();
-    },
-    methods: {
 
+            const from = (current - 1) * size + 1;
+            const to = Math.min(current * size, totalItems);
 
-        async loadLeaveTypes() {
-            // Update filters
-            this.updateFilters({
-                search: this.searchTerm || '',
-                page: this.pagination.currentPage,
-                perPage: this.pagination.perPage
-            });
+            return {
+                from,
+                to,
+                total: totalItems
+            };
+        });
 
-            // Fetch using composable
-            await this.fetchLeaveTypes();
-        },
+        // Computed properties
+        const columns = computed(() => [
+            {
+                title: 'Leave Type Name',
+                dataIndex: 'name',
+                key: 'name',
+                sorter: true,
+                width: 200,
+            },
+            {
+                title: 'Default Duration',
+                key: 'defaultDuration',
+                width: 150,
+                sorter: true,
+            },
+            {
+                title: 'Requires Attachment',
+                key: 'requiresAttachment',
+                width: 150,
+                filters: [
+                    { text: 'Yes', value: true },
+                    { text: 'No', value: false },
+                ],
+            },
+            {
+                title: 'Description',
+                key: 'description',
+                width: 250,
+            },
+            {
+                title: 'Created Date',
+                dataIndex: 'createdAt',
+                key: 'createdAt',
+                sorter: true,
+                width: 150,
+            },
+            {
+                title: 'Actions',
+                key: 'action',
+                width: 100,
+                fixed: 'right',
+            },
+        ]);
 
-        handleSearch() {
-            this.updateFilters({
-                search: this.searchTerm || '',
-                page: 1
-            });
-        },
+        const tableData = computed(() => {
+            return leaveTypes.value.map(leaveType => ({
+                ...leaveType,
+                key: leaveType.id,
+                createdAt: formatDate(leaveType.createdAt)
+            }));
+        });
 
-        setSortBy(sortBy) {
-            this.sortBy = sortBy;
-            this.updateFilters({
-                sortBy: sortBy,
-                page: 1
-            });
-        },
+        const rowSelection = computed(() => ({
+            // Fix the column to the left and set appropriate width
+            fixed: 'left',
+            columnWidth: 60,
+            selectedRowKeys: selectedRowKeys.value,
+            onChange: (keys, selectedRows) => {
+                selectedRowKeys.value = keys;
+                console.log('Selected rows:', selectedRows);
+            },
+            onSelect: (record, selected, selectedRows) => {
+                console.log('Record selected:', record, selected);
+            },
+            onSelectAll: (selected, selectedRows, changeRows) => {
+                console.log('All selected:', selected, selectedRows, changeRows);
+            },
+            hideDefaultSelections: false,
+            selections: [
+                Table.SELECTION_ALL,
+                Table.SELECTION_NONE,
+            ],
+        }));
 
-        changePage(page) {
-            this.goToPage(page);
-        },
+        // Methods
+        const formatDate = (dateString) => {
+            if (!dateString) return 'N/A';
+            return moment(dateString).format('DD MMM YYYY');
+        };
 
-        toggleSelectAll() {
-            if (this.selectAll) {
-                this.selectedItems = this.leaveTypes.map(item => item.id);
-            } else {
-                this.selectedItems = [];
+        const updateStatistics = () => {
+            const types = leaveTypes.value || [];
+            const now = moment();
+            const thisMonth = now.startOf('month');
+
+            statistics.value = {
+                totalLeaveTypes: types.length,
+                activeLeaveTypes: types.filter(type => !type.isDeleted).length,
+                attachmentRequired: types.filter(type => type.requiresAttachment).length,
+                recentlyAdded: types.filter(type =>
+                    moment(type.createdAt).isAfter(thisMonth)
+                ).length
+            };
+        };
+
+        // Helper method to build complete API parameters - Following employees-list pattern
+        const buildApiParams = (baseParams = {}) => {
+            const params = {
+                page: currentPage.value,
+                per_page: pageSize.value,
+                ...baseParams
+            };
+
+            // Add search parameter
+            if (searchQuery.value && searchQuery.value.trim()) {
+                params.search = searchQuery.value.trim();
             }
-        },
 
-        openCreateModal() {
-            this.isEditing = false;
-            this.selectedLeaveType = null;
-            this.showModal = true;
-        },
+            return params;
+        };
 
-        openEditModal(leaveType) {
-            this.isEditing = true;
-            this.selectedLeaveType = { ...leaveType };
-            this.showModal = true;
-        },
+        // Main fetch method - Following employees-list pattern
+        const fetchLeaveTypes = async (params = {}) => {
+            loading.value.leaveTypes = true;
+            try {
+                const queryParams = {
+                    page: params.page || currentPage.value || 1,
+                    per_page: params.per_page || pageSize.value,
+                    ...params
+                };
 
-        closeModal() {
-            this.showModal = false;
-            this.selectedLeaveType = null;
-            this.isEditing = false;
-        },
+                const response = await leaveService.getLeaveTypes(queryParams);
 
-        async handleSave(leaveTypeData) {
+                if (response.success && response.data) {
+                    leaveTypes.value = response.data || [];
+
+                    // Update pagination properties from server response
+                    if (response.pagination) {
+                        total.value = response.pagination.total;
+                        currentPage.value = response.pagination.current_page;
+                        pageSize.value = response.pagination.per_page;
+                    } else {
+                        total.value = response.data.length;
+                        currentPage.value = 1;
+                    }
+
+                    updateStatistics();
+                } else {
+                    leaveTypes.value = [];
+                    total.value = 0;
+                    showToast(response.message || 'Failed to load leave types', 'error');
+                }
+            } catch (error) {
+                console.error('Error fetching leave types:', error);
+                leaveTypes.value = [];
+                total.value = 0;
+                showToast('Failed to load leave types', 'error');
+            } finally {
+                loading.value.leaveTypes = false;
+            }
+        };
+
+        // CRUD methods
+        const createLeaveType = async (leaveTypeData) => {
+            try {
+                const response = await leaveService.createLeaveType(leaveTypeData);
+                return response;
+            } catch (error) {
+                console.error('Error creating leave type:', error);
+                throw error;
+            }
+        };
+
+        const updateLeaveType = async (id, leaveTypeData) => {
+            try {
+                const response = await leaveService.updateLeaveType(id, leaveTypeData);
+                return response;
+            } catch (error) {
+                console.error('Error updating leave type:', error);
+                throw error;
+            }
+        };
+
+        const deleteLeaveType = async (id) => {
+            try {
+                const response = await leaveService.deleteLeaveType(id);
+                return response;
+            } catch (error) {
+                console.error('Error deleting leave type:', error);
+                throw error;
+            }
+        };
+
+        // PAGINATION EVENT HANDLERS - Following employees-list pattern
+        const handlePaginationChange = async (page, pageSizeParam) => {
+            console.log('Pagination change:', page, pageSizeParam);
+            currentPage.value = page;
+            pageSize.value = pageSizeParam || pageSize.value;
+
+            // Build complete parameters preserving current filters and sorting
+            const params = buildApiParams({
+                page: page,
+                per_page: pageSize.value
+            });
+
+            await fetchLeaveTypes(params);
+        };
+
+        const handleSizeChange = async (current, size) => {
+            console.log('Size change:', current, size);
+            currentPage.value = 1; // Reset to first page when changing page size
+            pageSize.value = size;
+
+            // Build complete parameters preserving current filters and sorting
+            const params = buildApiParams({
+                page: 1,
+                per_page: size
+            });
+
+            await fetchLeaveTypes(params);
+        };
+
+        const handleSearch = async () => {
+            searchLoading.value = true;
+            try {
+                currentPage.value = 1; // Reset to first page when searching
+
+                // Build complete parameters preserving current filters and sorting
+                const params = buildApiParams({
+                    page: 1,
+                    per_page: pageSize.value
+                });
+
+                await fetchLeaveTypes(params);
+            } catch (error) {
+                console.error('Error during search:', error);
+                showToast('Search failed. Please try again.', 'error');
+            } finally {
+                searchLoading.value = false;
+            }
+        };
+
+        const clearFiltersLocal = () => {
+            filteredInfo.value = {};
+            searchQuery.value = '';
+            currentPage.value = 1;
+
+            const params = buildApiParams({
+                page: 1,
+                per_page: pageSize.value
+            });
+
+            fetchLeaveTypes(params);
+        };
+
+        const clearAll = () => {
+            filteredInfo.value = {};
+            sortedInfo.value = {};
+            searchQuery.value = '';
+            currentPage.value = 1;
+
+            const params = buildApiParams({
+                page: 1,
+                per_page: pageSize.value
+            });
+
+            fetchLeaveTypes(params);
+        };
+
+        const handleTableChange = (paginationParam, filters, sorter) => {
+            console.log('Table change (sorting/filtering):', filters, sorter);
+
+            // Check if there's actually a meaningful change
+            const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(filteredInfo.value);
+            const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(sortedInfo.value);
+
+            // Only proceed if there's an actual filter or sort change
+            if (!hasFilterChange && !hasSorterChange) {
+                console.log('No meaningful change detected, skipping reload');
+                return;
+            }
+
+            // Update filter state
+            filteredInfo.value = filters;
+
+            // Only update sorter if it's a real sort operation (has field and order)
+            if (sorter && sorter.field && sorter.order) {
+                console.log('Applying sort:', sorter);
+                sortedInfo.value = sorter;
+            } else if (!sorter || (!sorter.field && !sorter.order)) {
+                console.log('Clearing sort (filtering only or no sort)');
+                sortedInfo.value = {};
+            }
+
+            // Reset to first page when filter/sort changes
+            currentPage.value = 1;
+
+            // Build complete parameters
+            const params = buildApiParams({
+                page: 1,
+                per_page: pageSize.value
+            });
+
+            // Fetch leave types with new parameters
+            fetchLeaveTypes(params);
+        };
+
+        const openCreateModal = () => {
+            isEditing.value = false;
+            selectedLeaveType.value = null;
+            showModal.value = true;
+        };
+
+        const editLeaveType = (record) => {
+            isEditing.value = true;
+            selectedLeaveType.value = { ...record };
+            showModal.value = true;
+        };
+
+        const closeModal = () => {
+            showModal.value = false;
+            selectedLeaveType.value = null;
+            isEditing.value = false;
+        };
+
+        const handleSave = async (leaveTypeData) => {
             try {
                 let result;
 
-                if (this.isEditing) {
-                    result = await this.updateLeaveType(this.selectedLeaveType.id, leaveTypeData);
+                if (isEditing.value) {
+                    result = await updateLeaveType(selectedLeaveType.value.id, leaveTypeData);
                 } else {
-                    result = await this.createLeaveType(leaveTypeData);
+                    result = await createLeaveType(leaveTypeData);
                 }
 
                 if (result.success) {
-                    this.closeModal();
+                    closeModal();
+                    await fetchLeaveTypes();
+                    showToast(`Leave type ${isEditing.value ? 'updated' : 'created'} successfully`, 'success');
                 }
             } catch (error) {
                 console.error('Error saving leave type:', error);
-                this.showToast('error', 'Error', `Failed to ${this.isEditing ? 'update' : 'create'} leave type`);
+                showToast(`Failed to ${isEditing.value ? 'update' : 'create'} leave type`, 'error');
             }
-        },
+        };
 
-        confirmDelete(leaveType) {
-            this.leaveTypeToDelete = leaveType;
-            const deleteModal = new bootstrap.Modal(document.getElementById('delete_modal'));
-            deleteModal.show();
-        },
+        const confirmDeleteLeaveType = async (id) => {
+            try {
+                await new Promise((resolve) => {
+                    AntModal.confirm({
+                        title: 'Delete Leave Type?',
+                        content: 'Are you sure you want to delete this leave type? This action cannot be undone.',
+                        centered: true,
+                        okText: 'Yes, delete',
+                        cancelText: 'Cancel',
+                        okType: 'danger',
+                        onOk: async () => {
+                            try {
+                                const result = await deleteLeaveType(id);
+                                if (result.success) {
+                                    await fetchLeaveTypes();
+                                    showToast('Leave type deleted successfully', 'success');
+                                }
+                                resolve();
+                            } catch (error) {
+                                console.error('Error deleting leave type:', error);
+                                showToast('Failed to delete leave type', 'error');
+                                resolve();
+                            }
+                        },
+                        onCancel: () => {
+                            resolve();
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error('Delete confirmation failed:', error);
+                showToast('Failed to show delete confirmation dialog', 'error');
+            }
+        };
 
-        async handleDeleteLeaveType() {
-            if (!this.leaveTypeToDelete) return;
+        const confirmDeleteSelected = async () => {
+            if (selectedRowKeys.value.length === 0) {
+                showToast('Please select at least one leave type to delete', 'warning');
+                return;
+            }
 
             try {
-                this.isDeleting = true;
-
-                const result = await this.deleteLeaveType(this.leaveTypeToDelete.id);
-
-                if (result.success) {
-                    // Close modal
-                    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('delete_modal'));
-                    deleteModal.hide();
-
-                    this.leaveTypeToDelete = null;
-                }
+                await new Promise((resolve) => {
+                    AntModal.confirm({
+                        title: `Delete ${selectedRowKeys.value.length} Leave Types?`,
+                        content: `Are you sure you want to delete ${selectedRowKeys.value.length} selected leave type(s)? This action cannot be undone.`,
+                        centered: true,
+                        okText: 'Yes, delete all',
+                        okType: 'danger',
+                        cancelText: 'Cancel',
+                        onOk: async () => {
+                            try {
+                                // Implement bulk delete functionality
+                                showToast('Bulk delete functionality to be implemented', 'info');
+                                resolve();
+                            } catch (error) {
+                                console.error('Error during bulk delete:', error);
+                                showToast('Failed to delete selected leave types', 'error');
+                                resolve();
+                            }
+                        },
+                        onCancel: () => {
+                            resolve();
+                        }
+                    });
+                });
             } catch (error) {
-                console.error('Error deleting leave type:', error);
-                this.showToast('error', 'Error', 'Failed to delete leave type');
-            } finally {
-                this.isDeleting = false;
+                console.error('Bulk delete confirmation failed:', error);
+                showToast('Failed to show delete confirmation dialog', 'error');
             }
-        },
+        };
 
-        exportData(format) {
-            this.showToast('info', 'Export', `Exporting data as ${format.toUpperCase()}...`);
+        const exportData = (format) => {
+            showToast(`Exporting data as ${format.toUpperCase()}...`, 'info');
             // Implement export functionality
-        },
+        };
 
-        formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            return new Date(dateString).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
-        },
-
-        toggleHeader() {
+        const toggleHeader = () => {
             document.getElementById("collapse-header").classList.toggle("active");
             document.body.classList.toggle("header-collapse");
-        }
-    }
+        };
+
+        // Lifecycle
+        onMounted(() => {
+            fetchLeaveTypes();
+        });
+
+        return {
+            // Reactive data
+            title,
+            text,
+            text1,
+            searchQuery,
+            searchLoading,
+            selectedRowKeys,
+            filteredInfo,
+            sortedInfo,
+            showModal,
+            isEditing,
+            selectedLeaveType,
+            statistics,
+
+            // Data
+            leaveTypes,
+            loading,
+            hasLeaveTypes,
+            pagination,
+
+            // Computed
+            columns,
+            tableData,
+            rowSelection,
+            paginationInfo,
+
+            // Methods
+            formatDate,
+            handleSearch,
+            clearFiltersLocal,
+            clearAll,
+            handleTableChange,
+            handlePaginationChange,
+            handleSizeChange,
+            openCreateModal,
+            editLeaveType,
+            closeModal,
+            handleSave,
+            confirmDeleteLeaveType,
+            confirmDeleteSelected,
+            exportData,
+            toggleHeader,
+        };
+    },
 };
 </script>
 
 <style scoped>
-.text-wrap {
-    word-wrap: break-word;
-    white-space: normal;
+/* ========================================
+   HYBRID BOOTSTRAP + ANT DESIGN STYLING
+   Following HYBRID_BOOTSTRAP_ANTDESIGN_GUIDE.md
+   Based on: employees-list.vue & leaves-admin.vue
+   ======================================== */
+
+/* Ant Design Select Selector Styling */
+:deep(.ant-select-selector) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    min-width: 80px;
 }
 
+/* ResizeObserver Fix */
+.resize-observer-fix {
+    overflow: visible;
+    position: relative;
+    min-height: 100px;
+}
+
+/* Ant Design Pagination Wrapper */
+.pagination-wrapper {
+    margin-top: 20px;
+    padding: 20px 16px;
+    border-top: 1px solid #e8e8e8;
+    position: relative;
+    z-index: 100;
+}
+
+/* Ant Design Pagination Customization */
+:deep(.ant-pagination) {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+:deep(.ant-pagination-total-text) {
+    margin-right: 16px;
+    color: #666;
+    font-size: 14px;
+}
+
+:deep(.ant-pagination-options) {
+    margin-left: 16px;
+}
+
+:deep(.ant-pagination-options-size-changer) {
+    margin-right: 8px;
+}
+
+:deep(.ant-pagination-options-quick-jumper) {
+    margin-left: 8px;
+}
+
+/* Fix dropdown placement - force dropdown to appear above */
+:deep(.ant-pagination-options-size-changer .ant-select) {
+    z-index: 1000;
+}
+
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+    z-index: 1050 !important;
+    top: auto !important;
+    bottom: calc(100% + 4px) !important;
+}
+
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+    z-index: 1050 !important;
+}
+
+/* Override Ant Design dropdown placement */
+:deep(.ant-pagination .ant-select-dropdown) {
+    position: absolute !important;
+    bottom: calc(100% + 4px) !important;
+    top: auto !important;
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+}
+
+.pagination-info {
+    color: #666;
+    font-size: 14px;
+}
+
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+    z-index: 1050 !important;
+    top: auto !important;
+    bottom: calc(100% + 4px) !important;
+}
+
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+    z-index: 1050 !important;
+}
+
+/* Primary color styling for search input button */
+.search-input-primary :deep(.ant-input-search-button) {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:hover) {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:focus) {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+/* Ant Design Table Customization */
+:deep(.ant-table-thead > tr > th) {
+    background-color: #fafafa !important;
+    color: #595959 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+    background-color: #ffffff !important;
+}
+
+:deep(.ant-table-tbody > tr:hover > td) {
+    background-color: #fafafa !important;
+}
+
+/* Statistics Cards Styling */
+.statistics-card {
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    transform: translateZ(0);
+}
+
+.statistics-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px) translateZ(0);
+}
+
+.statistics-card .card-body {
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: auto;
+}
+
+.statistics-row {
+    margin-bottom: 1rem;
+}
+
+.statistics-row .col-lg-3 {
+    margin-bottom: 0.5rem;
+}
+
+.statistics-card .avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.statistics-card h4 {
+    margin-bottom: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.statistics-card .fs-12 {
+    font-size: 0.75rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.statistics-card .badge {
+    font-size: 0.65rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Action Icons Styling */
+.action-icon {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.action-icon a {
+    color: #666;
+    font-size: 16px;
+    transition: color 0.2s;
+}
+
+.action-icon a:hover {
+    color: #0067A5;
+}
+
+/* Container overflow fixes */
+.card-body {
+    overflow: visible !important;
+    padding-bottom: 0;
+}
+
+.card {
+    overflow: visible !important;
+    margin-bottom: 20px;
+}
+
+/* Badge Styling */
 .badge-soft-info {
     background-color: #e7f3ff;
     color: #0066cc;
@@ -473,5 +1050,205 @@ export default {
 .badge-soft-secondary {
     background-color: #f8f9fa;
     color: #6c757d;
+}
+
+/* Text wrapping */
+.text-wrap {
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+/* Table wrapper styling */
+:deep(.ant-table-wrapper) {
+    background-color: #ffffff;
+}
+
+:deep(.ant-table-container) {
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+}
+
+/* Fix for table body scrollbar */
+:deep(.ant-table-body)::-webkit-scrollbar {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 8px !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb {
+    background: #888 !important;
+    border-radius: 8px !important;
+    border: 2px solid #f1f1f1 !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
+    background: #555 !important;
+}
+
+/* Fix for fixed columns */
+:deep(.ant-table-fixed-left),
+:deep(.ant-table-fixed-right) {
+    background-color: #ffffff !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-thead > tr > th),
+:deep(.ant-table-fixed-right .ant-table-thead > tr > th) {
+    background-color: #fafafa !important;
+    color: #595959 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-tbody > tr > td),
+:deep(.ant-table-fixed-right .ant-table-tbody > tr > td) {
+    background-color: #ffffff !important;
+}
+
+/* Fix for table rows hover state */
+:deep(.ant-table-tbody > tr:hover > td),
+:deep(.ant-table-fixed-left .ant-table-tbody > tr:hover > td),
+:deep(.ant-table-fixed-right .ant-table-tbody > tr:hover > td) {
+    background-color: #fafafa !important;
+}
+
+/* Fix for selection column */
+:deep(.ant-table-selection-column) {
+    background-color: #ffffff !important;
+    z-index: 3 !important;
+    min-width: 60px !important;
+    width: 60px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+:deep(.ant-table-thead .ant-table-selection-column) {
+    background-color: #fafafa !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-selection-column) {
+    background-color: #ffffff !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-thead .ant-table-selection-column) {
+    background-color: #fafafa !important;
+}
+
+/* Fix for selected rows */
+:deep(.ant-table-row-selected > td),
+:deep(.ant-table-row-selected > td.ant-table-cell-fix-left),
+:deep(.ant-table-row-selected > td.ant-table-cell-fix-right),
+:deep(.ant-table-row-selected > td.ant-table-selection-column) {
+    background-color: #e6f7ff !important;
+    z-index: 3 !important;
+}
+
+/* Ensure proper table layout for fixed columns */
+:deep(.ant-table-layout-fixed table) {
+    table-layout: auto !important;
+}
+
+/* Container overflow fixes */
+.card-body {
+    overflow: visible !important;
+    padding-bottom: 0;
+}
+
+.card {
+    overflow: visible !important;
+    margin-bottom: 20px;
+}
+
+/* Ensure proper table layout */
+:deep(.ant-table-wrapper) {
+    background-color: #ffffff;
+}
+
+:deep(.ant-table-container) {
+    border: 1px solid #e0e0e0;
+    border-radius: 0;
+}
+
+/* Fix for table body scrollbar */
+:deep(.ant-table-body)::-webkit-scrollbar {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-track {
+    background: #f1f1f1 !important;
+    border-radius: 8px !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb {
+    background: #888 !important;
+    border-radius: 8px !important;
+    border: 2px solid #f1f1f1 !important;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
+    background: #555 !important;
+}
+
+/* Fix for fixed columns - comprehensive solution from employees-list.vue */
+:deep(.ant-table-fixed-left),
+:deep(.ant-table-fixed-right) {
+    background-color: #ffffff !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-thead > tr > th),
+:deep(.ant-table-fixed-right .ant-table-thead > tr > th) {
+    background-color: #fafafa !important;
+    color: #595959 !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #e0e0e0 !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-tbody > tr > td),
+:deep(.ant-table-fixed-right .ant-table-tbody > tr > td) {
+    background-color: #ffffff !important;
+}
+
+/* Fix for table rows hover state - all tables */
+:deep(.ant-table-tbody > tr:hover > td),
+:deep(.ant-table-fixed-left .ant-table-tbody > tr:hover > td),
+:deep(.ant-table-fixed-right .ant-table-tbody > tr:hover > td) {
+    background-color: #fafafa !important;
+}
+
+/* Fix for selection column */
+:deep(.ant-table-selection-column) {
+    background-color: #ffffff !important;
+    z-index: 3 !important;
+    min-width: 60px !important;
+    width: 60px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Fix for selection column header */
+:deep(.ant-table-thead .ant-table-selection-column) {
+    background-color: #fafafa !important;
+}
+
+/* Fix for fixed table selection columns */
+:deep(.ant-table-fixed-left .ant-table-selection-column) {
+    background-color: #ffffff !important;
+}
+
+:deep(.ant-table-fixed-left .ant-table-thead .ant-table-selection-column) {
+    background-color: #fafafa !important;
+}
+
+/* Fix for selected rows - ensure all selected cells have same background */
+:deep(.ant-table-row-selected > td),
+:deep(.ant-table-row-selected > td.ant-table-cell-fix-left),
+:deep(.ant-table-row-selected > td.ant-table-cell-fix-right),
+:deep(.ant-table-row-selected > td.ant-table-selection-column) {
+    background-color: #e6f7ff !important;
+    z-index: 3 !important;
 }
 </style>

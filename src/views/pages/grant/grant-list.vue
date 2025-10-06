@@ -95,6 +95,30 @@
                         </div>
                       </template>
 
+                      <template v-else-if="column.dataIndex === 'budgetline_code'">
+                        <div>
+                          <template v-if="editableData[itemRecord.id]">
+                            <div style="display: flex; align-items: center; margin: -5px 0;">
+                              <a-input v-model:value="editableData[itemRecord.id][column.dataIndex]"
+                                placeholder="Enter budget line code" style="flex: 1;" />
+                              <span data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="Enter the budget line code for this grant item (e.g., BL001, BL002). This code is used for budget tracking and payroll allocation."
+                                style="margin-left: 8px;">
+                                <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                              </span>
+                            </div>
+                          </template>
+                          <template v-else>
+                            <span :class="[
+                              'badge badge-sm fw-normal',
+                              text ? 'badge-soft-info' : 'badge-soft-secondary'
+                            ]">
+                              {{ text || 'No Budget Line' }}
+                            </span>
+                          </template>
+                        </div>
+                      </template>
+
                       <template v-else-if="column.dataIndex === 'grant_salary'">
                         <div>
                           <template v-if="editableData[itemRecord.id]">
@@ -335,10 +359,16 @@ export default {
       total: 0,
       baseInnerColumns: [
         {
-          title: 'Position',
+          title: 'Position Title',
           dataIndex: 'grant_position',
           key: 'grant_position',
           width: 200
+        },
+        {
+          title: 'Budget Line Code',
+          dataIndex: 'budgetline_code',
+          key: 'budgetline_code',
+          width: 150
         },
         {
           title: 'Salary (THB)',
@@ -479,7 +509,7 @@ export default {
       if (hasEditingItems) {
         // When editing, hide calculated columns and show only editable fields
         return this.baseInnerColumns.filter(col =>
-          ['grant_position', 'grant_salary', 'grant_benefit', 'grant_level_of_effort', 'grant_position_number', 'actions'].includes(col.dataIndex)
+          ['grant_position', 'budgetline_code', 'grant_salary', 'grant_benefit', 'grant_level_of_effort', 'grant_position_number', 'actions'].includes(col.dataIndex)
         );
       } else {
         // When not editing, show all columns
@@ -650,6 +680,7 @@ export default {
         id: Date.now(), // Temporary ID for the new item
         grant_id: grantId,
         grant_position: '',
+        budgetline_code: '',
         grant_salary: 0,
         grant_benefit: 0,
         grant_level_of_effort: 0,
@@ -746,10 +777,22 @@ export default {
         // Force table re-render to show/hide columns
         this.$forceUpdate();
 
+        // Invalidate shared data cache to ensure employment modal gets fresh data
+        try {
+          const { useSharedDataStore } = await import('@/stores/sharedDataStore');
+          const sharedStore = useSharedDataStore();
+          sharedStore.invalidateCache('grantStructure');
+          console.log('🗑️ Grant structure cache invalidated after grant item save');
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate cache after grant item save:', error);
+        }
+
         this.fetchGrants();
       } catch (error) {
         console.error('Error saving grant item:', error);
-        this.$message.error('Failed to save grant item');
+        // Display specific error message if available
+        const errorMessage = error.error || error.message || 'Failed to save grant item';
+        this.$message.error(errorMessage);
       }
     },
 
@@ -780,6 +823,7 @@ export default {
       Modal.confirm({
         title: 'Are you sure you want to delete this grant item?',
         content: 'This action cannot be undone.',
+        centered: true,
         okText: 'Yes',
         okType: 'danger',
         cancelText: 'No',
@@ -887,6 +931,7 @@ export default {
         return {
           id: item.id || `item-${Math.random().toString(36).substr(2, 9)}`,
           grant_position: item.grant_position,
+          budgetline_code: item.budgetline_code,
           grant_salary: item.grant_salary,
           grant_benefit: item.grant_benefit,
           grant_level_of_effort: item.grant_level_of_effort,
@@ -1418,5 +1463,25 @@ export default {
   background-color: #fff3cd;
   color: #856404;
   border: 1px solid #ffeaa7;
+}
+
+/* Budget line code badge styling */
+.badge-soft-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.badge-soft-secondary {
+  background-color: #e2e3e5;
+  color: #6c757d;
+  border: 1px solid #ced4da;
+}
+
+/* Ensure budget line code badges are properly sized */
+.badge-sm {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.2rem;
 }
 </style>

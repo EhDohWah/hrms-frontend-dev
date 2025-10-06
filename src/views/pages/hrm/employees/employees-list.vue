@@ -9,13 +9,27 @@
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="mb-2 me-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="openAddEmployeeModal">
-              <i class="ti ti-circle-plus me-2"></i>Add New Employee
+            <button class="btn btn-primary d-flex align-items-center" @click="openAddEmployeeModal"
+              :disabled="openingAddEmployee">
+              <template v-if="openingAddEmployee">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Loading form...
+              </template>
+              <template v-else>
+                <i class="ti ti-circle-plus me-2"></i>Add New Employee
+              </template>
             </button>
           </div>
           <div class="mb-2 me-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="openEmployeeUploadModal">
-              <i class="ti ti-upload me-2"></i>Upload Employee Excel File
+            <button class="btn btn-primary d-flex align-items-center" @click="openEmployeeUploadModal"
+              :disabled="openingUploadModal">
+              <template v-if="openingUploadModal">
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Loading form...
+              </template>
+              <template v-else>
+                <i class="ti ti-upload me-2"></i>Upload Employee Excel File
+              </template>
             </button>
           </div>
           <div class="mb-2 me-2">
@@ -237,7 +251,7 @@ import LayoutFooter from '@/views/layouts/layout-footer.vue';
 import { employeeService } from '@/services/employee.service';
 import moment from 'moment';
 import { Modal, Table } from 'ant-design-vue';
-import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js';
+import { Modal as BootstrapModal } from 'bootstrap';
 
 export default {
   name: 'EmployeesList',
@@ -277,6 +291,10 @@ export default {
       currentPage: 1,
       pageSize: 10,
       total: 0,
+
+      // UI loading states for opening modals
+      openingAddEmployee: false,
+      openingUploadModal: false,
     };
   },
   computed: {
@@ -883,16 +901,45 @@ export default {
       }
     },
 
-    openAddEmployeeModal() {
-      // Open Bootstrap modal for adding new employee
-      const modal = new bootstrap.Modal(document.getElementById('add_employee'));
-      modal.show();
+    async openAddEmployeeModal() {
+      try {
+        this.openingAddEmployee = true;
+        // Wait for modal DOM to be available in case of first-time load
+        let attempts = 0;
+        while (!document.getElementById('add_employee') && attempts < 40) {
+          await new Promise(resolve => setTimeout(resolve, 25));
+          attempts++;
+        }
+        const el = document.getElementById('add_employee');
+        if (el) {
+          const modal = new BootstrapModal(el);
+          modal.show();
+        } else {
+          this.$message && this.$message.warning && this.$message.warning('Form is loading, please try again.');
+        }
+      } finally {
+        this.openingAddEmployee = false;
+      }
     },
 
-    openEmployeeUploadModal() {
-      // Open Bootstrap modal for uploading employee excel file
-      const modal = new bootstrap.Modal(document.getElementById('employeeUploadModal'));
-      modal.show();
+    async openEmployeeUploadModal() {
+      try {
+        this.openingUploadModal = true;
+        let attempts = 0;
+        while (!document.getElementById('employeeUploadModal') && attempts < 40) {
+          await new Promise(resolve => setTimeout(resolve, 25));
+          attempts++;
+        }
+        const el = document.getElementById('employeeUploadModal');
+        if (el) {
+          const modal = new BootstrapModal(el);
+          modal.show();
+        } else {
+          this.$message && this.$message.warning && this.$message.warning('Form is loading, please try again.');
+        }
+      } finally {
+        this.openingUploadModal = false;
+      }
     },
 
     // Get unique values for filter dropdowns

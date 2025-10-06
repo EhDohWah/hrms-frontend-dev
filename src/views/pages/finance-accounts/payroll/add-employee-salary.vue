@@ -182,17 +182,17 @@
               <div class="col-md-6">
                 <div class="info-item">
                   <small class="text-muted">Department: {{
-                    selectedEmployeeData.employment?.department_position?.department
-                  }}</small>
+                    selectedEmployeeData.employment?.department?.name
+                    }}</small>
                 </div>
                 <div class="info-item">
-                  <small class="text-muted">Position: {{ selectedEmployeeData.employment?.department_position?.position
-                  }}</small>
+                  <small class="text-muted">Position: {{ selectedEmployeeData.employment?.position?.title
+                    }}</small>
                 </div>
                 <div class="info-item">
                   <small class="text-muted">Allocations: {{ selectedEmployeeData.employee_funding_allocations?.length ||
                     0
-                  }}</small>
+                    }}</small>
                 </div>
               </div>
             </div>
@@ -210,7 +210,7 @@
                 <i class="ti ti-calculator me-2 text-success"></i>
                 <span class="text-success fw-bold">Payroll Calculations Available for {{
                   payPeriodDate?.format('YYYY-MM-DD')
-                  }}</span>
+                }}</span>
               </div>
               <div class="calculation-summary">
                 <small class="text-muted">
@@ -410,11 +410,11 @@
         <a-descriptions-item label="Funding Source">{{ selectedRecord.fundingSource }}</a-descriptions-item>
         <a-descriptions-item label="LOE">{{ selectedRecord.loe }}%</a-descriptions-item>
         <a-descriptions-item label="Position Salary">{{ formatCurrency(selectedRecord.positionSalary)
-          }}</a-descriptions-item>
+        }}</a-descriptions-item>
         <a-descriptions-item label="Salary by FTE">{{ formatCurrency(selectedRecord.salaryByFte)
-          }}</a-descriptions-item>
+        }}</a-descriptions-item>
         <a-descriptions-item label="Gross Salary">{{ formatCurrency(selectedRecord.grossSalary)
-          }}</a-descriptions-item>
+        }}</a-descriptions-item>
         <a-descriptions-item label="Net Pay">{{ formatCurrency(selectedRecord.netPay) }}</a-descriptions-item>
       </a-descriptions>
 
@@ -906,8 +906,8 @@ const updateTableWithEmployeeData = () => {
       staffId: employee.staff_id,
       name: `${employee.first_name_en} ${employee.last_name_en}`,
       subsidiary: employee.subsidiary,
-      department: employee.employment?.department_position?.department || 'N/A',
-      position: employee.employment?.department_position?.position || 'N/A',
+      department: employee.employment?.department?.name || 'N/A',
+      position: employee.employment?.position?.title || 'N/A',
       employmentType: employee.employment?.employment_type || 'N/A',
       fte: parseFloat(employee.employment?.fte || 1) * 100,
       positionSalary: parseFloat(employee.employment?.position_salary || 0),
@@ -1543,7 +1543,7 @@ watch([departmentFilter, fundingTypeFilter, quickSearch], () => {
 }
 
 /* Enhanced scrollbar styling - Match Ant Design Vue docs */
-  /* :deep(.ant-table-body)::-webkit-scrollbar {
+/* :deep(.ant-table-body)::-webkit-scrollbar {
     width: 16px !important;
     height: 16px !important;
   } */

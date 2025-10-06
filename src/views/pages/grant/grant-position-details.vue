@@ -333,12 +333,8 @@ export default {
                     ],
                     filteredValue: filtered.active || null,
                     onFilter: (value, record) => record.active === value,
-                },
-                {
-                    title: 'Actions',
-                    dataIndex: 'actions',
-                    key: 'actions',
-                },
+                }
+
             ];
         }
     },
@@ -442,11 +438,11 @@ export default {
                         positionSlotId: alloc.position_slot_id,
                         staffId: alloc.employee?.staff_id || 'N/A',
                         employeeName: `${alloc.employee?.first_name_en || ''} ${alloc.employee?.last_name_en || ''}`.trim() || 'N/A',
-                        grantName: alloc.position_slot?.grant_item?.grant?.name || 'N/A',
-                        grantCode: alloc.position_slot?.grant_item?.grant?.code || 'N/A',
-                        budgetLineCode: alloc.position_slot?.budget_line?.budget_line_code || 'N/A',
-                        budgetLineDescription: alloc.position_slot?.budget_line?.description || 'N/A',
-                        levelOfEffort: alloc.level_of_effort ? Math.round(parseFloat(alloc.level_of_effort) * 100) : 0,
+                        grantName: alloc.grant_name || 'N/A',
+                        grantCode: alloc.grant_code || 'N/A',
+                        budgetLineCode: alloc.budgetline_code || 'N/A',
+                        budgetLineDescription: alloc.budgetline_description || 'N/A',
+                        levelOfEffort: alloc.level_of_effort ? Math.round(parseFloat(alloc.level_of_effort)) : 0,
                         rawLevelOfEffort: alloc.level_of_effort,
                         startDate: alloc.start_date ? moment(alloc.start_date).format('DD MMM YYYY') : 'N/A',
                         endDate: alloc.end_date ? moment(alloc.end_date).format('DD MMM YYYY') : 'N/A',

@@ -2,13 +2,16 @@
  * Tabler Icons 2.45.0 by tabler - https://tabler.io
  * License - https://github.com/tabler/tabler-icons/blob/master/LICENSE
  */
- @font-face {
+@font-face {
   font-family: "tabler-icons";
   font-style: normal;
   font-weight: 400;
   src: url("../fonts/tabler-icons.eot?v2.45.0");
   src: url("../fonts/tabler-icons.eot?#iefix-v2.45.0") format("embedded-opentype"), url("../fonts/tabler-icons.woff2?v2.45.0") format("woff2"), url("../fonts/tabler-icons.woff?") format("woff"), url("../fonts/tabler-icons.ttf?v2.45.0") format("truetype");
+  font-display: swap;
+  /* Optimized for LCP - prevents FOIT (Flash of Invisible Text) */
 }
+
 .ti {
   font-family: "tabler-icons" !important;
   speak: none;

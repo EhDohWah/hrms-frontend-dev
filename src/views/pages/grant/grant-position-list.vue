@@ -106,8 +106,6 @@ import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useGrantStore } from '@/stores/grantStore';
 import { ref, computed } from 'vue';
 import { onMounted } from 'vue';
-import moment from 'moment';
-import DateRangePicker from 'daterangepicker';
 
 export default {
   name: 'GrantPositionList',
@@ -116,38 +114,12 @@ export default {
     indexBreadcrumb
   },
   setup() {
-    const dateRangeInput = ref(null);
     const filteredInfo = ref({});
     const sortedInfo = ref({});
     const currentPage = ref(1);
     const pageSize = ref(10);
     const total = ref(0);
     const grantStore = useGrantStore();
-
-    onMounted(() => {
-      if (dateRangeInput.value) {
-        const start = moment().subtract(6, 'days');
-        const end = moment();
-
-        new DateRangePicker(dateRangeInput.value, {
-          startDate: start,
-          endDate: end,
-          ranges: {
-            'Today': [moment(), moment()],
-            'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-            'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-            'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-            'This Month': [moment().startOf('month'), moment().endOf('month')],
-            'Last Month': [
-              moment().subtract(1, 'month').startOf('month'),
-              moment().subtract(1, 'month').endOf('month')
-            ]
-          }
-        }, (start, end) => {
-          return start.format('M/D/YYYY') + ' - ' + end.format('M/D/YYYY');
-        });
-      }
-    });
 
     const pagination = computed(() => ({
       total: total.value,
@@ -159,7 +131,6 @@ export default {
     }));
 
     return {
-      dateRangeInput,
       filteredInfo,
       sortedInfo,
       currentPage,
@@ -174,7 +145,7 @@ export default {
       title: 'Grant Positions',
       text: 'Grants',
       text1: 'Grant Positions',
-      grantPositions: [],
+      grantPositions: [], // Default empty array for immediate render
       loading: false,
       searchTerm: '',
       notificationTitle: '',
@@ -285,6 +256,7 @@ export default {
     }
   },
   mounted() {
+    // Non-blocking data fetch - page renders immediately while data loads
     this.fetchGrantPositions();
   },
   methods: {
@@ -373,7 +345,7 @@ export default {
                 id: position.id,
                 code: grant.grant_code,
                 grantName: grant.grant_name,
-                budgetLine: position.budget_line,
+                budgetLine: position.budgetline_code,
                 positionName: position.position,
                 manPower: parseInt(position.manpower),
                 recruited: position.recruited,

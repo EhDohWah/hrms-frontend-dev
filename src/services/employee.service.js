@@ -1,27 +1,55 @@
 import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
+import { BaseService } from './base.service';
 
-class EmployeeService {
+class EmployeeService extends BaseService {
 
     /**
     * Update personal information of an employee.
     * 
     */
     async updateEmployeePersonalInformation(id, data) {
-        const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_PERSONAL_INFORMATION.replace(':id', id);
-        return await apiService.put(endpoint, data);
+        return await this.handleApiResponse(async () => {
+            const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_PERSONAL_INFORMATION.replace(':id', id);
+            return await apiService.put(endpoint, data);
+        }, 'update personal information');
     }
 
     // Update basic information
     async updateBasicInformation(id, data) {
-        const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_BASIC_INFORMATION.replace(':id', id);
-        return await apiService.put(endpoint, data);
+        return await this.handleApiResponse(async () => {
+            const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_BASIC_INFORMATION.replace(':id', id);
+            return await apiService.put(endpoint, data);
+        }, 'update basic information');
     }
 
     // Update bank information
     async updateBankInformation(id, data) {
-        const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_BANK_INFORMATION.replace(':id', id);
-        return await apiService.put(endpoint, data);
+        return await this.handleApiResponse(async () => {
+            const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_BANK_INFORMATION.replace(':id', id);
+            return await apiService.put(endpoint, data);
+        }, 'update bank information');
+    }
+
+    // Update family information
+    async updateEmployeeFamilyInformation(id, data) {
+        // Validate ID parameter
+        if (!id || isNaN(id)) {
+            return this.createValidationError({ id: ['Employee ID is required and must be a valid number'] });
+        }
+
+        // Clean data - remove empty fields
+        const cleanData = {};
+        Object.keys(data).forEach(key => {
+            if (data[key] !== null && data[key] !== undefined && data[key] !== '') {
+                cleanData[key] = data[key];
+            }
+        });
+
+        return await this.handleApiResponse(async () => {
+            const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE_FAMILY_INFORMATION.replace(':id', id);
+            return await apiService.put(endpoint, cleanData);
+        }, 'update family information');
     }
 
     // Tree search
@@ -85,21 +113,27 @@ class EmployeeService {
 
     // Get employee details
     async getEmployeeDetails(id) {
-        const endpoint = API_ENDPOINTS.EMPLOYEE.DETAILS.replace(':id', id);
-        return await apiService.get(endpoint);
+        return await this.handleApiResponse(async () => {
+            const endpoint = API_ENDPOINTS.EMPLOYEE.DETAILS.replace(':id', id);
+            return await apiService.get(endpoint);
+        }, 'get employee details');
     }
 
     // Create employee
     async createEmployee(data) {
-        const formattedData = this.formatEmployeeData(data);
-        return await apiService.post(API_ENDPOINTS.EMPLOYEE.CREATE, formattedData);
+        return await this.handleApiResponse(async () => {
+            const formattedData = this.formatEmployeeData(data);
+            return await apiService.post(API_ENDPOINTS.EMPLOYEE.CREATE, formattedData);
+        }, 'create employee');
     }
 
     // Update employee
     async updateEmployee(id, data) {
-        const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE.replace(':id', id);
-        const formattedData = this.formatEmployeeData(data);
-        return await apiService.put(endpoint, formattedData);
+        return await this.handleApiResponse(async () => {
+            const endpoint = API_ENDPOINTS.EMPLOYEE.UPDATE.replace(':id', id);
+            const formattedData = this.formatEmployeeData(data);
+            return await apiService.put(endpoint, formattedData);
+        }, 'update employee');
     }
 
     // Delete employee

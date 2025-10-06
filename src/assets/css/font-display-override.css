@@ -1,0 +1,53 @@
+/**
+ * Font Display Override for Performance Optimization
+ * 
+ * This file overrides the font-display property for external font libraries
+ * to prevent FOIT (Flash of Invisible Text) and improve LCP performance.
+ * 
+ * FontAwesome fonts are loaded from node_modules, so we override their
+ * @font-face declarations here with font-display: swap.
+ */
+
+/* FontAwesome Brands Font Override */
+@font-face {
+    font-family: "Font Awesome 6 Brands";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    /* Performance optimization */
+    src: url("~@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2") format("woff2");
+}
+
+/* FontAwesome Solid Font Override */
+@font-face {
+    font-family: "Font Awesome 6 Free";
+    font-style: normal;
+    font-weight: 900;
+    font-display: swap;
+    /* Performance optimization */
+    src: url("~@fortawesome/fontawesome-free/webfonts/fa-solid-900.woff2") format("woff2");
+}
+
+/* FontAwesome Regular Font Override */
+@font-face {
+    font-family: "Font Awesome 6 Free";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    /* Performance optimization */
+    src: url("~@fortawesome/fontawesome-free/webfonts/fa-regular-400.woff2") format("woff2");
+}
+
+/**
+ * How font-display: swap works:
+ * 
+ * 1. Browser shows fallback text immediately (no invisible text period)
+ * 2. Custom font loads in the background
+ * 3. When font is ready, browser swaps it in
+ * 4. Prevents FOIT and improves perceived performance
+ * 
+ * Expected Performance Impact:
+ * - Reduces LCP by ~1,100ms (based on DevTools trace)
+ * - Eliminates font-blocking render delay
+ * - Text visible immediately with system font
+ */

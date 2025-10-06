@@ -34,7 +34,7 @@ class EmployeeGrantAllocationService {
 
   // Get grant structure for UI dropdowns
   async getGrantStructure() {
-    return await apiService.get(API_ENDPOINTS.EMPLOYEE_GRANT_ALLOCATION.GRANT_STRUCTURE);
+    return await apiService.get(API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.GRANT_STRUCTURE);
   }
 
   // Get all allocations for a specific employee

@@ -653,13 +653,14 @@ const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 
 export default {
+  emits: ['employeeAdded'],
   data() {
     return {
       showPassword: false,
       showPassword1: false,
       subsidiaries: [],
       genders: [],
-      date_of_birth: '',
+      date_of_birth: null,
       nationalities: [],
       religions: [],
       maritalStatuses: [],
@@ -689,7 +690,7 @@ export default {
         religion: '',
         marital_status: '',
         employee_status: '',
-        date_of_birth: '',
+        date_of_birth: null,
       },
       formData: {
         first_name_en: '',
@@ -710,7 +711,7 @@ export default {
         // nationality: '',
         // religion: '',
         // marital_status: '',
-        date_of_birth: '',
+        date_of_birth: null,
       },
       lastAddedEmployee: null,    // ← new
       isSubmitting: false,
@@ -821,6 +822,15 @@ export default {
 
         if (response && response.success) {
           this.lastAddedEmployee = response.data;
+
+          // Invalidate employee cache so employment modal will fetch fresh data
+          const { useSharedDataStore } = await import('@/stores/sharedDataStore');
+          const sharedStore = useSharedDataStore();
+          sharedStore.invalidateCache('employees');
+
+          // Optionally preload fresh employee data for better UX
+          await sharedStore.fetchEmployees(true);
+
           message.success('Employee added successfully');
           this.$emit('employee-added');
           if (this.modalInstance) {
@@ -964,7 +974,7 @@ export default {
         religion: '',
         marital_status: '',
         employee_status: '',
-        date_of_birth: '',
+        date_of_birth: null,
       };
     },
 
@@ -1004,7 +1014,7 @@ export default {
         religion: '',
         marital_status: '',
         employee_status: '',
-        date_of_birth: '',
+        date_of_birth: null,
       };
       this.alertMessage = '';
       this.alertClass = '';

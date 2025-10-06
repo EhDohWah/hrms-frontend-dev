@@ -64,7 +64,7 @@
                     <template #expandedRowRender="{ record }">
                       <div class="expanded-row-content">
                         <div class="slot-header">
-                          <h6 class="slot-title">Position Slots & Budget Lines</h6>
+                          <h6 class="slot-title">Position Slots</h6>
                           <a-button type="primary" size="small" @click="handleAddSlot(record)" class="add-slot-btn"
                             :disabled="!canAddSlot(record)">
                             <i class="ti ti-plus"></i>Add Slot
@@ -78,18 +78,10 @@
                             <template v-if="slotEditMap[slot.id]">
                               <span v-if="column.dataIndex === 'slot_number'" class="slot-number">{{ slot.slot_number
                               }}</span>
-                              <a-select v-else-if="column.dataIndex === 'budget_line_id'"
-                                v-model:value="slotEditMap[slot.id].budget_line_id" :options="budgetLineOptions"
-                                class="budget-select" allowClear show-search placeholder="Select Budget Line"
-                                :filter-option="(input, option) =>
-                                  option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0" />
                             </template>
                             <template v-else>
                               <span v-if="column.dataIndex === 'slot_number'" class="slot-number">{{ slot.slot_number
                               }}</span>
-                              <span v-else-if="column.dataIndex === 'budget_line_id'" class="budget-line-label">
-                                {{ getBudgetLineLabel(slot) }}
-                              </span>
                             </template>
                             <!-- Actions -->
                             <template v-if="column.dataIndex === 'actions'">
@@ -126,18 +118,6 @@
     <layout-footer></layout-footer>
   </div>
 
-  <!-- Add Budget Line Modal -->
-  <a-modal v-model:visible="showAddBudgetLineModal" title="Add Budget Line" width="500px" @ok="handleAddBudgetLine"
-    @cancel="resetAddBudgetLineForm" :confirmLoading="addingBudgetLine">
-    <a-form :model="newBudgetLineForm" layout="vertical">
-      <a-form-item label="Budget Line Code" :rules="[{ required: true, message: 'Please enter budget line code' }]">
-        <a-input v-model:value="newBudgetLineForm.budget_line_code" placeholder="e.g., BL-005" />
-      </a-form-item>
-      <a-form-item label="Description" :rules="[{ required: true, message: 'Please enter description' }]">
-        <a-input v-model:value="newBudgetLineForm.description" placeholder="e.g., Research Materials" />
-      </a-form-item>
-    </a-form>
-  </a-modal>
 </template>
 
 <script setup>
@@ -145,7 +125,6 @@ import { ref, reactive, onMounted, h, nextTick, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useGrantStore } from '@/stores/grantStore';
-import { budgetLineService } from '@/services/budget-line.service';
 import { LoadingOutlined } from '@ant-design/icons-vue';
 import { positionSlotService } from '@/services/position-slot.service';
 import { message, Modal } from 'ant-design-vue';
@@ -178,30 +157,12 @@ const grant = ref({
   documents: []
 });
 
-// API-fetched budget lines
-const budgetLines = ref([]);
-const fetchBudgetLines = async () => {
-  try {
-    const response = await budgetLineService.getAllBudgetLines();
-    budgetLines.value = response.data || [];
-  } catch (error) {
-    console.error('Error fetching budget lines:', error);
-    budgetLines.value = [];
-  }
-};
 
-// Load budget lines when component is mounted
+// Load data when component is mounted
 onMounted(async () => {
-  await fetchBudgetLines();
+  // Component initialization
 });
 
-// Add Budget Line Modal State
-const showAddBudgetLineModal = ref(false);
-const addingBudgetLine = ref(false);
-const newBudgetLineForm = reactive({
-  budget_line_code: '',
-  description: ''
-});
 
 // --- Table Column Definitions ---
 const grantItemColumns = [
@@ -248,109 +209,9 @@ const grantItemColumns = [
 // --- Slot Table Column Definitions ---
 const slotColumns = [
   { title: 'Slot No.', dataIndex: 'slot_number', key: 'slot_number', width: 100 },
-  { title: 'Budget Line', dataIndex: 'budget_line_id', key: 'budget_line_id', width: 300 },
   { title: 'Actions', dataIndex: 'actions', key: 'actions', width: 140 }
 ];
 
-// --- BudgetLine options (Clean Version) ---
-const budgetLineOptions = computed(() => {
-  console.log('Budget lines for options:', budgetLines.value);
-  if (!Array.isArray(budgetLines.value) || budgetLines.value.length === 0) {
-    return [];
-  }
-  return budgetLines.value.map(bl => ({
-    label: `${bl.budget_line_code || bl.code || 'N/A'} - ${bl.description || ''}`,
-    value: bl.id
-  }));
-});
-
-// Budget Line options with "Add new" option
-const budgetLineOptionsWithAdd = computed(() => [
-  ...budgetLineOptions.value,
-  {
-    label: '+ Add new budget line…',
-    value: '__add__',
-    style: { color: '#1890ff', fontStyle: 'italic' }
-  }
-]);
-
-// Utility: Get label for a given slot with budget line info
-function getBudgetLineLabel(slot) {
-  // First, try to use the budget_line object if it exists in the slot
-  if (slot.budget_line && slot.budget_line.budget_line_code) {
-    return slot.budget_line.budget_line_code;
-  }
-
-  // Fallback: lookup by budget_line_id in the budgetLines array
-  if (slot.budget_line_id && Array.isArray(budgetLines.value)) {
-    const bl = budgetLines.value.find(b => String(b.id) === String(slot.budget_line_id));
-    if (bl) {
-      return bl.budget_line_code || 'N/A';
-    }
-  }
-
-  return '-';
-}
-
-// Handle budget line selection (including "Add new" option)
-function onBudgetLineSelect(value) {
-  if (value === '__add__') {
-    showAddBudgetLineModal.value = true;
-    // Reset the select value to prevent showing the "Add new" option as selected
-    nextTick(() => {
-      // Find the current slot being edited and reset its budget_line_id
-      Object.keys(slotEditMap).forEach(slotId => {
-        if (slotEditMap[slotId].budget_line_id === '__add__') {
-          slotEditMap[slotId].budget_line_id = null;
-        }
-      });
-    });
-  }
-}
-
-// Handle adding new budget line
-async function handleAddBudgetLine() {
-  if (!newBudgetLineForm.budget_line_code || !newBudgetLineForm.description) {
-    // You can replace this with your notification system
-    alert('Please fill all required fields');
-    return;
-  }
-
-  addingBudgetLine.value = true;
-  try {
-    // API call to create new budget line
-    const response = await budgetLineService.createBudgetLine(newBudgetLineForm);
-    const newBudgetLine = response.data;
-
-    // Add to local budget lines array
-    budgetLines.value.push(newBudgetLine);
-
-    // Find the current slot being edited and set the new budget line
-    Object.keys(slotEditMap).forEach(slotId => {
-      if (slotEditMap[slotId].budget_line_id === null || slotEditMap[slotId].budget_line_id === '__add__') {
-        slotEditMap[slotId].budget_line_id = newBudgetLine.id;
-      }
-    });
-
-    // Close modal and reset form
-    showAddBudgetLineModal.value = false;
-    resetAddBudgetLineForm();
-
-    console.log('Budget line created successfully:', newBudgetLine);
-  } catch (error) {
-    console.error('Error creating budget line:', error);
-    alert('Error creating budget line. Please try again.');
-  } finally {
-    addingBudgetLine.value = false;
-  }
-}
-
-// Reset add budget line form
-function resetAddBudgetLineForm() {
-  newBudgetLineForm.budget_line_code = '';
-  newBudgetLineForm.description = '';
-  showAddBudgetLineModal.value = false;
-}
 
 // --- Nested Table CRUD State ---
 const slotEditMap = reactive({});
@@ -388,7 +249,6 @@ function handleAddSlot(position) {
   const slot = {
     id: newId,
     slot_number: (currentSlotCount + 1).toString(),
-    budget_line_id: null,
     __isNew: true
   };
 
@@ -401,20 +261,9 @@ function handleAddSlot(position) {
 
 function editSlot(slot) {
   console.log('Editing slot:', slot);
-  console.log('Budget lines available:', budgetLines.value);
-
-  // Extract the budget_line_id correctly, ensuring it's a number or null
-  let budgetLineId = null;
-
-  if (slot.budget_line_id) {
-    budgetLineId = Number(slot.budget_line_id);
-  } else if (slot.budget_line && slot.budget_line.id) {
-    budgetLineId = Number(slot.budget_line.id);
-  }
 
   slotEditMap[slot.id] = {
-    ...slot,
-    budget_line_id: budgetLineId
+    ...slot
   };
 
   console.log('Edit map for slot:', slotEditMap[slot.id]);
@@ -436,8 +285,8 @@ function cancelSlot(slot) {
 
 async function saveSlot(slot, position) {
   const draft = slotEditMap[slot.id];
-  if (!draft || !draft.budget_line_id) {
-    message.error('Please select a budget line');
+  if (!draft) {
+    message.error('No draft data found');
     return;
   }
 
@@ -448,8 +297,7 @@ async function saveSlot(slot, position) {
       // Create new position slot
       const createData = {
         grant_item_id: position.id,
-        slot_number: parseInt(draft.slot_number),
-        budget_line_id: draft.budget_line_id
+        slot_number: parseInt(draft.slot_number)
       };
 
       const response = await positionSlotService.createPositionSlot(createData);
@@ -459,6 +307,16 @@ async function saveSlot(slot, position) {
         Object.assign(slot, response.data);
         delete slot.__isNew;
         message.success('Position slot created successfully');
+
+        // Invalidate shared data cache to ensure employment modal gets fresh data
+        try {
+          const { useSharedDataStore } = await import('@/stores/sharedDataStore');
+          const sharedStore = useSharedDataStore();
+          sharedStore.invalidateCache('grantStructure');
+          console.log('🗑️ Grant structure cache invalidated after position slot creation');
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate cache after position slot creation:', error);
+        }
       } else {
         message.error('Failed to create position slot');
         return;
@@ -466,8 +324,7 @@ async function saveSlot(slot, position) {
     } else {
       // Update existing position slot
       const updateData = {
-        slot_number: parseInt(draft.slot_number),
-        budget_line_id: draft.budget_line_id
+        slot_number: parseInt(draft.slot_number)
       };
 
       const response = await positionSlotService.updatePositionSlot(slot.id, updateData);
@@ -476,6 +333,16 @@ async function saveSlot(slot, position) {
         // Update the slot with the response data
         Object.assign(slot, response.data);
         message.success('Position slot updated successfully');
+
+        // Invalidate shared data cache to ensure employment modal gets fresh data
+        try {
+          const { useSharedDataStore } = await import('@/stores/sharedDataStore');
+          const sharedStore = useSharedDataStore();
+          sharedStore.invalidateCache('grantStructure');
+          console.log('🗑️ Grant structure cache invalidated after position slot update');
+        } catch (error) {
+          console.warn('⚠️ Failed to invalidate cache after position slot update:', error);
+        }
       } else {
         message.error('Failed to update position slot');
         return;
@@ -627,18 +494,6 @@ function calculateTotalAmount(items) {
   vertical-align: middle !important;
 }
 
-/* Style for the "Add new budget line" option */
-:deep(.ant-select-dropdown .ant-select-item-option[title="+ Add new budget line…"]) {
-  color: #1890ff !important;
-  font-style: italic !important;
-  border-top: 1px solid #f0f0f0 !important;
-  margin-top: 4px !important;
-  padding-top: 8px !important;
-}
-
-:deep(.ant-select-dropdown .ant-select-item-option[title="+ Add new budget line…"]:hover) {
-  background-color: #e6f7ff !important;
-}
 
 /* Responsive table container for enterprise overflow handling */
 .table-responsive-custom {
@@ -744,11 +599,6 @@ function calculateTotalAmount(items) {
 .slot-number {
   font-weight: 500;
   color: #333;
-}
-
-.budget-line-label {
-  color: #555;
-  font-size: 12px;
 }
 
 .action-buttons {

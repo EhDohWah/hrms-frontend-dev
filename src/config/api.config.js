@@ -68,6 +68,7 @@ export const API_ENDPOINTS = {
         UPDATE_BASIC_INFORMATION: '/employees/:id/basic-information',
         UPDATE_PERSONAL_INFORMATION: '/employees/:id/personal-information',
         UPDATE_BANK_INFORMATION: '/employees/:id/bank-information',
+        UPDATE_FAMILY_INFORMATION: '/employees/:id/family-information',
     },
 
     // Role endpoints
@@ -124,15 +125,6 @@ export const API_ENDPOINTS = {
         PAGINATED_GRANTS: '/grants/paginated',
     },
 
-    // Budget Line endpoints
-    BUDGET_LINE: {
-        LIST: '/budget-lines',
-        SEARCH_BY_CODE: '/budget-lines/by-code/:code',
-        CREATE: '/budget-lines',
-        UPDATE: '/budget-lines/:id',
-        DELETE: '/budget-lines/:id',
-        DETAILS: '/budget-lines/:id'
-    },
 
     // Position Slot endpoints
     POSITION_SLOT: {
@@ -175,6 +167,29 @@ export const API_ENDPOINTS = {
         DETAILS: '/department-positions/:id'
     },
 
+    // Department endpoints (new)
+    DEPARTMENT: {
+        LIST: '/departments',
+        CREATE: '/departments',
+        UPDATE: '/departments/:id',
+        DELETE: '/departments/:id',
+        DETAILS: '/departments/:id',
+        OPTIONS: '/departments/options',
+        POSITIONS: '/departments/:id/positions',
+        MANAGERS: '/departments/:id/managers'
+    },
+
+    // Position endpoints (new)
+    POSITION: {
+        LIST: '/positions',
+        CREATE: '/positions',
+        UPDATE: '/positions/:id',
+        DELETE: '/positions/:id',
+        DETAILS: '/positions/:id',
+        OPTIONS: '/positions/options',
+        DIRECT_REPORTS: '/positions/:id/direct-reports'
+    },
+
 
     // Work location endpoints
     WORK_LOCATION: {
@@ -185,7 +200,7 @@ export const API_ENDPOINTS = {
         DETAILS: '/worklocations/:id'
     },
 
-    // Leave endpoints - Updated to match Laravel backend structure
+    // Leave endpoints - Updated to match simplified backend structure
     LEAVE: {
         TYPES: {
             LIST: '/leaves/types',
@@ -206,14 +221,8 @@ export const API_ENDPOINTS = {
             CREATE: '/leaves/balances',
             UPDATE: '/leaves/balances/:id',
             DELETE: '/leaves/balances/:id',
-            DETAILS: '/leaves/balances/:id'
-        },
-        APPROVALS: {
-            LIST: '/leaves/requests/:leaveRequestId/approvals',
-            CREATE: '/leaves/requests/:leaveRequestId/approvals',
-            UPDATE: '/leaves/approvals/:id',
-            DELETE: '/leaves/approvals/:id',
-            DETAILS: '/leaves/approvals/:id'
+            DETAILS: '/leaves/balances/:id',
+            EMPLOYEE_BALANCE: '/leaves/balance/:employeeId/:leaveTypeId'
         }
     },
 
@@ -289,7 +298,8 @@ export const API_ENDPOINTS = {
         DETAILS: '/employee-funding-allocations/:id',
         UPDATE: '/employee-funding-allocations/:id',
         DELETE: '/employee-funding-allocations/:id',
-        BY_GRANT_ITEM: '/employee-funding-allocations/by-grant-item/:grantItemId'
+        BY_GRANT_ITEM: '/employee-funding-allocations/by-grant-item/:grantItemId',
+        GRANT_STRUCTURE: '/employee-funding-allocations/grant-structure'
     },
 
     // JobOffer endpoints 
@@ -346,6 +356,15 @@ export const API_ENDPOINTS = {
         UPDATE: '/employee-children/:id',
         DELETE: '/employee-children/:id',
         DETAILS: '/employee-children/:id'
+    },
+
+    // Employee education endpoints
+    EMPLOYEE_EDUCATION: {
+        LIST: '/employee-education',
+        CREATE: '/employee-education',
+        UPDATE: '/employee-education/:id',
+        DELETE: '/employee-education/:id',
+        DETAILS: '/employee-education/:id'
     },
 
     // Employee beneficiaries endpoints
@@ -415,6 +434,18 @@ export const API_ENDPOINTS = {
         DETAILS: '/resignations/:id',
         ACKNOWLEDGE: '/resignations/:id/acknowledge',
         BULK_DELETE: '/resignations/bulk-delete'
+    },
+
+    // Travel Request endpoints
+    TRAVEL_REQUEST: {
+        LIST: '/travel-requests',
+        CREATE: '/travel-requests',
+        SHOW: '/travel-requests/:id',
+        UPDATE: '/travel-requests/:id',
+        DELETE: '/travel-requests/:id',
+        DELETE_SELECTED: '/travel-requests/bulk-delete',
+        OPTIONS: '/travel-requests/options',
+        SEARCH_BY_EMPLOYEE: '/travel-requests/search/employee/:staffId'
     }
 
 };

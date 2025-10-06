@@ -1,223 +1,442 @@
-// src/stores/trainingStore.js
 import { defineStore } from 'pinia';
-import trainingService from '@/services/training.service';
+import { trainingService } from '@/services/training.service';
 
 export const useTrainingStore = defineStore('training', {
   state: () => ({
+    // Data state
     trainings: [],
-    employeeTrainings: [],
     currentTraining: null,
-    currentEmployeeTraining: null,
+    statistics: {
+      total: 0,
+      upcoming: 0,
+      ongoing: 0,
+      completed: 0
+    },
+
+    // UI state
     loading: false,
-    error: null
+    submitting: false,
+    searchLoading: false,
+    error: null,
+
+    // Pagination state (server-side pagination from backend)
+    currentPage: 1,
+    pageSize: 10,
+    total: 0,
+
+    // Filter and sorting state
+    filteredInfo: {},
+    sortedInfo: {},
+    searchText: ''
   }),
 
   getters: {
+    /**
+     * Get training by ID
+     */
     getTrainingById: (state) => (id) => {
-      return state.trainings.find(training => training.id === id);
+      return state.trainings.find(training => training.id === parseInt(id));
     },
-    getEmployeeTrainingById: (state) => (id) => {
-      return state.employeeTrainings.find(empTraining => empTraining.id === id);
-    },
-    getTrainingsByType: (state) => (type) => {
-      return state.trainings.filter(training => training.type === type);
-    },
-    getEmployeeTrainingsByEmployee: (state) => (employeeId) => {
-      return state.employeeTrainings.filter(empTraining => empTraining.employee_id === employeeId);
-    },
-    getCompletedTrainings: (state) => {
-      return state.employeeTrainings.filter(empTraining => empTraining.status === 'completed');
-    },
-    getPendingTrainings: (state) => {
-      return state.employeeTrainings.filter(empTraining => empTraining.status === 'pending');
+
+    /**
+     * Get filtered trainings (server-side filtering)
+     */
+    filteredTrainings: (state) => {
+      return state.trainings;
     }
   },
 
   actions: {
-    // Training actions
-    async fetchTrainings() {
+    /**
+     * Build API parameters for requests
+     */
+    buildApiParams(baseParams = {}) {
+      const params = {
+        page: this.currentPage,
+        per_page: this.pageSize,
+        ...baseParams
+      };
+
+      // Add sorting parameters
+      if (this.sortedInfo && this.sortedInfo.field && this.sortedInfo.order) {
+        const sortField = this.mapSortField(this.sortedInfo.field);
+        params.sort_by = sortField;
+        params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
+      }
+
+      // Add filter parameters
+      if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
+        if (this.filteredInfo.organizer && this.filteredInfo.organizer.length > 0) {
+          params.filter_organizer = this.filteredInfo.organizer.join(',');
+        }
+      }
+
+      // Add search text if present
+      if (this.searchText && this.searchText.trim() !== '') {
+        params.filter_title = this.searchText.trim();
+      }
+
+      return params;
+    },
+
+    /**
+     * Map frontend field names to backend field names
+     */
+    mapSortField(field) {
+      const fieldMapping = {
+        'title': 'title',
+        'organizer': 'organizer',
+        'start_date': 'start_date',
+        'end_date': 'end_date',
+        'created_at': 'created_at'
+      };
+      return fieldMapping[field] || field;
+    },
+
+    /**
+     * Fetch trainings with pagination and filtering
+     */
+    async fetchTrainings(params = {}) {
+      this.loading = true;
+      this.error = null;
+
       try {
-        this.loading = true;
-        this.error = null;
-        const response = await trainingService.getTrainings();
+        const queryParams = {
+          page: params.page || this.currentPage || 1,
+          per_page: params.per_page || this.pageSize,
+          ...params
+        };
 
-        // Check if response.data exists and is an array; if not, assume response is the array
-        const trainingsData = Array.isArray(response.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : [];
+        const response = await trainingService.getTrainings(queryParams);
 
-        this.trainings = trainingsData;
-        return this.trainings;
+        if (response.success && response.data) {
+          this.trainings = this.mapTrainingData(response.data);
+
+          // Update pagination properties from server response
+          if (response.pagination) {
+            this.total = response.pagination.total;
+            this.currentPage = response.pagination.current_page;
+            this.pageSize = response.pagination.per_page;
+          } else {
+            this.total = response.data.length;
+            this.currentPage = 1;
+          }
+
+          // Update statistics
+          this.updateStatistics();
+        } else {
+          this.trainings = [];
+          this.total = 0;
+          throw new Error(response.message || 'Failed to fetch trainings');
+        }
       } catch (error) {
-        this.error = error.message || 'Failed to fetch trainings';
         console.error('Error fetching trainings:', error);
+        this.error = error.message;
+        this.trainings = [];
+        this.total = 0;
         throw error;
       } finally {
         this.loading = false;
       }
     },
 
-    async getTrainingDetails(id) {
+    /**
+     * Search trainings by title or organizer
+     */
+    async searchTrainings(searchText) {
+      this.searchLoading = true;
+      this.searchText = searchText;
+
       try {
-        this.loading = true;
-        this.error = null;
-        const response = await trainingService.getTrainingDetails(id);
-        this.currentTraining = response.data || response;
-        return this.currentTraining;
+        const params = this.buildApiParams({
+          filter_title: searchText,
+          page: 1 // Reset to first page on search
+        });
+
+        const response = await trainingService.getTrainings(params);
+
+        if (response.success && response.data) {
+          this.trainings = this.mapTrainingData(response.data);
+
+          if (response.pagination) {
+            this.total = response.pagination.total;
+            this.currentPage = response.pagination.current_page;
+          } else {
+            this.total = response.data.length;
+          }
+        } else {
+          this.trainings = [];
+          this.total = 0;
+          throw new Error(response.message || 'No trainings found');
+        }
       } catch (error) {
-        this.error = error.message || 'Failed to fetch training details';
-        console.error('Error fetching training details:', error);
+        console.error('Error searching trainings:', error);
+        this.trainings = [];
+        this.total = 0;
+        throw error;
+      } finally {
+        this.searchLoading = false;
+      }
+    },
+
+    /**
+     * Fetch single training
+     */
+    async fetchTraining(id) {
+      this.loading = true;
+      this.error = null;
+
+      try {
+        const response = await trainingService.getTraining(id);
+
+        if (response.success) {
+          this.currentTraining = response.data;
+
+          // Update in list if exists
+          const index = this.trainings.findIndex(t => t.id === parseInt(id));
+          if (index !== -1) {
+            this.trainings[index] = response.data;
+          }
+
+          return response.data;
+        } else {
+          throw new Error(response.message || 'Failed to fetch training');
+        }
+      } catch (error) {
+        this.error = error.message;
+        this.currentTraining = null;
         throw error;
       } finally {
         this.loading = false;
       }
     },
 
+    /**
+     * Create new training
+     */
     async createTraining(data) {
+      this.submitting = true;
+      this.error = null;
+
       try {
-        this.loading = true;
-        this.error = null;
         const response = await trainingService.createTraining(data);
-        await this.fetchTrainings();
-        return response;
+
+        if (response.success) {
+          // Refresh list to get updated data
+          await this.fetchTrainings();
+
+          return response.data;
+        } else {
+          throw new Error(response.message || 'Failed to create training');
+        }
       } catch (error) {
-        this.error = error.message || 'Failed to create training';
-        console.error('Error creating training:', error);
+        this.error = error.message;
         throw error;
       } finally {
-        this.loading = false;
+        this.submitting = false;
       }
     },
 
+    /**
+     * Update training
+     */
     async updateTraining(id, data) {
+      this.submitting = true;
+      this.error = null;
+
       try {
-        this.loading = true;
-        this.error = null;
         const response = await trainingService.updateTraining(id, data);
-        await this.fetchTrainings();
-        return response;
+
+        if (response.success) {
+          // Update in list
+          const index = this.trainings.findIndex(t => t.id === parseInt(id));
+          if (index !== -1) {
+            this.trainings[index] = response.data;
+          }
+
+          // Update current if it's the same
+          if (this.currentTraining?.id === parseInt(id)) {
+            this.currentTraining = response.data;
+          }
+
+          return response.data;
+        } else {
+          throw new Error(response.message || 'Failed to update training');
+        }
       } catch (error) {
-        this.error = error.message || 'Failed to update training';
-        console.error('Error updating training:', error);
+        this.error = error.message;
         throw error;
       } finally {
-        this.loading = false;
+        this.submitting = false;
       }
     },
 
+    /**
+     * Delete training
+     */
     async deleteTraining(id) {
+      this.submitting = true;
+      this.error = null;
+
       try {
-        this.loading = true;
-        this.error = null;
         const response = await trainingService.deleteTraining(id);
-        await this.fetchTrainings();
-        return response;
+
+        if (response.success) {
+          // Remove from list
+          this.trainings = this.trainings.filter(t => t.id !== parseInt(id));
+          this.total -= 1;
+
+          // Clear current if it's the same
+          if (this.currentTraining?.id === parseInt(id)) {
+            this.currentTraining = null;
+          }
+
+          // Update statistics
+          this.updateStatistics();
+
+          return true;
+        } else {
+          throw new Error(response.message || 'Failed to delete training');
+        }
       } catch (error) {
-        this.error = error.message || 'Failed to delete training';
-        console.error('Error deleting training:', error);
+        this.error = error.message;
         throw error;
       } finally {
-        this.loading = false;
+        this.submitting = false;
       }
     },
 
-    // Employee Training actions
-    async fetchEmployeeTrainings() {
+    /**
+     * Delete selected trainings
+     */
+    async deleteSelectedTrainings(ids) {
+      this.submitting = true;
+      this.error = null;
+
       try {
-        this.loading = true;
-        this.error = null;
-        const response = await trainingService.getEmployeeTrainings();
+        await trainingService.deleteSelectedTrainings(ids);
 
-        // Check if response.data exists and is an array; if not, assume response is the array
-        const employeeTrainingsData = Array.isArray(response.data)
-          ? response.data
-          : Array.isArray(response)
-            ? response
-            : [];
+        // Remove from list
+        this.trainings = this.trainings.filter(t => !ids.includes(t.id));
+        this.total -= ids.length;
 
-        this.employeeTrainings = employeeTrainingsData;
-        return this.employeeTrainings;
+        // Update statistics
+        this.updateStatistics();
+
+        return true;
       } catch (error) {
-        this.error = error.message || 'Failed to fetch employee trainings';
-        console.error('Error fetching employee trainings:', error);
+        this.error = error.message;
         throw error;
       } finally {
-        this.loading = false;
+        this.submitting = false;
       }
     },
 
-    async getEmployeeTrainingDetails(id) {
-      try {
-        this.loading = true;
-        this.error = null;
-        const response = await trainingService.getEmployeeTrainingDetails(id);
-        this.currentEmployeeTraining = response.data || response;
-        return this.currentEmployeeTraining;
-      } catch (error) {
-        this.error = error.message || 'Failed to fetch employee training details';
-        console.error('Error fetching employee training details:', error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+    /**
+     * Map training data from API response
+     */
+    mapTrainingData(data) {
+      return data.map(training => ({
+        key: training.id,
+        id: training.id,
+        title: training.title || 'N/A',
+        organizer: training.organizer || 'N/A',
+        start_date: training.start_date || null,
+        end_date: training.end_date || null,
+        created_at: training.created_at,
+        updated_at: training.updated_at,
+        created_by: training.created_by || 'N/A',
+        updated_by: training.updated_by || 'N/A'
+      }));
     },
 
-    async createEmployeeTraining(data) {
-      try {
-        this.loading = true;
-        this.error = null;
-        const response = await trainingService.createEmployeeTraining(data);
-        await this.fetchEmployeeTrainings();
-        return response;
-      } catch (error) {
-        this.error = error.message || 'Failed to create employee training';
-        console.error('Error creating employee training:', error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+    /**
+     * Update local statistics
+     */
+    updateStatistics() {
+      this.statistics.total = this.total;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      let upcoming = 0;
+      let ongoing = 0;
+      let completed = 0;
+
+      this.trainings.forEach(training => {
+        if (training.start_date && training.end_date) {
+          const startDate = new Date(training.start_date);
+          const endDate = new Date(training.end_date);
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999);
+
+          if (today < startDate) {
+            upcoming++;
+          } else if (today >= startDate && today <= endDate) {
+            ongoing++;
+          } else if (today > endDate) {
+            completed++;
+          }
+        }
+      });
+
+      this.statistics.upcoming = upcoming;
+      this.statistics.ongoing = ongoing;
+      this.statistics.completed = completed;
     },
 
-    async updateEmployeeTraining(id, data) {
-      try {
-        this.loading = true;
-        this.error = null;
-        const response = await trainingService.updateEmployeeTraining(id, data);
-        await this.fetchEmployeeTrainings();
-        return response;
-      } catch (error) {
-        this.error = error.message || 'Failed to update employee training';
-        console.error('Error updating employee training:', error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+    /**
+     * Update filters
+     */
+    updateFilters(newFilters) {
+      this.filteredInfo = { ...this.filteredInfo, ...newFilters };
     },
 
-    async deleteEmployeeTraining(id) {
-      try {
-        this.loading = true;
-        this.error = null;
-        const response = await trainingService.deleteEmployeeTraining(id);
-        await this.fetchEmployeeTrainings();
-        return response;
-      } catch (error) {
-        this.error = error.message || 'Failed to delete employee training';
-        console.error('Error deleting employee training:', error);
-        throw error;
-      } finally {
-        this.loading = false;
-      }
+    /**
+     * Reset filters
+     */
+    clearFilters() {
+      this.filteredInfo = {};
+      this.currentPage = 1;
     },
 
-    setCurrentTraining(training) {
-      this.currentTraining = training;
+    /**
+     * Clear all filters and sorting
+     */
+    clearAll() {
+      this.filteredInfo = {};
+      this.sortedInfo = {};
+      this.searchText = '';
+      this.currentPage = 1;
     },
 
-    setCurrentEmployeeTraining(employeeTraining) {
-      this.currentEmployeeTraining = employeeTraining;
+    /**
+     * Update pagination
+     */
+    updatePagination(pagination) {
+      if (pagination.current) this.currentPage = pagination.current;
+      if (pagination.pageSize) this.pageSize = pagination.pageSize;
+    },
+
+    /**
+     * Update sorting info
+     */
+    updateSorting(sorter) {
+      this.sortedInfo = sorter || {};
+    },
+
+    /**
+     * Clear error state
+     */
+    clearError() {
+      this.error = null;
+    },
+
+    /**
+     * Clear current training
+     */
+    clearCurrentTraining() {
+      this.currentTraining = null;
     }
   }
 });

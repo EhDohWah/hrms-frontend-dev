@@ -9,18 +9,18 @@ class UserService {
   async getCurrentUser() {
     // Try to get user from storage first using STORAGE_KEYS.USER
     const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-    
+
     if (storedUser) {
       return { data: JSON.parse(storedUser) };
     }
-    
+
     return await apiService.get(API_ENDPOINTS.AUTH.USER);
   }
 
   // Update user's name
   async updateUsername(username) {
     try {
-        const response = await apiService.post(API_ENDPOINTS.USER.UPDATE_USERNAME, { name:  username });
+      const response = await apiService.post(API_ENDPOINTS.USER.UPDATE_USERNAME, { name: username });
       if (response && response.success) {
         // Update the user data in localStorage
         const currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
@@ -36,7 +36,7 @@ class UserService {
 
   // Update user's email
   async updateEmail(email) {
-    try {   
+    try {
       const response = await apiService.post(API_ENDPOINTS.USER.UPDATE_EMAIL, { email: email });
       if (response && response.success) {
         // Update the user data in localStorage
@@ -58,9 +58,9 @@ class UserService {
       if (!token) {
         return { success: false, error: 'Not authenticated' };
       }
-      
+
       const response = await apiService.post(API_ENDPOINTS.USER.UPDATE_PASSWORD, passwordData);
-      
+
       return { success: true, message: response.message || 'Password updated successfully' };
     } catch (error) {
       console.error('Update password error:', error);
@@ -79,14 +79,14 @@ class UserService {
       if (!imageFile) {
         throw new Error('No file selected');
       }
-      
+
       // Create FormData object
       const formData = new FormData();
       formData.append('profile_picture', imageFile);
-      
+
       // Make the API request with FormData
       const response = await apiService.postFormData(API_ENDPOINTS.USER.UPDATE_PROFILE_PICTURE, formData);
-      
+
       return response;
     } catch (error) {
       console.error('Error updating profile picture:', error);
@@ -98,12 +98,12 @@ class UserService {
   async refetchAndUpdateUser() {
     try {
       const response = await apiService.get(API_ENDPOINTS.AUTH.USER);
-      
+
       if (response && response.user) {
         localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(response.user));
         return { success: true, data: response.user };
       }
-      
+
       return { success: false, error: 'Failed to fetch user data' };
     } catch (error) {
       console.error('Error refetching user data:', error);

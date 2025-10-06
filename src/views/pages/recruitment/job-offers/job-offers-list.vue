@@ -51,6 +51,22 @@
                         <a-table :columns="columns" :data-source="tableData" :pagination="false"
                             :scroll="{ x: 'max-content' }" row-key="id" @change="handleTableChange">
                             <template #bodyCell="{ column, record }">
+                                <template v-if="column.dataIndex === 'probation_salary'">
+                                    <span class="text-primary fw-semibold">
+                                        {{ record.probation_salary ? `THB
+                                        ${Number(record.probation_salary).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A' }}
+                                    </span>
+                                </template>
+
+                                <template v-if="column.dataIndex === 'post_probation_salary'">
+                                    <span class="text-success fw-semibold">
+                                        {{ record.post_probation_salary ? `THB
+                                        ${Number(record.post_probation_salary).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A' }}
+                                    </span>
+                                </template>
+
                                 <template v-if="column.dataIndex === 'acceptance_status'">
                                     <span
                                         :class="`badge ${record.acceptance_status === 'accepted' ? 'bg-success' : record.acceptance_status === 'rejected' ? 'bg-danger' : 'bg-warning'}`">
@@ -204,6 +220,22 @@ export default {
                     filteredValue: filtered.position_name || null,
                     sorter: true,
                     sortOrder: sorted.columnKey === 'position_name' && sorted.order
+                },
+                {
+                    title: 'Probation Salary',
+                    dataIndex: 'probation_salary',
+                    key: 'probation_salary',
+                    sorter: true,
+                    sortOrder: sorted.columnKey === 'probation_salary' && sorted.order,
+                    width: 150
+                },
+                {
+                    title: 'Post-Probation Salary',
+                    dataIndex: 'post_probation_salary',
+                    key: 'post_probation_salary',
+                    sorter: true,
+                    sortOrder: sorted.columnKey === 'post_probation_salary' && sorted.order,
+                    width: 170
                 },
                 {
                     title: 'Date',
@@ -406,6 +438,8 @@ export default {
                 'custom_offer_id': 'job_offer_id',
                 'candidate_name': 'candidate_name',
                 'position_name': 'position',
+                'probation_salary': 'probation_salary',
+                'post_probation_salary': 'post_probation_salary',
                 'date': 'date',
                 'acceptance_deadline': 'acceptance_deadline',
                 'acceptance_status': 'status'

@@ -72,6 +72,7 @@ import { employmentService } from '@/services/employment.service';
 
 export default {
   name: 'EmployeeUploadModal',
+  emits: ['refreshEmployeeList', 'refresh-employee-list', 'refreshEmploymentList', 'refresh-employment-list'],
   data() {
     return {
       file: null,
@@ -148,6 +149,14 @@ export default {
           this.showAlert('File uploaded successfully!', 'success');
           this.resetForm();
         }
+
+        // Invalidate employee cache so employment modal will fetch fresh data
+        const { useSharedDataStore } = await import('@/stores/sharedDataStore');
+        const sharedStore = useSharedDataStore();
+        sharedStore.invalidateCache('employees');
+
+        // Optionally preload fresh employee data for better UX
+        await sharedStore.fetchEmployees(true);
 
         // Emit event to refresh employee list
         this.$emit('refresh-employee-list');

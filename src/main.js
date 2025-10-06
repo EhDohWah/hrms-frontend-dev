@@ -180,6 +180,7 @@ import 'weathericons/css/weather-icons.css'
 import '@/assets/css/feather.css'
 import '@/assets/css/sticky.css'
 import '@/assets/css/tabler-icons.css'
+import '@/assets/css/font-display-override.css' // Font performance optimization
 import '@/assets/css/vue-form-wizard.css';
 import "boxicons/css/boxicons.min.css";
 import "v-calendar/dist/style.css";
@@ -188,6 +189,17 @@ import '@/assets/scss/main.scss'
 
 import swal from 'sweetalert2';
 window.Swal = swal;
+
+// Suppress benign ResizeObserver errors for performance optimization
+const resizeObserverLoopErr = /^ResizeObserver loop (limit exceeded|completed with undelivered notifications)/;
+window.addEventListener('error', (e) => {
+    if (resizeObserverLoopErr.test(e.message)) {
+        e.stopImmediatePropagation();
+        e.stopPropagation();
+        e.preventDefault();
+        return false;
+    }
+});
 
 const app = createApp(App)
 const pinia = createPinia()

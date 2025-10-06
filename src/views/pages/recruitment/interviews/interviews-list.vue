@@ -144,6 +144,7 @@ export default {
       notificationTitle: '',
       notificationMessage: '',
       notificationClass: '',
+      isCollapsed: false, // Add missing property for collapse functionality
 
       // Server-side pagination, filtering, and sorting state
       filteredInfo: {},

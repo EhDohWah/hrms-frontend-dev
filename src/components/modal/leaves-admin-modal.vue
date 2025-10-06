@@ -4,6 +4,7 @@ import { leaveService } from '@/services/leave.service';
 import { employeeService } from '@/services/employee.service';
 import { Modal } from 'bootstrap';
 import { useToast } from '@/composables/useToast';
+import { useLeaveStore } from '@/stores/leaveStore';
 
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
@@ -21,9 +22,12 @@ export default {
   },
   setup() {
     const { showSuccess, showError } = useToast();
+    const leaveStore = useLeaveStore();
+
     return {
       showSuccess,
-      showError
+      showError,
+      leaveStore
     };
   },
   data() {
@@ -36,7 +40,13 @@ export default {
         end_date: null,
         total_days: 0,
         reason: '',
-        documents: []
+        status: 'pending',
+        // Approval fields - boolean flags with dates (v4.1 - combined HR/Site Admin)
+        supervisor_approved: false,
+        supervisor_approved_date: null,
+        hr_site_admin_approved: false,
+        hr_site_admin_approved_date: null,
+        attachment_notes: ''
       },
       editFormData: {
         employee_id: null,
@@ -45,7 +55,13 @@ export default {
         end_date: null,
         total_days: 0,
         reason: '',
-        documents: []
+        status: 'pending',
+        // Approval fields - boolean flags with dates (v4.1 - combined HR/Site Admin)
+        supervisor_approved: false,
+        supervisor_approved_date: null,
+        hr_site_admin_approved: false,
+        hr_site_admin_approved_date: null,
+        attachment_notes: ''
       },
 
       // Options loaded from backend
@@ -65,24 +81,23 @@ export default {
       startdate: currentDate,
       startdateOne: currentDateOne,
       dateFormat: "dd-MM-yyyy",
+      displayFormat: "dd/MM/yyyy",
+      inputFormat: "yyyy-MM-dd",
 
       // Form state
       isLoading: false,
       errors: {},
       availableBalance: 0,
       selectedLeaveType: null,
+      isLoadingBalance: false, // Prevent duplicate balance API calls
+      balanceLoadTimeout: null, // Debounce balance loading
 
       // Notification state
       showNotification: false,
       notificationMessage: '',
       notificationClass: 'alert-success',
 
-      // Document management
-      newDocument: {
-        document_name: '',
-        document_url: '',
-        description: ''
-      }
+      // Removed document management - using attachment_notes only
     };
   },
 
@@ -122,7 +137,7 @@ export default {
 
     // Get display text for selected employee
     selectedEmployeeDisplay() {
-      const employeeId = this.isEditMode ? this.editFormData.employee_id : this.formData.employee_id;
+      const employeeId = this.isCurrentlyEditing ? this.editFormData.employee_id : this.formData.employee_id;
       if (!employeeId) return this.employeeSearchQuery || '';
 
       const employee = this.employees.find(emp => emp.id === employeeId);
@@ -147,31 +162,20 @@ export default {
     // Load leave balance when employee or leave type changes
     'formData.employee_id'(newVal, oldVal) {
       console.log('👤 Employee ID changed:', oldVal, '→', newVal);
-      this.loadLeaveBalance();
+      if (newVal && this.formData.leave_type_id) {
+        this.loadLeaveBalance();
+      } else if (!newVal) {
+        this.availableBalance = 0;
+      }
     },
     'formData.leave_type_id'(newVal, oldVal) {
       console.log('📋 Leave Type ID changed:', oldVal, '→', newVal);
-      this.loadLeaveBalance();
       this.loadLeaveTypeDetails();
-    },
-
-    // Watch for selected leave request changes to populate edit form
-    selectedLeaveRequest: {
-      handler(newVal, oldVal) {
-        console.log('👀 selectedLeaveRequest watcher triggered:', { newVal, oldVal });
-        if (newVal && newVal.id) {
-          // Only populate if this is a different leave request or if we're switching to edit mode
-          if (!oldVal || oldVal.id !== newVal.id) {
-            console.log('📝 Populating form for different leave request');
-            this.populateEditForm(newVal);
-          }
-        } else {
-          console.log('🔄 Resetting form - no leave request selected');
-          this.resetForm();
-        }
-      },
-      immediate: false,
-      deep: true
+      if (newVal && this.formData.employee_id) {
+        this.loadLeaveBalance();
+      } else if (!newVal) {
+        this.availableBalance = 0;
+      }
     },
 
     // Auto-calculate total days for edit form
@@ -185,11 +189,19 @@ export default {
     // Load leave balance when employee or leave type changes in edit form
     'editFormData.employee_id'(newVal, oldVal) {
       console.log('👤 Edit Employee ID changed:', oldVal, '→', newVal);
-      this.loadEditLeaveBalance();
+      if (newVal && this.editFormData.leave_type_id) {
+        this.debouncedLoadEditBalance();
+      } else if (!newVal) {
+        this.availableBalance = 0;
+      }
     },
     'editFormData.leave_type_id'(newVal, oldVal) {
       console.log('📋 Edit Leave Type ID changed:', oldVal, '→', newVal);
-      this.loadEditLeaveBalance();
+      if (newVal && this.editFormData.employee_id) {
+        this.debouncedLoadEditBalance();
+      } else if (!newVal) {
+        this.availableBalance = 0;
+      }
     }
   },
 
@@ -337,45 +349,72 @@ export default {
       this.selectedLeaveType = this.leaveTypes.find(type => type.id === this.formData.leave_type_id);
     },
 
-    // Load employee leave balance
+    // Debounced balance loading to prevent multiple simultaneous calls
+    debouncedLoadEditBalance() {
+      if (this.balanceLoadTimeout) {
+        clearTimeout(this.balanceLoadTimeout);
+      }
+
+      this.balanceLoadTimeout = setTimeout(() => {
+        this.loadEditLeaveBalance();
+      }, 100); // 100ms debounce
+    },
+
+    // Load employee leave balance using store
     async loadLeaveBalance() {
       if (!this.formData.employee_id || !this.formData.leave_type_id) {
         this.availableBalance = 0;
         return;
       }
 
+      // Prevent duplicate API calls
+      if (this.isLoadingBalance) {
+        console.log('⏳ Balance loading already in progress, skipping duplicate call');
+        return;
+      }
+
+      this.isLoadingBalance = true;
+
       try {
-        console.log(`🔄 Loading leave balance for employee ${this.formData.employee_id}, leave type ${this.formData.leave_type_id}`);
+        console.log(`📊 Loading leave balance from store for employee ${this.formData.employee_id}, leave type ${this.formData.leave_type_id}`);
 
-        // Call the specific API endpoint: /leaves/balance/{employeeId}/{leaveTypeId}
         const year = new Date().getFullYear();
-        const endpoint = `leaves/balance/${this.formData.employee_id}/${this.formData.leave_type_id}?year=${year}`;
+        const result = await this.leaveStore.getOrFetchLeaveBalance(
+          this.formData.employee_id,
+          this.formData.leave_type_id,
+          year
+        );
 
-        const response = await leaveService.getEmployeeLeaveBalance(this.formData.employee_id, this.formData.leave_type_id, year);
+        console.log('🔍 Balance Result:', result);
 
-        if (response.success && response.data) {
-          this.availableBalance = parseFloat(response.data.remaining_days) || 0;
+        if (result.success && result.data) {
+          // Handle both mapped and unmapped response data
+          let remainingDays = 0;
+
+          if (result.data.remainingDays !== undefined) {
+            remainingDays = parseFloat(result.data.remainingDays);
+          } else if (result.data.remaining_days !== undefined) {
+            remainingDays = parseFloat(result.data.remaining_days);
+          } else if (result.data.balance !== undefined) {
+            remainingDays = parseFloat(result.data.balance);
+          }
+
+          console.log(`🔍 Extracted remainingDays: ${remainingDays} (${result.fromCache ? 'from cache' : 'from API'})`);
+          this.availableBalance = remainingDays || 0;
+          this.$forceUpdate();
 
           console.log(`✅ Leave balance loaded: ${this.availableBalance} days remaining`);
-          console.log('Balance details:', {
-            employee: response.data.employee_name,
-            leaveType: response.data.leave_type_name,
-            total: response.data.total_days,
-            used: response.data.used_days,
-            remaining: response.data.remaining_days
-          });
         } else {
           this.availableBalance = 0;
-          console.warn('⚠️ No leave balance data found');
+          this.$forceUpdate();
+          console.warn('⚠️ No leave balance data found:', result);
         }
       } catch (error) {
         console.error('❌ Error loading leave balance:', error);
         this.availableBalance = 0;
-
-        // Show user-friendly message if balance not found
-        if (error.response && error.response.status === 404) {
-          console.warn('Leave balance not found for this employee and leave type combination');
-        }
+        this.$forceUpdate();
+      } finally {
+        this.isLoadingBalance = false;
       }
     },
 
@@ -397,47 +436,105 @@ export default {
       }
     },
 
-    // Load leave balance for edit form
+    // Load leave balance for edit form using store
     async loadEditLeaveBalance() {
       if (!this.editFormData.employee_id || !this.editFormData.leave_type_id) {
         this.availableBalance = 0;
         return;
       }
 
+      // Prevent duplicate API calls
+      if (this.isLoadingBalance) {
+        console.log('⏳ Balance loading already in progress, skipping duplicate call');
+        return;
+      }
+
+      this.isLoadingBalance = true;
+
       try {
-        console.log(`🔄 Loading edit leave balance for employee ${this.editFormData.employee_id}, leave type ${this.editFormData.leave_type_id}`);
+        console.log(`📊 Loading leave balance from store for employee ${this.editFormData.employee_id}, leave type ${this.editFormData.leave_type_id}`);
 
         const year = new Date().getFullYear();
-        const response = await leaveService.getEmployeeLeaveBalance(this.editFormData.employee_id, this.editFormData.leave_type_id, year);
+        const result = await this.leaveStore.getOrFetchLeaveBalance(
+          this.editFormData.employee_id,
+          this.editFormData.leave_type_id,
+          year
+        );
 
-        if (response.success && response.data) {
-          this.availableBalance = parseFloat(response.data.remaining_days) || 0;
+        console.log('🔍 Balance Result:', result);
+
+        if (result.success && result.data) {
+          // Handle both mapped and unmapped response data
+          let remainingDays = 0;
+
+          if (result.data.remainingDays !== undefined) {
+            remainingDays = parseFloat(result.data.remainingDays);
+          } else if (result.data.remaining_days !== undefined) {
+            remainingDays = parseFloat(result.data.remaining_days);
+          } else if (result.data.balance !== undefined) {
+            remainingDays = parseFloat(result.data.balance);
+          }
+
+          console.log(`🔍 Extracted remainingDays: ${remainingDays} (${result.fromCache ? 'from cache' : 'from API'})`);
+          this.availableBalance = remainingDays || 0;
+          this.$forceUpdate();
+
           console.log(`✅ Edit leave balance loaded: ${this.availableBalance} days remaining`);
         } else {
           this.availableBalance = 0;
-          console.warn('⚠️ No leave balance data found for edit form');
+          this.$forceUpdate();
+          console.warn('⚠️ No leave balance data found for edit form:', result);
         }
       } catch (error) {
         console.error('❌ Error loading edit leave balance:', error);
         this.availableBalance = 0;
+        this.$forceUpdate();
+      } finally {
+        this.isLoadingBalance = false;
       }
     },
 
-    // Add document to the list
-    addDocument() {
-      if (this.newDocument.document_name && this.newDocument.document_url) {
-        this.formData.documents.push({ ...this.newDocument });
-        this.newDocument = {
-          document_name: '',
-          document_url: '',
-          description: ''
-        };
+    // Document management removed - using attachment_notes only
+
+    // Handle date picker changes for add form
+    handleDateChange(fieldName, newValue) {
+      try {
+        const safeDate = this.safeConvertToDate(newValue);
+        this.formData[fieldName] = safeDate;
+      } catch (error) {
+        console.error('Error handling date change:', error);
       }
     },
 
-    // Remove document from the list
-    removeDocument(index) {
-      this.formData.documents.splice(index, 1);
+    // Handle date picker changes for edit form
+    handleEditDateChange(fieldName, newValue) {
+      try {
+        const safeDate = this.safeConvertToDate(newValue);
+        this.editFormData[fieldName] = safeDate;
+      } catch (error) {
+        console.error('Error handling edit date change:', error);
+      }
+    },
+
+    // Safe date conversion helper
+    safeConvertToDate(dateValue) {
+      if (!dateValue) return null;
+
+      try {
+        if (dateValue instanceof Date) {
+          return isNaN(dateValue.getTime()) ? null : dateValue;
+        }
+
+        if (typeof dateValue === 'string') {
+          const parsedDate = new Date(dateValue);
+          return isNaN(parsedDate.getTime()) ? null : parsedDate;
+        }
+
+        return null;
+      } catch (error) {
+        console.error('Error converting date:', error);
+        return null;
+      }
     },
 
     // Format date for backend (YYYY-MM-DD)
@@ -485,9 +582,9 @@ export default {
         console.log('❌ Validation error: Insufficient balance');
       }
 
-      if (this.requiresAttachment && dataToValidate.documents.length === 0) {
-        this.errors.documents = 'This leave type requires document attachments';
-        console.log('❌ Validation error: Missing required attachments');
+      if (this.requiresAttachment && !dataToValidate.attachment_notes?.trim()) {
+        this.errors.attachment_notes = 'This leave type requires attachment notes';
+        console.log('❌ Validation error: Missing required attachment notes');
       }
 
       const isValid = Object.keys(this.errors).length === 0;
@@ -496,104 +593,126 @@ export default {
       return isValid;
     },
 
-    // Submit form to backend
+    // Submit form to backend using store
     async submitForm() {
       // Determine if we're editing or creating
       const isEditing = this.isCurrentlyEditing;
       const formDataToUse = isEditing ? this.editFormData : this.formData;
 
+      // Validate form
       if (!this.validateForm(formDataToUse)) {
+        this.showError('Please fix the form errors before submitting');
         return;
       }
 
       this.isLoading = true;
 
       try {
-        // Debug form data before creating payload
-        console.log('🔍 Form data before creating payload:', {
+        console.log('🔍 Submitting form data:', {
           employee_id: formDataToUse.employee_id,
           leave_type_id: formDataToUse.leave_type_id,
-          start_date: formDataToUse.start_date,
-          end_date: formDataToUse.end_date,
-          total_days: formDataToUse.total_days,
-          reason: formDataToUse.reason,
-          documents: formDataToUse.documents,
           isEditing
         });
 
-        // Validate required fields have values
+        // Validate required fields
         if (!formDataToUse.employee_id) {
-          console.error('❌ Missing employee_id');
           this.showError('Please select an employee');
           return;
         }
 
         if (!formDataToUse.leave_type_id) {
-          console.error('❌ Missing leave_type_id');
           this.showError('Please select a leave type');
           return;
         }
 
+        // Prepare payload matching new API structure (v4.1 - combined HR/Site Admin)
         const payload = {
-          employeeId: parseInt(formDataToUse.employee_id),
-          leaveTypeId: parseInt(formDataToUse.leave_type_id),
-          startDate: formDataToUse.start_date,
-          endDate: formDataToUse.end_date,
-          totalDays: parseFloat(formDataToUse.total_days) || 0,
+          employee_id: parseInt(formDataToUse.employee_id),
+          leave_type_id: parseInt(formDataToUse.leave_type_id),
+          start_date: formDataToUse.start_date,
+          end_date: formDataToUse.end_date,
+          total_days: parseFloat(formDataToUse.total_days) || 0,
           reason: formDataToUse.reason || null,
-          attachments: formDataToUse.documents.length > 0 ? formDataToUse.documents.map(doc => ({
-            documentName: doc.document_name,
-            documentUrl: doc.document_url,
-            description: doc.description
-          })) : []
+          status: formDataToUse.status || 'pending',
+          // Boolean approval flags with dates
+          supervisor_approved: formDataToUse.supervisor_approved || false,
+          supervisor_approved_date: formDataToUse.supervisor_approved_date || null,
+          hr_site_admin_approved: formDataToUse.hr_site_admin_approved || false,
+          hr_site_admin_approved_date: formDataToUse.hr_site_admin_approved_date || null,
+          attachment_notes: formDataToUse.attachment_notes || null
         };
 
-        console.log('📤 Payload being sent:', JSON.stringify(payload, null, 2));
+        console.log('📤 Payload being sent:', payload);
 
-        let response;
+        let result;
         if (isEditing) {
-          // Update existing leave request using the ID from editFormData
+          // Update using store
           const leaveRequestId = formDataToUse.id || this.selectedLeaveRequest.id;
           console.log('🔄 Updating leave request with ID:', leaveRequestId);
-          response = await leaveService.updateLeaveRequest(leaveRequestId, payload);
+          result = await this.leaveStore.updateLeaveRequest(leaveRequestId, payload);
         } else {
-          // Create new leave request
+          // Create using store
           console.log('➕ Creating new leave request');
-          response = await leaveService.createLeaveRequest(payload);
+          result = await this.leaveStore.createLeaveRequest(payload);
         }
 
-        if (response.success) {
-          // Success - emit event to parent, show notification, and close modal
-          console.log(`✅ Leave request ${isEditing ? 'updated' : 'created'} successfully:`, response.data);
+        if (result.success) {
+          // Success
+          console.log(`✅ Leave request ${isEditing ? 'updated' : 'created'} successfully:`, result.data);
 
-          // Show success notification
-          this.showSuccess(response.message || `Leave request ${isEditing ? 'updated' : 'created'} successfully`);
+          const employee = result.data.employee;
+          const leaveType = result.data.leaveType;
+          const successMessage = `Leave request ${isEditing ? 'updated' : 'created'} successfully!\n\nEmployee: ${employee?.name || 'Unknown'}\nLeave Type: ${leaveType?.name || 'Unknown'}\nDuration: ${result.data.totalDays || 0} days`;
 
-          // Emit event to parent component to refresh the table
-          this.$emit('leave-request-created', response.data);
+          this.showSuccess(successMessage);
 
-          // Close modal after a brief delay to show the notification
+          // Show inline notification
+          this.showNotification = true;
+          this.notificationMessage = `Leave request ${isEditing ? 'updated' : 'created'} successfully!`;
+          this.notificationClass = 'alert-success';
+
+          // Emit event to parent
+          this.$emit('leave-request-created', result.data);
+
+          // Force refresh balance to show updated available balance
+          setTimeout(async () => {
+            await this.forceRefreshBalance();
+          }, 500);
+
+          // Close modal after delay
           setTimeout(() => {
             this.safeCloseModal();
           }, 1500);
 
         } else {
-          this.showError(response.message || `Error ${isEditing ? 'updating' : 'creating'} leave request`);
+          // Handle error
+          const errorMessage = result.error || `Error ${isEditing ? 'updating' : 'creating'} leave request`;
+          this.showError(errorMessage);
+
+          this.showNotification = true;
+          this.notificationMessage = errorMessage;
+          this.notificationClass = 'alert-danger';
         }
 
       } catch (error) {
         console.error(`Error ${isEditing ? 'updating' : 'creating'} leave request:`, error);
 
-        if (error.response && error.response.status === 422) {
-          // Validation errors
-          this.errors = error.response.data.errors || {};
-          this.showError('Please check the form for errors');
-        } else if (error.response && error.response.status === 400) {
-          // Insufficient balance
-          this.showError(error.response.data.message);
-        } else {
-          this.showError(`An error occurred while ${isEditing ? 'updating' : 'creating'} the leave request`);
+        let errorMessage = `An error occurred while ${isEditing ? 'updating' : 'creating'} the leave request`;
+
+        if (error.status === 422) {
+          this.errors = error.errors || {};
+          errorMessage = error.message || 'Please check the form for errors';
+        } else if (error.status === 400) {
+          errorMessage = error.message || 'Invalid request data';
+        } else if (error.message) {
+          errorMessage = error.message;
         }
+
+        this.showError(errorMessage);
+
+        this.showNotification = true;
+        this.notificationMessage = errorMessage;
+        this.notificationClass = 'alert-danger';
       } finally {
         this.isLoading = false;
       }
@@ -608,7 +727,13 @@ export default {
         end_date: null,
         total_days: 0,
         reason: '',
-        documents: []
+        status: 'pending',
+        // Approval fields - boolean flags with dates (v4.1 - combined HR/Site Admin)
+        supervisor_approved: false,
+        supervisor_approved_date: null,
+        hr_site_admin_approved: false,
+        hr_site_admin_approved_date: null,
+        attachment_notes: ''
       };
       this.editFormData = {
         employee_id: null,
@@ -617,7 +742,13 @@ export default {
         end_date: null,
         total_days: 0,
         reason: '',
-        documents: []
+        status: 'pending',
+        // Approval fields - boolean flags with dates (v4.1 - combined HR/Site Admin)
+        supervisor_approved: false,
+        supervisor_approved_date: null,
+        hr_site_admin_approved: false,
+        hr_site_admin_approved_date: null,
+        attachment_notes: ''
       };
       this.errors = {};
       this.availableBalance = 0;
@@ -626,10 +757,17 @@ export default {
       this.showEmployeeDropdown = false;
       this.selectedEmployeeIndex = -1;
 
-      // Reset notification
+      // Reset notifications
       this.showNotification = false;
       this.notificationMessage = '';
       this.notificationClass = 'alert-success';
+
+      // Clear any pending balance load timeouts
+      if (this.balanceLoadTimeout) {
+        clearTimeout(this.balanceLoadTimeout);
+        this.balanceLoadTimeout = null;
+      }
+      this.isLoadingBalance = false;
     },
 
     // Populate edit form with selected leave request data
@@ -656,24 +794,33 @@ export default {
         end_date: formatDateForInput(leaveRequest.endDate || leaveRequest.end_date),
         total_days: leaveRequest.totalDays || leaveRequest.total_days || 0,
         reason: leaveRequest.reason || '',
-        documents: leaveRequest.attachments || leaveRequest.documents || []
+        status: leaveRequest.status || 'pending',
+        // Approval fields - boolean flags with dates (v4.1 - combined HR/Site Admin)
+        supervisor_approved: leaveRequest.supervisorApproved || leaveRequest.supervisor_approved || false,
+        supervisor_approved_date: formatDateForInput(leaveRequest.supervisorApprovedDate || leaveRequest.supervisor_approved_date),
+        hr_site_admin_approved: leaveRequest.hrSiteAdminApproved || leaveRequest.hr_site_admin_approved || false,
+        hr_site_admin_approved_date: formatDateForInput(leaveRequest.hrSiteAdminApprovedDate || leaveRequest.hr_site_admin_approved_date),
+        attachment_notes: leaveRequest.attachmentNotes || leaveRequest.attachment_notes || ''
       };
 
       // Set employee search query for display in edit form
       if (leaveRequest.employee) {
-        this.employeeSearchQuery = `${leaveRequest.employee.staffId || leaveRequest.employee.staff_id || ''} - ${leaveRequest.employee.name || leaveRequest.employee.first_name_en + ' ' + leaveRequest.employee.last_name_en || ''} [${leaveRequest.employee.subsidiary || ''}]`;
+        const staffId = leaveRequest.employee.staffId || leaveRequest.employee.staff_id || '';
+        const employeeName = leaveRequest.employee.name ||
+          (leaveRequest.employee.first_name_en && leaveRequest.employee.last_name_en
+            ? `${leaveRequest.employee.first_name_en} ${leaveRequest.employee.last_name_en}`
+            : 'Unknown Employee');
+        const subsidiary = leaveRequest.employee.subsidiary || '';
+
+        this.employeeSearchQuery = `${staffId} - ${employeeName} [${subsidiary}]`;
       }
 
-      // Update form data for create mode (backup)
-      if (!this.isEditMode) {
-        this.formData = { ...this.editFormData };
-      }
+      // Form data is now populated for edit mode
 
       console.log('✅ Edit form populated:', this.editFormData);
       console.log('Employee search query set to:', this.employeeSearchQuery);
 
-      // Load leave balance for this combination
-      this.loadEditLeaveBalance();
+      // Balance will be loaded automatically by watchers
     },
 
     // Method to open edit modal (called from parent)
@@ -691,9 +838,14 @@ export default {
       this.showEmployeeDropdown = true;
       this.selectedEmployeeIndex = -1;
 
-      // Clear selected employee if search doesn't match
-      if (this.formData.employee_id && this.selectedEmployeeDisplay.toLowerCase().indexOf(this.employeeSearchQuery.toLowerCase()) === -1) {
-        this.formData.employee_id = null;
+      // Clear selected employee if search doesn't match (for both create and edit mode)
+      const currentEmployeeId = this.isCurrentlyEditing ? this.editFormData.employee_id : this.formData.employee_id;
+      if (currentEmployeeId && this.selectedEmployeeDisplay.toLowerCase().indexOf(this.employeeSearchQuery.toLowerCase()) === -1) {
+        if (this.isCurrentlyEditing) {
+          this.editFormData.employee_id = null;
+        } else {
+          this.formData.employee_id = null;
+        }
       }
     },
 
@@ -712,15 +864,26 @@ export default {
 
     selectEmployee(employee) {
       console.log('👤 Selecting employee:', employee);
-      this.formData.employee_id = employee.id;
+
+      // Update the appropriate form data based on mode
+      if (this.isCurrentlyEditing) {
+        this.editFormData.employee_id = employee.id;
+        console.log('✅ Employee selected - editFormData.employee_id set to:', this.editFormData.employee_id);
+      } else {
+        this.formData.employee_id = employee.id;
+        console.log('✅ Employee selected - formData.employee_id set to:', this.formData.employee_id);
+      }
+
       this.employeeSearchQuery = `${employee.staff_id} - ${employee.name} [${employee.subsidiary}]`;
       this.showEmployeeDropdown = false;
       this.selectedEmployeeIndex = -1;
 
-      console.log('✅ Employee selected - formData.employee_id set to:', this.formData.employee_id);
-
-      // Trigger leave balance loading
-      this.loadLeaveBalance();
+      // Trigger leave balance loading for the appropriate mode
+      if (this.isCurrentlyEditing) {
+        this.loadEditLeaveBalance();
+      } else {
+        this.loadLeaveBalance();
+      }
     },
 
     onEmployeeKeyDown(event) {
@@ -752,19 +915,71 @@ export default {
     },
 
     clearEmployeeSelection() {
-      this.formData.employee_id = null;
+      // Clear the appropriate form data based on mode
+      if (this.isCurrentlyEditing) {
+        this.editFormData.employee_id = null;
+      } else {
+        this.formData.employee_id = null;
+      }
+
       this.employeeSearchQuery = '';
       this.showEmployeeDropdown = false;
       this.selectedEmployeeIndex = -1;
+      this.availableBalance = 0;
     },
 
     // Debug method to check current form state
     debugFormState() {
       console.log('🐛 DEBUG: Current form state');
       console.log('📋 formData:', JSON.stringify(this.formData, null, 2));
+      console.log('📝 editFormData:', JSON.stringify(this.editFormData, null, 2));
       console.log('🔍 employeeSearchQuery:', this.employeeSearchQuery);
       console.log('⚖️ availableBalance:', this.availableBalance);
+      console.log('👥 employees count:', this.employees.length);
+      console.log('📄 leaveTypes count:', this.leaveTypes.length);
       console.log('❌ errors:', this.errors);
+      console.log('🎯 selectedLeaveType:', this.selectedLeaveType);
+      console.log('📊 isCurrentlyEditing:', this.isCurrentlyEditing);
+    },
+
+    // Test method to manually set balance
+    testSetBalance(amount = 26) {
+      console.log('🧪 Setting test balance to:', amount);
+      this.availableBalance = amount;
+      this.$forceUpdate();
+      console.log('✅ Test balance set. Current availableBalance:', this.availableBalance);
+    },
+
+    // Test method to call API directly
+    async testDirectApiCall() {
+      if (!this.formData.employee_id || !this.formData.leave_type_id) {
+        console.log('❌ No employee or leave type selected');
+        return;
+      }
+
+      try {
+        console.log('🧪 Testing direct API call...');
+        const year = new Date().getFullYear();
+        const url = `/leaves/balance/${this.formData.employee_id}/${this.formData.leave_type_id}?year=${year}`;
+
+        console.log('🔗 Direct API URL:', url);
+
+        // Import apiService to make direct call
+        const { apiService } = await import('@/services/api.service');
+        const directResponse = await apiService.get(url);
+
+        console.log('🔍 Direct API Response:', directResponse);
+        console.log('🔍 Direct response.data:', JSON.stringify(directResponse.data, null, 2));
+
+        if (directResponse.success && directResponse.data && directResponse.data.remaining_days !== undefined) {
+          const balance = parseFloat(directResponse.data.remaining_days);
+          console.log('✅ Direct API remaining_days:', balance);
+          this.availableBalance = balance;
+          this.$forceUpdate();
+        }
+      } catch (error) {
+        console.error('❌ Direct API call failed:', error);
+      }
     },
 
     // Show success notification with leave request details
@@ -910,6 +1125,57 @@ export default {
       return testData;
     },
 
+    // Force refresh leave balance using store
+    async forceRefreshBalance() {
+      const employeeId = this.isCurrentlyEditing ? this.editFormData.employee_id : this.formData.employee_id;
+      const leaveTypeId = this.isCurrentlyEditing ? this.editFormData.leave_type_id : this.formData.leave_type_id;
+
+      console.log(`🔄 Force refreshing balance for employee ${employeeId}, leave type ${leaveTypeId}`);
+
+      if (employeeId && leaveTypeId) {
+        // Prevent duplicate API calls
+        if (this.isLoadingBalance) {
+          console.log('⏳ Balance refresh already in progress, skipping duplicate call');
+          return;
+        }
+
+        this.isLoadingBalance = true;
+
+        try {
+          const year = new Date().getFullYear();
+
+          // First invalidate the cache to ensure fresh data
+          this.leaveStore.invalidateEmployeeLeaveCache(employeeId, leaveTypeId, year);
+
+          // Then fetch fresh data
+          const result = await this.leaveStore.getOrFetchLeaveBalance(employeeId, leaveTypeId, year);
+
+          if (result.success && result.data) {
+            let remainingDays = 0;
+            if (result.data.remainingDays !== undefined) {
+              remainingDays = parseFloat(result.data.remainingDays);
+            } else if (result.data.remaining_days !== undefined) {
+              remainingDays = parseFloat(result.data.remaining_days);
+            } else if (result.data.balance !== undefined) {
+              remainingDays = parseFloat(result.data.balance);
+            }
+
+            this.availableBalance = remainingDays || 0;
+            this.$forceUpdate();
+            console.log(`✅ Balance force refreshed: ${this.availableBalance} days (was cached: ${result.fromCache})`);
+          } else {
+            console.warn('⚠️ No balance data received during force refresh:', result);
+          }
+        } catch (error) {
+          console.error('❌ Error force refreshing balance:', error);
+        } finally {
+          this.isLoadingBalance = false;
+        }
+      } else {
+        console.log('⚠️ Cannot refresh balance: missing employee ID or leave type ID');
+      }
+    },
+
     // Reset edit form specifically 
     resetEditForm() {
       this.editFormData = {
@@ -920,11 +1186,19 @@ export default {
         end_date: null,
         total_days: 0,
         reason: '',
-        documents: []
+        status: 'pending',
+        // Approval fields - boolean flags with dates (v4.1 - combined HR/Site Admin)
+        supervisor_approved: false,
+        supervisor_approved_date: null,
+        hr_site_admin_approved: false,
+        hr_site_admin_approved_date: null,
+        attachment_notes: ''
       };
       this.employeeSearchQuery = '';
       this.availableBalance = 0;
       this.errors = {};
+
+      // Reset notifications
       this.showNotification = false;
       this.notificationMessage = '';
       this.notificationClass = 'alert-success';
@@ -937,7 +1211,7 @@ export default {
 <template>
   <!-- Add Leaves -->
   <div class="modal fade" id="add_leaves">
-    <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Add Leave</h4>
@@ -947,10 +1221,16 @@ export default {
         </div>
         <form @submit.prevent="submitForm">
           <div class="modal-body pb-0">
-            <!-- Success Notification -->
+            <!-- Success/Error Notification -->
             <div v-if="showNotification" class="alert" :class="notificationClass" role="alert">
-              <i class="ti ti-check-circle me-2"></i>
+              <i class="ti" :class="{
+                'ti-check-circle': notificationClass.includes('success'),
+                'ti-alert-circle': notificationClass.includes('danger'),
+                'ti-info-circle': notificationClass.includes('info'),
+                'ti-alert-triangle': notificationClass.includes('warning')
+              }" style="margin-right: 8px;"></i>
               {{ notificationMessage }}
+              <button type="button" class="btn-close" @click="showNotification = false" aria-label="Close"></button>
             </div>
 
             <div class="row">
@@ -965,8 +1245,8 @@ export default {
                       placeholder="Type to search by Staff ID, Name, or Subsidiary..." autocomplete="off" />
 
                     <!-- Clear button -->
-                    <button v-if="formData.employee_id" type="button" @click="clearEmployeeSelection"
-                      class="btn btn-sm position-absolute"
+                    <button v-if="(isCurrentlyEditing ? editFormData.employee_id : formData.employee_id)" type="button"
+                      @click="clearEmployeeSelection" class="btn btn-sm position-absolute"
                       style="right: 8px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #6c757d;">
                       <i class="ti ti-x"></i>
                     </button>
@@ -1024,9 +1304,14 @@ export default {
                       <strong>Available Leave Balance:</strong>
                     </div>
                     <div class="badge bg-primary fs-6 px-3 py-2">
-                      {{ availableBalance }} days
+                      {{ availableBalance || 0 }} days
                     </div>
                   </div>
+                  <!-- Debug info (remove in production) -->
+                  <small class="text-muted d-block mt-1">
+                    Debug: Employee ID: {{ formData.employee_id }}, Leave Type: {{ formData.leave_type_id }}, Balance:
+                    {{ availableBalance }}
+                  </small>
                 </div>
               </div>
 
@@ -1034,8 +1319,15 @@ export default {
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">From <span class="text-danger">*</span></label>
-                  <input type="date" v-model="formData.start_date" class="form-control"
-                    :class="{ 'is-invalid': errors.start_date }" :min="new Date().toISOString().split('T')[0]" />
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="displayFormat" v-model="formData.start_date"
+                      :class="{ 'is-invalid': errors.start_date }"
+                      @update:model-value="handleDateChange('start_date', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                   <div v-if="errors.start_date" class="invalid-feedback">{{ errors.start_date }}</div>
                 </div>
               </div>
@@ -1043,9 +1335,15 @@ export default {
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">To <span class="text-danger">*</span></label>
-                  <input type="date" v-model="formData.end_date" class="form-control"
-                    :class="{ 'is-invalid': errors.end_date }"
-                    :min="formData.start_date || new Date().toISOString().split('T')[0]" />
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="displayFormat" v-model="formData.end_date"
+                      :class="{ 'is-invalid': errors.end_date }"
+                      @update:model-value="handleDateChange('end_date', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                   <div v-if="errors.end_date" class="invalid-feedback">{{ errors.end_date }}</div>
                 </div>
               </div>
@@ -1063,7 +1361,7 @@ export default {
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Available Balance</label>
-                  <input type="text" :value="availableBalance + ' days'" class="form-control" readonly />
+                  <input type="text" :value="(availableBalance || 0) + ' days'" class="form-control" readonly />
                   <small class="text-muted">Your current leave balance</small>
                 </div>
               </div>
@@ -1078,62 +1376,106 @@ export default {
                 </div>
               </div>
 
-              <!-- Document Attachments -->
-              <div class="col-md-12" v-if="requiresAttachment || formData.documents.length > 0">
+              <!-- Status -->
+              <div class="col-md-12">
                 <div class="mb-3">
-                  <label class="form-label">
-                    Document Attachments
-                    <span v-if="requiresAttachment" class="text-danger">*</span>
-                  </label>
+                  <label class="form-label">Status</label>
+                  <select v-model="formData.status" class="form-select">
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="declined">Declined</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
 
-                  <!-- Existing Documents -->
-                  <div v-if="formData.documents.length > 0" class="mb-2">
-                    <div v-for="(doc, index) in formData.documents" :key="index"
-                      class="d-flex align-items-center justify-content-between p-2 border rounded mb-2">
-                      <div>
-                        <strong>{{ doc.document_name }}</strong>
-                        <br>
-                        <small class="text-muted">{{ doc.description || 'No description' }}</small>
-                      </div>
-                      <button type="button" @click="removeDocument(index)" class="btn btn-sm btn-outline-danger">
-                        <i class="ti ti-trash"></i>
-                      </button>
-                    </div>
+              <!-- Approval Information Section -->
+              <div class="col-md-12">
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <h6 class="mb-0">Approval Information (from Paper Forms)</h6>
+                    <small class="text-muted">Record approval status and dates as shown on physical forms</small>
                   </div>
-
-                  <!-- Add New Document -->
-                  <div class="border rounded p-3">
+                  <div class="card-body">
                     <div class="row">
+                      <!-- Supervisor Approval -->
                       <div class="col-md-6">
-                        <input type="text" v-model="newDocument.document_name" class="form-control mb-2"
-                          placeholder="Document Name" />
+                        <div class="mb-3">
+                          <div class="form-check">
+                            <input type="checkbox" v-model="formData.supervisor_approved" class="form-check-input"
+                              id="supervisorApproved">
+                            <label class="form-check-label" for="supervisorApproved">
+                              Supervisor Approved
+                            </label>
+                          </div>
+                        </div>
                       </div>
                       <div class="col-md-6">
-                        <input type="url" v-model="newDocument.document_url" class="form-control mb-2"
-                          placeholder="Document URL" />
+                        <div class="mb-3">
+                          <label class="form-label">Supervisor Approval Date</label>
+                          <div class="input-icon-end position-relative">
+                            <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                              :clearable="false" :input-format="displayFormat"
+                              v-model="formData.supervisor_approved_date" :disabled="!formData.supervisor_approved"
+                              @update:model-value="handleDateChange('supervisor_approved_date', $event)" />
+                            <span class="input-icon-addon">
+                              <i class="ti ti-calendar text-gray-7"></i>
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div class="col-md-8">
-                        <input type="text" v-model="newDocument.description" class="form-control"
-                          placeholder="Description (optional)" />
+
+                      <!-- HR/Site Admin Approval (Combined) -->
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <div class="form-check">
+                            <input type="checkbox" v-model="formData.hr_site_admin_approved" class="form-check-input"
+                              id="hrSiteAdminApproved">
+                            <label class="form-check-label" for="hrSiteAdminApproved">
+                              HR/Site Admin Approved
+                            </label>
+                          </div>
+                        </div>
                       </div>
-                      <div class="col-md-4">
-                        <button type="button" @click="addDocument" class="btn btn-outline-primary w-100">
-                          Add Document
-                        </button>
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label class="form-label">HR/Site Admin Approval Date</label>
+                          <div class="input-icon-end position-relative">
+                            <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                              :clearable="false" :input-format="displayFormat"
+                              v-model="formData.hr_site_admin_approved_date"
+                              :disabled="!formData.hr_site_admin_approved"
+                              @update:model-value="handleDateChange('hr_site_admin_approved_date', $event)" />
+                            <span class="input-icon-addon">
+                              <i class="ti ti-calendar text-gray-7"></i>
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
 
-                  <div v-if="errors.documents" class="text-danger mt-1">{{ errors.documents }}</div>
+              <!-- Attachment Notes -->
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Attachment Notes</label>
+                  <textarea v-model="formData.attachment_notes" class="form-control" rows="2"
+                    placeholder="Simple text notes about attachments (e.g., 'Medical certificate submitted', 'Travel documents provided')"></textarea>
+                  <small class="text-muted">Text-based reference to any attachments received</small>
                 </div>
               </div>
 
               <!-- Attachment Requirement Notice -->
-              <div class="col-md-12" v-if="requiresAttachment && formData.documents.length === 0">
+              <div class="col-md-12" v-if="requiresAttachment && !formData.attachment_notes?.trim()">
                 <div class="alert alert-warning">
                   <i class="ti ti-alert-triangle"></i>
-                  This leave type requires document attachments. Please add at least one document.
+                  This leave type requires attachment notes. Please describe any documents attached to the paper form.
                 </div>
+              </div>
+              <div v-if="errors.attachment_notes" class="col-md-12">
+                <div class="text-danger mt-1">{{ errors.attachment_notes }}</div>
               </div>
             </div>
           </div>
@@ -1155,7 +1497,7 @@ export default {
 
   <!-- Edit Leaves -->
   <div class="modal fade" id="edit_leaves">
-    <div class="modal-dialog modal-dialog-centered modal-md">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">{{ isCurrentlyEditing ? 'Edit Leave Request' : 'Edit Leave' }}</h4>
@@ -1165,12 +1507,25 @@ export default {
         </div>
         <form @submit.prevent="submitForm">
           <div class="modal-body pb-0">
+            <!-- Success/Error Notification for Edit Modal -->
+            <div v-if="showNotification" class="alert" :class="notificationClass" role="alert">
+              <i class="ti" :class="{
+                'ti-check-circle': notificationClass.includes('success'),
+                'ti-alert-circle': notificationClass.includes('danger'),
+                'ti-info-circle': notificationClass.includes('info'),
+                'ti-alert-triangle': notificationClass.includes('warning')
+              }" style="margin-right: 8px;"></i>
+              {{ notificationMessage }}
+              <button type="button" class="btn-close" @click="showNotification = false" aria-label="Close"></button>
+            </div>
+
             <div class="row">
               <!-- Employee Selection (Read-only in edit mode) -->
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Employee Name</label>
                   <input type="text" class="form-control" :value="selectedEmployeeDisplay" readonly />
+                  <small class="text-muted">Employee cannot be changed in edit mode</small>
                 </div>
               </div>
 
@@ -1198,9 +1553,14 @@ export default {
                       <strong>Available Leave Balance:</strong>
                     </div>
                     <div class="badge bg-primary fs-6 px-3 py-2">
-                      {{ availableBalance }} days
+                      {{ availableBalance || 0 }} days
                     </div>
                   </div>
+                  <!-- Debug info (remove in production) -->
+                  <small class="text-muted d-block mt-1">
+                    Debug: Employee ID: {{ editFormData.employee_id }}, Leave Type: {{ editFormData.leave_type_id }},
+                    Balance: {{ availableBalance }}
+                  </small>
                 </div>
               </div>
 
@@ -1208,8 +1568,15 @@ export default {
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">From <span class="text-danger">*</span></label>
-                  <input type="date" v-model="editFormData.start_date" class="form-control"
-                    :class="{ 'is-invalid': errors.start_date }" />
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="displayFormat" v-model="editFormData.start_date"
+                      :class="{ 'is-invalid': errors.start_date }"
+                      @update:model-value="handleEditDateChange('start_date', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                   <div v-if="errors.start_date" class="invalid-feedback">{{ errors.start_date }}</div>
                 </div>
               </div>
@@ -1217,8 +1584,15 @@ export default {
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">To <span class="text-danger">*</span></label>
-                  <input type="date" v-model="editFormData.end_date" class="form-control"
-                    :class="{ 'is-invalid': errors.end_date }" :min="editFormData.start_date" />
+                  <div class="input-icon-end position-relative">
+                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="displayFormat" v-model="editFormData.end_date"
+                      :class="{ 'is-invalid': errors.end_date }"
+                      @update:model-value="handleEditDateChange('end_date', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
                   <div v-if="errors.end_date" class="invalid-feedback">{{ errors.end_date }}</div>
                 </div>
               </div>
@@ -1236,7 +1610,7 @@ export default {
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Available Balance</label>
-                  <input type="text" :value="availableBalance + ' days'" class="form-control" readonly />
+                  <input type="text" :value="(availableBalance || 0) + ' days'" class="form-control" readonly />
                   <small class="text-muted">Current leave balance</small>
                 </div>
               </div>
@@ -1248,6 +1622,98 @@ export default {
                   <textarea v-model="editFormData.reason" class="form-control" rows="3" maxlength="1000"
                     placeholder="Enter reason for leave request"></textarea>
                   <small class="text-muted">{{ editFormData.reason.length }}/1000 characters</small>
+                </div>
+              </div>
+
+              <!-- Status -->
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Status</label>
+                  <select v-model="editFormData.status" class="form-select">
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="declined">Declined</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Approval Information Section -->
+              <div class="col-md-12">
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <h6 class="mb-0">Approval Information (from Paper Forms)</h6>
+                    <small class="text-muted">Record approval status and dates as shown on physical forms</small>
+                  </div>
+                  <div class="card-body">
+                    <div class="row">
+                      <!-- Supervisor Approval -->
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <div class="form-check">
+                            <input type="checkbox" v-model="editFormData.supervisor_approved" class="form-check-input"
+                              id="editSupervisorApproved">
+                            <label class="form-check-label" for="editSupervisorApproved">
+                              Supervisor Approved
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label class="form-label">Supervisor Approval Date</label>
+                          <div class="input-icon-end position-relative">
+                            <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                              :clearable="false" :input-format="displayFormat"
+                              v-model="editFormData.supervisor_approved_date"
+                              :disabled="!editFormData.supervisor_approved"
+                              @update:model-value="handleEditDateChange('supervisor_approved_date', $event)" />
+                            <span class="input-icon-addon">
+                              <i class="ti ti-calendar text-gray-7"></i>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- HR/Site Admin Approval (Combined) -->
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <div class="form-check">
+                            <input type="checkbox" v-model="editFormData.hr_site_admin_approved"
+                              class="form-check-input" id="editHrSiteAdminApproved">
+                            <label class="form-check-label" for="editHrSiteAdminApproved">
+                              HR/Site Admin Approved
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="mb-3">
+                          <label class="form-label">HR/Site Admin Approval Date</label>
+                          <div class="input-icon-end position-relative">
+                            <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                              :clearable="false" :input-format="displayFormat"
+                              v-model="editFormData.hr_site_admin_approved_date"
+                              :disabled="!editFormData.hr_site_admin_approved"
+                              @update:model-value="handleEditDateChange('hr_site_admin_approved_date', $event)" />
+                            <span class="input-icon-addon">
+                              <i class="ti ti-calendar text-gray-7"></i>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Attachment Notes -->
+              <div class="col-md-12">
+                <div class="mb-3">
+                  <label class="form-label">Attachment Notes</label>
+                  <textarea v-model="editFormData.attachment_notes" class="form-control" rows="2"
+                    placeholder="Simple text notes about attachments (e.g., 'Medical certificate submitted', 'Travel documents provided')"></textarea>
+                  <small class="text-muted">Text-based reference to any attachments received</small>
                 </div>
               </div>
             </div>
@@ -1281,7 +1747,7 @@ export default {
           </p>
           <div class="d-flex justify-content-center">
             <a href="javascript:void(0);" class="btn btn-light me-3" @click="safeCloseModal">Cancel</a>
-            <router-link to="/leave/leaves-admin" class="btn btn-danger">Yes, Delete</router-link>
+            <router-link to="/leave/admin/leaves-admin" class="btn btn-danger">Yes, Delete</router-link>
           </div>
         </div>
       </div>
@@ -1291,6 +1757,50 @@ export default {
 </template>
 
 <style scoped>
+/* Date picker styling */
+.input-icon-end {
+  position: relative;
+}
+
+.input-icon-addon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6B7280;
+  z-index: 2;
+}
+
+.datetimepicker {
+  padding-right: 35px !important;
+}
+
+:deep(.mx-datepicker) {
+  width: 100%;
+}
+
+:deep(.mx-input) {
+  width: 100% !important;
+  padding: 7px 35px 7px 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid #c9d2e2 !important;
+  font-size: 1em !important;
+  box-sizing: border-box !important;
+  background: #f7f8fa !important;
+  outline: none !important;
+  transition: border 0.2s !important;
+}
+
+:deep(.mx-input:focus) {
+  border: 1.5px solid #4a7fff !important;
+  background: #fff !important;
+}
+
+:deep(.mx-icon-calendar) {
+  display: none;
+}
+
 /* Searchable dropdown styles */
 .dropdown-menu {
   border: 1px solid #dee2e6;

@@ -218,6 +218,9 @@ export default {
       interviewStore: null,
       formPersistenceStore: null,
 
+      // Accessibility observer instance
+      ariaObserver: null,
+
       // Existing properties
       formData: {
         id: null,
@@ -336,6 +339,20 @@ export default {
         }
         this.cleanupModalBackdrops();
       });
+
+      // Fix accessibility issue with modal and aria-hidden
+      this.ariaObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+            if (modalElement.getAttribute('aria-hidden') === 'true' &&
+              modalElement.contains(document.activeElement)) {
+              modalElement.removeAttribute('aria-hidden');
+            }
+          }
+        });
+      });
+
+      this.ariaObserver.observe(modalElement, { attributes: true });
     }
 
     // Initialize tooltips on component mount
@@ -346,6 +363,12 @@ export default {
     // Mark component as destroyed
     this.isDestroyed = true;
     this.isComponentReady = false;
+
+    // Clean up accessibility observer
+    if (this.ariaObserver) {
+      this.ariaObserver.disconnect();
+      this.ariaObserver = null;
+    }
 
     // Clean up modal instance
     if (this.modalInstance && typeof this.modalInstance.dispose === 'function') {

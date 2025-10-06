@@ -58,8 +58,15 @@
                             <!-- Resignation Date -->
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Resignation Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" v-model="form.resignationDate"
-                                    :class="{ 'is-invalid': errors.resignationDate }" @change="calculateNoticePeriod" />
+                                <div class="input-icon-end position-relative">
+                                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                                        :editable="true" :clearable="false" :input-format="displayFormat"
+                                        v-model="form.resignationDate" :class="{ 'is-invalid': errors.resignationDate }"
+                                        @update:model-value="handleDateChange('resignationDate', $event)" />
+                                    <span class="input-icon-addon">
+                                        <i class="ti ti-calendar text-gray-7"></i>
+                                    </span>
+                                </div>
                                 <div v-if="errors.resignationDate" class="invalid-feedback">{{ errors.resignationDate }}
                                 </div>
                             </div>
@@ -67,8 +74,15 @@
                             <!-- Last Working Date -->
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Last Working Date <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" v-model="form.lastWorkingDate"
-                                    :class="{ 'is-invalid': errors.lastWorkingDate }" @change="calculateNoticePeriod" />
+                                <div class="input-icon-end position-relative">
+                                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy"
+                                        :editable="true" :clearable="false" :input-format="displayFormat"
+                                        v-model="form.lastWorkingDate" :class="{ 'is-invalid': errors.lastWorkingDate }"
+                                        @update:model-value="handleDateChange('lastWorkingDate', $event)" />
+                                    <span class="input-icon-addon">
+                                        <i class="ti ti-calendar text-gray-7"></i>
+                                    </span>
+                                </div>
                                 <div v-if="errors.lastWorkingDate" class="invalid-feedback">{{ errors.lastWorkingDate }}
                                 </div>
                             </div>
@@ -206,7 +220,11 @@ export default {
 
             // Static data
             resignationReasons: reasonUtils.getResignationReasons(),
-            acknowledgementStatusOptions: statusUtils.getAcknowledgementStatusOptions()
+            acknowledgementStatusOptions: statusUtils.getAcknowledgementStatusOptions(),
+
+            // Date picker format
+            displayFormat: 'dd/MM/yyyy',
+            inputFormat: 'yyyy-MM-dd'
         };
     },
     computed: {
@@ -246,6 +264,38 @@ export default {
         }
     },
     methods: {
+        // Handle date picker changes
+        handleDateChange(fieldName, newValue) {
+            try {
+                const safeDate = this.safeConvertToDate(newValue);
+                this.form[fieldName] = safeDate;
+                this.calculateNoticePeriod();
+            } catch (error) {
+                console.error('Error handling date change:', error);
+            }
+        },
+
+        // Safe date conversion helper
+        safeConvertToDate(dateValue) {
+            if (!dateValue) return null;
+
+            try {
+                if (dateValue instanceof Date) {
+                    return isNaN(dateValue.getTime()) ? null : dateValue;
+                }
+
+                if (typeof dateValue === 'string') {
+                    const parsedDate = new Date(dateValue);
+                    return isNaN(parsedDate.getTime()) ? null : parsedDate;
+                }
+
+                return null;
+            } catch (error) {
+                console.error('Error converting date:', error);
+                return null;
+            }
+        },
+
         resetForm() {
             this.form = {
                 employeeId: '',
@@ -408,5 +458,49 @@ export default {
 .custom-btn-close:hover {
     background-color: #f8f9fa;
     border-radius: 0.25rem;
+}
+
+/* Date picker styling */
+.input-icon-end {
+    position: relative;
+}
+
+.input-icon-addon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #6B7280;
+    z-index: 2;
+}
+
+.datetimepicker {
+    padding-right: 35px !important;
+}
+
+:deep(.mx-datepicker) {
+    width: 100%;
+}
+
+:deep(.mx-input) {
+    width: 100% !important;
+    padding: 7px 35px 7px 12px !important;
+    border-radius: 6px !important;
+    border: 1px solid #c9d2e2 !important;
+    font-size: 1em !important;
+    box-sizing: border-box !important;
+    background: #f7f8fa !important;
+    outline: none !important;
+    transition: border 0.2s !important;
+}
+
+:deep(.mx-input:focus) {
+    border: 1.5px solid #4a7fff !important;
+    background: #fff !important;
+}
+
+:deep(.mx-icon-calendar) {
+    display: none;
 }
 </style>

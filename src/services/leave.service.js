@@ -1,13 +1,15 @@
 import { apiService } from './api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
 import { dataMapper, filterUtils } from '@/utils/leave.utils';
+import { BaseService } from './base.service';
 
 /**
  * Enhanced Leave Service
  * Handles all leave-related API operations with proper pagination, filtering, and data transformation
  * Uses the centralized apiService for consistent error handling, authentication, and response processing
+ * Extends BaseService for consistent error handling and response formatting
  */
-class LeaveService {
+class LeaveService extends BaseService {
   // Leave Types
   async getLeaveTypes(filters = {}) {
     try {
@@ -146,7 +148,7 @@ class LeaveService {
   }
 
   async createLeaveRequest(data) {
-    try {
+    return this.handleApiResponse(async () => {
       // Transform data to backend format
       const backendData = dataMapper.mapLeaveRequestForAPI(data);
       const response = await apiService.post(API_ENDPOINTS.LEAVE.REQUESTS.CREATE, backendData);
@@ -154,19 +156,17 @@ class LeaveService {
       if (response.success && response.data) {
         return {
           ...response,
-          data: dataMapper.mapLeaveRequest(response.data)
+          data: dataMapper.mapLeaveRequest(response.data),
+          message: response.message || 'Leave request created successfully'
         };
       }
 
       return response;
-    } catch (error) {
-      console.error('Error creating leave request:', error);
-      throw error;
-    }
+    }, 'create leave request');
   }
 
   async updateLeaveRequest(id, data) {
-    try {
+    return this.handleApiResponse(async () => {
       const url = API_ENDPOINTS.LEAVE.REQUESTS.UPDATE.replace(':id', id);
       const backendData = dataMapper.camelToSnake(data);
       const response = await apiService.put(url, backendData);
@@ -174,15 +174,13 @@ class LeaveService {
       if (response.success && response.data) {
         return {
           ...response,
-          data: dataMapper.mapLeaveRequest(response.data)
+          data: dataMapper.mapLeaveRequest(response.data),
+          message: response.message || 'Leave request updated successfully'
         };
       }
 
       return response;
-    } catch (error) {
-      console.error('Error updating leave request:', error);
-      throw error;
-    }
+    }, 'update leave request');
   }
 
   async deleteLeaveRequest(id) {
@@ -280,69 +278,8 @@ class LeaveService {
     }
   }
 
-  // Leave Approvals
-  async getLeaveApprovals(leaveRequestId) {
-    try {
-      const url = API_ENDPOINTS.LEAVE.APPROVALS.LIST.replace(':leaveRequestId', leaveRequestId);
-      const response = await apiService.get(url);
-
-      if (response.success && response.data) {
-        const transformedData = Array.isArray(response.data)
-          ? response.data.map(item => dataMapper.snakeToCamel(item))
-          : response.data;
-
-        return {
-          ...response,
-          data: transformedData
-        };
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Error fetching leave approvals:', error);
-      throw error;
-    }
-  }
-
-  async createLeaveApproval(leaveRequestId, data) {
-    try {
-      const url = API_ENDPOINTS.LEAVE.APPROVALS.CREATE.replace(':leaveRequestId', leaveRequestId);
-      const backendData = dataMapper.camelToSnake(data);
-      const response = await apiService.post(url, backendData);
-
-      if (response.success && response.data) {
-        return {
-          ...response,
-          data: dataMapper.snakeToCamel(response.data)
-        };
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Error creating leave approval:', error);
-      throw error;
-    }
-  }
-
-  async updateLeaveApproval(id, data) {
-    try {
-      const url = API_ENDPOINTS.LEAVE.APPROVALS.UPDATE.replace(':id', id);
-      const backendData = dataMapper.camelToSnake(data);
-      const response = await apiService.put(url, backendData);
-
-      if (response.success && response.data) {
-        return {
-          ...response,
-          data: dataMapper.snakeToCamel(response.data)
-        };
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Error updating leave approval:', error);
-      throw error;
-    }
-  }
+  // Leave Approvals - Removed in simplified structure
+  // Approval data is now stored directly in leave requests
 
   // Additional utility methods
   async getLeaveStats(filters = {}) {
@@ -372,17 +309,25 @@ class LeaveService {
 
   // Get specific employee leave balance
   async getEmployeeLeaveBalance(employeeId, leaveTypeId, year = null) {
-    try {
+    return this.handleApiResponse(async () => {
       const currentYear = year || new Date().getFullYear();
-      const endpoint = `/leaves/balance/${employeeId}/${leaveTypeId}?year=${currentYear}`;
+      const url = API_ENDPOINTS.LEAVE.BALANCES.EMPLOYEE_BALANCE
+        .replace(':employeeId', employeeId)
+        .replace(':leaveTypeId', leaveTypeId);
+      const endpoint = `${url}?year=${currentYear}`;
 
       const response = await apiService.get(endpoint);
 
+      if (response.success && response.data) {
+        return {
+          ...response,
+          data: dataMapper.mapLeaveBalance(response.data),
+          message: response.message || 'Leave balance retrieved successfully'
+        };
+      }
+
       return response;
-    } catch (error) {
-      console.error('Error fetching employee leave balance:', error);
-      throw error;
-    }
+    }, 'fetch employee leave balance');
   }
 
   // Get all leave balances for a specific employee

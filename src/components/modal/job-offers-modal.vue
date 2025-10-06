@@ -89,14 +89,39 @@
               </div>
             </div>
 
-            <!-- Full Width Fields -->
+            <!-- Salary Fields -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="probationSalary" class="form-label">Probation Salary (THB) <span
+                      class="text-danger">*</span></label>
+                  <input type="number" class="form-control" id="probationSalary" v-model="formData.probation_salary"
+                    :class="{ 'is-invalid': validationErrors && validationErrors.probation_salary }"
+                    @input="handleFormChange" step="0.01" min="0" required />
+                  <div v-if="validationErrors && validationErrors.probation_salary" class="invalid-feedback d-block">
+                    {{ validationErrors.probation_salary[0] }}
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="postProbationSalary" class="form-label">Post-Probation Salary (THB) <span
+                      class="text-danger">*</span></label>
+                  <input type="number" class="form-control" id="postProbationSalary"
+                    v-model="formData.post_probation_salary"
+                    :class="{ 'is-invalid': validationErrors && validationErrors.post_probation_salary }"
+                    @input="handleFormChange" step="0.01" min="0" required />
+                  <div v-if="validationErrors && validationErrors.post_probation_salary"
+                    class="invalid-feedback d-block">
+                    {{ validationErrors.post_probation_salary[0] }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Notes Field -->
             <div class="row">
               <div class="col-12">
-                <div class="mb-3">
-                  <label for="salaryDetail" class="form-label">Salary Details</label>
-                  <input type="text" class="form-control" id="salaryDetail" v-model="formData.salary_detail"
-                    @input="handleFormChange" required />
-                </div>
 
                 <div class="mb-3">
                   <label for="note" class="form-label">Notes</label>
@@ -208,7 +233,8 @@ export default {
         candidate_name: '',
         position_name: '',
         custom_offer_id: '',
-        salary_detail: '',
+        probation_salary: null,
+        post_probation_salary: null,
         date: null,
         acceptance_deadline: null,
         acceptance_status: 'pending',
@@ -225,7 +251,8 @@ export default {
         show: false,
         timeAgo: ''
       },
-      validationErrors: {}
+      validationErrors: {},
+      ariaObserver: null
     }
   },
   computed: {
@@ -275,6 +302,23 @@ export default {
 
       // Listen for Bootstrap modal events
       modalElement.addEventListener('hide.bs.modal', this.onModalHide);
+
+      // Fix accessibility issue with modal and aria-hidden
+      this.ariaObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'aria-hidden') {
+            if (modalElement.getAttribute('aria-hidden') === 'true' &&
+              modalElement.contains(document.activeElement)) {
+              modalElement.removeAttribute('aria-hidden');
+            }
+          }
+        });
+      });
+
+      this.ariaObserver.observe(modalElement, {
+        attributes: true,
+        attributeFilter: ['aria-hidden']
+      });
     }
   },
   beforeUnmount() {
@@ -282,6 +326,12 @@ export default {
     const modalElement = document.getElementById('job-offers-modal');
     if (modalElement) {
       modalElement.removeEventListener('hide.bs.modal', this.onModalHide);
+    }
+
+    // Clean up MutationObserver
+    if (this.ariaObserver) {
+      this.ariaObserver.disconnect();
+      this.ariaObserver = null;
     }
 
     // Clean up form persistence if needed
@@ -335,7 +385,8 @@ export default {
             candidate_name: '',
             position_name: '',
             custom_offer_id: '',
-            salary_detail: '',
+            probation_salary: null,
+            post_probation_salary: null,
             date: new Date(),
             acceptance_deadline: null,
             acceptance_status: 'pending',
@@ -491,7 +542,8 @@ export default {
         candidate_name: '',
         position_name: '',
         custom_offer_id: '',
-        salary_detail: '',
+        probation_salary: null,
+        post_probation_salary: null,
         date: null,
         acceptance_deadline: null,
         acceptance_status: 'pending',

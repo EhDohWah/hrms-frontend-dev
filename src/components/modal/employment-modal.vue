@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content new-modal-design">
         <div class="modal-header-new">
-          <h2 class="modal-title-new" id="employmentModalLabel">
+          <h2 class="modal-title-new" id="employmentModalLabel" v-once>
             Add Employment
           </h2>
           <button type="button" class="btn-close-custom" @click="handleModalClose" aria-label="Close">
@@ -40,61 +40,58 @@
               {{ alertMessage }}
             </div>
 
-            <!-- Row 1: Employee + FTE (2 columns) -->
-            <div class="date-row">
-              <div class="form-group" style="flex: 2.3;"> <!-- 70% width -->
-                <label class="form-label required">Employee</label>
-                <div class="custom-tree-select" :class="{ 'is-invalid': validationErrors.employee_id }">
-                  <div class="form-control tree-select-input" @click="toggleEmployeeDropdown"
-                    :class="{ 'is-invalid': validationErrors.employee_id }">
-                    <span v-if="selectedEmployeeDisplay" class="selected-text">{{ selectedEmployeeDisplay }}</span>
-                    <span v-else class="placeholder-text">Select employee</span>
-                    <i class="ti ti-chevron-down dropdown-icon" :class="{ 'rotated': showEmployeeDropdown }"></i>
-                  </div>
-
-                  <!-- Custom Dropdown -->
-                  <div v-if="showEmployeeDropdown" class="tree-dropdown" ref="employeeDropdown">
-                    <div class="dropdown-header">
-                      <input type="text" class="form-control form-control-sm search-input"
-                        placeholder="Search employees..." v-model="employeeSearchTerm" @input="filterEmployees"
-                        ref="employeeSearchInput">
-                    </div>
-                    <div class="dropdown-body">
-                      <div v-for="subsidiary in filteredEmployeeTree" :key="subsidiary.key" class="subsidiary-group">
-                        <div class="subsidiary-header" @click="toggleSubsidiary(subsidiary.key)">
-                          <i class="ti" :class="subsidiary.expanded ? 'ti-chevron-down' : 'ti-chevron-right'"></i>
-                          <span class="subsidiary-name">{{ subsidiary.title }}</span>
-                          <span class="employee-count">({{ subsidiary.children?.length || 0 }})</span>
-                        </div>
-                        <div v-if="subsidiary.expanded" class="employees-list">
-                          <div v-for="employee in subsidiary.children" :key="employee.key" class="employee-item"
-                            :class="{ 'selected': formData.employee_id === employee.value }"
-                            @click="selectEmployee(employee)">
-                            <span class="employee-name">{{ employee.title }}</span>
-                            <small class="employee-info">ID: {{ employee.staff_id || 'N/A' }}</small>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- No results message -->
-                      <div v-if="filteredEmployeeTree.length === 0" class="no-results">
-                        <i class="ti ti-search"></i>
-                        <span>No employees found</span>
-                      </div>
-                    </div>
-                  </div>
+            <!-- Row 1: Employee (full width) -->
+            <div class="form-group">
+              <label class="form-label required">Employee</label>
+              <div class="custom-tree-select" :class="{ 'is-invalid': validationErrors.employee_id }">
+                <div class="form-control tree-select-input" @click="toggleEmployeeDropdown"
+                  :class="{ 'is-invalid': validationErrors.employee_id }">
+                  <span v-if="selectedEmployeeDisplay" class="selected-text">{{ selectedEmployeeDisplay }}</span>
+                  <span v-else class="placeholder-text">Select employee</span>
+                  <i class="ti ti-chevron-down dropdown-icon" :class="{ 'rotated': showEmployeeDropdown }"></i>
                 </div>
-                <div v-if="validationErrors.employee_id" class="invalid-feedback">
-                  {{ validationErrors.employee_id }}
+
+                <!-- Custom Dropdown -->
+                <div v-if="showEmployeeDropdown" class="tree-dropdown" ref="employeeDropdown">
+                  <div class="dropdown-header">
+                    <input type="text" class="form-control form-control-sm search-input"
+                      placeholder="Search employees..." v-model="employeeSearchTerm" @input="filterEmployees"
+                      ref="employeeSearchInput">
+                  </div>
+                  <div class="dropdown-body" ref="dropdownBody" @scroll="handleDropdownScroll">
+                    <div v-for="subsidiary in filteredEmployeeTree" :key="subsidiary.key" class="subsidiary-group">
+                      <div class="subsidiary-header" @click="toggleSubsidiary(subsidiary.key)">
+                        <i class="ti" :class="subsidiary.expanded ? 'ti-chevron-down' : 'ti-chevron-right'"></i>
+                        <span class="subsidiary-name">{{ subsidiary.title }}</span>
+                        <span class="employee-count">({{ subsidiary.children?.length || 0 }})</span>
+                      </div>
+                      <div v-if="subsidiary.expanded" class="employees-list">
+                        <!-- VIRTUALIZED EMPLOYEE LIST FOR PERFORMANCE -->
+                        <div v-for="employee in getVisibleEmployees(subsidiary.children)" :key="employee.key"
+                          class="employee-item" :class="{ 'selected': formData.employee_id === employee.value }"
+                          @click="selectEmployee(employee)">
+                          <span class="employee-name">{{ employee.title }}</span>
+                          <small class="employee-info">ID: {{ employee.staff_id || 'N/A' }}</small>
+                        </div>
+                        <!-- Show "Load More" if there are more employees -->
+                        <div v-if="hasMoreEmployees(subsidiary.children)" class="load-more-button">
+                          <button @click="loadMoreEmployees(subsidiary.key)" class="btn-load-more">
+                            Load More Employees...
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- No results message -->
+                    <div v-if="filteredEmployeeTree.length === 0" class="no-results">
+                      <i class="ti ti-search"></i>
+                      <span>No employees found</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="form-group" style="flex: 1;"> <!-- 30% width -->
-                <label class="form-label">FTE</label>
-                <input type="number" step="0.1" min="0" max="1" class="form-control" v-model.number="formData.fte"
-                  @input="saveFormState">
-                <div v-if="validationErrors.fte" class="invalid-feedback">
-                  {{ validationErrors.fte }}
-                </div>
+              <div v-if="validationErrors.employee_id" class="invalid-feedback">
+                {{ validationErrors.employee_id }}
               </div>
             </div>
 
@@ -150,22 +147,41 @@
               </div>
             </div>
 
-            <!-- Row 3: Department Position + Section Department (2 columns) -->
+            <!-- Row 3: Department + Position (separate) -->
             <div class="date-row">
               <div class="form-group">
-                <label class="form-label required">Department Position</label>
-                <select class="form-control" v-model="formData.department_position_id"
-                  :class="{ 'is-invalid': validationErrors.department_position_id }" required @change="saveFormState">
-                  <option disabled value="">Select Department Position</option>
-                  <option v-for="position in departmentPositions" :key="position.id" :value="position.id">
-                    {{ position.department }} | {{ position.position }}
+                <label class="form-label required">Department</label>
+                <select class="form-control" v-model="formData.department_id"
+                  :class="{ 'is-invalid': validationErrors.department_id }" required @change="onDepartmentChange">
+                  <option disabled value="">{{ isLoadingData ? 'Loading departments...' : 'Select Department' }}
+                  </option>
+                  <option v-for="dept in departments" :key="dept.id" :value="dept.id">
+                    {{ dept.name }}
                   </option>
                 </select>
-                <div v-if="validationErrors.department_position_id" class="invalid-feedback">
-                  {{ validationErrors.department_position_id }}
+                <div v-if="validationErrors.department_id" class="invalid-feedback">
+                  {{ validationErrors.department_id }}
                 </div>
               </div>
 
+              <div class="form-group">
+                <label class="form-label required">Position</label>
+                <select class="form-control" v-model="formData.position_id"
+                  :class="{ 'is-invalid': validationErrors.position_id }" required @change="saveFormState"
+                  :disabled="!formData.department_id || positionsLoading">
+                  <option disabled value="">{{ positionsLoading ? 'Loading positions...' : 'Select Position' }}</option>
+                  <option v-for="pos in positions" :key="pos.id" :value="pos.id">
+                    {{ pos.title }}
+                  </option>
+                </select>
+                <div v-if="validationErrors.position_id" class="invalid-feedback">
+                  {{ validationErrors.position_id }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 4: Section Department (kept as separate lookup) -->
+            <div class="date-row">
               <div class="form-group">
                 <label class="form-label">Section Department</label>
                 <select class="form-control" v-model="formData.section_department"
@@ -187,10 +203,11 @@
               <div class="form-group">
                 <label class="form-label required">Start Date</label>
                 <div class="input-icon-end position-relative">
-                  <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                    :clearable="false" :input-format="dateFormat" v-model="formData.start_date"
-                    :class="{ 'is-invalid': validationErrors.start_date }" required
-                    @update:model-value="handleDateChange('start_date', $event)" />
+                  <!-- FIXED: Improved conditional rendering and format consistency -->
+                  <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker"
+                    placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
+                    v-model="computedStartDate" :class="{ 'is-invalid': validationErrors.start_date }"
+                    @update:model-value="handleStartDateChange" required />
                   <span class="input-icon-addon">
                     <i class="ti ti-calendar text-gray-7"></i>
                   </span>
@@ -203,10 +220,11 @@
               <div class="form-group">
                 <label class="form-label">End Date</label>
                 <div class="input-icon-end position-relative">
-                  <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                    :clearable="false" :input-format="dateFormat" v-model="formData.end_date"
-                    :class="{ 'is-invalid': validationErrors.end_date }"
-                    @update:model-value="handleDateChange('end_date', $event)" />
+                  <!-- FIXED: Improved conditional rendering and format consistency -->
+                  <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker"
+                    placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
+                    v-model="computedEndDate" :class="{ 'is-invalid': validationErrors.end_date }"
+                    @update:model-value="handleEndDateChange" />
                   <span class="input-icon-addon">
                     <i class="ti ti-calendar text-gray-7"></i>
                   </span>
@@ -235,10 +253,11 @@
               <div class="form-group">
                 <label class="form-label">Probation Pass Date</label>
                 <div class="input-icon-end position-relative">
-                  <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                    :clearable="false" :input-format="dateFormat" v-model="formData.probation_pass_date"
-                    :class="{ 'is-invalid': validationErrors.probation_pass_date }"
-                    @update:model-value="handleDateChange('probation_pass_date', $event)" />
+                  <!-- FIXED: Improved conditional rendering and format consistency -->
+                  <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker"
+                    placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
+                    v-model="computedProbationPassDate" :class="{ 'is-invalid': validationErrors.probation_pass_date }"
+                    @update:model-value="handleProbationDateChange" />
                   <span class="input-icon-addon">
                     <i class="ti ti-calendar text-gray-7"></i>
                   </span>
@@ -250,8 +269,8 @@
 
               <div class="form-group">
                 <label class="form-label required">Position Salary</label>
-                <input type="number" class="form-control" v-model.number="formData.position_salary"
-                  :class="{ 'is-invalid': validationErrors.position_salary }" required @input="saveFormState">
+                <input type="number" class="form-control" v-model.number.lazy="formData.position_salary"
+                  :class="{ 'is-invalid': validationErrors.position_salary }" required @blur="debouncedSaveState">
                 <div v-if="validationErrors.position_salary" class="invalid-feedback">
                   {{ validationErrors.position_salary }}
                 </div>
@@ -259,8 +278,8 @@
 
               <div class="form-group">
                 <label class="form-label">Probation Salary</label>
-                <input type="number" class="form-control" v-model.number="formData.probation_salary"
-                  :class="{ 'is-invalid': validationErrors.probation_salary }" @input="saveFormState">
+                <input type="number" class="form-control" v-model.number.lazy="formData.probation_salary"
+                  :class="{ 'is-invalid': validationErrors.probation_salary }" @blur="debouncedSaveState">
                 <div v-if="validationErrors.probation_salary" class="invalid-feedback">
                   {{ validationErrors.probation_salary }}
                 </div>
@@ -290,15 +309,31 @@
 
                 <template v-if="isOrgFundGrant(currentAllocation.grant_id)">
                   <div class="form-group">
-                    <small class="text-muted">Department Position</small>
-                    <select v-model="currentAllocation.department_position_id" class="form-control">
-                      <option value="">Select department position</option>
-                      <option v-for="position in departmentPositions" :key="position.id" :value="position.id">
-                        {{ position.department }} - {{ position.position }}
+                    <small class="text-muted">Department</small>
+                    <select v-model="currentAllocation.department_id" @change="onAllocationDepartmentChange"
+                      class="form-control">
+                      <option value="">Select department</option>
+                      <option v-for="dept in allocationDepartments" :key="dept.id" :value="dept.id">
+                        {{ dept.name }}
                       </option>
                     </select>
-                    <div v-if="allocationErrors.department_position_id" class="invalid-feedback">
-                      {{ allocationErrors.department_position_id }}
+                    <div v-if="allocationErrors.department_id" class="invalid-feedback">
+                      {{ allocationErrors.department_id }}
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <small class="text-muted">Position</small>
+                    <select v-model="currentAllocation.position_id" class="form-control"
+                      :disabled="!currentAllocation.department_id || allocationPositionsLoading">
+                      <option value="">{{ allocationPositionsLoading ? 'Loading positions...' : 'Select position' }}
+                      </option>
+                      <option v-for="pos in allocationPositions" :key="pos.id" :value="pos.id">
+                        {{ pos.title }}
+                      </option>
+                    </select>
+                    <div v-if="allocationErrors.position_id" class="invalid-feedback">
+                      {{ allocationErrors.position_id }}
                     </div>
                   </div>
                 </template>
@@ -324,7 +359,7 @@
                       :disabled="!currentAllocation.grant_items_id || isLoadingData">
                       <option value="">Select position slot</option>
                       <option v-for="slot in positionSlotOptions" :key="slot.id" :value="slot.id">
-                        Slot {{ slot.slot_number }} - {{ slot.budget_line.name }}
+                        Slot {{ slot.slot_number }} - {{ slot.budgetline_code }}
                       </option>
                     </select>
                     <div v-if="allocationErrors.position_slot_id" class="invalid-feedback">
@@ -334,20 +369,19 @@
                 </template>
 
                 <div class="form-group">
-                  <small class="text-muted">Effort (%)</small>
-                  <input type="number" v-model.number="currentAllocation.level_of_effort" @input="onEffortChange"
-                    class="form-control" min="0" max="100" placeholder="Effort (%)" :disabled="isLoadingData" />
-                  <div v-if="allocationErrors.level_of_effort" class="invalid-feedback">
-                    {{ allocationErrors.level_of_effort }}
+                  <small class="text-muted">FTE (%)</small>
+                  <input type="number" v-model.number="currentAllocation.fte" @input="onFteChange" class="form-control"
+                    min="0" max="100" placeholder="FTE (%)" :disabled="isLoadingData" />
+                  <div v-if="allocationErrors.fte" class="invalid-feedback">
+                    {{ allocationErrors.fte }}
                   </div>
                 </div>
 
                 <!-- Display Calculated Salary (read-only) -->
                 <div class="form-group">
                   <small class="text-muted">Calculated Salary</small>
-                  <input type="text" class="form-control"
-                    :value="getCalculatedSalary(currentAllocation.level_of_effort)" placeholder="Calculated Salary"
-                    readonly style="background-color: #f8f9fa;" />
+                  <input type="text" class="form-control" :value="getCalculatedSalary(currentAllocation.fte)"
+                    placeholder="Calculated Salary" readonly style="background-color: #f8f9fa;" />
                 </div>
 
                 <div class="form-group" style="min-width:72px;">
@@ -367,16 +401,18 @@
                 <tr>
                   <th>Type</th>
                   <th>Grant</th>
-                  <th>Department Position</th>
+                  <th>Department</th>
+                  <th>Position</th>
                   <th>Grant Position</th>
                   <th>Position Slot</th>
-                  <th>Effort (%)</th>
+                  <th>FTE (%)</th>
                   <th>Allocated Salary</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(row, idx) in fundingAllocations" :key="idx">
+                <tr v-for="(row, idx) in fundingAllocations" :key="idx"
+                  v-memo="[row.id, row.fte, editingIndex === idx]">
                   <template v-if="editingIndex === idx">
                     <!-- Inline Edit Row -->
                     <td>
@@ -393,11 +429,21 @@
                       </select>
                     </td>
                     <td>
-                      <select v-if="isOrgFundGrant(editData.grant_id)" v-model="editData.department_position_id"
-                        class="edit-field">
-                        <option value="">Select department position</option>
-                        <option v-for="position in departmentPositions" :key="position.id" :value="position.id">
-                          {{ position.department }} - {{ position.position }}
+                      <select v-if="isOrgFundGrant(editData.grant_id)" v-model="editData.department_id"
+                        @change="onEditAllocationDepartmentChange" class="edit-field">
+                        <option value="">Select department</option>
+                        <option v-for="dept in allocationDepartments" :key="dept.id" :value="dept.id">
+                          {{ dept.name }}
+                        </option>
+                      </select>
+                      <span v-else class="text-muted">-</span>
+                    </td>
+                    <td>
+                      <select v-if="isOrgFundGrant(editData.grant_id)" v-model="editData.position_id" class="edit-field"
+                        :disabled="!editData.department_id || allocationPositionsLoading">
+                        <option value="">{{ allocationPositionsLoading ? 'Loading...' : 'Select position' }}</option>
+                        <option v-for="pos in allocationPositions" :key="pos.id" :value="pos.id">
+                          {{ pos.title }}
                         </option>
                       </select>
                       <span v-else class="text-muted">-</span>
@@ -417,17 +463,17 @@
                         class="edit-field">
                         <option value="">Select position slot</option>
                         <option v-for="slot in editPositionSlotOptions" :key="slot.id" :value="slot.id">
-                          Slot {{ slot.slot_number }} - {{ slot.budget_line.name }}
+                          Slot {{ slot.slot_number }} - {{ slot.budgetline_code }}
                         </option>
                       </select>
                       <span v-else class="text-muted">-</span>
                     </td>
                     <td>
-                      <input type="number" v-model.number="editData.level_of_effort" @input="onEditEffortChange"
-                        class="edit-field" min="0" max="100">
+                      <input type="number" v-model.number="editData.fte" @input="onEditFteChange" class="edit-field"
+                        min="0" max="100">
                     </td>
                     <td>
-                      <span class="text-muted">{{ getCalculatedSalary(editData.level_of_effort) }}</span>
+                      <span class="text-muted">{{ getCalculatedSalary(editData.fte) }}</span>
                     </td>
                     <td>
                       <button class="action-btn" @click="saveEdit">Save</button>
@@ -444,7 +490,12 @@
                     <td>{{ getGrantName(row.grant_id, row._original) }}</td>
                     <td>
                       <span v-if="row.allocation_type === 'org_funded'">{{
-                        getDepartmentPositionName(row.department_position_id) }}</span>
+                        getDepartmentName(row.department_id, row._original) }}</span>
+                      <span v-else class="text-muted">-</span>
+                    </td>
+                    <td>
+                      <span v-if="row.allocation_type === 'org_funded'">{{
+                        getPositionName(row.position_id, row._original) }}</span>
                       <span v-else class="text-muted">-</span>
                     </td>
                     <td>
@@ -457,7 +508,7 @@
                         row.grant_items_id, row.position_slot_id, row._original) }}</span>
                       <span v-else class="text-muted">-</span>
                     </td>
-                    <td>{{ row.level_of_effort }}%</td>
+                    <td>{{ row.fte }}%</td>
                     <td>{{ getAllocatedSalary(row) }}</td>
                     <td>
                       <button class="action-btn" @click="editAllocation(idx)">Edit</button>
@@ -471,8 +522,8 @@
             <!-- Total Summary Row -->
             <div v-if="fundingAllocations.length > 0" class="total-summary">
               <div class="summary-row">
-                <span class="summary-label">Total Effort:</span>
-                <span class="summary-value" :class="{ 'text-danger': totalEffort !== 100 }">{{ totalEffort }}%</span>
+                <span class="summary-label">Total FTE:</span>
+                <span class="summary-value" :class="{ 'text-danger': totalFte !== 100 }">{{ totalFte }}%</span>
               </div>
               <div class="summary-row">
                 <span class="summary-label">Total Allocated Salary:</span>
@@ -493,23 +544,51 @@
             <div class="form-group">
               <label class="form-label">Benefits</label>
 
-              <div class="checkbox-group">
-                <label class="checkbox-item">
-                  <input type="checkbox" v-model="formData.health_welfare" @change="saveFormState" />
-                  <span class="checkmark"></span>
-                  Health & Welfare
-                </label>
+              <div class="benefits-container">
+                <!-- Health & Welfare -->
+                <div class="benefit-item">
+                  <label class="checkbox-item">
+                    <input type="checkbox" v-model="formData.health_welfare" @change="saveFormState" />
+                    <span class="checkmark"></span>
+                    Health & Welfare
+                  </label>
+                  <div class="benefit-percentage-group">
+                    <input type="number" class="form-control benefit-percentage-input"
+                      v-model.number.lazy="formData.health_welfare_percentage" min="0" max="100" step="0.01"
+                      placeholder="%" :disabled="!formData.health_welfare" @blur="debouncedSaveState">
+                    <span class="percentage-symbol">%</span>
+                  </div>
+                </div>
 
-                <label class="checkbox-item">
-                  <input type="checkbox" v-model="formData.saving_fund" @change="saveFormState" />
-                  <span class="checkmark"></span>
-                  Saving Fund
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
-                  <span class="checkmark"></span>
-                  PVD
-                </label>
+                <!-- Saving Fund -->
+                <div class="benefit-item">
+                  <label class="checkbox-item">
+                    <input type="checkbox" v-model="formData.saving_fund" @change="saveFormState" />
+                    <span class="checkmark"></span>
+                    Saving Fund
+                  </label>
+                  <div class="benefit-percentage-group">
+                    <input type="number" class="form-control benefit-percentage-input"
+                      v-model.number.lazy="formData.saving_fund_percentage" min="0" max="100" step="0.01"
+                      placeholder="%" :disabled="!formData.saving_fund" @blur="debouncedSaveState">
+                    <span class="percentage-symbol">%</span>
+                  </div>
+                </div>
+
+                <!-- PVD -->
+                <div class="benefit-item">
+                  <label class="checkbox-item">
+                    <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
+                    <span class="checkmark"></span>
+                    PVD
+                  </label>
+                  <div class="benefit-percentage-group">
+                    <input type="number" class="form-control benefit-percentage-input"
+                      v-model.number.lazy="formData.pvd_percentage" min="0" max="100" step="0.01" placeholder="%"
+                      :disabled="!formData.pvd" @blur="debouncedSaveState">
+                    <span class="percentage-symbol">%</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -530,17 +609,16 @@
 
 <script>
 import { Modal } from 'bootstrap';
-import { ref, createVNode, nextTick } from 'vue';
+import { ref, createVNode, nextTick, shallowRef, markRaw, toRaw } from 'vue';
 import { Modal as AntModal } from 'ant-design-vue';
 import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
 import { employmentService } from '@/services/employment.service';
 import { employeeService } from '@/services/employee.service';
-import { departmentPositionService } from '@/services/department-position.service';
 import { workLocationService } from '@/services/worklocation.service';
-import { employeeGrantAllocationService } from '@/services/employee-grant-allocation.service';
 import { useLookupStore } from '@/stores/lookupStore';
 import { useFormPersistenceStore } from '@/stores/formPersistenceStore';
 import { useSharedDataStore } from '@/stores/sharedDataStore';
+import { debounce, memoize, PerformanceCleanup } from '@/utils/performance.js';
 
 export default {
   name: 'EmploymentModal',
@@ -557,24 +635,35 @@ export default {
       // Performance optimization flag
       dataLoaded: false,
 
+      // Performance cleanup manager
+      cleanup: new PerformanceCleanup(),
+
+      // Memoized functions for performance
+      memoizedCalculateStatus: null,
+      memoizedFormatCurrency: null,
+      memoizedValidation: null,
+
       formData: {
         employment_id: null,
         employee_id: '',
         employment_type: '',
         pay_method: '',
-        department_position_id: '',
+        department_id: '',
+        position_id: '',
         section_department: '',
         work_location_id: '',
-        start_date: '',
-        end_date: '',
-        probation_pass_date: '',
+        start_date: null,
+        end_date: null,
+        probation_pass_date: null,
         position_salary: '',
         probation_salary: '',
 
-        fte: 1.0,
         health_welfare: false,
+        health_welfare_percentage: null,
         pvd: false,
-        saving_fund: false
+        pvd_percentage: null,
+        saving_fund: false,
+        saving_fund_percentage: null
       },
       currentAllocation: {
         allocation_type: '',
@@ -582,7 +671,9 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100,
+        department_id: '',
+        position_id: '',
+        fte: 100
 
       },
       editData: {
@@ -591,7 +682,9 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        department_id: '',
+        position_id: '',
+        fte: 100
       },
       fundingAllocations: [],
       editingIndex: null,
@@ -614,26 +707,28 @@ export default {
       },
 
       // Date format - same as employee-list-modal
-      dateFormat: "dd-MM-yyyy",
+      dateFormat: "dd/MM/yyyy",
 
       // Validation errors
       validationErrors: {},
       allocationErrors: {},
 
-      // Data sources
-      employees: [],
-      employeeTreeData: [],
-      departmentPositions: [],
-      workLocations: [],
-      employmentTypes: [],
-      sectionDepartments: [],
-      payMethods: [
+      // Data sources (optimized with shallow refs and frozen objects)
+      employees: shallowRef([]),
+      employeeTreeData: shallowRef([]),
+      departmentPositions: shallowRef([]),
+      departments: shallowRef([]),
+      positions: shallowRef([]),
+      workLocations: shallowRef([]),
+      employmentTypes: shallowRef([]),
+      sectionDepartments: shallowRef([]),
+      payMethods: markRaw([
         { id: 1, value: 'Transferred to bank' },
         { id: 2, value: 'Cash cheque' }
-      ],
-      grantOptions: [],
-      orgFundedOptions: [],
-      grantPositions: {},
+      ]),
+      grantOptions: shallowRef([]),
+      orgFundedOptions: shallowRef([]),
+      grantPositions: shallowRef({}),
 
       // Custom tree select properties
       showEmployeeDropdown: false,
@@ -641,11 +736,32 @@ export default {
       filteredEmployeeTree: [],
       selectedEmployeeDisplay: '',
 
-      // Computed options for dropdowns
-      grantPositionOptions: [],
-      positionSlotOptions: [],
-      editGrantPositionOptions: [],
-      editPositionSlotOptions: []
+      // Virtual scrolling properties for tree select
+      visibleEmployeeCount: 20,
+      loadedEmployeeCounts: new Map(), // Track loaded count per subsidiary
+      scrollDebounceTimer: null,
+
+      // Computed options for dropdowns (cached)
+      grantPositionOptions: shallowRef([]),
+      positionSlotOptions: shallowRef([]),
+      editGrantPositionOptions: shallowRef([]),
+      editPositionSlotOptions: shallowRef([]),
+      positionsLoading: false,
+
+      // Allocation-specific departments and positions
+      allocationDepartments: shallowRef([]),
+      allocationPositions: shallowRef([]),
+      allocationPositionsLoading: false,
+
+      // Performance tracking
+      lastValidationTime: 0,
+      validationCache: new Map(),
+      formChangeBuffer: null,
+      saveStateDebounced: null,
+      isVisible: true,
+
+      // Modal rendering control
+      isModalVisible: false
     };
   },
 
@@ -656,83 +772,102 @@ export default {
     isLocalNonIDStaff() {
       return this.formData.employment_type === 'Local non ID Staff';
     },
-    totalEffort() {
-      return this.fundingAllocations.reduce((sum, allocation) => sum + allocation.level_of_effort, 0);
+    totalFte() {
+      return this.fundingAllocations.reduce((sum, allocation) => sum + allocation.fte, 0);
     },
     totalAllocatedSalary() {
       return this.fundingAllocations.reduce((sum, allocation) => {
-        const salary = this.calculateSalaryFromEffort(allocation.level_of_effort);
+        const salary = this.calculateSalaryFromFte(allocation.fte);
         return sum + salary;
       }, 0);
+    },
+
+    // FIXED: Improved computed properties for date fields with better reactivity
+    computedStartDate: {
+      get() {
+        console.log('Getting start date:', this.formData.start_date);
+        return this.formData.start_date;
+      },
+      set(value) {
+        console.log('Setting start date:', value);
+        this.$set ? this.$set(this.formData, 'start_date', this.safeConvertToDate(value)) :
+          (this.formData.start_date = this.safeConvertToDate(value));
+        this.debouncedSaveState();
+      }
+    },
+
+    computedEndDate: {
+      get() {
+        console.log('Getting end date:', this.formData.end_date);
+        return this.formData.end_date;
+      },
+      set(value) {
+        console.log('Setting end date:', value);
+        this.$set ? this.$set(this.formData, 'end_date', this.safeConvertToDate(value)) :
+          (this.formData.end_date = this.safeConvertToDate(value));
+        this.debouncedSaveState();
+      }
+    },
+
+    computedProbationPassDate: {
+      get() {
+        console.log('Getting probation date:', this.formData.probation_pass_date);
+        return this.formData.probation_pass_date;
+      },
+      set(value) {
+        console.log('Setting probation date:', value);
+        this.$set ? this.$set(this.formData, 'probation_pass_date', this.safeConvertToDate(value)) :
+          (this.formData.probation_pass_date = this.safeConvertToDate(value));
+        this.debouncedSaveState();
+      }
     }
   },
 
   watch: {
-    employmentData: {
-      handler(newVal) {
-        if (newVal) {
-          this.formData = { ...newVal };
-
-          // Ensure department_position_id is properly set
-          if (newVal.department_position_id) {
-            // Convert to number to match dropdown option values
-            this.formData.department_position_id = parseInt(newVal.department_position_id);
-            console.log('🔧 Setting department_position_id from API:', newVal.department_position_id, '-> converted to:', this.formData.department_position_id);
-          }
-
-          // Convert dates to Date objects for the date-picker component
-          if (this.formData.start_date) {
-            this.formData.start_date = new Date(this.formData.start_date);
-          }
-          if (this.formData.end_date) {
-            this.formData.end_date = new Date(this.formData.end_date);
-          }
-          if (this.formData.probation_pass_date) {
-            this.formData.probation_pass_date = new Date(this.formData.probation_pass_date);
-          }
-
-          // This is for add mode only - no need to load existing funding allocations
-
-          // Set selected employee info if available
-          if (newVal.employee) {
-            this.selectedEmployeeInfo = {
-              name: `${newVal.employee.first_name_en || ''} ${newVal.employee.last_name_en || ''}`.trim(),
-              staff_id: newVal.employee.staff_id || 'N/A',
-              subsidiary: newVal.employee.subsidiary || 'N/A'
-            };
-          }
-        }
-      },
-      deep: true
+    // OPTIMIZED: Only watch specific fields instead of deep watching entire objects
+    'formData.employee_id'(newVal, oldVal) {
+      if (newVal !== oldVal && this.isComponentReady) {
+        this.onEmployeeChange();
+        this.debouncedSaveState();
+      }
     },
 
-    // Watch for form changes to track unsaved changes
-    formData: {
-      handler(newVal, oldVal) {
-        if (oldVal && this.isDraftMode && !this.isSubmitting && this.isComponentReady) {
-          this.hasUnsavedChanges = true;
-          this.saveFormState();
-        }
-      },
-      deep: true
+    'formData.employment_type'(newVal, oldVal) {
+      if (newVal !== oldVal && this.isComponentReady) {
+        this.autoSelectBenefitsBasedOnType(newVal);
+        this.debouncedSaveState();
+      }
     },
 
+    'formData.position_salary'(newVal, oldVal) {
+      if (newVal !== oldVal && this.isComponentReady) {
+        // Clear salary calculation cache when position salary changes
+        this.validationCache.clear();
+        this.debouncedSaveState();
+      }
+    },
+
+    // Watch funding allocations with shallow comparison
     fundingAllocations: {
       handler() {
         if (this.isDraftMode && !this.isSubmitting && this.isComponentReady) {
           this.hasUnsavedChanges = true;
-          this.saveFormState();
+          this.debouncedSaveState();
         }
+      },
+      flush: 'post' // Execute after DOM updates
+    },
+
+    // Debug watchers to track when data arrives
+    departments: {
+      handler(newVal) {
+        console.log('🏢 Departments updated in modal:', newVal?.length || 0, newVal);
       },
       deep: true
     },
-
-    currentAllocation: {
-      handler() {
-        if (this.isDraftMode && !this.isSubmitting && this.isComponentReady) {
-          this.hasUnsavedChanges = true;
-          this.saveFormState();
-        }
+    grantOptions: {
+      handler(newVal) {
+        console.log('🎯 Grant options updated in modal:', newVal?.length || 0, newVal);
       },
       deep: true
     }
@@ -740,11 +875,18 @@ export default {
 
   async created() {
     try {
+      // Initialize memoized functions for better performance
+      this.memoizedCalculateStatus = memoize(this.calculateEmploymentStatus, 100);
+      this.memoizedFormatCurrency = memoize(this.formatCurrency, 50);
+      this.memoizedValidation = memoize(this.validateAllocationInternal, 20);
+
+      // Create debounced save function
+      this.debouncedSaveState = debounce(this.saveFormState, 1000);
+
       // Mark component as ready
       this.isComponentReady = true;
 
       // Don't load initial data here - load only when modal opens
-      // This improves page load performance significantly
       console.log('📝 Employment modal component created, data will load when opened');
     } catch (error) {
       console.error('Error during component initialization:', error);
@@ -760,33 +902,59 @@ export default {
         keyboard: false
       });
 
-      // Override the default hidden.bs.modal behavior
-      modalElement.addEventListener('hide.bs.modal', (event) => {
+      // Use performance cleanup for event listeners
+      const hideHandler = (event) => {
         if (this.hasUnsavedChanges && !this.isSubmitting && this.isDraftMode) {
           event.preventDefault();
           this.handleModalClose();
         }
-      });
+      };
 
-      // Clean up when modal is actually hidden
-      modalElement.addEventListener('hidden.bs.modal', () => {
+      const hiddenHandler = () => {
         if (!this.isDraftMode) {
           this.resetForm();
         }
         // No edit mode in this component
         this.employmentData = null;
+        // Reset modal visibility to prevent DatePicker warnings on next render
+        this.isModalVisible = false;
         this.cleanupModalBackdrops();
-      });
+        // Notify parent so it can unmount for memory efficiency (matches employment-edit-modal)
+        this.$emit('modal-closed');
+      };
+
+      // Track listeners for cleanup
+      this.cleanup.addListener(modalElement, 'hide.bs.modal', hideHandler);
+      this.cleanup.addListener(modalElement, 'hidden.bs.modal', hiddenHandler);
     }
 
-    // Add click outside listener for custom tree select
-    document.addEventListener('click', this.handleClickOutside);
+    // Add click outside listener for custom tree select with cleanup tracking
+    this.cleanup.addListener(document, 'click', this.handleClickOutside);
+
+    // Setup intersection observer for performance monitoring
+    this.setupPerformanceMonitoring();
   },
 
   beforeUnmount() {
     // Mark component as destroyed
     this.isDestroyed = true;
     this.isComponentReady = false;
+
+    // Comprehensive cleanup for performance
+    this.cleanup.cleanup();
+
+    // Clear caches
+    if (this.validationCache) {
+      this.validationCache.clear();
+    }
+
+    // Clear memoized functions
+    this.memoizedCalculateStatus = null;
+    this.memoizedFormatCurrency = null;
+    this.memoizedValidation = null;
+
+    // Clear debounced functions
+    this.debouncedSaveState = null;
 
     // Clean up modal instance
     if (this.modalInstance && typeof this.modalInstance.dispose === 'function') {
@@ -835,6 +1003,30 @@ export default {
         console.log('📝 Form draft saved automatically');
       } catch (error) {
         console.error('❌ Error saving form draft:', error);
+      }
+    },
+
+    async onDepartmentChange() {
+      try {
+        this.formData.position_id = '';
+        this.positions = [];
+        this.positionsLoading = true;
+        this.saveFormState();
+
+        if (!this.formData.department_id) {
+          return;
+        }
+
+        const sharedStore = useSharedDataStore();
+        const positions = await sharedStore.fetchPositions(true, { department_id: this.formData.department_id });
+        this.positions = Array.isArray(positions) ? positions : (positions?.data || []);
+      } catch (error) {
+        console.error('Error loading positions for department:', error);
+        this.positions = [];
+        this.$message && this.$message.error && this.$message.error('Failed to load positions');
+      } finally {
+        this.positionsLoading = false;
+        this.saveFormState();
       }
     },
 
@@ -915,6 +1107,19 @@ export default {
 
         // If it's a string, try to parse it
         if (typeof dateValue === 'string') {
+          // Handle ISO string format
+          if (dateValue.includes('T') || dateValue.includes('Z')) {
+            const parsedDate = new Date(dateValue);
+            return isNaN(parsedDate.getTime()) ? null : parsedDate;
+          }
+
+          // Handle various date string formats
+          const parsedDate = new Date(dateValue);
+          return isNaN(parsedDate.getTime()) ? null : parsedDate;
+        }
+
+        // Handle timestamp numbers
+        if (typeof dateValue === 'number') {
           const parsedDate = new Date(dateValue);
           return isNaN(parsedDate.getTime()) ? null : parsedDate;
         }
@@ -937,6 +1142,34 @@ export default {
       } catch (error) {
         console.error('Error handling date change:', error);
       }
+    },
+
+    // Specific date change handlers for better reactivity
+    handleStartDateChange(newValue) {
+      console.log('Start date changed:', newValue);
+      this.handleDateChange('start_date', newValue);
+
+      // Auto-calculate probation pass date (3 months after start date)
+      if (newValue) {
+        const startDate = this.safeConvertToDate(newValue);
+        if (startDate) {
+          const probationDate = new Date(startDate);
+          probationDate.setMonth(probationDate.getMonth() + 3);
+          this.formData.probation_pass_date = probationDate;
+          console.log('Auto-calculated probation pass date:', probationDate);
+          this.saveFormState();
+        }
+      }
+    },
+
+    handleEndDateChange(newValue) {
+      console.log('End date changed:', newValue);
+      this.handleDateChange('end_date', newValue);
+    },
+
+    handleProbationDateChange(newValue) {
+      console.log('Probation date changed:', newValue);
+      this.handleDateChange('probation_pass_date', newValue);
     },
 
     // Format restored time for display
@@ -1095,23 +1328,41 @@ export default {
         const sharedStore = useSharedDataStore();
 
         // Load all dropdown data in parallel using shared store
+        // Force refresh grant structure to ensure we have the latest data
         await Promise.all([
           sharedStore.loadAllDropdownData({
             includeEmployees: true,
-            includeDepartmentPositions: true,
+            includeDepartments: true,
+            includePositions: true,
             includeWorkLocations: true,
-            includeGrantStructure: true, // Include for funding allocations
-            force: false // Use cache if available
+            includeGrantStructure: true,
+            force: false // Use cache for other data
           }),
-          this.initFetchLookups() // Still need lookups for employment types
+          // Force refresh grant structure specifically to get latest grant positions
+          sharedStore.fetchGrantStructure(true), // Force refresh grant data
+          this.initFetchLookups()
         ]);
 
         // Copy data from shared store to local properties for reactivity
+        // Make sure we wait for the data to be actually loaded
+        console.log('📋 Copying data from shared store to modal...');
         this.employeeTreeData = sharedStore.getEmployeeTreeData;
-        this.departmentPositions = sharedStore.getDepartmentPositions;
+        this.departments = sharedStore.getDepartments;
+        this.positions = sharedStore.getPositions;
         this.workLocations = sharedStore.getWorkLocations;
         this.grantOptions = sharedStore.getGrantOptions;
         this.grantPositions = sharedStore.getGrantPositions;
+
+        // Initialize allocation departments (copy from main departments)
+        this.allocationDepartments = [...this.departments];
+
+        console.log('✅ Modal data copied:', {
+          departments: this.departments?.length || 0,
+          positions: this.positions?.length || 0,
+          workLocations: this.workLocations?.length || 0,
+          grantOptions: this.grantOptions?.length || 0,
+          employees: this.employeeTreeData?.length || 0
+        });
 
         console.log('✅ Employment modal data loaded from shared store');
       } catch (error) {
@@ -1133,52 +1384,69 @@ export default {
       this.alertClass = '';
     },
 
-    // Validate main form data
+    // OPTIMIZED: Cached validation with early returns
     validateForm() {
+      const now = Date.now();
+      const formDataRaw = toRaw(this.formData);
+      const cacheKey = JSON.stringify({
+        formData: formDataRaw,
+        allocationsLength: this.fundingAllocations.length,
+        totalFte: this.totalFte
+      });
+
+      // Use cached validation if recent (within 500ms)
+      if (this.validationCache.has(cacheKey) && (now - this.lastValidationTime) < 500) {
+        const cached = this.validationCache.get(cacheKey);
+        this.validationErrors = { ...cached.errors };
+        this.alertMessage = cached.alertMessage;
+        this.alertClass = cached.alertClass;
+        return cached.isValid;
+      }
+
       this.clearValidationErrors();
       let isValid = true;
+      const errors = {};
+      let alertMessage = '';
+      let alertClass = '';
 
-      if (!this.formData.employee_id) {
-        this.validationErrors.employee_id = 'Please select an employee';
-        isValid = false;
+      // Batch validation checks for better performance
+      const requiredFields = [
+        { field: 'employee_id', message: 'Please select an employee' },
+        { field: 'employment_type', message: 'Please select employment type' },
+        { field: 'department_id', message: 'Please select department' },
+        { field: 'position_id', message: 'Please select position' },
+        { field: 'work_location_id', message: 'Please select work location' },
+        { field: 'start_date', message: 'Please select start date' },
+        { field: 'position_salary', message: 'Please enter position salary' }
+      ];
+
+      for (const { field, message } of requiredFields) {
+        if (!formDataRaw[field]) {
+          errors[field] = message;
+          isValid = false;
+        }
       }
 
-      if (!this.formData.employment_type) {
-        this.validationErrors.employment_type = 'Please select employment type';
-        isValid = false;
-      }
-
-      if (!this.formData.department_position_id) {
-        this.validationErrors.department_position_id = 'Please select department position';
-        isValid = false;
-      }
-
-      if (!this.formData.work_location_id) {
-        this.validationErrors.work_location_id = 'Please select work location';
-        isValid = false;
-      }
-
-      if (!this.formData.start_date) {
-        this.validationErrors.start_date = 'Please select start date';
-        isValid = false;
-      }
-
-      if (!this.formData.position_salary) {
-        this.validationErrors.position_salary = 'Please enter position salary';
-        isValid = false;
-      }
-
-      // Validate funding allocations for create mode
-      // For create mode, allocations are required
+      // Validate funding allocations
       if (this.fundingAllocations.length === 0) {
-        this.alertMessage = 'Please add at least one funding allocation';
-        this.alertClass = 'alert-danger';
+        alertMessage = 'Please add at least one funding allocation';
+        alertClass = 'alert-danger';
         isValid = false;
-      } else if (this.totalEffort !== 100) {
-        this.alertMessage = `Total effort must equal 100%. Current total: ${this.totalEffort}%`;
-        this.alertClass = 'alert-danger';
+      } else if (this.totalFte !== 100) {
+        alertMessage = `Total FTE must equal 100%. Current total: ${this.totalFte}%`;
+        alertClass = 'alert-danger';
         isValid = false;
       }
+
+      // Cache the result
+      const result = { isValid, errors, alertMessage, alertClass };
+      this.validationCache.set(cacheKey, result);
+      this.lastValidationTime = now;
+
+      // Apply results
+      this.validationErrors = errors;
+      this.alertMessage = alertMessage;
+      this.alertClass = alertClass;
 
       return isValid;
     },
@@ -1194,8 +1462,12 @@ export default {
       }
 
       if (this.isOrgFundGrant(this.currentAllocation.grant_id)) {
-        if (!this.currentAllocation.department_position_id) {
-          this.allocationErrors.department_position_id = 'Please select a department position';
+        if (!this.currentAllocation.department_id) {
+          this.allocationErrors.department_id = 'Please select a department';
+          isValid = false;
+        }
+        if (!this.currentAllocation.position_id) {
+          this.allocationErrors.position_id = 'Please select a position';
           isValid = false;
         }
       } else {
@@ -1209,13 +1481,13 @@ export default {
         }
       }
 
-      if (!this.currentAllocation.level_of_effort || this.currentAllocation.level_of_effort <= 0) {
-        this.allocationErrors.level_of_effort = 'Please enter a valid effort percentage';
+      if (!this.currentAllocation.fte || this.currentAllocation.fte <= 0) {
+        this.allocationErrors.fte = 'Please enter a valid FTE percentage';
         isValid = false;
       }
 
-      if (this.currentAllocation.level_of_effort > 100) {
-        this.allocationErrors.level_of_effort = 'Effort percentage cannot exceed 100%';
+      if (this.currentAllocation.fte > 100) {
+        this.allocationErrors.fte = 'FTE percentage cannot exceed 100%';
         isValid = false;
       }
 
@@ -1340,6 +1612,34 @@ export default {
       this.saveFormState();
     },
 
+    // Auto-select benefits based on employment type
+    autoSelectBenefitsBasedOnType(employmentType) {
+      console.log('Auto-selecting benefits for employment type:', employmentType);
+
+      // Reset benefits first
+      this.formData.pvd = false;
+      this.formData.saving_fund = false;
+
+      if (!employmentType) return;
+
+      // Auto-select based on employment type
+      if (employmentType === 'Local ID Staff') {
+        this.formData.pvd = true;
+        this.formData.saving_fund = false;
+        console.log('✅ Auto-selected PVD for Local ID Staff employment type');
+      } else if (employmentType === 'Local non ID Staff') {
+        this.formData.pvd = false;
+        this.formData.saving_fund = true;
+        console.log('✅ Auto-selected Saving Fund for Local non ID Staff employment type');
+      } else {
+        // For other employment types (Expats, Contract, etc.), don't auto-select anything
+        console.log('ℹ️ No auto-selection for employment type:', employmentType);
+      }
+
+      // Save form state after auto-selection
+      this.saveFormState();
+    },
+
     async onGrantChange() {
       console.log('Grant changed:', this.currentAllocation.grant_id);
 
@@ -1351,16 +1651,17 @@ export default {
         this.currentAllocation.position_slot_id = '';
         this.grantPositionOptions = [];
         this.positionSlotOptions = [];
-        // Load department positions if not already loaded using shared store
-        if (this.departmentPositions.length === 0) {
-          const sharedStore = useSharedDataStore();
-          await sharedStore.fetchDepartmentPositions();
-          this.departmentPositions = sharedStore.getDepartmentPositions;
-        }
+        // Clear separate department and position fields
+        this.currentAllocation.department_id = '';
+        this.currentAllocation.position_id = '';
+        this.allocationPositions = [];
       } else {
         this.currentAllocation.allocation_type = 'grant';
         // Clear org-funded fields
         this.currentAllocation.department_position_id = '';
+        this.currentAllocation.department_id = '';
+        this.currentAllocation.position_id = '';
+        this.allocationPositions = [];
         // Set options for grant position dropdown
         this.grantPositionOptions = this.grantPositions[this.currentAllocation.grant_id] || [];
         this.positionSlotOptions = [];
@@ -1371,11 +1672,64 @@ export default {
       this.saveFormState();
     },
 
+    async onAllocationDepartmentChange() {
+      try {
+        this.currentAllocation.position_id = '';
+        this.allocationPositions = [];
+        this.allocationPositionsLoading = true;
+        this.saveFormState();
+
+        if (!this.currentAllocation.department_id) {
+          return;
+        }
+
+        const sharedStore = useSharedDataStore();
+        const positions = await sharedStore.fetchPositions(true, { department_id: this.currentAllocation.department_id });
+        this.allocationPositions = Array.isArray(positions) ? positions : (positions?.data || []);
+      } catch (error) {
+        console.error('Error loading positions for allocation department:', error);
+        this.allocationPositions = [];
+        this.$message && this.$message.error && this.$message.error('Failed to load positions');
+      } finally {
+        this.allocationPositionsLoading = false;
+        this.saveFormState();
+      }
+    },
+
+    async onEditAllocationDepartmentChange() {
+      try {
+        this.editData.position_id = '';
+        this.allocationPositions = [];
+        this.allocationPositionsLoading = true;
+
+        if (!this.editData.department_id) {
+          return;
+        }
+
+        const sharedStore = useSharedDataStore();
+        const positions = await sharedStore.fetchPositions(true, { department_id: this.editData.department_id });
+        this.allocationPositions = Array.isArray(positions) ? positions : (positions?.data || []);
+      } catch (error) {
+        console.error('Error loading positions for edit allocation department:', error);
+        this.allocationPositions = [];
+        this.$message && this.$message.error && this.$message.error('Failed to load positions');
+      } finally {
+        this.allocationPositionsLoading = false;
+      }
+    },
+
     onGrantPositionChange() {
       console.log('Grant position changed:', this.currentAllocation.grant_items_id);
       this.currentAllocation.position_slot_id = '';
       const position = this.grantPositionOptions.find(p => p.id == this.currentAllocation.grant_items_id);
-      this.positionSlotOptions = position ? position.position_slots || [] : [];
+
+      // Add budget line information to position slots since it's now at the grant item level
+      this.positionSlotOptions = position ?
+        (position.position_slots || []).map(slot => ({
+          ...slot,
+          budgetline_code: position.budgetline_code || 'N/A'
+        })) : [];
+
       delete this.allocationErrors.position_slot_id;
       this.saveFormState();
     },
@@ -1384,22 +1738,36 @@ export default {
       this.editData.grant_items_id = '';
       this.editData.position_slot_id = '';
       this.editData.department_position_id = '';
-      this.editData.level_of_effort = 100; // Reset effort to 100 for new allocation
+      this.editData.department_id = '';
+      this.editData.position_id = '';
+      this.editData.fte = 100; // Reset FTE to 100 for new allocation
 
       if (this.isOrgFundGrant(this.editData.grant_id)) {
         this.editData.allocation_type = 'org_funded';
+        // Clear allocation positions when changing grant
+        this.allocationPositions = [];
       } else {
         this.editData.allocation_type = 'grant';
         this.editGrantPositionOptions = this.grantPositions[this.editData.grant_id] || [];
         const position = this.editGrantPositionOptions.find(p => p.id == this.editData.grant_items_id);
-        this.editPositionSlotOptions = position ? position.position_slots || [] : [];
+        // Add budget line information to position slots since it's now at the grant item level
+        this.editPositionSlotOptions = position ?
+          (position.position_slots || []).map(slot => ({
+            ...slot,
+            budgetline_code: position.budgetline_code || 'N/A'
+          })) : [];
       }
     },
 
     onEditGrantPositionChange() {
       this.editData.position_slot_id = '';
       const position = this.editGrantPositionOptions.find(p => p.id == this.editData.grant_items_id);
-      this.editPositionSlotOptions = position ? position.position_slots || [] : [];
+      // Add budget line information to position slots since it's now at the grant item level
+      this.editPositionSlotOptions = position ?
+        (position.position_slots || []).map(slot => ({
+          ...slot,
+          budgetline_code: position.budgetline_code || 'N/A'
+        })) : [];
     },
 
     addAllocation() {
@@ -1417,8 +1785,10 @@ export default {
           return a.position_slot_id === this.currentAllocation.position_slot_id;
         }
         if (this.currentAllocation.allocation_type === 'org_funded') {
-          // Assuming a combination of grant and department position is unique for org_funded
-          return a.grant_id === this.currentAllocation.grant_id && a.department_position_id === this.currentAllocation.department_position_id;
+          // Check for unique combination of grant, department, and position for org_funded
+          return a.grant_id === this.currentAllocation.grant_id &&
+            a.department_id === this.currentAllocation.department_id &&
+            a.position_id === this.currentAllocation.position_id;
         }
         return false;
       });
@@ -1429,13 +1799,13 @@ export default {
         return;
       }
 
-      // Check if total effort would exceed 100%
+      // Check if total FTE would exceed 100%
       const currentTotal = this.fundingAllocations.reduce((sum, a, i) => {
-        return i === this.editingIndex ? sum : sum + a.level_of_effort;
+        return i === this.editingIndex ? sum : sum + a.fte;
       }, 0);
 
-      if (currentTotal + this.currentAllocation.level_of_effort > 100) {
-        this.alertMessage = `Adding this allocation would exceed 100% effort. Available: ${100 - currentTotal}%`;
+      if (currentTotal + this.currentAllocation.fte > 100) {
+        this.alertMessage = `Adding this allocation would exceed 100% FTE. Available: ${100 - currentTotal}%`;
         this.alertClass = 'alert-danger';
         return;
       }
@@ -1458,10 +1828,13 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        department_id: '',
+        position_id: '',
+        fte: 100
       };
       this.grantPositionOptions = [];
       this.positionSlotOptions = [];
+      this.allocationPositions = [];
       this.allocationErrors = {};
       this.alertMessage = '';
       this.alertClass = '';
@@ -1475,11 +1848,20 @@ export default {
 
       if (this.isOrgFundGrant(this.editData.grant_id)) {
         this.editData.allocation_type = 'org_funded';
+        // Load positions for the selected department if editing org-funded allocation
+        if (this.editData.department_id) {
+          this.onEditAllocationDepartmentChange();
+        }
       } else {
         this.editData.allocation_type = 'grant';
         this.editGrantPositionOptions = this.grantPositions[this.editData.grant_id] || [];
         const position = this.editGrantPositionOptions.find(p => p.id == this.editData.grant_items_id);
-        this.editPositionSlotOptions = position ? position.position_slots || [] : [];
+        // Add budget line information to position slots since it's now at the grant item level
+        this.editPositionSlotOptions = position ?
+          (position.position_slots || []).map(slot => ({
+            ...slot,
+            budgetline_code: position.budgetline_code || 'N/A'
+          })) : [];
       }
     },
 
@@ -1516,6 +1898,42 @@ export default {
       return pos ? `${pos.department} - ${pos.position}` : 'Unknown Position';
     },
 
+    getDepartmentName(id, originalData = null) {
+      // First try to use original data if available
+      if (originalData && originalData.department_name) {
+        return originalData.department_name;
+      }
+
+      // First try to find in allocation departments
+      let dept = this.allocationDepartments.find(d => d.id == id);
+
+      // If not found, try main departments array
+      if (!dept) {
+        dept = this.departments.find(d => d.id == id);
+      }
+
+      return dept ? dept.name : 'Unknown Department';
+    },
+
+    getPositionName(id, originalData = null) {
+      // First try to use original data if available
+      if (originalData && originalData.position_name) {
+        return originalData.position_name;
+      }
+
+      if (!id) return 'Unknown Position';
+
+      // First try to find in allocation positions (current department)
+      let pos = this.allocationPositions.find(p => p.id == id);
+
+      // If not found, try to find in main positions array
+      if (!pos) {
+        pos = this.positions.find(p => p.id == id);
+      }
+
+      return pos ? pos.title : 'Unknown Position';
+    },
+
     getGrantPositionName(grantId, positionId, originalData = null) {
       if (originalData && originalData.grant_position) {
         return originalData.grant_position;
@@ -1533,7 +1951,8 @@ export default {
       const position = positions.find(p => p.id == positionId);
       if (!position || !position.position_slots) return 'Unknown Slot';
       const slot = position.position_slots.find(s => s.id == positionSlotId);
-      return slot ? `Slot ${slot.slot_number} - ${slot.budget_line.name}` : 'Unknown Slot';
+      // Use budgetline_code from the position level since slots no longer have budget_line
+      return slot ? `Slot ${slot.slot_number} - ${position.budgetline_code || 'N/A'}` : 'Unknown Slot';
     },
 
     getOrgFundedName(orgFundedId, originalData = null) {
@@ -1566,38 +1985,38 @@ export default {
       return '-';
     },
 
-    // New method to calculate salary based on effort percentage
-    calculateSalaryFromEffort(effortPercentage) {
-      if (!this.formData.position_salary || !effortPercentage) {
+    // New method to calculate salary based on FTE percentage
+    calculateSalaryFromFte(ftePercentage) {
+      if (!this.formData.position_salary || !ftePercentage) {
         return 0;
       }
-      return (this.formData.position_salary * effortPercentage) / 100;
+      return (this.formData.position_salary * ftePercentage) / 100;
     },
 
     // Method to get calculated salary for current allocation display
-    getCalculatedSalary(effortPercentage) {
-      if (!effortPercentage || !this.formData.position_salary) {
+    getCalculatedSalary(ftePercentage) {
+      if (!ftePercentage || !this.formData.position_salary) {
         return this.formatCurrency(0);
       }
-      const salary = this.calculateSalaryFromEffort(effortPercentage);
+      const salary = this.calculateSalaryFromFte(ftePercentage);
       return this.formatCurrency(salary);
     },
 
     // Method to get allocated salary for table display
     getAllocatedSalary(allocation) {
-      const salary = this.calculateSalaryFromEffort(allocation.level_of_effort);
+      const salary = this.calculateSalaryFromFte(allocation.fte);
       return this.formatCurrency(salary);
     },
 
-    // Event handler for effort change in current allocation
-    onEffortChange() {
+    // Event handler for FTE change in current allocation
+    onFteChange() {
       // This will trigger reactivity to update the calculated salary display
       // No additional logic needed as the computed display will update automatically
       this.saveFormState();
     },
 
-    // Event handler for effort change in edit mode
-    onEditEffortChange() {
+    // Event handler for FTE change in edit mode
+    onEditFteChange() {
       // This will trigger reactivity to update the calculated salary display
       // No additional logic needed as the computed display will update automatically
     },
@@ -1617,6 +2036,8 @@ export default {
 
     async openModal() {
       this.clearValidationErrors();
+      // Set modal visibility before loading data to control DatePicker rendering
+      this.isModalVisible = true;
 
       // Always ensure initial data is loaded before proceeding
       if (!this.dataLoaded) {
@@ -1665,19 +2086,35 @@ export default {
 
           // Map the API response to our internal format
           this.fundingAllocations = allocationsData.map(allocation => {
-            // Convert level_of_effort from decimal string to percentage number
-            const effortPercentage = parseFloat(allocation.level_of_effort) * 100;
+            // Convert fte from decimal string to percentage number
+            const ftePercentage = parseFloat(allocation.fte) * 100;
 
             if (allocation.allocation_type === 'org_funded') {
               // Handle org_funded allocations
+              const deptPosition = allocation.org_funded?.department_position;
+
+              // Extract department and position IDs from the department_position object
+              let departmentId = allocation.org_funded?.department?.id || '';
+              let positionId = allocation.org_funded?.position?.id || '';
+
+              // If not available directly, try to extract from department_position
+              if (!departmentId && deptPosition) {
+                departmentId = deptPosition.department_id || '';
+              }
+              if (!positionId && deptPosition) {
+                positionId = deptPosition.position_id || '';
+              }
+
               return {
                 id: allocation.id,
                 allocation_type: 'org_funded',
                 grant_id: allocation.org_funded?.grant?.id || '',
                 grant_items_id: '',
                 position_slot_id: '',
-                department_position_id: allocation.org_funded?.department_position?.id || '',
-                level_of_effort: effortPercentage,
+                department_position_id: deptPosition?.id || '',
+                department_id: departmentId,
+                position_id: positionId,
+                fte: ftePercentage,
 
                 // Additional data for display purposes
                 _original: {
@@ -1690,7 +2127,9 @@ export default {
                   formatted_allocated_amount: allocation.formatted_allocated_amount,
                   start_date: allocation.start_date,
                   end_date: allocation.end_date,
-                  org_funded_name: 'Org Funded'
+                  org_funded_name: 'Org Funded',
+                  department_name: deptPosition?.department || '',
+                  position_name: deptPosition?.position || ''
                 }
               };
             } else {
@@ -1702,7 +2141,9 @@ export default {
                 grant_items_id: allocation.position_slot?.grant_item?.id || '',
                 position_slot_id: allocation.position_slot_id || '',
                 department_position_id: '',
-                level_of_effort: effortPercentage,
+                department_id: '',
+                position_id: '',
+                fte: ftePercentage,
 
                 // Additional data for display purposes
                 _original: {
@@ -1710,7 +2151,7 @@ export default {
                   grant_code: allocation.position_slot?.grant_item?.grant?.code || '',
                   grant_position: allocation.position_slot?.grant_item?.name || '',
                   slot_number: allocation.position_slot?.slot_number || '',
-                  budget_line_code: allocation.position_slot?.budget_line?.name || '',
+                  budget_line_code: allocation.position_slot?.grant_item?.budgetline_code || '',
                   allocated_amount: allocation.allocated_amount,
                   formatted_allocated_amount: allocation.formatted_allocated_amount,
                   start_date: allocation.start_date,
@@ -1754,15 +2195,18 @@ export default {
         probation_pass_date: this.formatDateForAPI(this.formData.probation_pass_date),
         start_date: this.formatDateForAPI(this.formData.start_date),
         end_date: this.formatDateForAPI(this.formData.end_date),
-        department_position_id: this.formData.department_position_id || null,
+        department_id: this.formData.department_id || null,
+        position_id: this.formData.position_id || null,
         section_department: this.formData.section_department || null,
         work_location_id: this.formData.work_location_id || null,
         position_salary: this.formData.position_salary,
         probation_salary: this.formData.probation_salary || null,
-        fte: this.formData.fte || null,
         health_welfare: !!this.formData.health_welfare,
+        health_welfare_percentage: this.formData.health_welfare_percentage || null,
         pvd: !!this.formData.pvd,
-        saving_fund: !!this.formData.saving_fund
+        pvd_percentage: this.formData.pvd_percentage || null,
+        saving_fund: !!this.formData.saving_fund,
+        saving_fund_percentage: this.formData.saving_fund_percentage || null
       };
 
       // For create mode, all fields are required as per backend create validation
@@ -1771,20 +2215,22 @@ export default {
         // Funding allocation data - required for create
         allocations: this.fundingAllocations.map(allocation => {
           const isOrgFunded = allocation.allocation_type === 'org_funded';
-          const calculatedSalary = this.calculateSalaryFromEffort(allocation.level_of_effort);
+          const calculatedSalary = this.calculateSalaryFromFte(allocation.fte);
 
           if (isOrgFunded) {
             return {
               allocation_type: 'org_funded',
               grant_id: allocation.grant_id,
-              level_of_effort: allocation.level_of_effort,
+              department_id: allocation.department_id,
+              position_id: allocation.position_id,
+              fte: allocation.fte, // Send as percentage (0-100) as expected by backend
               allocated_amount: calculatedSalary
             };
           } else {
             return {
               allocation_type: 'grant',
               position_slot_id: allocation.position_slot_id,
-              level_of_effort: allocation.level_of_effort,
+              fte: allocation.fte, // Send as percentage (0-100) as expected by backend
               allocated_amount: calculatedSalary
             };
           }
@@ -1897,19 +2343,22 @@ export default {
         employee_id: '',
         employment_type: '',
         pay_method: '',
-        department_position_id: '',
+        department_id: '',
+        position_id: '',
         section_department: '',
         work_location_id: '',
-        start_date: '',
-        end_date: '',
-        probation_pass_date: '',
+        start_date: null,
+        end_date: null,
+        probation_pass_date: null,
         position_salary: '',
         probation_salary: '',
 
-        fte: 1.0,
         health_welfare: false,
+        health_welfare_percentage: null,
         pvd: false,
-        saving_fund: false
+        pvd_percentage: null,
+        saving_fund: false,
+        saving_fund_percentage: null
       };
       this.currentAllocation = {
         allocation_type: '',
@@ -1917,7 +2366,9 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        department_id: '',
+        position_id: '',
+        fte: 100
       };
       this.editData = {
         allocation_type: '',
@@ -1925,7 +2376,9 @@ export default {
         grant_items_id: '',
         position_slot_id: '',
         department_position_id: '',
-        level_of_effort: 100
+        department_id: '',
+        position_id: '',
+        fte: 100
       };
       this.fundingAllocations = [];
       this.selectedEmployeeInfo = null;
@@ -1967,17 +2420,69 @@ export default {
       return null;
     },
 
-    // Custom tree select methods
+    // OPTIMIZED: Custom tree select methods with virtual scrolling
     toggleEmployeeDropdown() {
       this.showEmployeeDropdown = !this.showEmployeeDropdown;
       if (this.showEmployeeDropdown) {
         this.initializeEmployeeTree();
+        // Reset loaded counts when opening dropdown
+        this.loadedEmployeeCounts.clear();
         this.$nextTick(() => {
           if (this.$refs.employeeSearchInput) {
             this.$refs.employeeSearchInput.focus();
           }
         });
       }
+    },
+
+    // Virtual scrolling helper methods
+    getVisibleEmployees(employees) {
+      if (!employees) return [];
+
+      const subsidiaryKey = this.getCurrentSubsidiaryKey(employees);
+      const loadedCount = this.loadedEmployeeCounts.get(subsidiaryKey) || this.visibleEmployeeCount;
+
+      return employees.slice(0, Math.min(loadedCount, employees.length));
+    },
+
+    hasMoreEmployees(employees) {
+      if (!employees) return false;
+
+      const subsidiaryKey = this.getCurrentSubsidiaryKey(employees);
+      const loadedCount = this.loadedEmployeeCounts.get(subsidiaryKey) || this.visibleEmployeeCount;
+
+      return employees.length > loadedCount;
+    },
+
+    getCurrentSubsidiaryKey(employees) {
+      // Generate a simple key based on the first employee's data
+      return employees[0]?.subsidiary || 'unknown';
+    },
+
+    loadMoreEmployees(subsidiaryKey) {
+      const currentCount = this.loadedEmployeeCounts.get(subsidiaryKey) || this.visibleEmployeeCount;
+      this.loadedEmployeeCounts.set(subsidiaryKey, currentCount + this.visibleEmployeeCount);
+    },
+
+    handleDropdownScroll(event) {
+      // Debounce scroll events for performance
+      if (this.scrollDebounceTimer) {
+        clearTimeout(this.scrollDebounceTimer);
+      }
+
+      this.scrollDebounceTimer = setTimeout(() => {
+        const { scrollTop, scrollHeight, clientHeight } = event.target;
+
+        // Auto-load more when near bottom
+        if (scrollHeight - scrollTop - clientHeight < 100) {
+          // Find subsidiaries that need more loading
+          this.filteredEmployeeTree.forEach(subsidiary => {
+            if (subsidiary.expanded && this.hasMoreEmployees(subsidiary.children)) {
+              this.loadMoreEmployees(subsidiary.key);
+            }
+          });
+        }
+      }, 100);
     },
 
     initializeEmployeeTree() {
@@ -2040,6 +2545,49 @@ export default {
       return (typeof window !== 'undefined' && window.document && window.document.body)
         ? window.document.body
         : trigger.parentNode;
+    },
+
+    // PERFORMANCE MONITORING SETUP
+    setupPerformanceMonitoring() {
+      if ('IntersectionObserver' in window) {
+        // Monitor visibility changes for performance optimization
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              // Component is visible, can perform optimizations
+              this.isVisible = true;
+            } else {
+              // Component is not visible, reduce work
+              this.isVisible = false;
+            }
+          });
+        }, { threshold: 0.1 });
+
+        const modalElement = document.getElementById('employmentModal');
+        if (modalElement) {
+          observer.observe(modalElement);
+          this.cleanup.addObserver(observer);
+        }
+      }
+
+      // Setup performance observer for long tasks
+      if ('PerformanceObserver' in window) {
+        try {
+          const perfObserver = new PerformanceObserver((list) => {
+            const longTasks = list.getEntries();
+            longTasks.forEach(task => {
+              if (task.duration > 50) {
+                console.warn(`Long task detected in employment modal: ${task.duration}ms`);
+              }
+            });
+          });
+
+          perfObserver.observe({ entryTypes: ['longtask'] });
+          this.cleanup.addObserver(perfObserver);
+        } catch (error) {
+          console.log('PerformanceObserver not supported or failed to initialize');
+        }
+      }
     }
   }
 };
@@ -2528,6 +3076,55 @@ select {
   min-width: 140px;
 }
 
+/* Benefits container with percentage inputs */
+.benefits-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.benefit-item:hover {
+  background: #f1f3f5;
+}
+
+.benefit-percentage-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 100px;
+}
+
+.benefit-percentage-input {
+  width: 80px;
+  padding: 4px 8px;
+  font-size: 0.9em;
+  text-align: right;
+}
+
+.benefit-percentage-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #e9ecef;
+}
+
+.percentage-symbol {
+  font-weight: 500;
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
 /* Status badge styles */
 .badge.badge-sm {
   font-size: 0.75em;
@@ -2761,6 +3358,39 @@ select {
 
 .dropdown-body::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Load More Button Styling */
+.load-more-button {
+  padding: 8px 16px;
+  text-align: center;
+  border-top: 1px solid #f1f3f4;
+}
+
+.btn-load-more {
+  background: none;
+  border: 1px solid #e9ecef;
+  color: #6c757d;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-load-more:hover {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  color: #495057;
+}
+
+/* Performance optimization classes */
+.virtual-scroll-container {
+  contain: layout style paint;
+}
+
+.employee-item {
+  contain: layout style;
 }
 
 /* Responsive adjustments */

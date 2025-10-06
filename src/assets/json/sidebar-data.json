@@ -23,14 +23,19 @@
             "active_link": "/dashboard/hr-manager-dashboard"
           },
           {
-            "menuValue": "HR Assistant Dashboard",
-            "route": "/dashboard/hr-assistant-dashboard",
-            "active_link": "/dashboard/hr-assistant-dashboard"
+            "menuValue": "HR Assistant Senior Dashboard",
+            "route": "/dashboard/hr-assistant-senior-dashboard",
+            "active_link": "/dashboard/hr-assistant-senior-dashboard"
           },
           {
-            "menuValue": "Employee Dashboard",
-            "route": "/dashboard/employee-dashboard",
-            "active_link": "/dashboard/employee-dashboard"
+            "menuValue": "HR Assistant Junior Dashboard",
+            "route": "/dashboard/hr-assistant-junior-dashboard",
+            "active_link": "/dashboard/hr-assistant-junior-dashboard"
+          },
+          {
+            "menuValue": "Site Admin Dashboard",
+            "route": "/dashboard/site-admin-dashboard",
+            "active_link": "/dashboard/site-admin-dashboard"
           }
         ]
       }
@@ -53,11 +58,6 @@
             "menuValue": "Grants List",
             "route": "/grant/list",
             "active_link": "/grant/list"
-          },
-          {
-            "menuValue": "Budget Lines",
-            "route": "/grant/budget-line-list",
-            "active_link": "/grant/budget-line-list"
           },
           {
             "menuValue": "Grant Position",
@@ -128,12 +128,12 @@
         "icon": "users",
         "subMenus": [
           {
-            "menuValue": "Employee Lists",
+            "menuValue": "Employees",
             "route": "/employee/employee-list",
             "active_link": "/employee/employee-list"
           },
           {
-            "menuValue": "Employment List",
+            "menuValue": "Employment Records",
             "route": "/employee/employment-list",
             "active_link": "/employee/employment-list"
           },
@@ -147,12 +147,6 @@
             "route": "/employee/site",
             "active_link": "/employee/site"
           },
-          {
-            "menuValue": "Employee Details",
-            "route": "/employee/employee-details",
-            "active_link": "/employee/employee-details"
-          },
-        
           {
             "menuValue": "Departments",
             "route": "/employee/departments",
@@ -310,24 +304,14 @@
         "icon": "edit",
         "subMenus": [
           {
-            "menuValue": "Employee Training",
-            "route": "/training/employee-training-list",
-            "active_link": "/training/employee-training-list"
-          },
-          {
             "menuValue": "Training List",
             "route": "/training/training-list",
             "active_link": "/training/training-list"
           },
           {
-            "menuValue": "Trainers",
-            "route": "/training/trainers",
-            "active_link": "/training/trainers"
-          },
-          {
-            "menuValue": "Training Type",
-            "route": "/training/training-type",
-            "active_link": "/training/training-type"
+            "menuValue": "Employee Training",
+            "route": "/training/employee-training-list",
+            "active_link": "/training/employee-training-list"
           }
         ]
       },
@@ -881,158 +865,7 @@
     "tittle": "Authentication",
     "showAsTab": false,
     "separateRoute": false,
-    "menu": [
-      {
-        "menuValue": "Login",
-        "hasSubRoute": true,
-        "showSubRoute": false,
-        "icon": "login",
-        "active_link": "",
-        "subMenus": [
-          {
-            "menuValue": "Cover",
-            "route": "/"
-          },
-          {
-            "menuValue": "Illustration",
-            "route": "/login-2"
-          },
-          {
-            "menuValue": "Basic",
-            "route": "/login-3"
-          }
-        ]
-      },
-      {
-        "menuValue": "Register",
-        "hasSubRoute": true,
-        "showSubRoute": false,
-        "icon": "forms",
-        "active_link": "",
-        "subMenus": [
-          {
-            "menuValue": "Cover",
-            "route": "/register"
-          },
-          {
-            "menuValue": "Illustration",
-            "route": "/register-2"
-          },
-          {
-            "menuValue": "Basic",
-            "route": "/register-3"
-          }
-        ]
-      },
-      {
-        "menuValue": "Forgot Password",
-        "hasSubRoute": true,
-        "showSubRoute": false,
-        "icon": "help-triangle",
-        "active_link": "",
-        "subMenus": [
-          {
-            "menuValue": "Cover",
-            "route": "/forgot-password"
-          },
-          {
-            "menuValue": "Illustration",
-            "route": "/forgot-password-2"
-          },
-          {
-            "menuValue": "Basic",
-            "route": "/forgot-password-3"
-          }
-        ]
-      },
-      {
-        "menuValue": "Reset Password",
-        "hasSubRoute": true,
-        "showSubRoute": false,
-        "icon": "restore",
-        "active_link": "",
-        "subMenus": [
-          {
-            "menuValue": "Cover",
-            "route": "/reset-password"
-          },
-          {
-            "menuValue": "Illustration",
-            "route": "/reset-password-2"
-          },
-          {
-            "menuValue": "Basic",
-            "route": "/reset-password-3"
-          }
-        ]
-      },
-      {
-        "menuValue": "Email Verification",
-        "hasSubRoute": true,
-        "showSubRoute": false,
-        "icon": "mail-exclamation",
-        "active_link": "",
-        "subMenus": [
-          {
-            "menuValue": "Cover",
-            "route": "/email-verification"
-          },
-          {
-            "menuValue": "Illustration",
-            "route": "/email-verification-2"
-          },
-          {
-            "menuValue": "Basic",
-            "route": "/email-verification-3"
-          }
-        ]
-      },
-      {
-        "menuValue": "2 Step Verification",
-        "hasSubRoute": true,
-        "showSubRoute": false,
-        "icon": "password",
-        "active_link": "",
-        "subMenus": [
-          {
-            "menuValue": "Cover",
-            "route": "/two-step-verification"
-          },
-          {
-            "menuValue": "Illustration",
-            "route": "/two-step-verification-2"
-          },
-          {
-            "menuValue": "Basic",
-            "route": "/two-step-verification-3"
-          }
-        ]
-      },
-      {
-        "menuValue": "Lock Screen",
-        "route": "/lock-screen",
-        "hasSubRoute": false,
-        "showSubRoute": false,
-        "icon": "lock-square",
-        "subMenus": []
-      },
-      {
-        "menuValue": "404 Error",
-        "route": "/error-404",
-        "hasSubRoute": false,
-        "showSubRoute": false,
-        "icon": "error-404",
-        "subMenus": []
-      },
-      {
-        "menuValue": "500 Error",
-        "route": "/error-500",
-        "hasSubRoute": false,
-        "showSubRoute": false,
-        "icon": "server",
-        "subMenus": []
-      }
-    ]
+    "menu": []
   },
   {
     "tittle": "UI Interface",

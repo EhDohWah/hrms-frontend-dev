@@ -7,7 +7,19 @@
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnlyLeavesAdmin" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="me-2 mb-2">
             <div class="dropdown">
@@ -28,7 +40,7 @@
               </ul>
             </div>
           </div>
-          <div class="mb-2">
+          <div v-if="canEditLeavesAdmin" class="mb-2">
             <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_leaves"
               class="btn btn-primary d-flex align-items-center" @click="openCreateModal"><i
                 class="ti ti-circle-plus me-2"></i>Add Leave</a>
@@ -282,8 +294,16 @@
                 </template>
 
                 <template v-if="column.key === 'leaveType'">
-                  <div class="d-flex align-items-center">
-                    <p class="fs-14 fw-medium d-flex align-items-center mb-0">
+                  <!-- Multi-leave-type display (v2.0) -->
+                  <div class="d-flex align-items-center flex-wrap gap-1">
+                    <template v-if="record.items && record.items.length > 0">
+                      <span v-for="(item, index) in record.items" :key="item.id || index"
+                        class="badge bg-primary-transparent text-primary">
+                        {{ item.leaveType?.name || 'Unknown' }}: {{ item.days }} day{{ item.days !== 1 ? 's' : '' }}
+                      </span>
+                    </template>
+                    <!-- Fallback for backward compatibility -->
+                    <p v-else class="fs-14 fw-medium d-flex align-items-center mb-0">
                       {{ record.leaveType?.name || 'Unknown Type' }}
                     </p>
                     <a v-if="record.reason" href="javascript:void(0);" class="ms-2" data-bs-toggle="tooltip"
@@ -407,6 +427,7 @@ import { Modal, Table, Modal as AntModal } from 'ant-design-vue';
 // Store
 import { useLeaveStore } from '@/stores/leaveStore';
 import { useToast } from '@/composables/useToast';
+import { usePermissions } from '@/composables/usePermissions';
 
 // Utils
 import { dateUtils, statusUtils, filterUtils } from '@/utils/leave.utils';
@@ -426,6 +447,15 @@ export default {
     // Store
     const leaveStore = useLeaveStore();
     const { showToast } = useToast();
+    
+    // Initialize permission checks for leaves_admin module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('leaves_admin');
 
     // Reactive data
     const dateRangeInput = ref(null);
@@ -1001,7 +1031,39 @@ export default {
       // Event handlers
       handleLeaveRequestCreated,
       clearSelectedLeaveRequest,
+
+      // Permissions
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass,
     };
+  },
+  computed: {
+    // Permission checks - primary source for reactivity
+    canEditLeavesAdmin() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasEdit = Array.isArray(permissions) && permissions.includes('leaves_admin.edit');
+        return hasEdit || (this.canEdit?.value ?? false);
+      } catch (e) {
+        console.error('[LeavesAdmin] Error checking permissions:', e);
+        return this.canEdit?.value ?? false;
+      }
+    },
+    canReadLeavesAdmin() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasRead = Array.isArray(permissions) && permissions.includes('leaves_admin.read');
+        return hasRead || (this.canRead?.value ?? false);
+      } catch (e) {
+        return this.canRead?.value ?? false;
+      }
+    },
+    isReadOnlyLeavesAdmin() {
+      return this.canReadLeavesAdmin && !this.canEditLeavesAdmin;
+    },
   },
 };
 </script>

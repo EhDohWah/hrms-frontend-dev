@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import { authGuard, roleGuard } from './guards';
+import { authGuard, roleGuard, permissionGuard } from './guards';
 import LoginIndex from '@/views/pages/authentication/login-index.vue';
 
 // helper for pages under /views
@@ -42,56 +42,24 @@ const routes = [
   },
 
   // Protected routes
+  
+  // Dynamic Dashboard - Single dashboard for all users with permission-based widgets
   {
-    path: '/dashboard/admin-dashboard',
-    name: 'admin-dashboard',
-    component: lazyView('pages/dashboard/admin-dashboard/admin-dashboard'),
-    beforeEnter: roleGuard(['admin']),
+    path: '/dashboard',
+    name: 'dashboard',
+    component: lazyView('pages/dashboard/dynamic-dashboard'),
     meta: {
       requiresAuth: true,
-      title: 'Admin Dashboard'
+      title: 'Dashboard'
     }
   },
-  {
-    path: '/dashboard/hr-manager-dashboard',
-    name: 'hr-manager-dashboard',
-    component: lazyView('pages/dashboard/hr-manager-dashboard/hr-manager-dashboard'),
-    beforeEnter: roleGuard(['hr-manager', 'admin']),
-    meta: {
-      requiresAuth: true,
-      title: 'HR Manager Dashboard'
-    }
-  },
-  {
-    path: '/dashboard/hr-assistant-senior-dashboard',
-    name: 'hr-assistant-senior-dashboard',
-    component: lazyView('pages/dashboard/hr-assistant-senior-dashboard/hr-assistant-senior-dashboard'),
-    beforeEnter: roleGuard(['hr-assistant-senior']),
-    meta: {
-      requiresAuth: true,
-      title: 'HR Assistant Senior Dashboard'
-    }
-  },
-  {
-    path: '/dashboard/hr-assistant-junior-dashboard',
-    name: 'hr-assistant-junior-dashboard',
-    component: lazyView('pages/dashboard/hr-assistant-junior-dashboard/hr-assistant-junior-dashboard'),
-    beforeEnter: roleGuard(['hr-assistant-junior']),
-    meta: {
-      requiresAuth: true,
-      title: 'HR Assistant Junior Dashboard'
-    }
-  },
-  {
-    path: '/dashboard/site-admin-dashboard',
-    name: 'site-admin-dashboard',
-    component: lazyView('pages/dashboard/site-admin-dashboard/site-admin-dashboard'),
-    beforeEnter: roleGuard(['site-admin']),
-    meta: {
-      requiresAuth: true,
-      title: 'Site Admin Dashboard'
-    }
-  },
+  
+  // Redirect legacy dashboard routes to the unified dynamic dashboard
+  { path: '/dashboard/admin-dashboard', redirect: '/dashboard' },
+  { path: '/dashboard/hr-manager-dashboard', redirect: '/dashboard' },
+  { path: '/dashboard/hr-assistant-senior-dashboard', redirect: '/dashboard' },
+  { path: '/dashboard/hr-assistant-junior-dashboard', redirect: '/dashboard' },
+  { path: '/dashboard/site-admin-dashboard', redirect: '/dashboard' },
 
   // Default redirect
   {
@@ -100,21 +68,9 @@ const routes = [
       const user = JSON.parse(localStorage.getItem('user'));
       const userRole = localStorage.getItem('userRole')?.toLowerCase();
 
+      // All authenticated users go to the dynamic dashboard
       if (user && userRole) {
-        switch (userRole) {
-          case 'admin':
-            return '/dashboard/admin-dashboard';
-          case 'hr-manager':
-            return '/dashboard/hr-manager-dashboard';
-          case 'hr-assistant-senior':
-            return '/dashboard/hr-assistant-senior-dashboard';
-          case 'hr-assistant-junior':
-            return '/dashboard/hr-assistant-junior-dashboard';
-          case 'site-admin':
-            return '/dashboard/site-admin-dashboard';
-          default:
-            return '/login';
-        }
+        return '/dashboard';
       }
       return '/login';
     }
@@ -203,7 +159,7 @@ const routes = [
   {
     path: '/lookups',
     component: lazyView('pages/administration/lookups/lookup-list'),
-    beforeEnter: roleGuard(['admin', 'hr-manager']),
+    beforeEnter: permissionGuard(['lookup_list.read', 'lookup_list.edit']),
     meta: {
       requiresAuth: true,
       title: 'Lookups'
@@ -214,10 +170,55 @@ const routes = [
     ]
   },
 
+  // Sites route
+  {
+    path: '/sites',
+    component: lazyView('pages/administration/sites/site-list'),
+    beforeEnter: permissionGuard('sites.read'),
+    meta: {
+      requiresAuth: true,
+      title: 'Sites'
+    }
+  },
+
+  // Departments route
+  {
+    path: '/departments',
+    component: lazyView('pages/administration/departments/department-list'),
+    beforeEnter: permissionGuard('departments.read'),
+    meta: {
+      requiresAuth: true,
+      title: 'Departments'
+    }
+  },
+
+  // Positions route
+  {
+    path: '/positions',
+    component: lazyView('pages/administration/positions/position-list'),
+    beforeEnter: permissionGuard('positions.read'),
+    meta: {
+      requiresAuth: true,
+      title: 'Positions'
+    }
+  },
+
+  // Section Departments route
+  {
+    path: '/section-departments',
+    component: lazyView('pages/administration/section-departments/section-department-list'),
+    beforeEnter: permissionGuard('section_departments.read'),
+    meta: {
+      requiresAuth: true,
+      title: 'Section Departments'
+    }
+  },
+
+  // Legacy Department Positions route (kept for backward compatibility)
   {
     path: '/department-positions',
     component: lazyView('pages/administration/department-position/department-position-list'),
-    beforeEnter: roleGuard(['admin', 'hr-manager']),
+    beforeEnter: permissionGuard('positions.read'),
     meta: {
       requiresAuth: true,
       title: 'Department Positions'
@@ -231,7 +232,7 @@ const routes = [
   {
     path: '/user-management',
     component: lazyView('pages/administration/user-management/user-management'),
-    beforeEnter: roleGuard(['admin', 'hr-manager']),
+    beforeEnter: permissionGuard('users.read'),
     meta: {
       requiresAuth: true,
       title: 'User Management'
@@ -239,9 +240,26 @@ const routes = [
     children: [
       { path: '', redirect: '/user-management/users' },
       { path: "users", component: lazyView('pages/administration/user-management/user-list') },
-      { path: "roles-permissions", component: lazyView('pages/administration/user-management/roles-permission') },
-      { path: "permission", component: lazyView('pages/administration/user-management/permission-index') },
+      { path: "roles", component: lazyView('pages/administration/role-management/role-list') },
     ]
+  },
+
+  // Notifications routes
+  {
+    path: '/notifications',
+    component: lazyView('pages/notifications/notification-list'),
+    meta: {
+      requiresAuth: true,
+      title: 'Notifications'
+    }
+  },
+  {
+    path: '/notifications/:id',
+    component: lazyView('pages/notifications/notification-detail'),
+    meta: {
+      requiresAuth: true,
+      title: 'Notification Detail'
+    }
   },
   {
     path: '/supports',
@@ -333,6 +351,35 @@ const routes = [
           requiresAuth: true
         }
       },
+      {
+        path: "benefit-settings",
+        component: lazyView('pages/finance-accounts/payroll/benefit-settings-list'),
+        meta: {
+          title: 'Benefit Settings',
+          requiresAuth: true,
+          requiredPermissions: ['benefit-settings.read']
+        }
+      },
+      {
+        path: "bulk-create",
+        name: "bulk-payroll-create",
+        component: lazyView('pages/finance-accounts/payroll/BulkPayrollCreate'),
+        meta: {
+          title: 'Bulk Payroll Creation',
+          requiresAuth: true,
+          requiredPermissions: ['payroll.bulk_create']
+        }
+      },
+      {
+        path: "bulk-progress/:batchId",
+        name: "bulk-payroll-progress",
+        component: lazyView('pages/finance-accounts/payroll/BulkPayrollProgress'),
+        meta: {
+          title: 'Bulk Payroll Progress',
+          requiresAuth: true,
+          requiredPermissions: ['payroll.bulk_create']
+        }
+      },
     ]
   },
   {
@@ -375,6 +422,16 @@ const routes = [
       { path: "report-list", component: lazyView('pages/administration/reports/report-list') },
     ]
   },
+  // File Uploads route
+  {
+    path: '/file-uploads',
+    component: lazyView('pages/administration/file-uploads/file-uploads-list'),
+    beforeEnter: permissionGuard('file_uploads.read'),
+    meta: {
+      requiresAuth: true,
+      title: 'File Uploads'
+    }
+  },
   {
     path: '/location',
     component: lazyView('pages/content/location/location-index'),
@@ -415,7 +472,7 @@ const routes = [
   {
     path: '/recruitment',
     component: lazyView('pages/recruitment/recruitment-index'),
-    beforeEnter: roleGuard(['hr-assistant-junior', 'hr-assistant-senior', 'hr-manager', 'admin']),
+    beforeEnter: permissionGuard(['interviews.read', 'job_offers.read']),
     meta: {
       requiresAuth: true,
       title: 'Recruitment'
@@ -431,12 +488,15 @@ const routes = [
       {
         path: "interviews-list",
         component: lazyView('pages/recruitment/interviews/interviews-list'),
+        beforeEnter: permissionGuard('interviews.read'),
         meta: {
           title: 'Interview List '
         }
       },
       {
-        path: "job-offers-list", component: lazyView('pages/recruitment/job-offers/job-offers-list'),
+        path: "job-offers-list", 
+        component: lazyView('pages/recruitment/job-offers/job-offers-list'),
+        beforeEnter: permissionGuard('job_offers.read'),
         meta: {
           title: 'Job Offer List '
         }
@@ -495,7 +555,7 @@ const routes = [
   {
     path: '/leave/admin',
     component: lazyView('pages/hrm/attendance/leaves/leave-index'),
-    beforeEnter: roleGuard(['hr-assistant-junior', 'hr-assistant-senior', 'hr-manager', 'admin', 'site-admin']),
+    beforeEnter: permissionGuard(['leaves_admin.read', 'leave_settings.read', 'leave_types.read', 'leave_balances.read']),
     meta: {
       requiresAuth: true,
       title: 'Leave Admin'
@@ -511,7 +571,7 @@ const routes = [
   {
     path: '/leave/employee',
     component: lazyView('pages/hrm/attendance/leaves/leave-index'),
-    beforeEnter: roleGuard(['site-admin']),
+    beforeEnter: permissionGuard('leaves_employee.read'),
     meta: {
       requiresAuth: true,
       title: 'My Leave'
@@ -535,7 +595,7 @@ const routes = [
   {
     path: '/employee',
     component: lazyView('pages/hrm/employees/employees-index'),
-    beforeEnter: roleGuard(['hr-assistant-junior', 'hr-assistant-senior', 'hr-manager', 'admin']),
+    beforeEnter: permissionGuard(['employees.read', 'employment_records.read', 'employee_resignation.read']),
     meta: {
       requiresAuth: true,
       title: 'Employee'
@@ -575,7 +635,7 @@ const routes = [
   {
     path: '/recycle-bin',
     component: lazyView('pages/administration/recycle-bin/recycle-bin'),
-    beforeEnter: roleGuard(['admin', 'hr-manager']),
+    beforeEnter: permissionGuard('recycle_bin_list.read'),
     meta: {
       requiresAuth: true,
       title: 'Recycle Bin'
@@ -682,17 +742,18 @@ const routes = [
       { path: "call-history", component: lazyView('pages/applications/calls/call-history') },
     ]
   },
-  {
-    path: '/dashboard',
-    component: lazyView('pages/dashboard/dashboard-index'),
-    children: [
-      { path: '', redirect: '/dashboard/admin-dashboard' },
-      { path: "admin-dashboard", component: lazyView('pages/dashboard/admin-dashboard') },
-      { path: "employee-dashboard", component: lazyView('pages/dashboard/employee-dashboard') },
-      { path: "deals-dashboard", component: lazyView('pages/dashboard/deals-dashboard') },
-      { path: "leads-dashboard", component: lazyView('pages/dashboard/leads-dashboard') },
-    ]
-  },
+  // Legacy dashboard routes - kept for template compatibility but not used in HRMS
+  // The main /dashboard route is defined earlier and points to dynamic-dashboard
+  // {
+  //   path: '/dashboard-legacy',
+  //   component: lazyView('pages/dashboard/dashboard-index'),
+  //   children: [
+  //     { path: "admin-dashboard", component: lazyView('pages/dashboard/admin-dashboard') },
+  //     { path: "employee-dashboard", component: lazyView('pages/dashboard/employee-dashboard') },
+  //     { path: "deals-dashboard", component: lazyView('pages/dashboard/deals-dashboard') },
+  //     { path: "leads-dashboard", component: lazyView('pages/dashboard/leads-dashboard') },
+  //   ]
+  // },
   {
     path: '/icons',
     component: lazyView('pages/icons/icons-index'),
@@ -820,7 +881,7 @@ const routes = [
   {
     path: '/grant',
     component: lazyView('pages/grant/grant-index'),
-    beforeEnter: roleGuard(['hr-assistant-junior', 'hr-assistant-senior', 'hr-manager', 'admin']),
+    beforeEnter: permissionGuard(['grants_list.read', 'grant_position.read']),
     children: [
       { path: '', redirect: '/grant/list' },
       {
@@ -867,7 +928,7 @@ const routes = [
   {
     path: '/requests/travel/admin',
     component: lazyView('pages/requests/travel/travel-index'),
-    beforeEnter: roleGuard(['hr-assistant-junior', 'hr-assistant-senior', 'hr-manager', 'admin', 'site-admin']),
+    beforeEnter: permissionGuard('travel_admin.read'),
     meta: {
       requiresAuth: true,
       title: 'Travel Request Management'
@@ -886,7 +947,7 @@ const routes = [
   {
     path: '/requests/travel',
     component: lazyView('pages/requests/travel/travel-index'),
-    beforeEnter: roleGuard(['site-admin', 'hr-assistant-junior', 'hr-assistant-senior', 'hr-manager', 'admin']),
+    beforeEnter: permissionGuard('travel_employee.read'),
     meta: {
       requiresAuth: true,
       title: 'Travel Request Employee'
@@ -902,7 +963,7 @@ const routes = [
   {
     path: '/training/training-list',
     component: lazyView('pages/hrm/training/training-list'),
-    beforeEnter: roleGuard(['hr-assistant-junior', 'hr-assistant-senior', 'hr-manager', 'admin', 'site-admin']),
+    beforeEnter: permissionGuard('training_list.read'),
     meta: {
       requiresAuth: true,
       title: 'Training List'
@@ -911,7 +972,7 @@ const routes = [
   {
     path: '/training/employee-training-list',
     component: lazyView('pages/hrm/training/employee-training-list'),
-    beforeEnter: roleGuard(['hr-assistant-junior', 'hr-assistant-senior', 'hr-manager', 'admin', 'site-admin']),
+    beforeEnter: permissionGuard('employee_training.read'),
     meta: {
       requiresAuth: true,
       title: 'Employee Training'

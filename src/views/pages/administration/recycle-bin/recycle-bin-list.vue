@@ -6,9 +6,22 @@
         <div class="content">
             <!-- Breadcrumb -->
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-                <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                <div class="d-flex align-items-center">
+                    <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                    <!-- Read-Only Badge -->
+                    <span 
+                        v-if="isReadOnly" 
+                        class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="You have view-only access to this module"
+                    >
+                        <i class="ti ti-eye me-1"></i> Read Only
+                    </span>
+                </div>
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-                    <div class="me-2 mb-2">
+                    <!-- Actions Dropdown - Only visible if user can edit -->
+                    <div v-if="canEdit" class="me-2 mb-2">
                         <div class="dropdown">
                             <a href="javascript:void(0);"
                                 class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
@@ -29,6 +42,12 @@
                                 </li>
                             </ul>
                         </div>
+                    </div>
+                    <!-- Refresh Button - Always visible -->
+                    <div v-else class="me-2 mb-2">
+                        <button class="btn btn-white d-inline-flex align-items-center" @click="refreshData">
+                            <i class="ti ti-refresh me-1"></i>Refresh Data
+                        </button>
                     </div>
                     <div class="head-icons ms-2">
                         <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -133,7 +152,7 @@
                         </div>
 
                         <a-table v-else class="table datatable thead-light" :columns="columns" :data-source="data"
-                            :row-selection="rowSelection" @change="handleChange" :pagination="{
+                            :row-selection="canEdit ? rowSelection : null" @change="handleChange" :pagination="{
                                 total: totalCount,
                                 showSizeChanger: true,
                                 showQuickJumper: true,
@@ -174,17 +193,25 @@
                                         <a-dropdown>
                                             <template #overlay>
                                                 <a-menu>
-                                                    <a-menu-item @click="restoreByDeletedId(record)">
-                                                        <i class="ti ti-refresh me-1"></i>Restore by Deleted ID
+                                                    <!-- View Details - Always visible -->
+                                                    <a-menu-item @click="showDetails(record)">
+                                                        <i class="ti ti-eye me-1"></i>View Details
                                                     </a-menu-item>
-                                                    <a-menu-item @click="restoreByModelAndId(record)">
-                                                        <i class="ti ti-refresh me-1"></i>Restore by Model & ID
-                                                    </a-menu-item>
-                                                    <a-menu-divider />
-                                                    <a-menu-item @click="confirmPermanentDelete(record)"
-                                                        class="text-danger">
-                                                        <i class="ti ti-trash-x me-1"></i>Delete Permanently
-                                                    </a-menu-item>
+                                                    <!-- Restore actions - Only visible if user can edit -->
+                                                    <template v-if="canEdit">
+                                                        <a-menu-divider />
+                                                        <a-menu-item @click="restoreByDeletedId(record)">
+                                                            <i class="ti ti-refresh me-1"></i>Restore by Deleted ID
+                                                        </a-menu-item>
+                                                        <a-menu-item @click="restoreByModelAndId(record)">
+                                                            <i class="ti ti-refresh me-1"></i>Restore by Model & ID
+                                                        </a-menu-item>
+                                                        <a-menu-divider />
+                                                        <a-menu-item @click="confirmPermanentDelete(record)"
+                                                            class="text-danger">
+                                                            <i class="ti ti-trash-x me-1"></i>Delete Permanently
+                                                        </a-menu-item>
+                                                    </template>
                                                 </a-menu>
                                             </template>
                                             <a-button type="primary" size="small">
@@ -286,8 +313,27 @@ import moment from "moment";
 import { recycleBinService } from "@/services/recycle-bin.service";
 import { message } from 'ant-design-vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
+  setup() {
+    // Initialize permission checks for recycle_bin module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('recycle_bin');
+    
+    return {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
+  },
     components: {
         indexBreadcrumb
     },

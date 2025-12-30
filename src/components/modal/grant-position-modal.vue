@@ -78,22 +78,8 @@
                   </div>
                 </div>
 
-                <!-- Org-funded workflow (show department positions if isOrgFundGrant) -->
-                <template v-if="isOrgFundGrant(currentAllocation.grant_id)">
-                  <div class="form-group">
-                    <select v-model="currentAllocation.department_position_id" class="form-control">
-                      <option value="">Select department position</option>
-                      <option v-for="position in departmentPositions" :key="position.id" :value="position.id">
-                        {{ position.department }} - {{ position.position }}
-                      </option>
-                    </select>
-                    <div v-if="allocationErrors.department_position_id" class="invalid-feedback">
-                      {{ allocationErrors.department_position_id }}
-                    </div>
-                  </div>
-                </template>
-                <!-- Grant-funded workflow -->
-                <template v-else>
+                <!-- All allocations now use grant_item_id -->
+                <template>
                   <div class="form-group">
                     <select v-model="currentAllocation.grant_items_id" @change="onGrantPositionChange"
                       class="form-control" :disabled="!currentAllocation.grant_id || isLoadingData">
@@ -154,8 +140,8 @@
                   <template v-if="editingIndex === idx">
                     <!-- Inline Edit Row -->
                     <td>
-                      <span class="badge" :class="row.allocation_type === 'org_funded' ? 'badge-org' : 'badge-grant'">
-                        {{ row.allocation_type === 'org_funded' ? 'Org Funded' : 'Grant Funded' }}
+                      <span class="badge badge-grant">
+                        Grant Funded
                       </span>
                     </td>
                     <td>
@@ -167,34 +153,25 @@
                       </select>
                     </td>
                     <td>
-                      <select v-if="editData.allocation_type === 'org_funded'" v-model="editData.department_position_id"
-                        class="edit-field">
-                        <option value="">Select department position</option>
-                        <option v-for="position in departmentPositions" :key="position.id" :value="position.id">
-                          {{ position.department }} - {{ position.position }}
-                        </option>
-                      </select>
-                      <span v-else class="text-muted">-</span>
+                      <span class="text-muted">-</span>
                     </td>
                     <td>
-                      <select v-if="editData.allocation_type !== 'org_funded'" v-model="editData.grant_items_id"
+                      <select v-model="editData.grant_items_id"
                         @change="onEditGrantPositionChange" class="edit-field">
                         <option value="">Select position</option>
                         <option v-for="position in editGrantPositionOptions" :key="position.id" :value="position.id">
                           {{ position.name }}
                         </option>
                       </select>
-                      <span v-else class="text-muted">-</span>
                     </td>
                     <td>
-                      <select v-if="editData.allocation_type !== 'org_funded'" v-model="editData.position_slot_id"
+                      <select v-model="editData.position_slot_id"
                         class="edit-field">
                         <option value="">Select position slot</option>
                         <option v-for="slot in editPositionSlotOptions" :key="slot.id" :value="slot.id">
                           Slot {{ slot.slot_number }} - {{ slot.budget_line.name }}
                         </option>
                       </select>
-                      <span v-else class="text-muted">-</span>
                     </td>
                     <td>
                       <input type="number" v-model.number="editData.level_of_effort" class="edit-field" min="0"
@@ -208,25 +185,20 @@
                   <template v-else>
                     <!-- Display Row -->
                     <td>
-                      <span class="badge" :class="row.allocation_type === 'org_funded' ? 'badge-org' : 'badge-grant'">
-                        {{ row.allocation_type === 'org_funded' ? 'Org Funded' : 'Grant Funded' }}
+                      <span class="badge badge-grant">
+                        Grant Funded
                       </span>
                     </td>
                     <td>{{ getGrantName(row.grant_id, row._original) }}</td>
                     <td>
-                      <span v-if="row.allocation_type === 'org_funded'">{{
-                        getDepartmentPositionName(row.department_position_id) }}</span>
-                      <span v-else class="text-muted">-</span>
+                      <span class="text-muted">-</span>
                     </td>
                     <td>
-                      <span v-if="row.allocation_type !== 'org_funded'">{{ getGrantPositionName(row.grant_id,
-                        row.grant_items_id, row._original) }}</span>
-                      <span v-else class="text-muted">-</span>
+                      <span>{{ getGrantPositionName(row.grant_id,
+                        row.grant_item_id || row.grant_items_id, row._original) }}</span>
                     </td>
                     <td>
-                      <span v-if="row.allocation_type !== 'org_funded'">{{ getPositionSlotName(row.grant_id,
-                        row.grant_items_id, row.position_slot_id, row._original) }}</span>
-                      <span v-else class="text-muted">-</span>
+                      <span class="text-muted">-</span>
                     </td>
                     <td>{{ row.level_of_effort }}%</td>
                     <td>
@@ -299,19 +271,17 @@ export default {
         endDate: null
       },
       currentAllocation: {
-        allocation_type: '',
+        allocation_type: 'grant',
         grant_id: '',
         grant_items_id: '',
         position_slot_id: '',
-        department_position_id: '',
         level_of_effort: 100
       },
       editData: {
-        allocation_type: '',
+        allocation_type: 'grant',
         grant_id: '',
         grant_items_id: '',
         position_slot_id: '',
-        department_position_id: '',
         level_of_effort: 100
       },
       grantAllocations: [], // Stored in memory until Save is clicked
@@ -339,14 +309,17 @@ export default {
 
   computed: {
     hasOrgFunded() {
-      return this.grantAllocations.some(a => a.allocation_type === 'org_funded');
+      // All allocations are now grant type
+      return false;
     }
   },
 
   methods: {
     isOrgFundGrant(grantId) {
-      // Adapt to use DB, config, or API (just demo)
-      const hubGrantCodes = ['S0031', 'S22001'];
+      // Hub grants are identified by code, but they still use grant_items
+      // This method is kept for UI display purposes only (e.g., showing different labels)
+      // All allocations are created as 'grant' type with grant_item_id
+      const hubGrantCodes = ['S0031', 'BHF-GF']; // Updated to match backend
       const grant = this.grantOptions.find(g => g.id == grantId);
       return grant && hubGrantCodes.includes(grant.code);
     },
@@ -386,6 +359,7 @@ export default {
     },
 
     // Validate current allocation before adding to table
+    // All allocations are now grant-based with grant_item_id
     validateCurrentAllocation() {
       this.allocationErrors = {};
       let isValid = true;
@@ -395,20 +369,14 @@ export default {
         isValid = false;
       }
 
-      if (this.isOrgFundGrant(this.currentAllocation.grant_id)) {
-        if (!this.currentAllocation.department_position_id) {
-          this.allocationErrors.department_position_id = 'Please select a department position';
-          isValid = false;
-        }
-      } else {
-        if (!this.currentAllocation.grant_items_id) {
-          this.allocationErrors.grant_items_id = 'Please select a grant position';
-          isValid = false;
-        }
-        if (!this.currentAllocation.position_slot_id) {
-          this.allocationErrors.position_slot_id = 'Please select a position slot';
-          isValid = false;
-        }
+      if (!this.currentAllocation.grant_items_id) {
+        this.allocationErrors.grant_items_id = 'Please select a grant position';
+        isValid = false;
+      }
+
+      if (!this.currentAllocation.position_slot_id) {
+        this.allocationErrors.position_slot_id = 'Please select a position slot';
+        isValid = false;
       }
 
       if (!this.currentAllocation.level_of_effort || this.currentAllocation.level_of_effort <= 0) {
@@ -582,21 +550,12 @@ export default {
     async onGrantChange() {
       console.log('Grant changed:', this.currentAllocation.grant_id);
 
-      if (this.isOrgFundGrant(this.currentAllocation.grant_id)) {
-        await this.loadDepartmentPositions();
-        this.currentAllocation.allocation_type = 'org_funded';
-        // Clear grant position/slot
-        this.currentAllocation.grant_items_id = '';
-        this.currentAllocation.position_slot_id = '';
-        this.grantPositionOptions = [];
-        this.positionSlotOptions = [];
-      } else {
-        this.currentAllocation.allocation_type = 'grant';
-        // Load grant positions as before
-        this.currentAllocation.department_position_id = '';
-        this.grantPositionOptions = this.grantPositions[this.currentAllocation.grant_id] || [];
-        this.positionSlotOptions = [];
-      }
+      // All allocations are now grant type with grant_item_id
+      this.currentAllocation.allocation_type = 'grant';
+      this.currentAllocation.grant_items_id = '';
+      this.currentAllocation.position_slot_id = '';
+      this.grantPositionOptions = this.grantPositions[this.currentAllocation.grant_id] || [];
+      this.positionSlotOptions = [];
 
       console.log('Available positions for grant:', this.grantPositionOptions);
 
@@ -642,15 +601,13 @@ export default {
       // Compose allocation row
       const alloc = {
         ...this.currentAllocation,
-        allocation_type: this.isOrgFundGrant(this.currentAllocation.grant_id) ? 'org_funded' : 'grant'
+        allocation_type: 'grant' // All allocations are grant type now
       };
 
       // Prevent duplicate for both types
       if (this.grantAllocations.some((a, i) => {
         if (this.editingIndex !== null && i === this.editingIndex) return false;
-        if (alloc.allocation_type === 'org_funded' && a.allocation_type === 'org_funded') {
-          return a.department_position_id == alloc.department_position_id;
-        }
+        // All allocations are grant type, check by grant_item_id
         if (alloc.allocation_type === 'grant' && a.allocation_type === 'grant') {
           return a.position_slot_id == alloc.position_slot_id;
         }
@@ -674,11 +631,10 @@ export default {
 
       // Reset current allocation form
       this.currentAllocation = {
-        allocation_type: '',
+        allocation_type: 'grant',
         grant_id: '',
         grant_items_id: '',
         position_slot_id: '',
-        department_position_id: '',
         level_of_effort: 100
       };
       this.grantPositionOptions = [];
@@ -702,7 +658,7 @@ export default {
     saveEdit() {
       console.log('Saving edit:', this.editData);
 
-      const { allocation_type, grant_id, grant_items_id, position_slot_id, department_position_id, level_of_effort } = this.editData;
+      const { grant_id, grant_items_id, position_slot_id, level_of_effort } = this.editData;
 
       if (!grant_id || !level_of_effort) {
         this.alertMessage = 'Please fill in all required fields.';
@@ -710,28 +666,16 @@ export default {
         return;
       }
 
-      if (allocation_type === 'org_funded' && !department_position_id) {
-        this.alertMessage = 'Please select a department position.';
-        this.alertClass = 'alert-danger';
-        return;
-      }
-
-      if (allocation_type === 'grant' && (!grant_items_id || !position_slot_id)) {
+      if (!grant_items_id || !position_slot_id) {
         this.alertMessage = 'Please select grant position and position slot.';
         this.alertClass = 'alert-danger';
         return;
       }
 
-      // Check for duplicates
+      // Check for duplicates by position_slot_id
       if (this.grantAllocations.some((a, i) => {
         if (i === this.editingIndex) return false;
-        if (allocation_type === 'org_funded' && a.allocation_type === 'org_funded') {
-          return a.department_position_id == department_position_id;
-        }
-        if (allocation_type === 'grant' && a.allocation_type === 'grant') {
-          return a.position_slot_id == position_slot_id;
-        }
-        return false;
+        return a.position_slot_id == position_slot_id;
       })) {
         this.alertMessage = 'This allocation already exists.';
         this.alertClass = 'alert-danger';
@@ -855,23 +799,16 @@ export default {
         this.isSubmitting = true;
 
         // Prepare payload matching the backend API specification
+        // All allocations are now grant type with grant_item_id
         const payload = {
           start_date: this.formData.startDate,
           end_date: this.formData.endDate,
-          allocations: this.grantAllocations.map(allocation => {
-            const baseAllocation = {
-              level_of_effort: allocation.level_of_effort,
-              allocation_type: allocation.allocation_type
-            };
-
-            if (allocation.allocation_type === 'org_funded') {
-              baseAllocation.department_position_id = allocation.department_position_id;
-            } else {
-              baseAllocation.position_slot_id = allocation.position_slot_id;
-            }
-
-            return baseAllocation;
-          })
+          allocations: this.grantAllocations.map(allocation => ({
+            level_of_effort: allocation.level_of_effort,
+            allocation_type: 'grant',
+            grant_item_id: allocation.grant_items_id,
+            position_slot_id: allocation.position_slot_id
+          }))
         };
 
         console.log('Payload for API:', payload);
@@ -947,11 +884,10 @@ export default {
         endDate: null
       };
       this.currentAllocation = {
-        allocation_type: '',
+        allocation_type: 'grant',
         grant_id: '',
         grant_items_id: '',
         position_slot_id: '',
-        department_position_id: '',
         level_of_effort: 100
       };
       this.grantAllocations = []; // Clear memory
@@ -1004,16 +940,13 @@ export default {
               grantItemsId = position ? position.id : null;
             }
 
-            // Determine allocation type
-            const allocationType = allocation.department_position_id ? 'org_funded' : 'grant';
-
+            // All allocations are now grant type
             return {
               id: allocation.id, // Store the allocation ID for potential updates/deletes
-              allocation_type: allocationType,
+              allocation_type: 'grant',
               grant_id: grantId,
               grant_items_id: grantItemsId,
               position_slot_id: allocation.position_slot_id,
-              department_position_id: allocation.department_position_id,
               level_of_effort: Math.round(parseFloat(allocation.level_of_effort)), // Convert to percentage
               // Store original API data for display purposes
               _original: {

@@ -1,9 +1,28 @@
 <script>
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
   components: {
     indexBreadcrumb
+  },
+  setup() {
+    // Initialize permission checks for leave_settings module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('leave_settings');
+
+    return {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
   },
   data() {
     return {
@@ -11,6 +30,31 @@ export default {
       text: "Employee",
       text1: "Leave Settings",
     };
+  },
+  computed: {
+    // Permission checks - primary source for reactivity
+    canEditLeaveSettings() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasEdit = Array.isArray(permissions) && permissions.includes('leave_settings.edit');
+        return hasEdit || (this.canEdit?.value ?? false);
+      } catch (e) {
+        console.error('[LeaveSettings] Error checking permissions:', e);
+        return this.canEdit?.value ?? false;
+      }
+    },
+    canReadLeaveSettings() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasRead = Array.isArray(permissions) && permissions.includes('leave_settings.read');
+        return hasRead || (this.canRead?.value ?? false);
+      } catch (e) {
+        return this.canRead?.value ?? false;
+      }
+    },
+    isReadOnlyLeaveSettings() {
+      return this.canReadLeaveSettings && !this.canEditLeaveSettings;
+    },
   },
   methods: {
     toggleHeader() {
@@ -30,9 +74,21 @@ export default {
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnlyLeaveSettings" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="mb-2">
+          <div v-if="canEditLeaveSettings" class="mb-2">
             <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#new_custom_policy"
               class="btn btn-primary d-flex align-items-center"><i class="ti ti-circle-plus me-2"></i>Add Custom
               Policy</a>

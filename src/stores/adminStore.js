@@ -10,6 +10,14 @@ export const useAdminStore = defineStore('admin', {
     permissions: [],
     loading: false,
     error: null,
+    pagination: {
+      current_page: 1,
+      per_page: 15,
+      total: 0,
+      last_page: 1,
+      from: null,
+      to: null
+    },
     statistics: {
       totalUsers: 0,
       activeUsers: 0,
@@ -62,6 +70,47 @@ export const useAdminStore = defineStore('admin', {
         this.updateStatistics();
         
         return this.users;
+      } catch (error) {
+        this.error = error.message || 'Failed to fetch users';
+        console.error('Error fetching users:', error);
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchUsersPaginated(params = {}) {
+      try {
+        this.loading = true;
+        this.error = null;
+        
+        const response = await adminService.getUsersPaginated(params);
+        
+        // Extract users data
+        const usersData = response && response.success && Array.isArray(response.data)
+          ? response.data
+          : Array.isArray(response.data)
+          ? response.data
+          : [];
+          
+        this.users = usersData;
+        
+        // Update pagination metadata
+        if (response.meta) {
+          this.pagination = {
+            current_page: response.meta.current_page || 1,
+            per_page: response.meta.per_page || 15,
+            total: response.meta.total || 0,
+            last_page: response.meta.last_page || 1,
+            from: response.meta.from || null,
+            to: response.meta.to || null
+          };
+        }
+        
+        // Update statistics
+        this.updateStatistics();
+        
+        return response;
       } catch (error) {
         this.error = error.message || 'Failed to fetch users';
         console.error('Error fetching users:', error);

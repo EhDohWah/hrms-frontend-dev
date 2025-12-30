@@ -118,6 +118,12 @@
                         ? 'badge-info'
                         : record.roles && record.roles.length > 0 && record.roles[0].name === 'hr-assistant'
                         ? 'badge-warning'
+                        : record.roles && record.roles.length > 0 && record.roles[0].name === 'hr-assistant-junior'
+                        ? 'badge-primary'
+                        : record.roles && record.roles.length > 0 && record.roles[0].name === 'hr-assistant-senior'
+                        ? 'badge-dark'
+                        : record.roles && record.roles.length > 0 && record.roles[0].name === 'site-admin'
+                        ? 'badge-purple'
                         : record.roles && record.roles.length > 0 && record.roles[0].name === 'employee'
                         ? 'badge-success'
                         : 'badge-secondary',
@@ -146,9 +152,6 @@
                 </template>
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
-                    <!-- <a href="javascript:void(0);" class="me-2"
-                      ><i class="ti ti-shield"></i
-                    ></a> -->
                     <a
                       href="javascript:void(0);"
                       class="me-2"
@@ -215,7 +218,7 @@ export default {
       filteredInfo: null,
       sortedInfo: null,
       loading: false,
-      adminStore: useAdminStore(),
+      adminStore: useAdminStore()
     };
   },
   computed: {
@@ -278,6 +281,9 @@ export default {
             { text: "Admin", value: "admin" },
             { text: "HR Manager", value: "hr-manager" },
             { text: "HR Assistant", value: "hr-assistant" },
+            { text: "HR Assistant Junior", value: "hr-assistant-junior" },
+            { text: "HR Assistant Senior", value: "hr-assistant-senior" },
+            { text: "Site Admin", value: "site-admin" },
             { text: "Employee", value: "employee" },
           ],
           filteredValue: filtered.Role || null,
@@ -355,9 +361,9 @@ export default {
         this.loading = false;
       }
     },
-    editUser(record) {
-      // Pass the user data to the modal component
-      this.$refs.userListModal.setEditUser(record);
+    async editUser(record) {
+      // Pass the user data to the modal component (async to load user widgets)
+      await this.$refs.userListModal.setEditUser(record);
     },
     confirmDeleteUser(userId) {
       // Pass the user ID to the modal component's confirmDelete method

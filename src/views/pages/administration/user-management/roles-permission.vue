@@ -39,7 +39,7 @@
               data-bs-toggle="modal"
               data-bs-target="#add_role"
               class="btn btn-primary d-flex align-items-center"
-              ><i class="ti ti-circle-plus me-2"></i>Add Roles</a
+              ><i class="ti ti-circle-plus me-2"></i>Add Role</a
             >
           </div>
           <div class="head-icons ms-2">
@@ -59,7 +59,7 @@
       </div>
       <!-- /Breadcrumb -->
 
-      <!-- Assets Lists -->
+      <!-- Roles List -->
       <div class="card">
         <div
           class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"
@@ -92,25 +92,50 @@
               @change="handleChange"
             >
               <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'Role'">{{ record.Role }}</template>
+                <template v-if="column.key === 'Role'">
+                  <div>
+                    <strong>{{ record.displayName }}</strong>
+                    <br>
+                    <small class="text-muted">{{ record.Role }}</small>
+                  </div>
+                </template>
+                <template v-if="column.key === 'Type'">
+                  <span
+                    :class="[
+                      'badge',
+                      record.isProtected ? 'badge-warning' : 'badge-success',
+                      'd-inline-flex align-items-center'
+                    ]"
+                  >
+                    <i :class="record.isProtected ? 'ti ti-lock me-1' : 'ti ti-check me-1'"></i>
+                    {{ record.isProtected ? 'Protected' : 'Custom' }}
+                  </span>
+                </template>
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
-                    <router-link to="/user-management/permission" class="me-2"
-                      ><i class="ti ti-shield"></i
-                    ></router-link>
                     <a
+                      v-if="!record.isProtected"
                       href="javascript:void(0);"
                       class="me-2"
                       data-bs-toggle="modal"
                       data-bs-target="#edit_role"
+                      title="Edit Role"
+                      @click="openEditModal(record)"
                       ><i class="ti ti-edit"></i
                     ></a>
+                    <span v-else class="text-muted me-2" title="Protected role cannot be edited">
+                      <i class="ti ti-lock"></i>
+                    </span>
                     <a
+                      v-if="!record.isProtected"
                       href="javascript:void(0);"
-                      data-bs-toggle="modal"
-                      data-bs-target="#delete_modal"
+                      title="Delete Role"
+                      @click="confirmDeleteRole(record)"
                       ><i class="ti ti-trash"></i
                     ></a>
+                    <span v-else class="text-muted" title="Protected role cannot be deleted">
+                      <i class="ti ti-lock"></i>
+                    </span>
                   </div>
                 </template>
               </template>
@@ -131,24 +156,28 @@
     </div>
   </div>
   <!-- /Page Wrapper -->
-  <roles-modal></roles-modal>
+  <role-list-modal 
+    ref="roleListModal" 
+    @role-added="fetchRoles" 
+    @role-updated="fetchRoles"
+  ></role-list-modal>
 </template>
 <script>
-import "daterangepicker/daterangepicker.css";
-import "daterangepicker/daterangepicker.js";
-import { ref } from "vue";
-import { onMounted } from "vue";
 import moment from "moment";
-import DateRangePicker from "daterangepicker";
-import { adminService } from "@/services/admin.service";
+import { roleService } from "@/services/role.service";
+import RoleListModal from "@/components/modal/role-list-modal.vue";
 
 export default {
+  components: {
+    RoleListModal,
+  },
   data() {
     return {
-      title: "Roles & Permissions",
+      title: "Roles",
       text: "Administration",
       text1: "Roles",
       data: [],
+      selectedRole: null,
       rowSelection: {
         onChange: () => {},
         onSelect: () => {},
@@ -157,47 +186,6 @@ export default {
       filteredInfo: null,
       sortedInfo: null,
       loading: false,
-    };
-  },
-  setup() {
-    const dateRangeInput = ref(null);
-
-    // Move the function declaration outside of the onMounted callback
-    function booking_range(start, end) {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
-    }
-
-    onMounted(() => {
-      if (dateRangeInput.value) {
-        const start = moment().subtract(6, "days");
-        const end = moment();
-
-        new DateRangePicker(
-          dateRangeInput.value,
-          {
-            startDate: start,
-            endDate: end,
-            ranges: {
-              Today: [moment(), moment()],
-              Yesterday: [moment().subtract(1, "days"), moment().subtract(1, "days")],
-              "Last 7 Days": [moment().subtract(6, "days"), moment()],
-              "Last 30 Days": [moment().subtract(29, "days"), moment()],
-              "This Month": [moment().startOf("month"), moment().endOf("month")],
-              "Last Month": [
-                moment().subtract(1, "month").startOf("month"),
-                moment().subtract(1, "month").endOf("month"),
-              ],
-            },
-          },
-          booking_range
-        );
-
-        booking_range(start, end);
-      }
-    });
-
-    return {
-      dateRangeInput,
     };
   },
   computed: {
@@ -228,13 +216,22 @@ export default {
           sortOrder: sorted.columnKey === "Role" && sorted.order,
         },
         {
+          title: "Type",
+          dataIndex: "isProtected",
+          key: "Type",
+          filters: [
+            { text: "Protected", value: true },
+            { text: "Custom", value: false },
+          ],
+          filteredValue: filtered.Type || null,
+          onFilter: (value, record) => record.isProtected === value,
+        },
+        {
           title: "Created Date",
           dataIndex: "CreatedDate",
           sorter: {
             compare: (a, b) => {
-              a = a.CreatedDate.toLowerCase();
-              b = b.CreatedDate.toLowerCase();
-              return a > b ? -1 : b > a ? 1 : 0;
+              return moment(a.created_at).unix() - moment(b.created_at).unix();
             },
           },
           sortOrder: sorted.columnKey === "CreatedDate" && sorted.order,
@@ -248,15 +245,7 @@ export default {
     }
   },
   async mounted() {
-    this.loading = true;
-    try {
-      // Fetch roles from API
-      await this.fetchRoles();
-    } catch (error) {
-      console.error('Error loading roles:', error);
-    } finally {
-      this.loading = false;
-    }
+    await this.fetchRoles();
   },
   methods: {
     toggleHeader() {
@@ -264,7 +253,6 @@ export default {
       document.body.classList.toggle("header-collapse");
     },
     handleChange(pagination, filters, sorter) {
-      console.log("Various parameters", pagination, filters, sorter);
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
     },
@@ -276,85 +264,73 @@ export default {
       this.sortedInfo = null;
     },
     getRoleFilters() {
-      // For now, generate filters from the static data
-      // In a real app, this would come from the API
-      const roles = [
-        "Admin", "HR Manager", "Recruitment Manager", "Payroll Manager",
-        "Leave Manager", "Performance Manager", "Reports Analyst", "Employee",
-        "Client", "Department Head"
-      ];
+      const roles = [...new Set(this.data.map(item => item.Role))];
       return roles.map(role => ({ text: role, value: role }));
     },
-    async fetchRoles() {
+    openEditModal(record) {
+      if (this.$refs.roleListModal) {
+        this.$refs.roleListModal.openEdit({
+          id: record.id,
+          name: record.Role,
+        });
+      }
+    },
+    async confirmDeleteRole(record) {
+      if (confirm(`Are you sure you want to delete the role "${record.displayName}"?`)) {
+        await this.deleteRole(record.id);
+      }
+    },
+    async deleteRole(id) {
       try {
-        // In a real implementation, you would use the adminService
-        const response = await adminService.getAllRoles();
-        this.data = response.data.map(role => ({
+        const response = await roleService.deleteRole(id);
+        // BaseService returns response directly
+        if (response && (response.success !== false)) {
+          this.$message.success(response.message || 'Role deleted successfully');
+          await this.fetchRoles();
+        } else {
+          this.$message.error(response?.message || 'Failed to delete role');
+        }
+      } catch (error) {
+        console.error('Error deleting role:', error);
+        // Handle structured errors from BaseService
+        const errorMessage = error.message || 'Failed to delete role';
+        this.$message.error(errorMessage);
+      }
+    },
+    async fetchRoles() {
+      this.loading = true;
+      try {
+        const response = await roleService.getRoles();
+        // BaseService returns response directly - data may be nested or not
+        const rolesData = response.data || response || [];
+        
+        this.data = rolesData.map(role => ({
           key: role.id.toString(),
+          id: role.id,
           Role: role.name,
+          displayName: role.display_name || this.getDisplayName(role.name),
+          isProtected: role.is_protected || ['admin', 'hr-manager'].includes(role.name),
+          created_at: role.created_at,
           CreatedDate: moment(role.created_at).format('DD MMM YYYY')
         }));
         
-        this.$message.success('Roles loaded successfully');
-        
-        // For now, use the static data with keys added
-        // this.data = [
-        //   {
-        //     key: "1",
-        //     Role: "Admin",
-        //     CreatedDate: "12 Sep 2024",
-        //   },
-        //   {
-        //     key: "2",
-        //     Role: "HR Manager",
-        //     CreatedDate: "24 Oct 2024",
-        //   },
-        //   {
-        //     key: "3",
-        //     Role: "Recruitment Manager",
-        //     CreatedDate: "18 Feb 2024",
-        //   },
-        //   {
-        //     key: "4",
-        //     Role: "Payroll Manager",
-        //     CreatedDate: "17 Oct 2024",
-        //   },
-        //   {
-        //     key: "5",
-        //     Role: "Leave Manager",
-        //     CreatedDate: "20 Jul 2024",
-        //   },
-        //   {
-        //     key: "6",
-        //     Role: "Performance Manager",
-        //     CreatedDate: "10 Apr 2024",
-        //   },
-        //   {
-        //     key: "7",
-        //     Role: "Reports Analyst",
-        //     CreatedDate: "29 Aug 2024",
-        //   },
-        //   {
-        //     key: "8",
-        //     Role: "Employee",
-        //     CreatedDate: "22 Feb 2024",
-        //   },
-        //   {
-        //     key: "9",
-        //     Role: "Client",
-        //     CreatedDate: "03 Nov 2024",
-        //   },
-        //   {
-        //     key: "10",
-        //     Role: "Department Head",
-        //     CreatedDate: "17 Dec 2024",
-        //   },
-        // ];
       } catch (error) {
         console.error('Error fetching roles:', error);
-        this.$message.error('Failed to load roles');
-        throw error;
+        const errorMessage = error.message || 'Failed to load roles';
+        this.$message.error(errorMessage);
+      } finally {
+        this.loading = false;
       }
+    },
+    getDisplayName(name) {
+      const displayNames = {
+        'admin': 'System Administrator',
+        'hr-manager': 'HR Manager',
+        'employee': 'Employee',
+      };
+      return displayNames[name] || name.split('-').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+      ).join(' ');
     }
   },
 };

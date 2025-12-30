@@ -7,7 +7,19 @@
         <div class="content">
             <!-- Breadcrumb -->
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-                <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                <div class="d-flex align-items-center">
+                    <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                    <!-- Read-Only Badge -->
+                    <span 
+                        v-if="isReadOnlyLeaveBalances" 
+                        class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="You have view-only access to this module"
+                    >
+                        <i class="ti ti-eye me-1"></i> Read Only
+                    </span>
+                </div>
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
                     <div class="me-2 mb-2">
                         <div class="dropdown">
@@ -30,7 +42,7 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="mb-2">
+                    <div v-if="canEditLeaveBalances" class="mb-2">
                         <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
                             @click="openCreateModal">
                             <i class="ti ti-circle-plus me-2"></i>Add Leave Balance
@@ -149,12 +161,12 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="avatar avatar-md avatar-rounded flex-shrink-0 me-2">
-                                                <img :src="balance.employee?.avatar || '/img/profiles/avatar-default.jpg'"
+                                                <img :src="balance.employee?.avatar || defaultAvatar"
                                                     alt="Avatar" />
                                             </div>
                                             <div>
                                                 <h6 class="fw-medium mb-0">{{ getEmployeeName(balance.employee) }}</h6>
-                                                <span class="fs-13 text-gray">{{ balance.employee?.subsidiary || 'N/A'
+                                                <span class="fs-13 text-gray">{{ balance.employee?.organization || 'N/A'
                                                 }}</span>
                                             </div>
                                         </div>
@@ -250,6 +262,7 @@ import { leaveService } from '@/services/leave.service';
 import { employeeService } from '@/services/employee.service';
 import { useToast } from '@/composables/useToast';
 import { useLoading } from '@/composables/useLoading';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
     name: 'LeaveBalances',
@@ -260,10 +273,25 @@ export default {
     setup() {
         const { showToast } = useToast();
         const { isLeaveBalancesLoading, setLoading } = useLoading();
+        
+        // Initialize permission checks for leave_balances module
+        const { 
+            canRead, 
+            canEdit, 
+            isReadOnly, 
+            accessLevelText, 
+            accessLevelBadgeClass 
+        } = usePermissions('leave_balances');
+
         return {
             showToast,
             isLeaveBalancesLoading,
-            setLoading
+            setLoading,
+            canRead,
+            canEdit,
+            isReadOnly,
+            accessLevelText,
+            accessLevelBadgeClass
         };
     },
     data() {
@@ -271,6 +299,9 @@ export default {
             title: "Leave Balances",
             text: "Leave Management",
             text1: "Leave Balances",
+
+            // Default avatar
+            defaultAvatar: require('@/assets/img/profiles/avatar-default.jpg'),
 
             // Data
             leaveBalances: [],
@@ -300,6 +331,29 @@ export default {
         };
     },
     computed: {
+        // Permission checks - primary source for reactivity
+        canEditLeaveBalances() {
+            try {
+                const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+                const hasEdit = Array.isArray(permissions) && permissions.includes('leave_balances.edit');
+                return hasEdit || (this.canEdit?.value ?? false);
+            } catch (e) {
+                console.error('[LeaveBalances] Error checking permissions:', e);
+                return this.canEdit?.value ?? false;
+            }
+        },
+        canReadLeaveBalances() {
+            try {
+                const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+                const hasRead = Array.isArray(permissions) && permissions.includes('leave_balances.read');
+                return hasRead || (this.canRead?.value ?? false);
+            } catch (e) {
+                return this.canRead?.value ?? false;
+            }
+        },
+        isReadOnlyLeaveBalances() {
+            return this.canReadLeaveBalances && !this.canEditLeaveBalances;
+        },
         paginationPages() {
             const pages = [];
             const start = Math.max(1, this.pagination.currentPage - 2);

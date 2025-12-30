@@ -182,10 +182,24 @@ export const dataMapper = {
                 name: `${backendData.employee.first_name_en} ${backendData.employee.last_name_en}`,
                 firstName: backendData.employee.first_name_en,
                 lastName: backendData.employee.last_name_en,
-                subsidiary: backendData.employee.subsidiary,
+                organization: backendData.employee.organization,
                 department: backendData.employee.employment?.department,
                 position: backendData.employee.employment?.position
             } : null,
+            // New multi-leave-type support (v2.0)
+            items: backendData.items?.map(item => ({
+                id: item.id,
+                leaveRequestId: item.leave_request_id,
+                leaveTypeId: item.leave_type_id,
+                days: parseFloat(item.days),
+                leaveType: item.leave_type ? {
+                    id: item.leave_type.id,
+                    name: item.leave_type.name,
+                    requiresAttachment: item.leave_type.requires_attachment,
+                    defaultDuration: item.leave_type.default_duration
+                } : null
+            })) || [],
+            // Deprecated: Single leave type (for backward compatibility)
             leaveTypeId: backendData.leave_type_id,
             leaveType: backendData.leave_type ? {
                 id: backendData.leave_type.id,
@@ -234,13 +248,11 @@ export const dataMapper = {
     mapLeaveRequestForAPI(frontendData) {
         if (!frontendData) return null;
 
-        return {
+        const payload = {
             // Handle both camelCase and snake_case input formats
             employee_id: frontendData.employee_id || frontendData.employeeId,
-            leave_type_id: frontendData.leave_type_id || frontendData.leaveTypeId,
             start_date: dateUtils.formatForAPI(frontendData.start_date || frontendData.startDate),
             end_date: dateUtils.formatForAPI(frontendData.end_date || frontendData.endDate),
-            total_days: frontendData.total_days || frontendData.totalDays,
             reason: frontendData.reason,
             status: frontendData.status,
             // New boolean approval structure matching updated API (v4.1)
@@ -252,6 +264,24 @@ export const dataMapper = {
                 dateUtils.formatForAPI(frontendData.hr_site_admin_approved_date || frontendData.hrSiteAdminApprovedDate) : null,
             attachment_notes: frontendData.attachment_notes || frontendData.attachmentNotes
         };
+
+        // Multi-leave-type support (v2.0)
+        if (frontendData.items && Array.isArray(frontendData.items) && frontendData.items.length > 0) {
+            // New format: items array
+            payload.items = frontendData.items.map(item => ({
+                leave_type_id: item.leave_type_id || item.leaveTypeId,
+                days: parseFloat(item.days)
+            }));
+        } else if (frontendData.leave_type_id || frontendData.leaveTypeId) {
+            // Backward compatibility: single leave type
+            // Convert to items array format
+            payload.items = [{
+                leave_type_id: frontendData.leave_type_id || frontendData.leaveTypeId,
+                days: parseFloat(frontendData.total_days || frontendData.totalDays || 0)
+            }];
+        }
+
+        return payload;
     },
 
     /**
@@ -290,7 +320,7 @@ export const dataMapper = {
                 firstNameEn: backendData.employee.first_name_en,
                 lastNameEn: backendData.employee.last_name_en,
                 name: `${backendData.employee.first_name_en} ${backendData.employee.last_name_en}`.trim(),
-                subsidiary: backendData.employee.subsidiary
+                organization: backendData.employee.organization
             } : null,
             leaveTypeId: backendData.leave_type_id,
             leaveType: backendData.leave_type ? {
@@ -317,30 +347,66 @@ export const validationUtils = {
     validateLeaveRequest(formData) {
         const errors = {};
 
-        if (!formData.employeeId) {
+        if (!formData.employeeId && !formData.employee_id) {
             errors.employeeId = 'Employee is required';
         }
 
-        if (!formData.leaveTypeId) {
+        // Multi-leave-type validation (v2.0)
+        if (formData.items && Array.isArray(formData.items)) {
+            if (formData.items.length === 0) {
+                errors.items = 'At least one leave type is required';
+            } else {
+                // Validate each item
+                const itemErrors = [];
+                const leaveTypeIds = [];
+
+                formData.items.forEach((item, index) => {
+                    const itemError = {};
+
+                    if (!item.leaveTypeId && !item.leave_type_id) {
+                        itemError.leaveTypeId = 'Leave type is required';
+                    } else {
+                        const typeId = item.leaveTypeId || item.leave_type_id;
+                        // Check for duplicates
+                        if (leaveTypeIds.includes(typeId)) {
+                            itemError.leaveTypeId = 'Duplicate leave type not allowed';
+                        }
+                        leaveTypeIds.push(typeId);
+                    }
+
+                    if (!item.days || item.days <= 0) {
+                        itemError.days = 'Days must be greater than 0';
+                    }
+
+                    if (Object.keys(itemError).length > 0) {
+                        itemErrors[index] = itemError;
+                    }
+                });
+
+                if (itemErrors.length > 0) {
+                    errors.itemErrors = itemErrors;
+                }
+            }
+        } else if (!formData.leaveTypeId && !formData.leave_type_id) {
+            // Backward compatibility: single leave type
             errors.leaveTypeId = 'Leave type is required';
         }
 
-        if (!formData.startDate) {
+        if (!formData.startDate && !formData.start_date) {
             errors.startDate = 'Start date is required';
         }
 
-        if (!formData.endDate) {
+        if (!formData.endDate && !formData.end_date) {
             errors.endDate = 'End date is required';
         }
 
-        if (formData.startDate && formData.endDate) {
-            if (moment(formData.endDate).isBefore(moment(formData.startDate))) {
+        const startDate = formData.startDate || formData.start_date;
+        const endDate = formData.endDate || formData.end_date;
+
+        if (startDate && endDate) {
+            if (moment(endDate).isBefore(moment(startDate))) {
                 errors.endDate = 'End date must be after start date';
             }
-        }
-
-        if (!formData.totalDays || formData.totalDays <= 0) {
-            errors.totalDays = 'Total days must be greater than 0';
         }
 
         if (formData.reason && formData.reason.length > 1000) {

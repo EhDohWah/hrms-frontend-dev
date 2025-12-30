@@ -7,7 +7,19 @@
         <div class="content">
             <!-- Breadcrumb -->
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-                <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                <div class="d-flex align-items-center">
+                    <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                    <!-- Read-Only Badge -->
+                    <span 
+                        v-if="isReadOnly" 
+                        class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="You have view-only access to this module"
+                    >
+                        <i class="ti ti-eye me-1"></i> Read Only
+                    </span>
+                </div>
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
                     <div class="me-2 mb-2">
                         <div class="dropdown">
@@ -32,7 +44,7 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="mb-2">
+                    <div v-if="canEdit" class="mb-2">
                         <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
                             @click="openCreateModal">
                             <i class="ti ti-circle-plus me-2"></i>Add Resignation
@@ -160,16 +172,16 @@
                                             <i class="ti ti-eye"></i>
                                         </a>
                                         <!-- Edit Resignation -->
-                                        <a href="javascript:void(0);" @click="editResignation(record)" class="me-2">
+                                        <a v-if="canEdit" href="javascript:void(0);" @click="editResignation(record)" class="me-2">
                                             <i class="ti ti-edit"></i>
                                         </a>
                                         <!-- Acknowledge Resignation -->
-                                        <a v-if="record.acknowledgementStatus === 'Pending'" href="javascript:void(0);"
+                                        <a v-if="canEdit && record.acknowledgementStatus === 'Pending'" href="javascript:void(0);"
                                             @click="acknowledgeResignation(record)" class="me-2 text-success">
                                             <i class="ti ti-check"></i>
                                         </a>
                                         <!-- Delete Resignation -->
-                                        <a href="javascript:void(0);" @click="confirmDeleteResignation(record.id)">
+                                        <a v-if="canEdit" href="javascript:void(0);" @click="confirmDeleteResignation(record.id)">
                                             <i class="ti ti-trash"></i>
                                         </a>
                                     </div>
@@ -260,8 +272,8 @@
     <!-- /Page Wrapper -->
 
     <!-- Add/Edit Resignation Modal -->
-    <ResignationModal :show="showModal" :isEditing="isEditing" :resignation="selectedResignation" @close="closeModal"
-        @save="handleSave" />
+    <ResignationModal :show="showModal" :isEditing="isEditing" :resignation="selectedResignation" 
+        :isReadOnly="isReadOnlyModal" @close="closeModal" @save="handleSave" />
 
 </template>
 
@@ -271,7 +283,9 @@ import ResignationModal from '@/components/modal/ResignationModal.vue';
 import { resignationService } from '@/services/resignation.service';
 import { statusUtils, dateUtils, exportUtils } from '@/utils/resignation.utils';
 import { useToast } from '@/composables/useToast';
+import { usePermissions } from '@/composables/usePermissions';
 import { Modal, Table } from 'ant-design-vue';
+import { ref } from 'vue';
 
 export default {
     name: 'EmployeeResignation',
@@ -281,8 +295,35 @@ export default {
     },
     setup() {
         const { showToast } = useToast();
+        
+        // Server-side pagination, filtering, and sorting state
+        const filteredInfo = ref({});
+        const sortedInfo = ref({});
+        const currentPage = ref(1);
+        const pageSize = ref(10);
+        const total = ref(0);
+        
+        // Initialize permission checks for resignation module
+        const { 
+            canRead, 
+            canEdit, 
+            isReadOnly, 
+            accessLevelText, 
+            accessLevelBadgeClass 
+        } = usePermissions('resignation');
+
         return {
-            showToast
+            showToast,
+            filteredInfo,
+            sortedInfo,
+            currentPage,
+            pageSize,
+            total,
+            canRead,
+            canEdit,
+            isReadOnly,
+            accessLevelText,
+            accessLevelBadgeClass
         };
     },
     data() {
@@ -307,16 +348,10 @@ export default {
             selectedResignation: null,
             loading: false,
             searchLoading: false,
+            isReadOnlyModal: false, // Track if modal is in read-only mode
 
             // Filters and sorting
             searchTerm: '',
-            filteredInfo: {},
-            sortedInfo: {},
-
-            // SEPARATE PAGINATION PROPERTIES
-            currentPage: 1,
-            pageSize: 10,
-            total: 0,
 
             // Static data
             acknowledgementStatusOptions: statusUtils.getAcknowledgementStatusOptions()
@@ -406,6 +441,11 @@ export default {
             }));
         },
         rowSelection() {
+            // Only show row selection if user has edit permission
+            if (!this.canEdit) {
+                return null;
+            }
+            
             return {
                 fixed: 'left',
                 columnWidth: 60,
@@ -624,24 +664,30 @@ export default {
         openCreateModal() {
             this.selectedResignation = null;
             this.isEditing = false;
+            this.isReadOnlyModal = false;
             this.showModal = true;
         },
 
         editResignation(resignation) {
             this.selectedResignation = resignation;
             this.isEditing = true;
+            this.isReadOnlyModal = false; // Edit mode - not read-only
             this.showModal = true;
         },
 
         viewResignation(resignation) {
-            // For now, open edit modal in read-only mode
-            this.editResignation(resignation);
+            // Open modal in read-only mode for viewing
+            this.selectedResignation = resignation;
+            this.isEditing = true; // Set to true to populate form data
+            this.isReadOnlyModal = true; // Set read-only flag
+            this.showModal = true;
         },
 
         closeModal() {
             this.showModal = false;
             this.selectedResignation = null;
             this.isEditing = false;
+            this.isReadOnlyModal = false;
         },
 
         async handleSave(resignationData) {

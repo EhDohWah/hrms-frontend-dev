@@ -10,15 +10,14 @@
                         <h5 class="modal-title fw-bold" id="bulkPayrollModalLabel">
                             <i class="ti ti-cash-banknote me-2"></i>Bulk Payroll Creation
                         </h5>
-                        <small class="text-muted">Create payroll records for multiple employees</small>
+                        <small class="text-muted">Create payroll records for multiple employees with real-time tracking</small>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                        @click="resetModal"></button>
+                    <button type="button" class="btn-close" :disabled="isProcessing" @click="handleModalClose" aria-label="Close"></button>
                 </div>
 
                 <!-- Modal Body -->
                 <div class="modal-body">
-                    <!-- Progress Steps - Simple Version -->
+                    <!-- Progress Steps -->
                     <div class="steps-container mb-4">
                         <div class="step" :class="{ 'active': currentStep >= 1, 'completed': currentStep > 1 }">
                             <div class="step-number">1</div>
@@ -32,7 +31,12 @@
                         <div class="step-line" :class="{ 'active': currentStep > 2 }"></div>
                         <div class="step" :class="{ 'active': currentStep >= 3, 'completed': currentStep > 3 }">
                             <div class="step-number">3</div>
-                            <div class="step-label">Review & Submit</div>
+                            <div class="step-label">Preview</div>
+                        </div>
+                        <div class="step-line" :class="{ 'active': currentStep > 3 }"></div>
+                        <div class="step" :class="{ 'active': currentStep >= 4 }">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Progress</div>
                         </div>
                     </div>
 
@@ -43,279 +47,331 @@
                             <div class="mb-3">
                                 <p class="text-muted mb-3">
                                     <i class="ti ti-info-circle me-1"></i>
-                                    Configure the pay period dates and payment details for bulk payroll creation.
+                                    Select the pay period month for bulk payroll creation.
                                 </p>
                             </div>
 
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">Pay Period Start Date <span
-                                            class="text-danger">*</span></label>
-                                    <a-date-picker v-model:value="formData.payPeriodStart" class="w-100"
-                                        format="DD/MM/YYYY" placeholder="Select start date"
-                                        :disabled-date="disableStartDate" @change="onStartDateChange" />
-                                    <small v-if="formErrors.payPeriodStart" class="text-danger">{{
-                                        formErrors.payPeriodStart }}</small>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Pay Period End Date <span
-                                            class="text-danger">*</span></label>
-                                    <a-date-picker v-model:value="formData.payPeriodEnd" class="w-100"
-                                        format="DD/MM/YYYY" placeholder="Select end date"
-                                        :disabled-date="disableEndDate" @change="onEndDateChange" />
-                                    <small v-if="formErrors.payPeriodEnd" class="text-danger">{{ formErrors.payPeriodEnd
-                                        }}</small>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Payment Date <span class="text-danger">*</span></label>
-                                    <a-date-picker v-model:value="formData.paymentDate" class="w-100"
-                                        format="DD/MM/YYYY" placeholder="Select payment date"
-                                        :disabled-date="disablePaymentDate" />
-                                    <small v-if="formErrors.paymentDate" class="text-danger">{{ formErrors.paymentDate
-                                        }}</small>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Payroll Month <span class="text-danger">*</span></label>
-                                    <a-select v-model:value="formData.payrollMonth" class="w-100"
-                                        placeholder="Select month">
-                                        <a-select-option v-for="month in months" :key="month.value"
-                                            :value="month.value">
-                                            {{ month.label }}
-                                        </a-select-option>
-                                    </a-select>
-                                    <small v-if="formErrors.payrollMonth" class="text-danger">{{ formErrors.payrollMonth
-                                        }}</small>
+                                <div class="col-md-12">
+                                    <label class="form-label">Pay Period (Month) <span class="text-danger">*</span></label>
+                                    <a-month-picker
+                                        v-model:value="formData.payPeriod"
+                                        class="w-100"
+                                        format="MMMM YYYY"
+                                        value-format="YYYY-MM"
+                                        placeholder="Select pay period month"
+                                        size="large"
+                                    />
+                                    <small class="text-muted">Select the month for which payroll should be created (e.g., October 2025)</small>
+                                    <div v-if="formErrors.payPeriod" class="text-danger mt-1">{{ formErrors.payPeriod }}</div>
                                 </div>
                             </div>
 
                             <!-- Summary Info -->
                             <div class="row mt-4">
-                                <div class="col-md-4">
+                                <div class="col-md-12">
                                     <div class="info-box">
-                                        <div class="info-label">Duration</div>
-                                        <div class="info-value">{{ calculatePayPeriodDuration }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="info-box">
-                                        <div class="info-label">Payment Date</div>
-                                        <div class="info-value">{{ formatDisplayDate(formData.paymentDate) }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="info-box">
-                                        <div class="info-label">Month</div>
-                                        <div class="info-value">{{ getMonthLabel(formData.payrollMonth) }}</div>
+                                        <div class="info-label">Selected Pay Period</div>
+                                        <div class="info-value">{{ formatPayPeriod(formData.payPeriod) }}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Step 2: Employee Selection -->
+                        <!-- Step 2: Select Employees by Organization -->
                         <div v-show="currentStep === 2">
                             <div class="mb-3">
                                 <p class="text-muted mb-3">
                                     <i class="ti ti-info-circle me-1"></i>
-                                    Select employees to include in this payroll batch. Use filters to narrow down your
-                                    selection.
+                                    Select organization to filter employees for bulk payroll creation.
                                 </p>
                             </div>
 
-                            <!-- Filters -->
-                            <div class="row g-2 mb-3">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" v-model="employeeFilters.search"
-                                        placeholder="Search by name or ID..." @input="handleEmployeeSearch" />
-                                </div>
-                                <div class="col-md-3">
-                                    <a-select v-model:value="employeeFilters.subsidiary" class="w-100"
-                                        placeholder="All Subsidiaries" allow-clear @change="handleEmployeeFilterChange">
-                                        <a-select-option v-for="sub in availableSubsidiaries" :key="sub" :value="sub">
-                                            {{ sub }}
+                            <!-- Organization Selection -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-12">
+                                    <label class="form-label">Select Organization <span class="text-danger">*</span></label>
+                                    <a-select v-model:value="selectedOrganization" class="w-100" size="large"
+                                        placeholder="Choose SMRU or BHF" @change="handleOrganizationChange">
+                                        <a-select-option value="SMRU">
+                                            <i class="ti ti-building me-2"></i>SMRU
+                                        </a-select-option>
+                                        <a-select-option value="BHF">
+                                            <i class="ti ti-building me-2"></i>BHF
                                         </a-select-option>
                                     </a-select>
-                                </div>
-                                <div class="col-md-3">
-                                    <a-select v-model:value="employeeFilters.department" class="w-100"
-                                        placeholder="All Departments" allow-clear @change="handleEmployeeFilterChange">
-                                        <a-select-option v-for="dept in availableDepartments" :key="dept" :value="dept">
-                                            {{ dept }}
-                                        </a-select-option>
-                                    </a-select>
-                                </div>
-                                <div class="col-md-2">
-                                    <a-select v-model:value="employeeFilters.status" class="w-100" placeholder="Status"
-                                        allow-clear @change="handleEmployeeFilterChange">
-                                        <a-select-option value="active">Active</a-select-option>
-                                        <a-select-option value="inactive">Inactive</a-select-option>
-                                    </a-select>
+                                    <div v-if="formErrors.organization" class="text-danger mt-1">{{ formErrors.organization }}</div>
                                 </div>
                             </div>
 
-                            <!-- Selection Actions -->
-                            <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded">
-                                <div>
-                                    <strong>{{ selectedEmployees.length }}</strong> employee(s) selected
-                                    <span v-if="filteredEmployees.length > 0" class="text-muted ms-2">
-                                        of {{ filteredEmployees.length }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <button type="button" class="btn btn-sm btn-primary me-2"
-                                        @click="selectAllEmployees" :disabled="filteredEmployees.length === 0">
-                                        Select All
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-secondary"
-                                        @click="clearEmployeeSelection" :disabled="selectedEmployees.length === 0">
-                                        Clear
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Employee List -->
-                            <div v-if="!loadingEmployees" class="employee-list">
-                                <div v-if="filteredEmployees.length > 0" class="row g-2">
-                                    <div v-for="employee in paginatedEmployees" :key="employee.id" class="col-md-4">
-                                        <div class="employee-item"
-                                            :class="{ 'selected': isEmployeeSelected(employee.id) }"
-                                            @click="toggleEmployeeSelection(employee.id)">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox"
-                                                    :checked="isEmployeeSelected(employee.id)"
-                                                    @click.stop="toggleEmployeeSelection(employee.id)" />
-                                                <label class="form-check-label">
-                                                    <div class="fw-semibold">{{ employee.name }}</div>
-                                                    <small class="text-muted">{{ employee.staff_id }} • {{
-                                                        employee.department }}</small>
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div v-else class="text-center py-4">
-                                    <i class="ti ti-users-off text-muted" style="font-size: 3rem;"></i>
-                                    <p class="text-muted mt-2">No employees found</p>
-                                </div>
-
-                                <!-- Pagination -->
-                                <nav v-if="filteredEmployees.length > employeesPerPage" class="mt-3">
-                                    <ul class="pagination pagination-sm justify-content-center">
-                                        <li class="page-item" :class="{ disabled: employeeCurrentPage === 1 }">
-                                            <a class="page-link" href="#"
-                                                @click.prevent="employeeCurrentPage = Math.max(1, employeeCurrentPage - 1)">Previous</a>
-                                        </li>
-                                        <li class="page-item" :class="{ active: employeeCurrentPage === page }"
-                                            v-for="page in Math.min(employeeTotalPages, 5)" :key="page">
-                                            <a class="page-link" href="#" @click.prevent="employeeCurrentPage = page">{{
-                                                page }}</a>
-                                        </li>
-                                        <li class="page-item"
-                                            :class="{ disabled: employeeCurrentPage === employeeTotalPages }">
-                                            <a class="page-link" href="#"
-                                                @click.prevent="employeeCurrentPage = Math.min(employeeTotalPages, employeeCurrentPage + 1)">Next</a>
-                                        </li>
-                                    </ul>
-                                </nav>
-                            </div>
-                            <div v-else class="text-center py-4">
-                                <div class="spinner-border text-primary" role="status"></div>
-                                <p class="text-muted mt-2">Loading employees...</p>
+                            <!-- Employee Count Summary -->
+                            <div v-if="selectedOrganization" class="alert alert-info">
+                                <i class="ti ti-info-circle me-2"></i>
+                                All active employees in <strong>{{ selectedOrganization }}</strong> will be included in the bulk payroll creation.
                             </div>
                         </div>
 
-                        <!-- Step 3: Review & Submit -->
+                        <!-- Step 3: Preview -->
                         <div v-show="currentStep === 3">
-                            <div class="mb-3">
-                                <p class="text-muted mb-3">
-                                    <i class="ti ti-info-circle me-1"></i>
-                                    Review your selection before creating payroll records.
-                                </p>
+                            <!-- Loading Preview -->
+                            <div v-if="loadingPreview" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+                                <p class="text-muted">Calculating preview for {{ selectedOrganization }}...</p>
                             </div>
 
-                            <!-- Summary Cards -->
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-3">
-                                    <div class="summary-card text-center">
-                                        <div class="summary-number">{{ selectedEmployees.length }}</div>
-                                        <div class="summary-label">Employees</div>
+                            <!-- Preview Data -->
+                            <div v-else-if="previewData">
+                                <div class="mb-3">
+                                    <p class="text-muted mb-3">
+                                        <i class="ti ti-info-circle me-1"></i>
+                                        Review the preview before creating payroll records.
+                                    </p>
+                                </div>
+
+                                <!-- Statistics Cards -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-3">
+                                        <div class="preview-card text-center">
+                                            <div class="preview-icon"><i class="ti ti-users text-primary"></i></div>
+                                            <div class="preview-number">{{ previewData.total_employees }}</div>
+                                            <div class="preview-label">Employees</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="preview-card text-center">
+                                            <div class="preview-icon"><i class="ti ti-file-invoice text-info"></i></div>
+                                            <div class="preview-number">{{ previewData.total_payrolls }}</div>
+                                            <div class="preview-label">Payroll Records</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="preview-card text-center">
+                                            <div class="preview-icon"><i class="ti ti-cash text-success"></i></div>
+                                            <div class="preview-number">฿{{ previewData.total_net_salary }}</div>
+                                            <div class="preview-label">Total Net Salary</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="preview-card text-center">
+                                            <div class="preview-icon"><i class="ti ti-arrows-exchange text-warning"></i></div>
+                                            <div class="preview-number">{{ previewData.advances_needed }}</div>
+                                            <div class="preview-label">Inter-Sub Advances</div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="summary-card text-center">
-                                        <div class="summary-number">{{ calculatePayPeriodDuration }}</div>
-                                        <div class="summary-label">Duration</div>
+
+                                <!-- Pay Period Info -->
+                                <div class="alert alert-info mb-3">
+                                    <strong><i class="ti ti-calendar me-1"></i>Pay Period:</strong> {{ formatPayPeriod(formData.payPeriod) }}
+                                    <br>
+                                    <strong><i class="ti ti-building me-1"></i>Organization:</strong> {{ selectedOrganization }}
+                                </div>
+
+                                <!-- Warnings -->
+                                <div v-if="previewData.warnings && previewData.warnings.length > 0" class="mb-3">
+                                    <h6 class="text-warning mb-2">
+                                        <i class="ti ti-alert-triangle me-1"></i>Warnings ({{ previewData.warnings.length }})
+                                    </h6>
+                                    <div class="warnings-list" style="max-height: 200px; overflow-y: auto;">
+                                        <div
+                                            v-for="(warning, index) in displayedWarnings"
+                                            :key="index"
+                                            class="alert alert-warning py-2 px-3 mb-2 small"
+                                        >
+                                            <i class="ti ti-alert-circle me-1"></i>{{ warning }}
+                                        </div>
+                                        <button
+                                            v-if="previewData.warnings.length > 5 && !showAllWarnings"
+                                            type="button"
+                                            class="btn btn-sm btn-outline-warning"
+                                            @click="showAllWarnings = true"
+                                        >
+                                            Show all {{ previewData.warnings.length }} warnings
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="summary-card text-center">
-                                        <div class="summary-number">{{ formatDisplayDate(formData.paymentDate) }}</div>
-                                        <div class="summary-label">Payment Date</div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="summary-card text-center">
-                                        <div class="summary-number">{{ getMonthLabel(formData.payrollMonth) }}</div>
-                                        <div class="summary-label">Month</div>
-                                    </div>
+
+                                <!-- Confirmation Note -->
+                                <div class="alert alert-primary mb-0">
+                                    <strong><i class="ti ti-info-circle me-1"></i>Ready to Create:</strong>
+                                    This will create <strong>{{ previewData.total_payrolls }} payroll records</strong> for
+                                    <strong>{{ previewData.total_employees }} employees</strong> in {{ selectedOrganization }}.
+                                    Click "Create Payroll" to proceed.
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Selected Employees Table -->
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th style="width: 50px;">#</th>
-                                            <th>Employee</th>
-                                            <th>Staff ID</th>
-                                            <th>Department</th>
-                                            <th style="width: 80px;">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr v-for="(employeeId, index) in selectedEmployees" :key="employeeId">
-                                            <td>{{ index + 1 }}</td>
-                                            <td>{{ getEmployeeById(employeeId)?.name }}</td>
-                                            <td>{{ getEmployeeById(employeeId)?.staff_id }}</td>
-                                            <td>{{ getEmployeeById(employeeId)?.department }}</td>
-                                            <td>
-                                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                                    @click="removeEmployee(employeeId)">
-                                                    <i class="ti ti-x"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                        <!-- Step 4: Progress Tracking -->
+                        <div v-show="currentStep === 4">
+                            <div v-if="batchData">
+                                <!-- Status Header -->
+                                <div class="alert" :class="statusAlertClass" role="alert">
+                                    <h5 class="mb-1">
+                                        <i :class="statusIcon" class="me-2"></i>{{ statusText }}
+                                    </h5>
+                                    <p class="mb-0 small">Batch ID: #{{ batchData.batch_id }} | Pay Period: {{ formatPayPeriod(batchData.pay_period) }}</p>
+                                </div>
+
+                                <!-- Progress Bar -->
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="fw-semibold">Progress</span>
+                                        <span class="fw-bold text-primary">{{ batchData.progress_percentage }}%</span>
+                                    </div>
+                                    <div class="progress" style="height: 30px;">
+                                        <div
+                                            class="progress-bar progress-bar-striped"
+                                            :class="progressBarClass"
+                                            :style="{ width: batchData.progress_percentage + '%' }"
+                                            role="progressbar"
+                                        >
+                                            <strong>{{ batchData.processed }} / {{ batchData.total }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Currently Processing -->
+                                <div v-if="isProcessing && batchData.current_employee" class="alert alert-primary d-flex align-items-center mb-4">
+                                    <div class="spinner-border spinner-border-sm me-3"></div>
+                                    <div>
+                                        <strong>Currently Processing:</strong><br />
+                                        <span class="small">{{ batchData.current_employee }}</span>
+                                        <span v-if="batchData.current_allocation" class="small"> - {{ batchData.current_allocation }}</span>
+                                    </div>
+                                </div>
+
+                                <!-- Statistics -->
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-3 col-6">
+                                        <div class="stat-card-sm bg-success">
+                                            <div class="stat-number-sm">{{ batchData.stats?.successful || 0 }}</div>
+                                            <div class="stat-label-sm">Successful</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6">
+                                        <div class="stat-card-sm bg-danger">
+                                            <div class="stat-number-sm">{{ batchData.stats?.failed || 0 }}</div>
+                                            <div class="stat-label-sm">Failed</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6">
+                                        <div class="stat-card-sm bg-info">
+                                            <div class="stat-number-sm">{{ batchData.stats?.advances_created || 0 }}</div>
+                                            <div class="stat-label-sm">Advances</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-6">
+                                        <div class="stat-card-sm bg-primary">
+                                            <div class="stat-number-sm">{{ batchData.total || 0 }}</div>
+                                            <div class="stat-label-sm">Total</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Connection Status -->
+                                <div class="text-end mb-3">
+                                    <small class="text-muted">
+                                        <i :class="connectionIcon" class="me-1"></i>{{ connectionStatus }}
+                                    </small>
+                                </div>
+
+                                <!-- Errors Section -->
+                                <div v-if="batchData.has_errors" class="alert alert-danger">
+                                    <h6><i class="ti ti-alert-triangle me-1"></i>Errors ({{ batchData.error_count }})</h6>
+                                    <p class="small mb-2">Some payroll records failed to process. You can download the error report.</p>
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-danger"
+                                        @click="downloadErrors"
+                                        :disabled="downloadingErrors"
+                                    >
+                                        <span v-if="!downloadingErrors">
+                                            <i class="ti ti-download me-1"></i>Download Errors CSV
+                                        </span>
+                                        <span v-else>
+                                            <span class="spinner-border spinner-border-sm me-1"></span>Downloading...
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <!-- Completion Message -->
+                                <div v-if="isCompleted" class="text-center py-4">
+                                    <i class="ti ti-circle-check text-success" style="font-size: 4rem;"></i>
+                                    <h5 class="mt-3 text-success">Bulk Payroll Creation Completed!</h5>
+                                    <p class="text-muted">
+                                        Successfully created {{ batchData.stats?.successful || 0 }} out of {{ batchData.total }} payroll records
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Modal Footer -->
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" @click="resetModal">
-                        Cancel
+                <div class="modal-footer d-flex justify-content-between">
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        @click="handleModalClose"
+                        :disabled="isProcessing"
+                    >
+                        <i class="ti ti-x me-1"></i>{{ isCompleted ? 'Close' : 'Cancel' }}
                     </button>
-                    <button v-if="currentStep > 1" type="button" class="btn btn-outline-primary" @click="previousStep">
-                        <i class="ti ti-chevron-left"></i> Previous
-                    </button>
-                    <button v-if="currentStep < 3" type="button" class="btn btn-primary" @click="nextStep"
-                        :disabled="!canProceedToNextStep">
-                        Next <i class="ti ti-chevron-right"></i>
-                    </button>
-                    <button v-if="currentStep === 3" type="button" class="btn btn-success" @click="submitBulkPayroll"
-                        :disabled="submitting || selectedEmployees.length === 0">
-                        <span v-if="!submitting">
-                            <i class="ti ti-check me-1"></i>Create Payroll ({{ selectedEmployees.length }})
-                        </span>
-                        <span v-else>
-                            <span class="spinner-border spinner-border-sm me-2"></span>Processing...
-                        </span>
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button
+                            v-if="currentStep > 1 && currentStep < 4"
+                            type="button"
+                            class="btn btn-outline-primary"
+                            @click="previousStep"
+                        >
+                            <i class="ti ti-chevron-left me-1"></i>Previous
+                        </button>
+                        <button
+                            v-if="currentStep === 1"
+                            type="button"
+                            class="btn btn-primary"
+                            @click="nextStep"
+                            :disabled="!canProceedFromStep1"
+                        >
+                            Next<i class="ti ti-chevron-right ms-1"></i>
+                        </button>
+                        <button
+                            v-if="currentStep === 2"
+                            type="button"
+                            class="btn btn-primary"
+                            @click="generatePreview"
+                            :disabled="!selectedOrganization || loadingPreview"
+                        >
+                            <span v-if="!loadingPreview">
+                                <i class="ti ti-calculator me-1"></i>Calculate Preview
+                            </span>
+                            <span v-else>
+                                <span class="spinner-border spinner-border-sm me-2"></span>Calculating...
+                            </span>
+                        </button>
+                        <button
+                            v-if="currentStep === 3"
+                            type="button"
+                            class="btn btn-success"
+                            @click="createBulkPayroll"
+                            :disabled="submitting || !previewData"
+                        >
+                            <span v-if="!submitting">
+                                <i class="ti ti-check me-1"></i>Create Payroll ({{ previewData?.total_payrolls || 0 }})
+                            </span>
+                            <span v-else>
+                                <span class="spinner-border spinner-border-sm me-2"></span>Creating...
+                            </span>
+                        </button>
+                        <button
+                            v-if="currentStep === 4 && isCompleted"
+                            type="button"
+                            class="btn btn-success"
+                            @click="handleModalClose"
+                        >
+                            <i class="ti ti-check me-1"></i>Done
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -323,189 +379,151 @@
 </template>
 
 <script>
-import { ref, reactive, computed, onMounted } from 'vue';
+import { Modal } from 'bootstrap';
+import { ref, reactive, computed, createVNode, nextTick, onMounted, onUnmounted } from 'vue';
 import moment from 'moment';
 import { payrollService } from '@/services/payroll.service';
-import { employmentService } from '@/services/employment.service';
-import { useLookupStore } from '@/stores/lookupStore';
-import { useSharedDataStore } from '@/stores/sharedDataStore';
-import { message } from 'ant-design-vue';
+import { message, Modal as AntModal } from 'ant-design-vue';
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import Echo from 'laravel-echo';
 
 export default {
-    name: 'BulkPayrollModal',
+    name: 'BulkPayrollModalSimplified',
     emits: ['payroll-created', 'refresh'],
 
     setup(props, { emit }) {
         const currentStep = ref(1);
         const submitting = ref(false);
-        const loadingEmployees = ref(false);
+        const loadingPreview = ref(false);
+        const downloadingErrors = ref(false);
+        const showAllWarnings = ref(false);
 
         const formData = reactive({
-            payPeriodStart: null,
-            payPeriodEnd: null,
-            paymentDate: null,
-            payrollMonth: moment().format('YYYY-MM'),
+            payPeriod: null,
         });
 
         const formErrors = reactive({
-            payPeriodStart: '',
-            payPeriodEnd: '',
-            paymentDate: '',
-            payrollMonth: '',
+            payPeriod: '',
+            organization: '',
         });
 
-        const employees = ref([]);
-        const selectedEmployees = ref([]);
-        const employeeFilters = reactive({
-            search: '',
-            subsidiary: null,
-            department: null,
-            status: 'active',
+        const selectedOrganization = ref(null);
+        const previewData = ref(null);
+        const batchData = ref(null);
+
+        // WebSocket and polling
+        const wsConnected = ref(false);
+        const httpPollingInterval = ref(null);
+        const echo = ref(null);
+
+        // CRITICAL: Timeout tracking to prevent memory leaks
+        const wsTimeout = ref(null);
+        const disconnectTimeout = ref(null);
+
+        // Bootstrap Modal instance
+        let modalInstance = null;
+
+        // Flag to prevent recursive confirmation dialogs
+        let isClosing = false;
+
+        // Computed
+        const canProceedFromStep1 = computed(() => {
+            return formData.payPeriod !== null;
         });
 
-        const employeeCurrentPage = ref(1);
-        const employeesPerPage = ref(12);
-        const availableSubsidiaries = ref([]);
-        const availableDepartments = ref([]);
-
-        const months = computed(() => {
-            const monthsList = [];
-            for (let i = 0; i < 12; i++) {
-                const date = moment().subtract(i, 'months');
-                monthsList.push({
-                    value: date.format('YYYY-MM'),
-                    label: date.format('MMMM YYYY'),
-                });
-            }
-            return monthsList;
+        const displayedWarnings = computed(() => {
+            if (!previewData.value || !previewData.value.warnings) return [];
+            return showAllWarnings.value
+                ? previewData.value.warnings
+                : previewData.value.warnings.slice(0, 5);
         });
 
-        const calculatePayPeriodDuration = computed(() => {
-            if (!formData.payPeriodStart || !formData.payPeriodEnd) return 'Not set';
-            const start = moment(formData.payPeriodStart);
-            const end = moment(formData.payPeriodEnd);
-            const days = end.diff(start, 'days') + 1;
-            return `${days} days`;
+        const isProcessing = computed(() => batchData.value?.status === 'processing');
+        const isCompleted = computed(() => batchData.value?.status === 'completed');
+        const isFailed = computed(() => batchData.value?.status === 'failed');
+
+        const statusText = computed(() => {
+            if (!batchData.value) return 'Initializing...';
+            switch (batchData.value.status) {
+                case 'pending': return 'Batch Pending';
+                case 'processing': return 'Processing Payroll Records';
+                case 'completed': return 'Batch Completed Successfully';
+                case 'failed': return 'Batch Failed';
+                default: return 'Unknown Status';
+            }
         });
 
-        const filteredEmployees = computed(() => {
-            let filtered = [...employees.value];
-            if (employeeFilters.search) {
-                const search = employeeFilters.search.toLowerCase();
-                filtered = filtered.filter(emp =>
-                    emp.name.toLowerCase().includes(search) ||
-                    emp.staff_id.toLowerCase().includes(search)
-                );
+        const statusIcon = computed(() => {
+            if (!batchData.value) return 'ti ti-loader';
+            switch (batchData.value.status) {
+                case 'pending': return 'ti ti-clock';
+                case 'processing': return 'ti ti-loader ti-spin';
+                case 'completed': return 'ti ti-circle-check';
+                case 'failed': return 'ti ti-circle-x';
+                default: return 'ti ti-question-mark';
             }
-            if (employeeFilters.subsidiary) {
-                filtered = filtered.filter(emp => emp.subsidiary === employeeFilters.subsidiary);
-            }
-            if (employeeFilters.department) {
-                filtered = filtered.filter(emp => emp.department === employeeFilters.department);
-            }
-            if (employeeFilters.status) {
-                filtered = filtered.filter(emp => emp.status === employeeFilters.status);
-            }
-            return filtered;
         });
 
-        const employeeTotalPages = computed(() => {
-            return Math.ceil(filteredEmployees.value.length / employeesPerPage.value);
+        const statusAlertClass = computed(() => {
+            if (!batchData.value) return 'alert-info';
+            switch (batchData.value.status) {
+                case 'pending': return 'alert-warning';
+                case 'processing': return 'alert-primary';
+                case 'completed': return 'alert-success';
+                case 'failed': return 'alert-danger';
+                default: return 'alert-info';
+            }
         });
 
-        const paginatedEmployees = computed(() => {
-            const start = (employeeCurrentPage.value - 1) * employeesPerPage.value;
-            const end = start + employeesPerPage.value;
-            return filteredEmployees.value.slice(start, end);
+        const progressBarClass = computed(() => {
+            if (!batchData.value) return 'bg-primary';
+            const percentage = batchData.value.progress_percentage || 0;
+            if (batchData.value.status === 'completed') return 'bg-success progress-bar-animated';
+            if (batchData.value.status === 'failed') return 'bg-danger';
+            if (percentage < 25) return 'bg-primary progress-bar-animated';
+            if (percentage < 50) return 'bg-info progress-bar-animated';
+            if (percentage < 75) return 'bg-warning progress-bar-animated';
+            return 'bg-success progress-bar-animated';
         });
 
-        const canProceedToNextStep = computed(() => {
-            if (currentStep.value === 1) {
-                return formData.payPeriodStart && formData.payPeriodEnd && formData.paymentDate && formData.payrollMonth;
-            }
-            if (currentStep.value === 2) {
-                return selectedEmployees.value.length > 0;
-            }
-            return true;
+        const connectionStatus = computed(() => {
+            if (wsConnected.value) return 'Connected via WebSocket (Real-time)';
+            if (httpPollingInterval.value) return 'Connected via HTTP Polling (Fallback)';
+            return 'Connecting...';
         });
 
-        const formatDisplayDate = (date) => {
-            if (!date) return 'Not set';
-            return moment(date).format('DD MMM YYYY');
-        };
+        const connectionIcon = computed(() => {
+            if (wsConnected.value) return 'ti ti-bolt text-success';
+            if (httpPollingInterval.value) return 'ti ti-refresh text-warning';
+            return 'ti ti-loader ti-spin text-muted';
+        });
 
-        const getMonthLabel = (monthValue) => {
-            if (!monthValue) return 'Not set';
-            return moment(monthValue, 'YYYY-MM').format('MMMM YYYY');
-        };
-
-        const disableStartDate = (current) => {
-            return current && current > moment().endOf('day');
-        };
-
-        const disableEndDate = (current) => {
-            if (!current) return false;
-            if (!formData.payPeriodStart) return current > moment().endOf('day');
-            return current < moment(formData.payPeriodStart) || current > moment().endOf('day');
-        };
-
-        const disablePaymentDate = (current) => {
-            if (!current) return false;
-            if (!formData.payPeriodEnd) return current < moment().startOf('day');
-            return current < moment(formData.payPeriodEnd);
-        };
-
-        const onStartDateChange = () => {
-            if (formData.payPeriodEnd && moment(formData.payPeriodStart) > moment(formData.payPeriodEnd)) {
-                formData.payPeriodEnd = null;
-            }
-        };
-
-        const onEndDateChange = () => {
-            if (formData.paymentDate && moment(formData.payPeriodEnd) > moment(formData.paymentDate)) {
-                formData.paymentDate = null;
-            }
+        // Methods
+        const formatPayPeriod = (payPeriod) => {
+            if (!payPeriod) return 'Not set';
+            return moment(payPeriod, 'YYYY-MM').format('MMMM YYYY');
         };
 
         const validateStep = (step) => {
-            let isValid = true;
             Object.keys(formErrors).forEach(key => formErrors[key] = '');
 
-            if (step === 1) {
-                if (!formData.payPeriodStart) {
-                    formErrors.payPeriodStart = 'Required';
-                    isValid = false;
-                }
-                if (!formData.payPeriodEnd) {
-                    formErrors.payPeriodEnd = 'Required';
-                    isValid = false;
-                }
-                if (!formData.paymentDate) {
-                    formErrors.paymentDate = 'Required';
-                    isValid = false;
-                }
-                if (!formData.payrollMonth) {
-                    formErrors.payrollMonth = 'Required';
-                    isValid = false;
-                }
+            if (step === 1 && !formData.payPeriod) {
+                formErrors.payPeriod = 'Pay period is required';
+                return false;
             }
-
-            if (step === 2) {
-                if (selectedEmployees.value.length === 0) {
-                    message.warning('Please select at least one employee');
-                    isValid = false;
-                }
+            if (step === 2 && !selectedOrganization.value) {
+                formErrors.organization = 'Please select a organization';
+                return false;
             }
-
-            return isValid;
+            return true;
         };
 
         const nextStep = () => {
-            if (!validateStep(currentStep.value)) return;
-            if (currentStep.value === 1) {
-                fetchEmployees();
+            if (!validateStep(currentStep.value)) {
+                message.warning('Please complete all required fields');
+                return;
             }
-            if (currentStep.value < 3) {
+            if (currentStep.value < 4) {
                 currentStep.value++;
             }
         };
@@ -516,209 +534,458 @@ export default {
             }
         };
 
-        const fetchEmployees = async () => {
-            loadingEmployees.value = true;
-            try {
-                const response = await employmentService.getEmployments({
-                    status: 'active',
-                    per_page: 1000,
-                });
+        const handleOrganizationChange = () => {
+            formErrors.organization = '';
+            previewData.value = null;
+        };
 
-                if (response.success && response.data) {
-                    employees.value = response.data.map(emp => ({
-                        id: emp.id,
-                        staff_id: emp.employee?.staff_id || 'N/A',
-                        name: `${emp.employee?.first_name_en || ''} ${emp.employee?.last_name_en || ''}`.trim(),
-                        subsidiary: emp.employee?.subsidiary || 'N/A',
-                        department: emp.department?.name || 'N/A',
-                        position: emp.position?.title || 'N/A',
-                        status: emp.employment_status || 'active',
-                        employment_id: emp.id,
-                    }));
-                }
-            } catch (error) {
-                console.error('Error fetching employees:', error);
-                message.error('Failed to load employees');
-            } finally {
-                loadingEmployees.value = false;
+        const generatePreview = async () => {
+            if (!validateStep(2)) {
+                message.warning('Please select a organization');
+                return;
             }
-        };
 
-        const isEmployeeSelected = (employeeId) => {
-            return selectedEmployees.value.includes(employeeId);
-        };
+            loadingPreview.value = true;
+            showAllWarnings.value = false;
 
-        const toggleEmployeeSelection = (employeeId) => {
-            const index = selectedEmployees.value.indexOf(employeeId);
-            if (index > -1) {
-                selectedEmployees.value.splice(index, 1);
-            } else {
-                selectedEmployees.value.push(employeeId);
-            }
-        };
-
-        const selectAllEmployees = () => {
-            selectedEmployees.value = filteredEmployees.value.map(emp => emp.id);
-        };
-
-        const clearEmployeeSelection = () => {
-            selectedEmployees.value = [];
-        };
-
-        const handleEmployeeSearch = () => {
-            employeeCurrentPage.value = 1;
-        };
-
-        const handleEmployeeFilterChange = () => {
-            employeeCurrentPage.value = 1;
-        };
-
-        const getEmployeeById = (employeeId) => {
-            return employees.value.find(emp => emp.id === employeeId);
-        };
-
-        const removeEmployee = (employeeId) => {
-            const index = selectedEmployees.value.indexOf(employeeId);
-            if (index > -1) {
-                selectedEmployees.value.splice(index, 1);
-            }
-        };
-
-        const submitBulkPayroll = async () => {
-            if (!validateStep(3)) return;
-
-            submitting.value = true;
             try {
                 const payload = {
-                    pay_period_start: moment(formData.payPeriodStart).format('YYYY-MM-DD'),
-                    pay_period_end: moment(formData.payPeriodEnd).format('YYYY-MM-DD'),
-                    payment_date: moment(formData.paymentDate).format('YYYY-MM-DD'),
-                    payroll_month: formData.payrollMonth,
-                    employee_ids: selectedEmployees.value,
+                    pay_period: formData.payPeriod,
+                    filters: {
+                        subsidiaries: [selectedOrganization.value],
+                    },
                 };
 
-                const response = await payrollService.createBulkPayroll(payload);
+                const response = await payrollService.bulkPreview(payload);
 
                 if (response.success) {
-                    message.success({
-                        content: `Successfully created ${selectedEmployees.value.length} payroll record(s)`,
-                        duration: 3,
-                    });
-                    emit('payroll-created', response.data);
-                    emit('refresh');
-                    closeModal();
+                    previewData.value = response.data;
+                    currentStep.value = 3; // Move to preview step
+                    message.success('Preview generated successfully');
                 } else {
-                    throw new Error(response.message || 'Failed to create bulk payroll');
+                    throw new Error(response.message || 'Failed to generate preview');
                 }
             } catch (error) {
-                console.error('Error creating bulk payroll:', error);
-                message.error(error.message || 'Failed to create bulk payroll');
+                console.error('Preview error:', error);
+                message.error(error.response?.data?.message || error.message || 'Failed to generate preview');
             } finally {
+                loadingPreview.value = false;
+            }
+        };
+
+        const createBulkPayroll = async () => {
+            submitting.value = true;
+
+            try {
+                const payload = {
+                    pay_period: formData.payPeriod,
+                    filters: {
+                        subsidiaries: [selectedOrganization.value],
+                    },
+                };
+
+                const response = await payrollService.bulkCreate(payload);
+
+                if (response.success) {
+                    const batchId = response.data.batch_id;
+                    batchData.value = response.data;
+
+                    message.success('Bulk payroll batch created! Starting processing...');
+
+                    // Move to progress step
+                    currentStep.value = 4;
+
+                    // Start tracking progress
+                    startProgressTracking(batchId);
+                } else {
+                    throw new Error(response.message || 'Failed to create bulk payroll batch');
+                }
+            } catch (error) {
+                console.error('Create batch error:', error);
+                message.error(error.response?.data?.message || error.message || 'Failed to create bulk payroll batch');
                 submitting.value = false;
+            }
+        };
+
+        const startProgressTracking = (batchId) => {
+            // Fetch initial status
+            fetchBatchStatus(batchId);
+
+            // Try WebSocket first
+            connectWebSocket(batchId);
+
+            // Start HTTP polling as fallback
+            startHttpPolling(batchId);
+        };
+
+        const fetchBatchStatus = async (batchId) => {
+            try {
+                const response = await payrollService.getBatchStatus(batchId);
+                if (response.success) {
+                    batchData.value = response.data;
+
+                    // Stop tracking when completed
+                    if (isCompleted.value || isFailed.value) {
+                        stopHttpPolling();
+                        disconnectWebSocket();
+                        emit('refresh');
+                    }
+                }
+            } catch (error) {
+                console.error('Fetch status error:', error);
+            }
+        };
+
+        const connectWebSocket = (batchId) => {
+            try {
+                echo.value = new Echo({
+                    broadcaster: 'reverb',
+                    key: process.env.VUE_APP_REVERB_APP_KEY || 'local',
+                    wsHost: process.env.VUE_APP_REVERB_HOST || window.location.hostname,
+                    wsPort: process.env.VUE_APP_REVERB_PORT || 8080,
+                    wssPort: process.env.VUE_APP_REVERB_PORT || 8080,
+                    forceTLS: (process.env.VUE_APP_REVERB_SCHEME || 'https') === 'https',
+                    enabledTransports: ['ws', 'wss'],
+                    disableStats: true,
+                });
+
+                // CRITICAL FIX: Track WebSocket connection timeout for cleanup
+                wsTimeout.value = setTimeout(() => {
+                    if (!wsConnected.value) {
+                        console.log('[WebSocket] Timeout - using HTTP polling');
+                        disconnectWebSocket();
+                    }
+                    wsTimeout.value = null; // Clear after execution
+                }, 3000);
+
+                echo.value
+                    .channel(`payroll-bulk.${batchId}`)
+                    .listen('.payroll.progress', (event) => {
+                        console.log('[WebSocket] Progress update:', event);
+
+                        batchData.value = {
+                            ...batchData.value,
+                            processed: event.processed,
+                            total: event.total,
+                            status: event.status,
+                            progress_percentage: Math.round((event.processed / event.total) * 100),
+                            current_employee: event.currentEmployee,
+                            current_allocation: event.currentAllocation,
+                            stats: event.stats,
+                        };
+
+                        if (!wsConnected.value) {
+                            wsConnected.value = true;
+                            // CRITICAL FIX: Clear wsTimeout using ref
+                            if (wsTimeout.value) {
+                                clearTimeout(wsTimeout.value);
+                                wsTimeout.value = null;
+                            }
+                            stopHttpPolling();
+                        }
+
+                        if (event.status === 'completed' || event.status === 'failed') {
+                            // CRITICAL FIX: Track disconnectTimeout for cleanup
+                            disconnectTimeout.value = setTimeout(() => {
+                                disconnectWebSocket();
+                                emit('refresh');
+                                disconnectTimeout.value = null; // Clear after execution
+                            }, 2000);
+                        }
+                    });
+            } catch (error) {
+                console.error('[WebSocket] Error:', error);
+            }
+        };
+
+        const disconnectWebSocket = () => {
+            if (echo.value) {
+                echo.value.disconnect();
+                echo.value = null;
+                wsConnected.value = false;
+            }
+        };
+
+        const startHttpPolling = (batchId) => {
+            if (httpPollingInterval.value) return;
+
+            httpPollingInterval.value = setInterval(() => {
+                if (!wsConnected.value && currentStep.value === 4) {
+                    fetchBatchStatus(batchId);
+                }
+            }, 3000);
+        };
+
+        const stopHttpPolling = () => {
+            if (httpPollingInterval.value) {
+                clearInterval(httpPollingInterval.value);
+                httpPollingInterval.value = null;
+            }
+        };
+
+        const downloadErrors = async () => {
+            if (!batchData.value?.has_errors) return;
+
+            downloadingErrors.value = true;
+            try {
+                const response = await payrollService.downloadBatchErrors(batchData.value.batch_id);
+                const blob = new Blob([response], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `bulk_payroll_errors_${batchData.value.batch_id}_${batchData.value.pay_period}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+                message.success('Error report downloaded');
+            } catch (error) {
+                console.error('Download error:', error);
+                message.error('Failed to download error report');
+            } finally {
+                downloadingErrors.value = false;
             }
         };
 
         const resetModal = () => {
             currentStep.value = 1;
-            formData.payPeriodStart = null;
-            formData.payPeriodEnd = null;
-            formData.paymentDate = null;
-            formData.payrollMonth = moment().format('YYYY-MM');
-            selectedEmployees.value = [];
-            employees.value = [];
+            formData.payPeriod = null;
+            selectedOrganization.value = null;
+            previewData.value = null;
+            batchData.value = null;
+            showAllWarnings.value = false;
             Object.keys(formErrors).forEach(key => formErrors[key] = '');
-            employeeFilters.search = '';
-            employeeFilters.subsidiary = null;
-            employeeFilters.department = null;
-            employeeFilters.status = 'active';
-            employeeCurrentPage.value = 1;
+            stopHttpPolling();
+            disconnectWebSocket();
         };
 
-        const closeModal = () => {
-            const modal = document.getElementById('bulk-payroll-modal');
-            const bootstrapModal = window.bootstrap?.Modal?.getInstance(modal);
-            if (bootstrapModal) {
-                bootstrapModal.hide();
-            }
-            resetModal();
+        // Helper function to check if user has unsaved data
+        const hasUnsavedData = () => {
+            // Check if user is in steps 1-3 with data entered
+            if (currentStep.value === 1 && formData.payPeriod !== null) return true;
+            if (currentStep.value === 2 && selectedOrganization.value !== null) return true;
+            if (currentStep.value === 3 && previewData.value !== null) return true;
+            return false;
         };
 
-        const initializeLookupData = async () => {
-            const lookupStore = useLookupStore();
-            const sharedStore = useSharedDataStore();
+        // Cleanup function for modal backdrops (matches employment-modal pattern)
+        const cleanupModalBackdrops = () => {
+            nextTick(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                const activeModals = document.querySelectorAll('.modal.show');
 
-            if (!lookupStore.lookups.length) {
-                await lookupStore.fetchAllLookupLists();
-            }
-            const subsidiaries = lookupStore.getLookupsByType('subsidiary');
-            availableSubsidiaries.value = subsidiaries.map(sub => sub.value).filter(Boolean);
+                // Only remove backdrops if no other modals are open
+                if (activeModals.length === 0 && backdrops.length > 0) {
+                    backdrops.forEach(backdrop => backdrop.remove());
+                }
 
-            if (!sharedStore.isDepartmentsLoaded) {
-                await sharedStore.fetchDepartments(false, {});
-            }
-            const departments = sharedStore.getDepartments || [];
-            availableDepartments.value = departments.map(dept => dept.name).filter(Boolean);
+                // Ensure body classes are correct
+                if (activeModals.length === 0) {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.removeProperty('overflow');
+                    document.body.style.removeProperty('padding-right');
+                }
+            });
         };
 
+        // Safe modal hide helper (matches employment-modal pattern)
+        const safeHideModal = () => {
+            return new Promise((resolve) => {
+                // Set closing flag to prevent recursive confirmations
+                isClosing = true;
+
+                nextTick(() => {
+                    if (modalInstance) {
+                        try {
+                            const modalEl = document.getElementById('bulk-payroll-modal');
+                            if (modalEl) {
+                                modalEl.addEventListener('hidden.bs.modal', () => {
+                                    cleanupModalBackdrops();
+                                    resetModal();
+                                    isClosing = false; // Reset flag after modal is hidden
+                                    resolve(true);
+                                }, { once: true });
+
+                                modalInstance.hide();
+                            } else {
+                                resetModal();
+                                isClosing = false;
+                                resolve(true);
+                            }
+                        } catch (error) {
+                            console.error('Error hiding modal:', error);
+                            resetModal();
+                            isClosing = false;
+                            resolve(false);
+                        }
+                    } else {
+                        resetModal();
+                        isClosing = false;
+                        resolve(true);
+                    }
+                });
+            });
+        };
+
+        // Show confirmation dialog when there are unsaved changes (matches employment-modal pattern)
+        const showUnsavedChangesConfirm = () => {
+            AntModal.confirm({
+                title: 'Unsaved Progress',
+                icon: createVNode(ExclamationCircleOutlined),
+                content: createVNode('div', { style: 'margin-top: 16px;' }, [
+                    createVNode('p', { style: 'margin-bottom: 12px; color: #666;' },
+                        'You have unsaved progress in the bulk payroll wizard.'),
+                    createVNode('p', { style: 'margin-bottom: 0; font-weight: 500; color: #d9534f;' },
+                        'All data will be lost if you close now.')
+                ]),
+                centered: true,
+                okText: 'Continue Editing',
+                okType: 'default',
+                cancelText: 'Discard and Close',
+                cancelButtonProps: { danger: true },
+
+                onOk: () => {
+                    // User chose to continue editing - do nothing
+                    return Promise.resolve();
+                },
+
+                onCancel: async () => {
+                    // User chose to discard changes and close
+                    await safeHideModal();
+                    return Promise.resolve();
+                }
+            });
+        };
+
+        // Main modal close handler (matches employment-modal pattern)
+        const handleModalClose = async () => {
+            // Always prevent closing if processing
+            if (isProcessing.value) {
+                message.warning('Please wait for the batch to complete before closing');
+                return;
+            }
+
+            // If in step 4 (completed or failed), allow direct close
+            if (currentStep.value === 4) {
+                await safeHideModal();
+                return;
+            }
+
+            // Check for unsaved data in steps 1-3
+            if (hasUnsavedData()) {
+                showUnsavedChangesConfirm();
+            } else {
+                await safeHideModal();
+            }
+        };
+
+        // Initialize Bootstrap modal instance on mount (matches employment-modal pattern)
         onMounted(() => {
-            initializeLookupData();
+            const modalElement = document.getElementById('bulk-payroll-modal');
+            if (modalElement) {
+                modalInstance = new Modal(modalElement, {
+                    backdrop: 'static',
+                    keyboard: false
+                });
+
+                // Prevent modal from closing if there are unsaved changes
+                modalElement.addEventListener('hide.bs.modal', (event) => {
+                    // Don't intercept if already in closing process (prevents infinite loop)
+                    if (isClosing) {
+                        return;
+                    }
+
+                    // Allow closing if processing is done (step 4) or no unsaved data
+                    if (currentStep.value === 4 || !hasUnsavedData()) {
+                        return; // Allow closing
+                    }
+
+                    // Prevent default closing behavior
+                    if (hasUnsavedData() && !isProcessing.value) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        // Show confirmation dialog
+                        handleModalClose();
+                    }
+                });
+
+                // Listen to modal events for cleanup after modal is hidden
+                modalElement.addEventListener('hidden.bs.modal', () => {
+                    cleanupModalBackdrops();
+                });
+            }
+        });
+
+        // Cleanup on unmount
+        onUnmounted(() => {
+            if (modalInstance) {
+                const modalElement = document.getElementById('bulk-payroll-modal');
+                if (modalElement) {
+                    // Remove all event listeners
+                    const clone = modalElement.cloneNode(true);
+                    modalElement.parentNode.replaceChild(clone, modalElement);
+                }
+                modalInstance.dispose();
+                modalInstance = null;
+            }
+            stopHttpPolling();
+            disconnectWebSocket();
+            cleanupModalBackdrops();
+
+            // CRITICAL FIX: Clear all tracked timeouts to prevent memory leaks
+            if (wsTimeout.value) {
+                clearTimeout(wsTimeout.value);
+                wsTimeout.value = null;
+            }
+            if (disconnectTimeout.value) {
+                clearTimeout(disconnectTimeout.value);
+                disconnectTimeout.value = null;
+            }
         });
 
         return {
             currentStep,
             submitting,
-            loadingEmployees,
+            loadingPreview,
+            downloadingErrors,
+            showAllWarnings,
             formData,
             formErrors,
-            employees,
-            selectedEmployees,
-            employeeFilters,
-            employeeCurrentPage,
-            employeesPerPage,
-            availableSubsidiaries,
-            availableDepartments,
-            months,
-            calculatePayPeriodDuration,
-            filteredEmployees,
-            employeeTotalPages,
-            paginatedEmployees,
-            canProceedToNextStep,
-            formatDisplayDate,
-            getMonthLabel,
-            disableStartDate,
-            disableEndDate,
-            disablePaymentDate,
-            onStartDateChange,
-            onEndDateChange,
+            selectedOrganization,
+            previewData,
+            batchData,
+            wsConnected,
+            canProceedFromStep1,
+            displayedWarnings,
+            isProcessing,
+            isCompleted,
+            isFailed,
+            statusText,
+            statusIcon,
+            statusAlertClass,
+            progressBarClass,
+            connectionStatus,
+            connectionIcon,
+            formatPayPeriod,
             nextStep,
             previousStep,
-            isEmployeeSelected,
-            toggleEmployeeSelection,
-            selectAllEmployees,
-            clearEmployeeSelection,
-            handleEmployeeSearch,
-            handleEmployeeFilterChange,
-            getEmployeeById,
-            removeEmployee,
-            submitBulkPayroll,
-            resetModal,
+            handleOrganizationChange,
+            generatePreview,
+            createBulkPayroll,
+            downloadErrors,
+            handleModalClose,
         };
     },
 };
 </script>
 
 <style scoped>
-/* Simple, Clean Modal Styles */
+/* Existing styles remain the same... */
 .modal-header {
     background: #f8f9fa;
     border-bottom: 2px solid #dee2e6;
 }
 
-.modal-title {
-    font-size: 1.25rem;
-}
-
-/* Simple Step Progress */
 .steps-container {
     display: flex;
     align-items: center;
@@ -777,10 +1044,10 @@ export default {
 }
 
 .step-line {
-    width: 100px;
+    width: 80px;
     height: 2px;
     background: #dee2e6;
-    margin: 0 1rem;
+    margin: 0 0.5rem;
     transition: all 0.3s ease;
 }
 
@@ -788,7 +1055,6 @@ export default {
     background: #28a745;
 }
 
-/* Info Boxes */
 .info-box {
     padding: 1rem;
     background: #f8f9fa;
@@ -805,78 +1071,88 @@ export default {
 }
 
 .info-value {
-    font-size: 1rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: #212529;
 }
 
-/* Employee Items */
-.employee-list {
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-.employee-item {
-    padding: 0.75rem;
-    border: 1px solid #dee2e6;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: #fff;
-}
-
-.employee-item:hover {
-    border-color: #0d6efd;
-    background: #f8f9fa;
-}
-
-.employee-item.selected {
-    border-color: #0d6efd;
-    background: #e7f3ff;
-}
-
-/* Summary Cards */
-.summary-card {
+/* Preview Cards */
+.preview-card {
     padding: 1.5rem;
-    background: #f8f9fa;
+    background: #fff;
     border: 1px solid #dee2e6;
     border-radius: 0.5rem;
+    transition: all 0.3s ease;
 }
 
-.summary-number {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #0d6efd;
+.preview-card:hover {
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+.preview-icon {
+    font-size: 2rem;
     margin-bottom: 0.5rem;
 }
 
-.summary-label {
+.preview-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 0.25rem;
+}
+
+.preview-label {
     font-size: 0.875rem;
     color: #6c757d;
     font-weight: 500;
 }
 
-/* Ant Design Overrides */
+/* Progress Stats */
+.stat-card-sm {
+    padding: 1rem;
+    border-radius: 0.375rem;
+    color: white;
+    text-align: center;
+}
+
+.stat-number-sm {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label-sm {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.ti-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 :deep(.ant-picker),
 :deep(.ant-select-selector) {
-    height: 38px !important;
     border-radius: 0.375rem !important;
 }
 
-:deep(.ant-select) {
-    width: 100%;
+:deep(.ant-select-dropdown),
+:deep(.ant-picker-dropdown) {
+    z-index: 1060 !important;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .steps-container {
-        flex-direction: column;
+        flex-wrap: wrap;
     }
 
     .step-line {
-        width: 2px;
-        height: 50px;
-        margin: 0.5rem 0;
+        width: 40px;
     }
 }
 </style>

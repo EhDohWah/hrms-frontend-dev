@@ -210,13 +210,13 @@ class GrantService extends BaseService {
    * @param {number} params.page - Page number (default: 1)
    * @param {number} params.per_page - Items per page (default: 10, max: 100)
    * @param {string} params.search - Search term for code, name, or description
-   * @param {string} params.subsidiary - Filter by subsidiary
+   * @param {string} params.organization - Filter by organization
    * @param {string} params.code - Filter by grant code
    * @param {string} params.name - Filter by grant name
    * @param {string} params.end_date_after - Filter grants ending after this date
    * @param {string} params.end_date_before - Filter grants ending before this date
    * @param {string} params.end_date_between - Filter grants ending between dates (comma-separated)
-   * @param {string} params.sort_by - Column to sort by (code, name, subsidiary, end_date, created_at)
+   * @param {string} params.sort_by - Column to sort by (code, name, organization, end_date, created_at)
    * @param {string} params.sort_order - Sort order (asc, desc)
    * @param {boolean} params.with_items - Include grant items in response
    * @param {boolean} params.include_expired - Include expired grants
@@ -257,7 +257,7 @@ class GrantService extends BaseService {
    */
   validateGrantData(grantData) {
     // Use base class validation for required fields
-    const requiredValidation = this.validateRequiredFields(grantData, ['code', 'name', 'subsidiary']);
+    const requiredValidation = this.validateRequiredFields(grantData, ['code', 'name', 'organization']);
 
     // Additional custom validations
     const customErrors = {};

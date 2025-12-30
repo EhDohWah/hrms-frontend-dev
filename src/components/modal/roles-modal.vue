@@ -110,7 +110,7 @@
               data-bs-dismiss="modal"
               >Cancel</a
             >
-            <router-link to="/user-management/roles-permissions" class="btn btn-danger"
+            <router-link to="/user-management/roles" class="btn btn-danger"
               >Yes, Delete</router-link
             >
           </div>
@@ -130,7 +130,7 @@ export default {
   },
   methods: {
     submitForm() {
-      this.$router.push("/user-management/roles-permissions");
+      this.$router.push("/user-management/roles");
     },
   },
 };

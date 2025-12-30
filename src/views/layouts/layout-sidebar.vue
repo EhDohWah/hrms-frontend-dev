@@ -12,7 +12,30 @@ export default {
 				suppressScrollX: true,
 			},
 			activeClass: "active",
+			scrollbarInstance: null,
 		};
+	},
+	mounted() {
+		// Store reference to scrollbar for cleanup
+		this.$nextTick(() => {
+			if (this.$el && typeof this.$el.querySelector === 'function') {
+				const scrollArea = this.$el.querySelector('.scroll-area');
+				if (scrollArea && scrollArea.__ps) {
+					this.scrollbarInstance = scrollArea.__ps;
+				}
+			}
+		});
+	},
+	beforeUnmount() {
+		// Destroy PerfectScrollbar instance to prevent memory leaks
+		if (this.scrollbarInstance) {
+			try {
+				this.scrollbarInstance.destroy();
+			} catch (e) {
+				// Scrollbar may already be destroyed
+			}
+			this.scrollbarInstance = null;
+		}
 	},
 	methods: {
 		scrollHanle() { },
@@ -22,21 +45,8 @@ export default {
 			return this.$route.name;
 		},
 		dashboardRoute() {
-			const userRole = localStorage.getItem('userRole')?.toLowerCase();
-			switch (userRole) {
-				case 'admin':
-					return '/dashboard/admin-dashboard';
-				case 'hr-manager':
-					return '/dashboard/hr-manager-dashboard';
-				case 'hr-assistant-senior':
-					return '/dashboard/hr-assistant-senior-dashboard';
-				case 'hr-assistant-junior':
-					return '/dashboard/hr-assistant-junior-dashboard';
-				case 'site-admin':
-					return '/dashboard/site-admin-dashboard';
-				default:
-					return '/dashboard/site-admin-dashboard';
-			}
+			// All users go to the unified dynamic dashboard
+			return '/dashboard';
 		}
 	},
 };
@@ -59,7 +69,6 @@ export default {
 					<h1 class="logo-title">HR</h1>
 				</div>
 			</router-link>
-
 
 			<router-link :to="dashboardRoute" class="dark-logo">
 				<span class="logo-text">HRMS </span>
@@ -151,8 +160,4 @@ export default {
 		</div>
 	</div>
 	<!-- /Sidebar -->
-
-	<horizontal-header></horizontal-header>
-	<two-sidebar></two-sidebar>
-	<stacked-sidebar></stacked-sidebar>
 </template>

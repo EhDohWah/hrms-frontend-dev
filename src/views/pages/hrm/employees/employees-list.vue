@@ -6,9 +6,22 @@
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
+        <div class="d-flex align-items-center">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnly" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="mb-2 me-2">
+          <!-- Add Employee Button - Only visible if user can edit -->
+          <div v-if="canEdit" class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openAddEmployeeModal"
               :disabled="openingAddEmployee">
               <template v-if="openingAddEmployee">
@@ -20,7 +33,8 @@
               </template>
             </button>
           </div>
-          <div class="mb-2 me-2">
+          <!-- Upload Button - Only visible if user can edit -->
+          <div v-if="canEdit" class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openEmployeeUploadModal"
               :disabled="openingUploadModal">
               <template v-if="openingUploadModal">
@@ -32,7 +46,8 @@
               </template>
             </button>
           </div>
-          <div class="mb-2 me-2">
+          <!-- Delete Selected Button - Only visible if user can edit -->
+          <div v-if="canEdit" class="mb-2 me-2">
             <button class="btn btn-danger d-flex align-items-center" @click="confirmDeleteSelectedEmployees"
               :class="{ 'disabled': selectedRowKeys.length === 0 }">
               <i class="ti ti-trash me-2"></i>Delete Selected
@@ -60,7 +75,7 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">SMRU Employees</p>
-                  <h4>{{ statistics.subsidiaryCount.SMRU_count }}</h4>
+                  <h4>{{ statistics.organizationCount.SMRU_count }}</h4>
                 </div>
               </div>
               <div>
@@ -84,7 +99,7 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">BHF Employees</p>
-                  <h4>{{ statistics.subsidiaryCount.BHF_count }}</h4>
+                  <h4>{{ statistics.organizationCount.BHF_count }}</h4>
                 </div>
               </div>
               <div>
@@ -152,10 +167,44 @@
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
           <h5>Employee List</h5>
           <div class="d-flex align-items-center flex-wrap row-gap-2">
+            <!-- Filter Dropdowns -->
+            <div class="me-2">
+              <a-select v-model:value="filterOrganization" placeholder="Organization" style="width: 150px;" allow-clear
+                @change="handleFilterChange">
+                <a-select-option value="SMRU">SMRU</a-select-option>
+                <a-select-option value="BHF">BHF</a-select-option>
+              </a-select>
+            </div>
+            <div class="me-2">
+              <a-select v-model:value="filterStatus" placeholder="Status" style="width: 150px;" allow-clear
+                @change="handleFilterChange">
+                <a-select-option value="Expats">Expats</a-select-option>
+                <a-select-option value="Local ID">Local ID</a-select-option>
+                <a-select-option value="Local non ID">Local non ID</a-select-option>
+              </a-select>
+            </div>
+            <div class="me-2">
+              <a-select v-model:value="filterGender" placeholder="Gender" style="width: 120px;" allow-clear
+                @change="handleFilterChange">
+                <a-select-option value="Male">Male</a-select-option>
+                <a-select-option value="Female">Female</a-select-option>
+              </a-select>
+            </div>
+            <div class="me-2">
+              <a-select v-model:value="filterIdType" placeholder="ID Type" style="width: 180px;" allow-clear
+                @change="handleFilterChange">
+                <a-select-option value="Passport">Passport</a-select-option>
+                <a-select-option value="ThaiID">ThaiID</a-select-option>
+                <a-select-option value="National ID Card">National ID Card</a-select-option>
+                <a-select-option value="Work Permit">Work Permit</a-select-option>
+              </a-select>
+            </div>
+            <!-- Clear buttons -->
             <div class="me-2">
               <a-button class="me-2" @click="clearFilters">Clear filters</a-button>
               <a-button @click="clearAll">Clear filters and sorters</a-button>
             </div>
+            <!-- Search input -->
             <div class="input-icon-end">
               <a-input-search v-model:value="searchStaffId" placeholder="Enter staff ID..." :loading="searchLoading"
                 enter-button="Search" @search="handleStaffIdSearch" style="width: 250px;"
@@ -179,26 +228,39 @@
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
-                    <!-- View Employee -->
-                    <router-link :to="`/employee/employee-details/${record.id}`" class="me-2">
+                    <!-- View Employee - Always visible -->
+                    <router-link 
+                      :to="`/employee/employee-details/${record.id}`" 
+                      class="me-2"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="View Details"
+                    >
                       <i class="ti ti-eye"></i>
                     </router-link>
-                    <!-- Delete Employee -->
-                    <a href="javascript:void(0);" @click="confirmDeleteEmployee(record.id)">
+                    <!-- Delete Employee - Only visible if user can edit -->
+                    <a 
+                      v-if="canEdit" 
+                      href="javascript:void(0);" 
+                      @click="confirmDeleteEmployee(record.id)"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Delete Employee"
+                    >
                       <i class="ti ti-trash"></i>
                     </a>
                   </div>
                 </template>
 
-                <!-- Subsidiary column -->
-                <template v-if="column.key === 'subsidiary'">
+                <!-- Organization column -->
+                <template v-if="column.key === 'organization'">
                   <span :class="[
                     'badge badge-sm fw-normal',
-                    record.subsidiary === 'SMRU' ? 'badge-primary' :
-                      record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                    record.organization === 'SMRU' ? 'badge-primary' :
+                      record.organization === 'BHF' ? 'badge-soft-primary fw-bold' :
                         'badge-secondary'
                   ]">
-                    {{ record.subsidiary }}
+                    {{ record.organization }}
                   </span>
                 </template>
 
@@ -252,6 +314,8 @@ import { employeeService } from '@/services/employee.service';
 import moment from 'moment';
 import { Modal, Table } from 'ant-design-vue';
 import { Modal as BootstrapModal } from 'bootstrap';
+import { usePermissions } from '@/composables/usePermissions';
+import { ref } from 'vue';
 
 export default {
   name: 'EmployeesList',
@@ -263,6 +327,36 @@ export default {
     LayoutSidebar,
     LayoutFooter,
   },
+  setup() {
+    // Server-side pagination, filtering, and sorting state
+    const filteredInfo = ref({});
+    const sortedInfo = ref({});
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const total = ref(0);
+    
+    // Initialize permission checks for employees module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('employees');
+    
+    return {
+      filteredInfo,
+      sortedInfo,
+      currentPage,
+      pageSize,
+      total,
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
+  },
   data() {
     return {
       title: 'Employees',
@@ -271,12 +365,16 @@ export default {
       searchStaffId: '',
 
       // Data properties (no store dependencies)
-      filteredInfo: {},
-      sortedInfo: {},
       employees: [],
       loading: false,
       searchLoading: false,
       selectedRowKeys: [],
+
+      // Separate filter properties for dropdowns
+      filterOrganization: undefined,
+      filterStatus: undefined,
+      filterGender: undefined,
+      filterIdType: undefined,
 
       // Statistics (local instead of store)
       statistics: {
@@ -284,13 +382,8 @@ export default {
         activeCount: 0,
         inactiveCount: 0,
         newJoinerCount: 0,
-        subsidiaryCount: { SMRU_count: 0, BHF_count: 0 },
+        organizationCount: { SMRU_count: 0, BHF_count: 0 },
       },
-
-      // SEPARATE PAGINATION PROPERTIES
-      currentPage: 1,
-      pageSize: 10,
-      total: 0,
 
       // UI loading states for opening modals
       openingAddEmployee: false,
@@ -299,30 +392,17 @@ export default {
   },
   computed: {
     columns() {
-      const filtered = this.filteredInfo || {};
       const sorted = this.sortedInfo || {};
 
       return [
         {
-          title: 'Subsidiary',
-          dataIndex: 'subsidiary',
-          key: 'subsidiary',
+          title: 'Organization',
+          dataIndex: 'organization',
+          key: 'organization',
           width: 150,
           fixed: 'left',
-          filters: [
-            {
-              text: 'SMRU',
-              value: 'SMRU',
-            },
-            {
-              text: 'BHF',
-              value: 'BHF',
-            },
-          ],
-          filteredValue: filtered.subsidiary || null,
           sorter: true, // Enable server-side sorting
-          sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
-          filterSearch: true
+          sortOrder: sorted.columnKey === 'organization' && sorted.order,
         },
         {
           title: 'Staff ID',
@@ -363,17 +443,6 @@ export default {
           dataIndex: 'gender',
           key: 'gender',
           width: 120,
-          filters: [
-            {
-              text: 'Male',
-              value: 'Male',
-            },
-            {
-              text: 'Female',
-              value: 'Female',
-            },
-          ],
-          filteredValue: filtered.gender || null,
           sorter: true,
           sortOrder: sorted.columnKey === 'gender' && sorted.order,
         },
@@ -399,21 +468,6 @@ export default {
           dataIndex: 'status',
           key: 'status',
           width: 150,
-          filters: [
-            {
-              text: 'Expats',
-              value: 'Expats',
-            },
-            {
-              text: 'Local ID',
-              value: 'Local ID',
-            },
-            {
-              text: 'Local non ID',
-              value: 'Local non ID',
-            },
-          ],
-          filteredValue: filtered.status || null,
           sorter: true,
           sortOrder: sorted.columnKey === 'status' && sorted.order,
         },
@@ -422,13 +476,6 @@ export default {
           dataIndex: 'id_type',
           key: 'id_type',
           width: 200,
-          filters: [
-            { text: 'Passport', value: 'Passport' },
-            { text: 'ThaiID', value: 'ThaiID' },
-            { text: 'National ID Card', value: 'National ID Card' },
-            { text: 'Work Permit', value: 'Work Permit' },
-          ],
-          filteredValue: filtered.id_type || null,
           sorter: true, // Backend supports sorting by id_type
           sortOrder: sorted.columnKey === 'id_type' && sorted.order,
         },
@@ -494,6 +541,11 @@ export default {
       }));
     },
     rowSelection() {
+      // Only show row selection if user has edit permission
+      if (!this.canEdit) {
+        return null;
+      }
+      
       return {
         // fix the column to the left
         fixed: 'left',
@@ -511,7 +563,7 @@ export default {
             text: 'Select SMRU Employees',
             onSelect: () => {
               const smruEmployees = this.employees
-                .filter(e => e.subsidiary === 'SMRU')
+                .filter(e => e.organization === 'SMRU')
                 .map(e => e.id);
               this.selectedRowKeys = smruEmployees;
             },
@@ -521,7 +573,7 @@ export default {
             text: 'Select BHF Employees',
             onSelect: () => {
               const bhfEmployees = this.employees
-                .filter(e => e.subsidiary === 'BHF')
+                .filter(e => e.organization === 'BHF')
                 .map(e => e.id);
               this.selectedRowKeys = bhfEmployees;
             },
@@ -578,53 +630,46 @@ export default {
         params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
       }
 
-      // Add filter parameters
-      if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
-        if (this.filteredInfo.subsidiary && this.filteredInfo.subsidiary.length > 0) {
-          params.filter_subsidiary = this.filteredInfo.subsidiary.join(',');
-        }
-        if (this.filteredInfo.status && this.filteredInfo.status.length > 0) {
-          params.filter_status = this.filteredInfo.status.join(',');
-        }
-        if (this.filteredInfo.gender && this.filteredInfo.gender.length > 0) {
-          params.filter_gender = this.filteredInfo.gender.join(',');
-        }
-        if (this.filteredInfo.id_type && this.filteredInfo.id_type.length > 0) {
-          params.filter_id_type = this.filteredInfo.id_type.join(',');
-        }
+      // Add filter parameters from dropdown filters
+      if (this.filterOrganization) {
+        params.filter_organization = this.filterOrganization;
+      }
+      if (this.filterStatus) {
+        params.filter_status = this.filterStatus;
+      }
+      if (this.filterGender) {
+        params.filter_gender = this.filterGender;
+      }
+      if (this.filterIdType) {
+        params.filter_id_type = this.filterIdType;
       }
 
       return params;
     },
 
-    // TABLE CHANGE HANDLER (for sorting/filtering only)
+    // TABLE CHANGE HANDLER (for sorting only - filters are handled separately)
     handleTableChange(pagination, filters, sorter) {
-      console.log('Table change (sorting/filtering):', filters, sorter);
+      console.log('Table change (sorting):', sorter);
 
-      // Check if there's actually a meaningful change
-      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
+      // Check if there's actually a meaningful sort change
       const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
 
-      // Only proceed if there's an actual filter or sort change
-      if (!hasFilterChange && !hasSorterChange) {
+      // Only proceed if there's an actual sort change
+      if (!hasSorterChange) {
         console.log('No meaningful change detected, skipping reload');
         return;
       }
 
-      // Update filter state
-      this.filteredInfo = filters;
-
       // Only update sorter if it's a real sort operation (has field and order)
-      // Don't preserve old sorting when only filtering
       if (sorter && sorter.field && sorter.order) {
         console.log('Applying sort:', sorter);
         this.sortedInfo = sorter;
       } else if (!sorter || (!sorter.field && !sorter.order)) {
-        console.log('Clearing sort (filtering only or no sort)');
+        console.log('Clearing sort');
         this.sortedInfo = {};
       }
 
-      // Reset to first page when filter/sort changes
+      // Reset to first page when sort changes
       this.currentPage = 1;
 
       // Build complete parameters
@@ -640,7 +685,7 @@ export default {
     // Map frontend table field names to backend field names
     mapSortField(field) {
       const fieldMapping = {
-        'subsidiary': 'subsidiary',
+        'organization': 'organization',
         'staff_id': 'staff_id',
         'fullName': 'first_name_en',
         'first_name_en': 'first_name_en',
@@ -655,6 +700,11 @@ export default {
     },
 
     clearFilters() {
+      // Clear dropdown filters
+      this.filterOrganization = undefined;
+      this.filterStatus = undefined;
+      this.filterGender = undefined;
+      this.filterIdType = undefined;
       this.filteredInfo = {};
       this.currentPage = 1;
 
@@ -667,6 +717,11 @@ export default {
     },
 
     clearAll() {
+      // Clear dropdown filters
+      this.filterOrganization = undefined;
+      this.filterStatus = undefined;
+      this.filterGender = undefined;
+      this.filterIdType = undefined;
       this.filteredInfo = {};
       this.sortedInfo = {};
       this.searchStaffId = '';
@@ -677,6 +732,28 @@ export default {
         per_page: this.pageSize
       });
 
+      this.fetchEmployees(params);
+    },
+
+    // Handle filter change from dropdown filters
+    handleFilterChange() {
+      console.log('Filter changed:', {
+        organization: this.filterOrganization,
+        status: this.filterStatus,
+        gender: this.filterGender,
+        idType: this.filterIdType
+      });
+
+      // Reset to first page when filter changes
+      this.currentPage = 1;
+
+      // Build complete parameters with new filters
+      const params = this.buildApiParams({
+        page: 1,
+        per_page: this.pageSize
+      });
+
+      // Fetch employees with new filter parameters
       this.fetchEmployees(params);
     },
 
@@ -759,9 +836,9 @@ export default {
               activeCount: response.statistics.activeCount || 0,
               inactiveCount: response.statistics.inactiveCount || 0,
               newJoinerCount: response.statistics.newJoinerCount || 0,
-              subsidiaryCount: {
-                SMRU_count: response.statistics.subsidiaryCount?.SMRU_count || 0,
-                BHF_count: response.statistics.subsidiaryCount?.BHF_count || 0
+              organizationCount: {
+                SMRU_count: response.statistics.organizationCount?.SMRU_count || 0,
+                BHF_count: response.statistics.organizationCount?.BHF_count || 0
               }
             };
           } else {
@@ -788,7 +865,7 @@ export default {
       return data.map(emp => ({
         key: emp.id,
         id: emp.id,
-        subsidiary: emp.subsidiary || 'N/A',
+        organization: emp.organization || 'N/A',
         staff_id: emp.staff_id || 'N/A',
         initials: emp.initial_en || 'N/A',
         first_name_en: emp.first_name_en || 'N/A',
@@ -823,9 +900,9 @@ export default {
         const joiningDate = e.joiningDate && new Date(e.joiningDate);
         return joiningDate && joiningDate >= threeMonthsAgo && joiningDate <= now;
       }).length;
-      this.statistics.subsidiaryCount = {
-        SMRU_count: this.employees.filter(e => e.subsidiary === 'SMRU').length,
-        BHF_count: this.employees.filter(e => e.subsidiary === 'BHF').length
+      this.statistics.organizationCount = {
+        SMRU_count: this.employees.filter(e => e.organization === 'SMRU').length,
+        BHF_count: this.employees.filter(e => e.organization === 'BHF').length
       };
     },
 

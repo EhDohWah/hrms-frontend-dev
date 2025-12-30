@@ -117,11 +117,11 @@ class EmploymentService extends BaseService {
      * @param {number} params.page - Page number (default: 1)
      * @param {number} params.per_page - Items per page (default: 10, max: 100)
      * @param {string} params.search - Search term for staff ID, employee name
-     * @param {string} params.filter_subsidiary - Filter by subsidiary
+     * @param {string} params.filter_organization - Filter by organization
      * @param {string} params.filter_employment_type - Filter by employment type
      * @param {string} params.filter_work_location - Filter by work location
      * @param {string} params.filter_status - Filter by employment status
-     * @param {string} params.sort_by - Column to sort by (staff_id, employee_name, employment_type, work_location, start_date, end_date, salary, subsidiary)
+     * @param {string} params.sort_by - Column to sort by (staff_id, employee_name, employment_type, work_location, start_date, end_date, salary, organization)
      * @param {string} params.sort_order - Sort order (asc, desc)
      * @param {boolean} params.include_inactive - Include inactive employments
      * @returns {Promise} API response with paginated employments data
@@ -145,6 +145,164 @@ class EmploymentService extends BaseService {
         return await this.handleApiResponse(
             () => apiService.get(API_ENDPOINTS.EMPLOYMENT.FILTER_OPTIONS || `${API_ENDPOINTS.EMPLOYMENT.LIST}/filter-options`),
             'fetch employment filter options'
+        );
+    }
+
+    /**
+     * Calculate allocation amount in real-time
+     * This is the AUTHORITATIVE method for all allocation calculations.
+     * Backend automatically selects correct salary (probation_salary vs pass_probation_salary) based on dates.
+     * 
+     * Calculation Rules (handled by backend):
+     * 1. If current date < pass_probation_date: use probation_salary (if available, else pass_probation_salary)
+     * 2. If current date >= pass_probation_date: use pass_probation_salary
+     * 3. Formula: (base_salary × fte%) / 100 = allocated_amount
+     * 
+     * @param {Object} data - Calculation parameters
+     * @param {number} data.employment_id - Employment record ID (for existing records, optional)
+     * @param {number} data.fte - FTE percentage (0-100) (required)
+     * @param {number} data.probation_salary - Probation salary (for new employment, optional)
+     * @param {number} data.pass_probation_salary - Post-probation salary (for new employment, required if no employment_id)
+     * @param {string} data.pass_probation_date - Pass probation date (for new employment, optional, format: 'YYYY-MM-DD')
+     * @param {string} data.start_date - Employment start date (for new employment, optional, format: 'YYYY-MM-DD')
+     * @param {string} data.calculation_date - Date to calculate for (defaults to today, format: 'YYYY-MM-DD')
+     * 
+     * @returns {Promise<Object>} Calculation result with:
+     *   - employment_id: Employment ID (if provided)
+     *   - fte: FTE percentage (as sent)
+     *   - fte_decimal: FTE as decimal (0.60 for 60%)
+     *   - base_salary: Salary used for calculation
+     *   - salary_type: Which salary field was used (probation_salary or pass_probation_salary)
+     *   - salary_type_label: Human-readable salary type label
+     *   - allocated_amount: Calculated amount (number)
+     *   - formatted_amount: Formatted currency string (e.g., "฿30,000.00")
+     *   - formatted_base_salary: Formatted base salary string
+     *   - calculation_formula: Human-readable calculation formula
+     *   - calculation_date: Date used for calculation
+     *   - pass_probation_date: Pass probation date (if available)
+     *   - start_date: Employment start date (if available)
+     *   - is_probation_period: Boolean indicating if in probation period
+     * 
+     * @example
+     * // For existing employment
+     * const result = await employmentService.calculateAllocationAmount({
+     *   employment_id: 123,
+     *   fte: 60
+     * });
+     * 
+     * @example
+     * // For new employment (before saving)
+     * const result = await employmentService.calculateAllocationAmount({
+     *   fte: 60,
+     *   probation_salary: 45000,
+     *   pass_probation_salary: 50000,
+     *   pass_probation_date: '2025-03-01',
+     *   start_date: '2024-12-01'
+     * });
+     * // Returns: { allocated_amount: 27000, formatted_amount: "฿27,000.00", salary_type: "probation_salary", ... }
+     */
+    async calculateAllocationAmount(data) {
+        return await this.handleApiResponse(
+            () => apiService.post(API_ENDPOINTS.EMPLOYMENT.CALCULATE_ALLOCATION, data),
+            'calculate allocation amount'
+        );
+    }
+
+    /**
+     * Manually complete probation for an employment
+     * This triggers probation completion process which:
+     * - Updates all funding allocations from probation_salary to pass_probation_salary
+     * - Creates employment history entry
+     * - Updates allocated_amount for each allocation
+     *
+     * Note: This is a manual trigger. Automated processing runs daily at 00:01
+     *
+     * @param {number} id - Employment ID
+     * @returns {Promise<Object>} Response with updated employment and allocations
+     *
+     * @example
+     * const result = await employmentService.completeProbation(123);
+     * // Returns: { success: true, data: { employment, updated_allocations } }
+     */
+    async completeProbation(id) {
+        const endpoint = API_ENDPOINTS.EMPLOYMENT.COMPLETE_PROBATION?.replace(':id', id)
+            || `/employments/${id}/complete-probation`;
+        return await this.handleApiResponse(
+            () => apiService.post(endpoint),
+            `complete probation for employment ${id}`
+        );
+    }
+
+    // Update probation status (passed/failed)
+    async updateProbationStatus(id, payload) {
+        const endpoint = API_ENDPOINTS.EMPLOYMENT.PROBATION_STATUS?.replace(':id', id)
+            || `/employments/${id}/probation-status`;
+        return await this.handleApiResponse(
+            () => apiService.post(endpoint, payload),
+            `update probation status for employment ${id}`
+        );
+    }
+
+    /**
+     * Get probation history for an employment
+     * Returns complete probation timeline including:
+     * - Initial probation record
+     * - Extension records (if any)
+     * - Pass/Fail records (if completed)
+     * - Summary statistics (total extensions, current status, etc.)
+     *
+     * @param {number} id - Employment ID
+     * @returns {Promise<Object>} Response with probation history data
+     *
+     * Response structure:
+     * {
+     *   success: true,
+     *   message: "Probation history retrieved successfully",
+     *   data: {
+     *     total_extensions: 1,
+     *     current_extension_number: 1,
+     *     probation_start_date: "2025-01-01",
+     *     initial_end_date: "2025-04-01",
+     *     current_end_date: "2025-05-01",
+     *     current_status: "extended",
+     *     current_event_type: "extension",
+     *     records: [
+     *       {
+     *         id: 1,
+     *         event_type: "initial",
+     *         event_date: "2025-01-01",
+     *         probation_start_date: "2025-01-01",
+     *         probation_end_date: "2025-04-01",
+     *         extension_number: 0,
+     *         is_active: false,
+     *         ...
+     *       },
+     *       {
+     *         id: 2,
+     *         event_type: "extension",
+     *         event_date: "2025-04-01",
+     *         probation_start_date: "2025-01-01",
+     *         probation_end_date: "2025-05-01",
+     *         previous_end_date: "2025-04-01",
+     *         extension_number: 1,
+     *         decision_reason: "Needs more time...",
+     *         is_active: true,
+     *         ...
+     *       }
+     *     ]
+     *   }
+     * }
+     *
+     * @example
+     * const history = await employmentService.getProbationHistory(123);
+     * console.log(history.data.total_extensions); // 1
+     * console.log(history.data.records); // Array of probation records
+     */
+    async getProbationHistory(id) {
+        const endpoint = API_ENDPOINTS.EMPLOYMENT.PROBATION_HISTORY.replace(':id', id);
+        return await this.handleApiResponse(
+            () => apiService.get(endpoint),
+            `fetch probation history for employment ${id}`
         );
     }
 }

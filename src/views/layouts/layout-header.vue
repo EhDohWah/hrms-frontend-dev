@@ -95,8 +95,13 @@
                 </div>
                 <div class="noti-content">
                   <div v-if="notifications.length" class="d-flex flex-column">
-                    <div v-for="(notification, idx) in notifications" :key="idx" class="border-bottom mb-3 pb-3"
-                      :class="{ 'bg-light': !notification.read_at }">
+                    <router-link
+                      v-for="(notification, idx) in notifications"
+                      :key="idx"
+                      :to="`/notifications/${notification.id}`"
+                      class="notification-item-link border-bottom mb-3 pb-3 text-decoration-none"
+                      :class="{ 'bg-light': !notification.read_at }"
+                      @click="handleNotificationClick(notification)">
                       <div class="d-flex">
                         <div class="avatar avatar-sm me-3 flex-shrink-0">
                           <div
@@ -105,13 +110,13 @@
                           </div>
                         </div>
                         <div class="flex-grow-1">
-                          <p class="mb-1 fw-medium">{{ getNotificationMessage(notification) }}</p>
+                          <p class="mb-1 fw-medium text-dark">{{ getNotificationMessage(notification) }}</p>
                           <small class="text-muted">{{ formatNotificationDate(notification) }}</small>
                           <span v-if="!notification.read_at" class="badge bg-primary ms-2"
                             style="font-size: 10px;">New</span>
                         </div>
                       </div>
-                    </div>
+                    </router-link>
                   </div>
                   <div v-else class="text-center py-4">
                     <div class="avatar avatar-lg mx-auto mb-3">
@@ -126,9 +131,8 @@
                 </div>
 
                 <div class="d-flex p-0" v-if="notifications.length">
-                  <a href="javascript:void(0);" class="btn btn-light w-100 me-2" data-bs-toggle="collapse"
-                    data-bs-target="#notification-dropdown">Close</a>
-                  <router-link to="/crm/activity" class="btn btn-primary w-100">View All</router-link>
+                  <a href="javascript:void(0);" class="btn btn-light w-100 me-2" @click="closeDropdown">Close</a>
+                  <router-link to="/notifications" class="btn btn-primary w-100" @click="closeDropdown">View All</router-link>
                 </div>
               </div>
             </div>
@@ -187,8 +191,6 @@
       <!-- /Mobile Menu -->
     </div>
   </div>
-  <theme-settings></theme-settings>
-
 </template>
 <script>
 import { computed } from 'vue';
@@ -306,6 +308,8 @@ export default {
       this.authStore.justLoggedIn = false;
     }
 
+    // Initialize notification dropdown animation
+    this.initNotificationDropdown();
   },
 
   computed: {
@@ -378,6 +382,24 @@ export default {
 
       // For older notifications, show the actual date
       return notificationDate.toLocaleDateString();
+    },
+
+    handleNotificationClick(notification) {
+      // Close the dropdown when a notification is clicked
+      this.closeDropdown();
+    },
+
+    closeDropdown() {
+      // Close Bootstrap dropdown
+      const notificationButton = document.getElementById('notification_popup');
+      if (notificationButton) {
+        const dropdown = window.bootstrap?.Dropdown?.getInstance(notificationButton);
+        if (dropdown) {
+          dropdown.hide();
+          // Remove focus to prevent stuck hover state
+          notificationButton.blur();
+        }
+      }
     },
 
     handleClick(event) {
@@ -497,6 +519,89 @@ export default {
     },
     openSubmenuOne(subMenus) {
       this.openSubmenuOneItem = this.openSubmenuOneItem === subMenus ? null : subMenus;
+    },
+    initNotificationDropdown() {
+      this.$nextTick(() => {
+        const notificationButton = document.getElementById('notification_popup');
+        const notificationDropdown = notificationButton?.nextElementSibling;
+
+        if (notificationButton && notificationDropdown) {
+          let isClosing = false;
+
+          // Listen for Bootstrap dropdown show event (before shown)
+          notificationButton.addEventListener('show.bs.dropdown', () => {
+            isClosing = false;
+            // Ensure dropdown is visible for transition
+            notificationDropdown.style.display = 'block';
+            // Small delay to allow display to be set, then trigger animation
+            setTimeout(() => {
+              notificationDropdown.classList.add('show');
+            }, 10);
+          });
+
+          // Listen for Bootstrap dropdown shown event
+          notificationButton.addEventListener('shown.bs.dropdown', () => {
+            // Ensure show class is present for animation
+            notificationDropdown.classList.add('show');
+          });
+
+          // Listen for Bootstrap dropdown hide event to trigger exit animation
+          notificationButton.addEventListener('hide.bs.dropdown', (e) => {
+            // Prevent Bootstrap from immediately hiding (which cuts off the transition)
+            if (!isClosing) {
+              e.preventDefault();
+              isClosing = true;
+
+              // Remove .show class from button immediately to clear hover/active state
+              notificationButton.classList.remove('show');
+              notificationButton.setAttribute('aria-expanded', 'false');
+              
+              // Remove show class from dropdown to trigger exit animation
+              notificationDropdown.classList.remove('show');
+              
+              // Keep display: block during transition to allow animation
+              notificationDropdown.style.display = 'block';
+              
+              // Wait for CSS transition to complete (300ms matches CSS transition duration)
+              setTimeout(() => {
+                if (isClosing) {
+                  // Get the dropdown instance
+                  const dropdown = window.bootstrap?.Dropdown?.getInstance(notificationButton);
+                  if (dropdown) {
+                    // Complete the hide process
+                    notificationDropdown.style.display = '';
+                    notificationDropdown.classList.remove('show');
+                    // Update Bootstrap's internal state
+                    dropdown._isShown = false;
+                    // Remove aria attributes
+                    notificationButton.setAttribute('aria-expanded', 'false');
+                    // Remove .show class from button to clear hover/active state
+                    notificationButton.classList.remove('show');
+                    // Remove focus to clear any focus state
+                    notificationButton.blur();
+                    // Trigger the hidden event manually
+                    const hiddenEvent = new Event('hidden.bs.dropdown', { bubbles: true, cancelable: true });
+                    notificationButton.dispatchEvent(hiddenEvent);
+                  }
+                  isClosing = false;
+                }
+              }, 300); // Match the CSS transition duration (0.3s = 300ms)
+            }
+          });
+
+          // Clean up after hidden
+          notificationButton.addEventListener('hidden.bs.dropdown', () => {
+            // Ensure show class is removed and reset display
+            notificationDropdown.classList.remove('show');
+            notificationDropdown.style.display = '';
+            // Remove .show class from button to clear hover/active state
+            notificationButton.classList.remove('show');
+            // Remove focus to clear any focus state
+            notificationButton.blur();
+            isClosing = false;
+          });
+        }
+      });
     },
     async handleLogout() {
       try {

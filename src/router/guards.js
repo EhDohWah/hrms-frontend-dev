@@ -1,5 +1,5 @@
 import { authService } from '@/services/auth.service';
-import { initEcho, disconnectEcho, isEchoInitialized } from '@/plugins/echo';
+import { initEcho, disconnectEcho, isEchoInitialized, initPermissionUpdateListener } from '@/plugins/echo';
 
 export const authGuard = (to, from, next) => {
     const isAuthenticated = authService.isAuthenticated();
@@ -29,27 +29,20 @@ export const authGuard = (to, from, next) => {
     // ----> Echo initialization logic here
     if (isAuthenticated && token && !isEchoInitialized()) {
         initEcho(token);
+
+        // Initialize permission update listener for real-time permission sync
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (user?.id) {
+            initPermissionUpdateListener(user.id);
+        }
     }
 
 
-    // Handle root path redirection based on role
+    // Handle root path redirection to dynamic dashboard
     if (isAuthenticated && to.path === '/') {
-        const userRole = localStorage.getItem('userRole')?.toLowerCase();
-
-        switch (userRole) {
-            case 'admin':
-                return next('/dashboard/admin-dashboard');
-            case 'hr-manager':
-                return next('/dashboard/hr-manager-dashboard');
-            case 'hr-assistant-senior':
-                return next('/dashboard/hr-assistant-senior-dashboard');
-            case 'hr-assistant-junior':
-                return next('/dashboard/hr-assistant-junior-dashboard');
-            case 'site-admin':
-                return next('/dashboard/site-admin-dashboard');
-            default:
-                return next('/login');
-        }
+        // All authenticated users go to the dynamic dashboard
+        // Widget visibility is handled by permissions on the dashboard itself
+        return next('/dashboard');
     }
 
     if (authRequired && !isAuthenticated) {
@@ -59,30 +52,35 @@ export const authGuard = (to, from, next) => {
     }
 
     if (isAuthenticated && publicPages.includes(to.path)) {
-        const userRole = localStorage.getItem('userRole')?.toLowerCase();
+        // Check if there's an intended route - if so, let the login component handle the redirect
+        const intendedRoute = localStorage.getItem('intendedRoute');
 
-        switch (userRole) {
-            case 'admin':
-                return next('/dashboard/admin-dashboard');
-            case 'hr-manager':
-                return next('/dashboard/hr-manager-dashboard');
-            case 'hr-assistant-senior':
-                return next('/dashboard/hr-assistant-senior-dashboard');
-            case 'hr-assistant-junior':
-                return next('/dashboard/hr-assistant-junior-dashboard');
-            case 'site-admin':
-                return next('/dashboard/site-admin-dashboard');
-            default:
-                return next('/dashboard/site-admin-dashboard');
+        console.log('🔍 intendedRoute from localStorage:', intendedRoute);
+
+        if (intendedRoute && intendedRoute !== '/login' && intendedRoute !== to.path) {
+            // There's an intended route, allow navigation to continue
+            // The login component will handle the redirect
+            return next();
         }
+
+        // No intended route, redirect to dynamic dashboard
+        // All authenticated users use the same dashboard with permission-based widgets
+        return next('/dashboard');
     }
 
     next();
 };
 
-export const roleGuard = (allowedRoles) => {
+/**
+ * Role Guard - allows access based on user role OR permissions
+ * For dynamic roles not in the allowedRoles list, it falls back to permission checking
+ * @param {string[]} allowedRoles - Array of allowed role names
+ * @param {string|string[]} fallbackPermissions - Permission(s) to check if role not in allowedRoles (optional)
+ */
+export const roleGuard = (allowedRoles, fallbackPermissions = null) => {
     return (to, from, next) => {
         const userRole = localStorage.getItem('userRole');
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
 
         if (!userRole) {
             return next('/login');
@@ -92,14 +90,51 @@ export const roleGuard = (allowedRoles) => {
         const userRoleLower = userRole.toLowerCase();
         const allowedRolesLower = allowedRoles.map(role => role.toLowerCase());
 
+        // Check if user's role is in the allowed roles list
         if (allowedRolesLower.includes(userRoleLower)) {
-            next();
-        } else {
-            next('/unauthorized');
+            return next();
         }
+
+        // For dynamic roles not in the list, check fallback permissions
+        if (fallbackPermissions) {
+            const permArray = Array.isArray(fallbackPermissions) ? fallbackPermissions : [fallbackPermissions];
+            const hasPermission = permArray.some(perm => permissions.includes(perm));
+            if (hasPermission) {
+                return next();
+            }
+        }
+
+        // If no fallback permissions specified, try to infer from route path
+        // This allows dynamic roles with appropriate permissions to access routes
+        const routePath = to.path.toLowerCase();
+        const routeSegments = routePath.split('/').filter(s => s);
+        
+        if (routeSegments.length > 0) {
+            const moduleName = routeSegments[0]; // e.g., 'employee', 'attendance', etc.
+            
+            // Check for common permission patterns
+            const readPermissions = [
+                `${moduleName}.read`,
+                `${moduleName}s.read`, // plural form
+                `${moduleName.replace(/-/g, '_')}.read`, // with underscores
+            ];
+            
+            const hasModulePermission = readPermissions.some(perm => permissions.includes(perm));
+            if (hasModulePermission) {
+                console.log(`[RoleGuard] Dynamic role ${userRole} granted access to ${routePath} via permission`);
+                return next();
+            }
+        }
+
+        console.warn(`[RoleGuard] Access denied for role: ${userRole} to ${to.path}`);
+        next('/unauthorized');
     };
 };
 
+/**
+ * Permission Guard - allows access based on specific permission(s)
+ * @param {string|string[]} requiredPermission - Permission(s) required for access
+ */
 export const permissionGuard = (requiredPermission) => {
     return (to, from, next) => {
         const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
@@ -108,9 +143,16 @@ export const permissionGuard = (requiredPermission) => {
             return next('/login');
         }
 
-        if (permissions.includes(requiredPermission)) {
+        // Support both single permission and array of permissions
+        const permArray = Array.isArray(requiredPermission) ? requiredPermission : [requiredPermission];
+        
+        // User needs at least one of the required permissions
+        const hasPermission = permArray.some(perm => permissions.includes(perm));
+        
+        if (hasPermission) {
             next();
         } else {
+            console.warn(`[PermissionGuard] Access denied - missing permission: ${requiredPermission}`);
             next('/unauthorized');
         }
     };

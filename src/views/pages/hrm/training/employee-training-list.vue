@@ -7,14 +7,26 @@
         <div class="content">
             <!-- Breadcrumb -->
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-                <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                <div class="d-flex align-items-center">
+                    <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                    <!-- Read-Only Badge -->
+                    <span 
+                        v-if="isReadOnlyEmployeeTraining" 
+                        class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="You have view-only access to this module"
+                    >
+                        <i class="ti ti-eye me-1"></i> Read Only
+                    </span>
+                </div>
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-                    <div class="mb-2 me-2">
+                    <div v-if="canEditEmployeeTraining" class="mb-2 me-2">
                         <button class="btn btn-primary d-flex align-items-center" @click="openAddEmployeeTrainingModal">
                             <i class="ti ti-circle-plus me-2"></i>Assign Employee to Training
                         </button>
                     </div>
-                    <div class="mb-2 me-2">
+                    <div v-if="canEditEmployeeTraining" class="mb-2 me-2">
                         <button class="btn btn-danger d-flex align-items-center"
                             @click="confirmDeleteSelectedEmployeeTrainings"
                             :class="{ 'disabled': selectedRowKeys.length === 0 }">
@@ -301,6 +313,7 @@ import { useEmployeeTrainingStore } from '@/stores/employeeTrainingStore';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import EmployeeTrainingModal from '@/components/modal/employee-training-modal.vue';
 import { message } from 'ant-design-vue';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
     name: 'EmployeeTrainingList',
@@ -308,7 +321,24 @@ export default {
         indexBreadcrumb,
         EmployeeTrainingModal
     },
+    setup() {
+        // Initialize permission checks for employee_training module
+        const { 
+            canRead, 
+            canEdit, 
+            isReadOnly, 
+            accessLevelText, 
+            accessLevelBadgeClass 
+        } = usePermissions('employee_training');
 
+        return {
+            canRead,
+            canEdit,
+            isReadOnly,
+            accessLevelText,
+            accessLevelBadgeClass
+        };
+    },
     data() {
         return {
             title: 'Employee Training Management',
@@ -377,6 +407,29 @@ export default {
     },
 
     computed: {
+        // Permission checks - primary source for reactivity
+        canEditEmployeeTraining() {
+            try {
+                const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+                const hasEdit = Array.isArray(permissions) && permissions.includes('employee_training.edit');
+                return hasEdit || (this.canEdit?.value ?? false);
+            } catch (e) {
+                console.error('[EmployeeTrainingList] Error checking permissions:', e);
+                return this.canEdit?.value ?? false;
+            }
+        },
+        canReadEmployeeTraining() {
+            try {
+                const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+                const hasRead = Array.isArray(permissions) && permissions.includes('employee_training.read');
+                return hasRead || (this.canRead?.value ?? false);
+            } catch (e) {
+                return this.canRead?.value ?? false;
+            }
+        },
+        isReadOnlyEmployeeTraining() {
+            return this.canReadEmployeeTraining && !this.canEditEmployeeTraining;
+        },
         tableData() {
             return this.employeeTrainingStore.employeeTrainings;
         },

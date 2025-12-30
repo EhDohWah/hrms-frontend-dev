@@ -2,8 +2,17 @@ import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
 class NotificationService {
-    async getNotifications() {
-        return apiService.get(API_ENDPOINTS.NOTIFICATION.LIST);
+    async getNotifications(params = {}) {
+        return apiService.get(API_ENDPOINTS.NOTIFICATION.LIST, { params });
+    }
+
+    async getNotificationById(id) {
+        return apiService.get(`${API_ENDPOINTS.NOTIFICATION.LIST}/${id}`);
+    }
+
+    async markAsRead(id) {
+        const endpoint = API_ENDPOINTS.NOTIFICATION.MARK_READ.replace(':id', id);
+        return apiService.post(endpoint);
     }
 
     async markAllNotificationsRead() {
@@ -12,3 +21,4 @@ class NotificationService {
 }
 
 export const notificationService = new NotificationService();
+

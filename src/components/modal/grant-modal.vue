@@ -43,27 +43,27 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
-                  <label class="form-label" for="grant-subsidiary">Subsidiary</label>
+                  <label class="form-label" for="grant-organization">Organization</label>
                   <div style="display: flex; align-items: center;">
-                    <select id="grant-subsidiary" v-model="formData.subsidiary" class="form-control"
-                      :class="{ 'is-invalid': validationErrors.subsidiary }" required @change="handleFormChange"
+                    <select id="grant-organization" v-model="formData.organization" class="form-control"
+                      :class="{ 'is-invalid': validationErrors.organization }" required @change="handleFormChange"
                       style="flex: 1;">
-                      <option value="" disabled>Select a subsidiary</option>
-                      <option v-for="subsidiary in subsidiaries" :key="subsidiary.id" :value="subsidiary.value" :class="[
-                        subsidiary.value === 'SMRU' ? 'text-primary' :
-                          subsidiary.value === 'BHF' ? 'text-primary' :
+                      <option value="" disabled>Select a organization</option>
+                      <option v-for="organization in subsidiaries" :key="organization.id" :value="organization.value" :class="[
+                        organization.value === 'SMRU' ? 'text-primary' :
+                          organization.value === 'BHF' ? 'text-primary' :
                             'text-secondary'
                       ]">
-                        {{ subsidiary.value }}
+                        {{ organization.value }}
                       </option>
                     </select>
                     <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Select the subsidiary organization for this grant (SMRU or BHF)" style="margin-left: 8px;">
+                      title="Select the organization organization for this grant (SMRU or BHF)" style="margin-left: 8px;">
                       <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
                     </span>
                   </div>
-                  <div v-if="validationErrors.subsidiary" class="invalid-feedback">
-                    {{ validationErrors.subsidiary }}
+                  <div v-if="validationErrors.organization" class="invalid-feedback">
+                    {{ validationErrors.organization }}
                   </div>
                 </div>
               </div>
@@ -195,7 +195,7 @@ export default {
         code: '',
         description: '',
         end_date: null,
-        subsidiary: ''
+        organization: ''
       },
 
       // Form persistence properties
@@ -652,8 +652,8 @@ export default {
           isValid = false;
         }
 
-        if (!this.formData.subsidiary) {
-          this.validationErrors.subsidiary = 'Please select a subsidiary';
+        if (!this.formData.organization) {
+          this.validationErrors.organization = 'Please select a organization';
           isValid = false;
         }
 
@@ -661,11 +661,11 @@ export default {
       }
     },
 
-    // Get subsidiary data from lookups
+    // Get organization data from lookups
     async fetchSubsidiaries() {
       try {
         const lookupStore = useLookupStore();
-        const subsidiaries = lookupStore.getLookupsByType('subsidiary');
+        const subsidiaries = lookupStore.getLookupsByType('organization');
         return subsidiaries || [];
       } catch (error) {
         console.error('Error fetching subsidiaries:', error);
@@ -673,13 +673,13 @@ export default {
       }
     },
 
-    // Initialize subsidiary data when component is created
+    // Initialize organization data when component is created
     async initSubsidiaries() {
       const lookupStore = useLookupStore();
       if (!lookupStore.lookups.length) {
         await lookupStore.fetchAllLookupLists();
       }
-      this.subsidiaries = lookupStore.getLookupsByType('subsidiary');
+      this.subsidiaries = lookupStore.getLookupsByType('organization');
     },
 
     // Format date to YYYY-MM-DD format
@@ -842,7 +842,7 @@ export default {
       const fieldNames = {
         'name': 'Grant Name',
         'code': 'Grant Code',
-        'subsidiary': 'Subsidiary',
+        'organization': 'Organization',
         'description': 'Description',
         'end_date': 'End Date'
       };
@@ -901,7 +901,7 @@ export default {
         code: '',
         description: '',
         end_date: null,
-        subsidiary: ''
+        organization: ''
       };
       this.isDraftMode = false;
       this.hasUnsavedChanges = false;

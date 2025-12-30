@@ -6,7 +6,19 @@
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnly" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="d-flex align-items-center me-2">
             <select class="form-select form-select-sm me-2" v-model="selectedYear" @change="handleYearChange"
@@ -64,13 +76,24 @@
               </p>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-outline-primary btn-sm d-flex align-items-center" @click="bulkUpdateTaxSettings"
-                :disabled="selectedTaxSettingKeys.length === 0">
+              <!-- Bulk Update Button - Only visible if user can edit -->
+              <button 
+                v-if="canEdit" 
+                class="btn btn-outline-primary btn-sm d-flex align-items-center" 
+                @click="bulkUpdateTaxSettings"
+                :disabled="selectedTaxSettingKeys.length === 0"
+              >
                 <i class="ti ti-upload me-1"></i>Bulk Update
               </button>
-              <button class="btn btn-primary btn-sm d-flex align-items-center" @click="openAddTaxSettingModal">
+              <!-- Create Setting Button - Only visible if user can edit -->
+              <button 
+                v-if="canEdit" 
+                class="btn btn-primary btn-sm d-flex align-items-center" 
+                @click="openAddTaxSettingModal"
+              >
                 <i class="ti ti-plus me-1"></i>Create Setting
               </button>
+              <!-- Export Button - Always visible -->
               <button class="btn btn-outline-secondary btn-sm d-flex align-items-center" @click="exportToExcel">
                 <i class="ti ti-download me-1"></i>Export
               </button>
@@ -219,8 +242,13 @@
                       </td>
                       <td>
                         <div class="form-check form-switch">
-                          <input class="form-check-input" type="checkbox" :checked="record.is_selected"
-                            @change="toggleTaxSetting(record.id)" :disabled="taxSettingsLoading">
+                          <input 
+                            class="form-check-input" 
+                            type="checkbox" 
+                            :checked="record.is_selected"
+                            @change="toggleTaxSetting(record.id)" 
+                            :disabled="taxSettingsLoading || !canEdit"
+                          >
                           <label class="form-check-label small"
                             :class="record.is_selected ? 'text-success' : 'text-muted'">
                             {{ record.is_selected ? 'Active' : 'Inactive' }}
@@ -235,10 +263,15 @@
                           <ul class="dropdown-menu dropdown-menu-end">
                             <li>
                               <a class="dropdown-item" @click="editTaxSetting(record)">
+                                <i class="ti ti-eye me-2"></i>View
+                              </a>
+                            </li>
+                            <li v-if="canEdit">
+                              <a class="dropdown-item" @click="editTaxSetting(record)">
                                 <i class="ti ti-edit me-2"></i>Edit
                               </a>
                             </li>
-                            <li>
+                            <li v-if="canEdit">
                               <a class="dropdown-item text-danger" @click="confirmDeleteTaxSetting(record.id)">
                                 <i class="ti ti-trash me-2"></i>Delete
                               </a>
@@ -541,10 +574,15 @@
                           <ul class="dropdown-menu dropdown-menu-end">
                             <li>
                               <a class="dropdown-item" @click="editTaxBracket(record)">
+                                <i class="ti ti-eye me-2"></i>View
+                              </a>
+                            </li>
+                            <li v-if="canEdit">
+                              <a class="dropdown-item" @click="editTaxBracket(record)">
                                 <i class="ti ti-edit me-2"></i>Edit
                               </a>
                             </li>
-                            <li>
+                            <li v-if="canEdit">
                               <a class="dropdown-item text-danger" @click="confirmDeleteTaxBracket(record.id)">
                                 <i class="ti ti-trash me-2"></i>Delete
                               </a>
@@ -894,11 +932,30 @@ import { taxCalculationsService } from '@/services/tax-calculations.service';
 import TaxSettingsModal from '@/components/modal/tax-settings-modal.vue';
 import TaxBracketsModal from '@/components/modal/tax-brackets-modal.vue';
 import { debounce } from 'lodash';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
   components: {
     TaxSettingsModal,
     TaxBracketsModal
+  },
+  setup() {
+    // Initialize permission checks for tax_settings module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('tax_settings');
+    
+    return {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
   },
   data() {
     return {

@@ -55,7 +55,7 @@
                                                     @blur="onEmployeeSearchBlur" @keydown="onEmployeeKeyDown"
                                                     class="form-control"
                                                     :class="{ 'is-invalid': validationErrors.employee_id }"
-                                                    placeholder="Type to search by Staff ID, Name, or Subsidiary..."
+                                                    placeholder="Type to search by Staff ID, Name, or Organization..."
                                                     autocomplete="off" />
 
                                                 <!-- Clear button -->
@@ -79,7 +79,7 @@
                                                                 <strong>{{ employee.staff_id }}</strong> - {{
                                                                     employee.name }}
                                                             </div>
-                                                            <small class="text-muted">[{{ employee.subsidiary
+                                                            <small class="text-muted">[{{ employee.organization
                                                             }}]</small>
                                                         </div>
                                                         <small class="text-muted">{{ employee.status }}</small>
@@ -546,7 +546,7 @@ export default {
                 return (
                     employee.staff_id.toLowerCase().includes(query) ||
                     employee.name.toLowerCase().includes(query) ||
-                    employee.subsidiary.toLowerCase().includes(query)
+                    employee.organization.toLowerCase().includes(query)
                 );
             });
         },
@@ -691,9 +691,9 @@ export default {
                 // Fallback to static data
                 this.employeeTreeData = [];
                 this.employees = [
-                    { id: 1, name: 'Anthony Lewis', staff_id: 'EMP001', subsidiary: 'DEMO' },
-                    { id: 2, name: 'Brian Villalobos', staff_id: 'EMP002', subsidiary: 'DEMO' },
-                    { id: 3, name: 'Harvey Smith', staff_id: 'EMP003', subsidiary: 'DEMO' }
+                    { id: 1, name: 'Anthony Lewis', staff_id: 'EMP001', organization: 'DEMO' },
+                    { id: 2, name: 'Brian Villalobos', staff_id: 'EMP002', organization: 'DEMO' },
+                    { id: 3, name: 'Harvey Smith', staff_id: 'EMP003', organization: 'DEMO' }
                 ];
             }
         },
@@ -702,9 +702,9 @@ export default {
         flattenEmployeeTree(treeData) {
             const flattened = [];
 
-            const flatten = (nodes, parentSubsidiary = null) => {
+            const flatten = (nodes, parentOrganization = null) => {
                 for (const node of nodes) {
-                    // Skip subsidiary nodes (they don't have numeric values)
+                    // Skip organization nodes (they don't have numeric values)
                     if (node.value && node.title && !isNaN(node.value)) {
                         // Extract staff ID from title (format: "0001 - Name")
                         const staffIdMatch = node.title.match(/^(\d+)\s*-\s*(.+)$/);
@@ -715,7 +715,7 @@ export default {
                             id: parseInt(node.value),
                             name: employeeName,
                             staff_id: staffId,
-                            subsidiary: parentSubsidiary,
+                            organization: parentOrganization,
                             status: node.status || '',
                             fullTitle: node.title, // Keep original title for display
                             department_id: node.department_id || null,
@@ -723,10 +723,10 @@ export default {
                         });
                     }
 
-                    // Process children and pass down subsidiary info
+                    // Process children and pass down organization info
                     if (node.children && node.children.length > 0) {
-                        const subsidiary = node.title === 'SMRU' || node.title === 'BHF' ? node.title : parentSubsidiary;
-                        flatten(node.children, subsidiary);
+                        const organization = node.title === 'SMRU' || node.title === 'BHF' ? node.title : parentOrganization;
+                        flatten(node.children, organization);
                     }
                 }
             };
@@ -1015,7 +1015,7 @@ export default {
             this.formData.employee_id = employee.id;
             console.log('✅ Employee selected - formData.employee_id set to:', this.formData.employee_id);
 
-            this.employeeSearchQuery = `${employee.staff_id} - ${employee.name} [${employee.subsidiary}]`;
+            this.employeeSearchQuery = `${employee.staff_id} - ${employee.name} [${employee.organization}]`;
             this.showEmployeeDropdown = false;
             this.selectedEmployeeIndex = -1;
 

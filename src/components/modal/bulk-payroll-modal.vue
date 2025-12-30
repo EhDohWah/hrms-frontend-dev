@@ -119,7 +119,7 @@
                     placeholder="Search by name or ID..." @input="handleEmployeeSearch" />
                 </div>
                 <div class="col-md-3">
-                  <a-select v-model:value="employeeFilters.subsidiary" class="w-100" placeholder="All Subsidiaries"
+                  <a-select v-model:value="employeeFilters.organization" class="w-100" placeholder="All Subsidiaries"
                     allow-clear @change="handleEmployeeFilterChange">
                     <a-select-option v-for="sub in availableSubsidiaries" :key="sub" :value="sub">
                       {{ sub }}
@@ -338,7 +338,7 @@ export default {
     const selectedEmployees = ref([]);
     const employeeFilters = reactive({
       search: '',
-      subsidiary: null,
+      organization: null,
       department: null,
       status: 'active',
     });
@@ -377,8 +377,8 @@ export default {
           emp.staff_id.toLowerCase().includes(search)
         );
       }
-      if (employeeFilters.subsidiary) {
-        filtered = filtered.filter(emp => emp.subsidiary === employeeFilters.subsidiary);
+      if (employeeFilters.organization) {
+        filtered = filtered.filter(emp => emp.organization === employeeFilters.organization);
       }
       if (employeeFilters.department) {
         filtered = filtered.filter(emp => emp.department === employeeFilters.department);
@@ -509,7 +509,7 @@ export default {
             id: emp.id,
             staff_id: emp.employee?.staff_id || 'N/A',
             name: `${emp.employee?.first_name_en || ''} ${emp.employee?.last_name_en || ''}`.trim(),
-            subsidiary: emp.employee?.subsidiary || 'N/A',
+            organization: emp.employee?.organization || 'N/A',
             department: emp.department?.name || 'N/A',
             position: emp.position?.title || 'N/A',
             status: emp.employment_status || 'active',
@@ -608,7 +608,7 @@ export default {
       employees.value = [];
       Object.keys(formErrors).forEach(key => formErrors[key] = '');
       employeeFilters.search = '';
-      employeeFilters.subsidiary = null;
+      employeeFilters.organization = null;
       employeeFilters.department = null;
       employeeFilters.status = 'active';
       employeeCurrentPage.value = 1;
@@ -630,7 +630,7 @@ export default {
       if (!lookupStore.lookups.length) {
         await lookupStore.fetchAllLookupLists();
       }
-      const subsidiaries = lookupStore.getLookupsByType('subsidiary');
+      const subsidiaries = lookupStore.getLookupsByType('organization');
       availableSubsidiaries.value = subsidiaries.map(sub => sub.value).filter(Boolean);
 
       if (!sharedStore.isDepartmentsLoaded) {

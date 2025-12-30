@@ -59,23 +59,24 @@
                       ref="employeeSearchInput">
                   </div>
                   <div class="dropdown-body" ref="dropdownBody" @scroll="handleDropdownScroll">
-                    <div v-for="subsidiary in filteredEmployeeTree" :key="subsidiary.key" class="subsidiary-group">
-                      <div class="subsidiary-header" @click="toggleSubsidiary(subsidiary.key)">
-                        <i class="ti" :class="subsidiary.expanded ? 'ti-chevron-down' : 'ti-chevron-right'"></i>
-                        <span class="subsidiary-name">{{ subsidiary.title }}</span>
-                        <span class="employee-count">({{ subsidiary.children?.length || 0 }})</span>
+                    <div v-for="organization in filteredEmployeeTree" :key="organization.key"
+                      class="organization-group">
+                      <div class="organization-header" @click="toggleOrganization(organization.key)">
+                        <i class="ti" :class="organization.expanded ? 'ti-chevron-down' : 'ti-chevron-right'"></i>
+                        <span class="organization-name">{{ organization.title }}</span>
+                        <span class="employee-count">({{ organization.children?.length || 0 }})</span>
                       </div>
-                      <div v-if="subsidiary.expanded" class="employees-list">
+                      <div v-if="organization.expanded" class="employees-list">
                         <!-- VIRTUALIZED EMPLOYEE LIST FOR PERFORMANCE -->
-                        <div v-for="employee in getVisibleEmployees(subsidiary.children)" :key="employee.key"
+                        <div v-for="employee in getVisibleEmployees(organization.children)" :key="employee.key"
                           class="employee-item" :class="{ 'selected': formData.employee_id === employee.value }"
                           @click="selectEmployee(employee)">
                           <span class="employee-name">{{ employee.title }}</span>
                           <small class="employee-info">ID: {{ employee.staff_id || 'N/A' }}</small>
                         </div>
                         <!-- Show "Load More" if there are more employees -->
-                        <div v-if="hasMoreEmployees(subsidiary.children)" class="load-more-button">
-                          <button @click="loadMoreEmployees(subsidiary.key)" class="btn-load-more">
+                        <div v-if="hasMoreEmployees(organization.children)" class="load-more-button">
+                          <button @click="loadMoreEmployees(organization.key)" class="btn-load-more">
                             Load More Employees...
                           </button>
                         </div>
@@ -95,12 +96,12 @@
               </div>
             </div>
 
-            <div v-if="selectedEmployeeInfo" class="employee-info-card mb-3" style="margin-top: 16px;">
+            <div v-if="selectedEmployeeInfo" class="employee-info-card mb-3" style="margin-top: 12px;">
               <div class="card-body">
                 <h6 class="card-title">Selected Employee</h6>
                 <p class="card-text">
                   <strong>{{ selectedEmployeeInfo.name }}</strong><br>
-                  <small class="text-muted">Subsidiary: {{ selectedEmployeeInfo.subsidiary }}</small><br>
+                  <small class="text-muted">Organization: {{ selectedEmployeeInfo.organization }}</small><br>
                   <small class="text-muted">Status:
                     <span :class="[
                       'badge badge-sm',
@@ -180,8 +181,22 @@
               </div>
             </div>
 
-            <!-- Row 4: Section Department (kept as separate lookup) -->
+            <!-- Row 4: Site + Section Department -->
             <div class="date-row">
+              <div class="form-group">
+                <label class="form-label required">Site</label>
+                <select class="form-control" v-model="formData.site_id"
+                  :class="{ 'is-invalid': validationErrors.site_id }" required @change="saveFormState">
+                  <option disabled value="">Select Site</option>
+                  <option v-for="location in workLocations" :key="location.id" :value="location.id">
+                    {{ location.name }}
+                  </option>
+                </select>
+                <div v-if="validationErrors.site_id" class="invalid-feedback">
+                  {{ validationErrors.site_id }}
+                </div>
+              </div>
+
               <div class="form-group">
                 <label class="form-label">Section Department</label>
                 <select class="form-control" v-model="formData.section_department"
@@ -199,11 +214,11 @@
               </div>
             </div>
 
+            <!-- Row 5: Start Date + Pass Probation Date -->
             <div class="date-row">
               <div class="form-group">
                 <label class="form-label required">Start Date</label>
                 <div class="input-icon-end position-relative">
-                  <!-- FIXED: Improved conditional rendering and format consistency -->
                   <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker"
                     placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
                     v-model="computedStartDate" :class="{ 'is-invalid': validationErrors.start_date }"
@@ -218,86 +233,95 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">End Date</label>
+                <label class="form-label">Pass Probation Date</label>
                 <div class="input-icon-end position-relative">
-                  <!-- FIXED: Improved conditional rendering and format consistency -->
                   <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker"
                     placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
-                    v-model="computedEndDate" :class="{ 'is-invalid': validationErrors.end_date }"
-                    @update:model-value="handleEndDateChange" />
-                  <span class="input-icon-addon">
-                    <i class="ti ti-calendar text-gray-7"></i>
-                  </span>
-                </div>
-                <div v-if="validationErrors.end_date" class="invalid-feedback">
-                  {{ validationErrors.end_date }}
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label required">Work Location</label>
-                <select class="form-control" v-model="formData.work_location_id"
-                  :class="{ 'is-invalid': validationErrors.work_location_id }" required @change="saveFormState">
-                  <option disabled value="">Select Location</option>
-                  <option v-for="location in workLocations" :key="location.id" :value="location.id">
-                    {{ location.name }}
-                  </option>
-                </select>
-                <div v-if="validationErrors.work_location_id" class="invalid-feedback">
-                  {{ validationErrors.work_location_id }}
-                </div>
-              </div>
-            </div>
-
-            <div class="date-row">
-              <div class="form-group">
-                <label class="form-label">Probation Pass Date</label>
-                <div class="input-icon-end position-relative">
-                  <!-- FIXED: Improved conditional rendering and format consistency -->
-                  <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker"
-                    placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
-                    v-model="computedProbationPassDate" :class="{ 'is-invalid': validationErrors.probation_pass_date }"
+                    v-model="computedProbationPassDate" :class="{ 'is-invalid': validationErrors.pass_probation_date }"
                     @update:model-value="handleProbationDateChange" />
                   <span class="input-icon-addon">
                     <i class="ti ti-calendar text-gray-7"></i>
                   </span>
                 </div>
-                <div v-if="validationErrors.probation_pass_date" class="invalid-feedback">
-                  {{ validationErrors.probation_pass_date }}
+                <div v-if="validationErrors.pass_probation_date" class="invalid-feedback">
+                  {{ validationErrors.pass_probation_date }}
                 </div>
+                <small class="text-muted" style="display: block; margin-top: 4px; font-size: 0.85em;">
+                  <i class="ti ti-info-circle"></i> Auto-calculated as start date + 3 months if not provided
+                </small>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label required">Position Salary</label>
-                <input type="number" class="form-control" v-model.number.lazy="formData.position_salary"
-                  :class="{ 'is-invalid': validationErrors.position_salary }" required @blur="debouncedSaveState">
-                <div v-if="validationErrors.position_salary" class="invalid-feedback">
-                  {{ validationErrors.position_salary }}
-                </div>
-              </div>
-
+            <!-- Row 6: Probation Salary + Pass Probation Salary -->
+            <div class="date-row">
               <div class="form-group">
                 <label class="form-label">Probation Salary</label>
                 <input type="number" class="form-control" v-model.number.lazy="formData.probation_salary"
-                  :class="{ 'is-invalid': validationErrors.probation_salary }" @blur="debouncedSaveState">
+                  :class="{ 'is-invalid': validationErrors.probation_salary }" @blur="debouncedSaveState"
+                  placeholder="Salary during probation period">
                 <div v-if="validationErrors.probation_salary" class="invalid-feedback">
                   {{ validationErrors.probation_salary }}
                 </div>
+                <small class="text-muted" style="display: block; margin-top: 4px; font-size: 0.85em;">
+                  Optional - Leave empty if same as pass probation salary
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label required">Pass Probation Salary</label>
+                <input type="number" class="form-control" v-model.number.lazy="formData.pass_probation_salary"
+                  :class="{ 'is-invalid': validationErrors.pass_probation_salary }" required @blur="debouncedSaveState"
+                  placeholder="Regular salary after probation">
+                <div v-if="validationErrors.pass_probation_salary" class="invalid-feedback">
+                  {{ validationErrors.pass_probation_salary }}
+                </div>
+                <small class="text-muted" style="display: block; margin-top: 4px; font-size: 0.85em;">
+                  Used for funding allocation calculations
+                </small>
               </div>
             </div>
 
 
 
             <!-- Funding Allocation with added spacing -->
-            <div class="form-group funding-allocation-section" style="margin-top: 24px; margin-bottom: 0;">
+            <div class="form-group funding-allocation-section" style="margin-top: 32px; margin-bottom: 0;">
               <label>Funding Allocation</label>
 
-              <div class="date-row" style="margin-bottom:8px;">
+              <!-- Warning message when prerequisites are not met -->
+              <div v-if="!canAddAllocation" class="allocation-prerequisites-warning">
+                <div class="warning-header">
+                  <i class="ti ti-alert-triangle"></i>
+                  <strong>Required Fields Missing</strong>
+                </div>
+                <div class="warning-content">
+                  <p class="warning-description">Please complete the following to enable funding allocation:</p>
+                  <div class="prerequisites-list">
+                    <div v-if="!formData.employee_id" class="prerequisite-item">
+                      <i class="ti ti-user"></i>
+                      <span>Select an employee</span>
+                    </div>
+                    <div v-if="!formData.start_date" class="prerequisite-item">
+                      <i class="ti ti-calendar"></i>
+                      <span>Select start date</span>
+                    </div>
+                    <div v-if="!formData.probation_salary && !formData.pass_probation_salary" class="prerequisite-item">
+                      <i class="ti ti-cash"></i>
+                      <span>Enter probation salary or pass probation salary</span>
+                    </div>
+                  </div>
+                  <div class="warning-footer">
+                    <i class="ti ti-info-circle"></i>
+                    <span>These fields are required for backend salary calculations</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="date-row" style="margin-bottom:12px;">
                 <div class="form-group">
                   <small class="text-muted">Grant</small>
                   <select v-model="currentAllocation.grant_id" @change="onGrantChange" class="form-control"
-                    :disabled="isLoadingData">
-                    <option value="">{{ isLoadingData ? 'Loading grants...' : 'Select grant' }}</option>
+                    :disabled="isLoadingData || !canAddAllocation">
+                    <option value="">{{ isLoadingData ? 'Loading grants...' : (!canAddAllocation ? 'Complete required fields first' : 'Select grant') }}</option>
                     <option v-for="grant in grantOptions" :key="grant.id" :value="grant.id">
                       {{ grant.name }} ({{ grant.code }})
                     </option>
@@ -307,11 +331,11 @@
                   </div>
                 </div>
 
-                <template v-if="isOrgFundGrant(currentAllocation.grant_id)">
+                <template v-if="false">
                   <div class="form-group">
                     <small class="text-muted">Department</small>
                     <select v-model="currentAllocation.department_id" @change="onAllocationDepartmentChange"
-                      class="form-control">
+                      class="form-control" :disabled="!canAddAllocation">
                       <option value="">Select department</option>
                       <option v-for="dept in allocationDepartments" :key="dept.id" :value="dept.id">
                         {{ dept.name }}
@@ -325,7 +349,7 @@
                   <div class="form-group">
                     <small class="text-muted">Position</small>
                     <select v-model="currentAllocation.position_id" class="form-control"
-                      :disabled="!currentAllocation.department_id || allocationPositionsLoading">
+                      :disabled="!canAddAllocation || !currentAllocation.department_id || allocationPositionsLoading">
                       <option value="">{{ allocationPositionsLoading ? 'Loading positions...' : 'Select position' }}
                       </option>
                       <option v-for="pos in allocationPositions" :key="pos.id" :value="pos.id">
@@ -341,29 +365,16 @@
                 <template v-else>
                   <div class="form-group">
                     <small class="text-muted">Grant Position</small>
-                    <select v-model="currentAllocation.grant_items_id" @change="onGrantPositionChange"
-                      class="form-control" :disabled="!currentAllocation.grant_id || isLoadingData">
+                    <select v-model="currentAllocation.grant_item_id" @change="onGrantPositionChange"
+                      class="form-control"
+                      :disabled="!canAddAllocation || !currentAllocation.grant_id || isLoadingData">
                       <option value="">Select grant position</option>
                       <option v-for="position in grantPositionOptions" :key="position.id" :value="position.id">
                         {{ position.name }}
                       </option>
                     </select>
-                    <div v-if="allocationErrors.grant_items_id" class="invalid-feedback">
-                      {{ allocationErrors.grant_items_id }}
-                    </div>
-                  </div>
-
-                  <div class="form-group">
-                    <small class="text-muted">Position Slot</small>
-                    <select v-model="currentAllocation.position_slot_id" class="form-control"
-                      :disabled="!currentAllocation.grant_items_id || isLoadingData">
-                      <option value="">Select position slot</option>
-                      <option v-for="slot in positionSlotOptions" :key="slot.id" :value="slot.id">
-                        Slot {{ slot.slot_number }} - {{ slot.budgetline_code }}
-                      </option>
-                    </select>
-                    <div v-if="allocationErrors.position_slot_id" class="invalid-feedback">
-                      {{ allocationErrors.position_slot_id }}
+                    <div v-if="allocationErrors.grant_item_id" class="invalid-feedback">
+                      {{ allocationErrors.grant_item_id }}
                     </div>
                   </div>
                 </template>
@@ -371,23 +382,44 @@
                 <div class="form-group">
                   <small class="text-muted">FTE (%)</small>
                   <input type="number" v-model.number="currentAllocation.fte" @input="onFteChange" class="form-control"
-                    min="0" max="100" placeholder="FTE (%)" :disabled="isLoadingData" />
+                    min="0" max="100" placeholder="FTE (%)" :disabled="isLoadingData || !canAddAllocation" />
                   <div v-if="allocationErrors.fte" class="invalid-feedback">
                     {{ allocationErrors.fte }}
                   </div>
                 </div>
 
-                <!-- Display Calculated Salary (read-only) -->
+                <!-- Display Calculated Salary (ONLY from backend API) -->
                 <div class="form-group">
-                  <small class="text-muted">Calculated Salary</small>
-                  <input type="text" class="form-control" :value="getCalculatedSalary(currentAllocation.fte)"
-                    placeholder="Calculated Salary" readonly style="background-color: #f8f9fa;" />
+                  <small class="text-muted" style="display: flex; align-items: center; gap: 6px; margin-bottom: 5px;">
+                    <span>Calculated Salary</span>
+                    <span v-if="salaryTypeLabel && !calculating" class="badge badge-sm"
+                      :class="isProbationPeriod ? 'badge-warning' : 'badge-success'"
+                      style="font-size: 0.65em; padding: 2px 5px; white-space: nowrap;">
+                      {{ salaryTypeLabel }}
+                    </span>
+                  </small>
+                  <div class="calculated-amount-wrapper position-relative">
+                    <input type="text" class="form-control calculated-salary-input"
+                      :value="calculating ? 'Calculating...' : getCalculatedSalary(currentAllocation.fte)"
+                      placeholder="Enter FTE to calculate" readonly :class="{
+                        'calculating-bg': calculating,
+                        'calculated-bg': calculationResult && calculationResult.fte === currentAllocation.fte,
+                        'default-bg': !calculating && (!calculationResult || calculationResult.fte !== currentAllocation.fte)
+                      }" />
+                    <i v-if="calculating" class="ti ti-loader spinner-icon"></i>
+                    <i v-else-if="calculationResult && calculationResult.fte === currentAllocation.fte"
+                      class="ti ti-circle-check checkmark-icon"></i>
+                  </div>
+                  <small v-if="calculationFormula" class="formula-text">
+                    <i class="ti ti-calculator" style="color: #4a7fff; font-size: 0.9em;"></i>
+                    {{ calculationFormula }}
+                  </small>
                 </div>
 
                 <div class="form-group" style="min-width:72px;">
                   <small class="text-muted">&nbsp;</small>
                   <button type="button" class="btn btn-save" style="width:100%;" @click="addAllocation"
-                    :disabled="isLoadingData">
+                    :disabled="isLoadingData || !canAddAllocation">
                     {{ editingIndex !== null ? 'Save' : 'Add' }}
                   </button>
                 </div>
@@ -404,7 +436,6 @@
                   <th>Department</th>
                   <th>Position</th>
                   <th>Grant Position</th>
-                  <th>Position Slot</th>
                   <th>FTE (%)</th>
                   <th>Allocated Salary</th>
                   <th>Action</th>
@@ -416,8 +447,8 @@
                   <template v-if="editingIndex === idx">
                     <!-- Inline Edit Row -->
                     <td>
-                      <span class="badge" :class="row.allocation_type === 'org_funded' ? 'badge-org' : 'badge-grant'">
-                        {{ row.allocation_type === 'org_funded' ? 'Org Funded' : 'Grant Funded' }}
+                      <span class="badge badge-grant">
+                        Grant Funded
                       </span>
                     </td>
                     <td>
@@ -429,51 +460,26 @@
                       </select>
                     </td>
                     <td>
-                      <select v-if="isOrgFundGrant(editData.grant_id)" v-model="editData.department_id"
-                        @change="onEditAllocationDepartmentChange" class="edit-field">
-                        <option value="">Select department</option>
-                        <option v-for="dept in allocationDepartments" :key="dept.id" :value="dept.id">
-                          {{ dept.name }}
-                        </option>
-                      </select>
-                      <span v-else class="text-muted">-</span>
+                      <span class="text-muted">-</span>
                     </td>
                     <td>
-                      <select v-if="isOrgFundGrant(editData.grant_id)" v-model="editData.position_id" class="edit-field"
-                        :disabled="!editData.department_id || allocationPositionsLoading">
-                        <option value="">{{ allocationPositionsLoading ? 'Loading...' : 'Select position' }}</option>
-                        <option v-for="pos in allocationPositions" :key="pos.id" :value="pos.id">
-                          {{ pos.title }}
-                        </option>
-                      </select>
-                      <span v-else class="text-muted">-</span>
+                      <span class="text-muted">-</span>
                     </td>
                     <td>
-                      <select v-if="!isOrgFundGrant(editData.grant_id)" v-model="editData.grant_items_id"
+                      <select v-model="editData.grant_item_id"
                         @change="onEditGrantPositionChange" class="edit-field">
                         <option value="">Select position</option>
                         <option v-for="position in editGrantPositionOptions" :key="position.id" :value="position.id">
                           {{ position.name }}
                         </option>
                       </select>
-                      <span v-else class="text-muted">-</span>
-                    </td>
-                    <td>
-                      <select v-if="!isOrgFundGrant(editData.grant_id)" v-model="editData.position_slot_id"
-                        class="edit-field">
-                        <option value="">Select position slot</option>
-                        <option v-for="slot in editPositionSlotOptions" :key="slot.id" :value="slot.id">
-                          Slot {{ slot.slot_number }} - {{ slot.budgetline_code }}
-                        </option>
-                      </select>
-                      <span v-else class="text-muted">-</span>
                     </td>
                     <td>
                       <input type="number" v-model.number="editData.fte" @input="onEditFteChange" class="edit-field"
                         min="0" max="100">
                     </td>
                     <td>
-                      <span class="text-muted">{{ getCalculatedSalary(editData.fte) }}</span>
+                      <span class="text-muted">{{ getCalculatedSalary(editData.fte, true) }}</span>
                     </td>
                     <td>
                       <button class="action-btn" @click="saveEdit">Save</button>
@@ -483,30 +489,19 @@
                   <template v-else>
                     <!-- Display Row -->
                     <td>
-                      <span class="badge" :class="row.allocation_type === 'org_funded' ? 'badge-org' : 'badge-grant'">
-                        {{ row.allocation_type === 'org_funded' ? 'Org Funded' : 'Grant Funded' }}
+                      <span class="badge badge-grant">
+                        Grant Funded
                       </span>
                     </td>
                     <td>{{ getGrantName(row.grant_id, row._original) }}</td>
                     <td>
-                      <span v-if="row.allocation_type === 'org_funded'">{{
-                        getDepartmentName(row.department_id, row._original) }}</span>
-                      <span v-else class="text-muted">-</span>
+                      <span class="text-muted">-</span>
                     </td>
                     <td>
-                      <span v-if="row.allocation_type === 'org_funded'">{{
-                        getPositionName(row.position_id, row._original) }}</span>
-                      <span v-else class="text-muted">-</span>
+                      <span class="text-muted">-</span>
                     </td>
                     <td>
-                      <span v-if="row.allocation_type !== 'org_funded'">{{ getGrantPositionName(row.grant_id,
-                        row.grant_items_id, row._original) }}</span>
-                      <span v-else class="text-muted">-</span>
-                    </td>
-                    <td>
-                      <span v-if="row.allocation_type !== 'org_funded'">{{ getPositionSlotName(row.grant_id,
-                        row.grant_items_id, row.position_slot_id, row._original) }}</span>
-                      <span v-else class="text-muted">-</span>
+                      <span>{{ getGrantPositionName(row.grant_id, row.grant_item_id, row._original) }}</span>
                     </td>
                     <td>{{ row.fte }}%</td>
                     <td>{{ getAllocatedSalary(row) }}</td>
@@ -530,14 +525,32 @@
                 <span class="summary-value">{{ formatCurrency(totalAllocatedSalary) }}</span>
               </div>
               <div class="summary-row">
-                <span class="summary-label">Position Salary:</span>
-                <span class="summary-value">{{ formatCurrency(formData.position_salary) }}</span>
+                <span class="summary-label">Pass Probation Salary:</span>
+                <span class="summary-value">{{ formatCurrency(formData.pass_probation_salary) }}</span>
               </div>
             </div>
 
             <!-- No Allocations Message -->
             <div v-else-if="formData.employee_id && !isLoadingData" class="no-allocations-msg">
               <p class="text-muted text-center">No funding allocations added. Please add at least one allocation.</p>
+            </div>
+
+            <!-- Row: Employment Status -->
+            <div class="form-group">
+              <label class="form-label">Employment Status</label>
+              <div class="employment-status-container">
+                <div class="status-switch-wrapper">
+                  <a-switch v-model:checked="formData.status" @change="onStatusChange" checked-children="Active"
+                    un-checked-children="Inactive" size="default" />
+                  <span class="status-label"
+                    :class="{ 'status-active': formData.status, 'status-inactive': !formData.status }">
+                    {{ formData.status ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+                <small class="text-muted status-hint">
+                  <i class="ti ti-info-circle"></i> Toggle to set employment as Active or Inactive
+                </small>
+              </div>
             </div>
 
             <!-- Enhanced Benefits Section -->
@@ -552,12 +565,10 @@
                     <span class="checkmark"></span>
                     Health & Welfare
                   </label>
-                  <div class="benefit-percentage-group">
-                    <input type="number" class="form-control benefit-percentage-input"
-                      v-model.number.lazy="formData.health_welfare_percentage" min="0" max="100" step="0.01"
-                      placeholder="%" :disabled="!formData.health_welfare" @blur="debouncedSaveState">
-                    <span class="percentage-symbol">%</span>
-                  </div>
+                  <small class="text-muted"
+                    style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                    Percentage is managed globally in Benefit Settings
+                  </small>
                 </div>
 
                 <!-- Saving Fund -->
@@ -567,12 +578,10 @@
                     <span class="checkmark"></span>
                     Saving Fund
                   </label>
-                  <div class="benefit-percentage-group">
-                    <input type="number" class="form-control benefit-percentage-input"
-                      v-model.number.lazy="formData.saving_fund_percentage" min="0" max="100" step="0.01"
-                      placeholder="%" :disabled="!formData.saving_fund" @blur="debouncedSaveState">
-                    <span class="percentage-symbol">%</span>
-                  </div>
+                  <small class="text-muted"
+                    style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                    Percentage is managed globally in Benefit Settings
+                  </small>
                 </div>
 
                 <!-- PVD -->
@@ -582,12 +591,10 @@
                     <span class="checkmark"></span>
                     PVD
                   </label>
-                  <div class="benefit-percentage-group">
-                    <input type="number" class="form-control benefit-percentage-input"
-                      v-model.number.lazy="formData.pvd_percentage" min="0" max="100" step="0.01" placeholder="%"
-                      :disabled="!formData.pvd" @blur="debouncedSaveState">
-                    <span class="percentage-symbol">%</span>
-                  </div>
+                  <small class="text-muted"
+                    style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                    Percentage is managed globally in Benefit Settings
+                  </small>
                 </div>
               </div>
             </div>
@@ -618,6 +625,7 @@ import { workLocationService } from '@/services/worklocation.service';
 import { useLookupStore } from '@/stores/lookupStore';
 import { useFormPersistenceStore } from '@/stores/formPersistenceStore';
 import { useSharedDataStore } from '@/stores/sharedDataStore';
+import { useAllocationCalculation } from '@/composables/useAllocationCalculation';
 import { debounce, memoize, PerformanceCleanup } from '@/utils/performance.js';
 
 export default {
@@ -625,9 +633,34 @@ export default {
   setup() {
     const alertMessage = ref('');
     const alertClass = ref('');
+
+    // Use allocation calculation composable for real-time backend calculations
+    const {
+      calculating,
+      calculationResult,
+      calculateAmount,
+      formattedAmount,
+      allocatedAmount,
+      baseSalary,
+      salaryType,
+      salaryTypeLabel,
+      calculationFormula,
+      isProbationPeriod
+    } = useAllocationCalculation();
+
     return {
       alertMessage,
-      alertClass
+      alertClass,
+      calculating,
+      calculationResult,
+      calculateAmount,
+      formattedAmount,
+      allocatedAmount,
+      baseSalary,
+      salaryType,
+      salaryTypeLabel,
+      calculationFormula,
+      isProbationPeriod
     };
   },
   data() {
@@ -651,25 +684,22 @@ export default {
         department_id: '',
         position_id: '',
         section_department: '',
-        work_location_id: '',
+        site_id: '',
         start_date: null,
         end_date: null,
-        probation_pass_date: null,
-        position_salary: '',
+        pass_probation_date: null,
+        pass_probation_salary: '',
         probation_salary: '',
+        status: true, // Boolean: true = Active, false = Inactive (default Active)
 
         health_welfare: false,
-        health_welfare_percentage: null,
         pvd: false,
-        pvd_percentage: null,
-        saving_fund: false,
-        saving_fund_percentage: null
+        saving_fund: false
       },
       currentAllocation: {
         allocation_type: '',
         grant_id: '',
-        grant_items_id: '',
-        position_slot_id: '',
+        grant_item_id: '',
         department_position_id: '',
         department_id: '',
         position_id: '',
@@ -679,8 +709,7 @@ export default {
       editData: {
         allocation_type: '',
         grant_id: '',
-        grant_items_id: '',
-        position_slot_id: '',
+        grant_item_id: '',
         department_position_id: '',
         department_id: '',
         position_id: '',
@@ -738,14 +767,12 @@ export default {
 
       // Virtual scrolling properties for tree select
       visibleEmployeeCount: 20,
-      loadedEmployeeCounts: new Map(), // Track loaded count per subsidiary
+      loadedEmployeeCounts: new Map(), // Track loaded count per organization
       scrollDebounceTimer: null,
 
       // Computed options for dropdowns (cached)
       grantPositionOptions: shallowRef([]),
-      positionSlotOptions: shallowRef([]),
       editGrantPositionOptions: shallowRef([]),
-      editPositionSlotOptions: shallowRef([]),
       positionsLoading: false,
 
       // Allocation-specific departments and positions
@@ -756,6 +783,7 @@ export default {
       // Performance tracking
       lastValidationTime: 0,
       validationCache: new Map(),
+      validationCacheMaxSize: 50, // Limit cache size to prevent memory leaks
       formChangeBuffer: null,
       saveStateDebounced: null,
       isVisible: true,
@@ -772,13 +800,27 @@ export default {
     isLocalNonIDStaff() {
       return this.formData.employment_type === 'Local non ID Staff';
     },
+    // Check if allocation form can be enabled (requires employee, salaries, and dates)
+    canAddAllocation() {
+      return !!(
+        this.formData.employee_id &&
+        this.formData.start_date &&
+        (this.formData.probation_salary || this.formData.pass_probation_salary)
+      );
+    },
     totalFte() {
       return this.fundingAllocations.reduce((sum, allocation) => sum + allocation.fte, 0);
     },
     totalAllocatedSalary() {
+      // Sum ONLY backend-calculated allocated_amount - NO local calculation
       return this.fundingAllocations.reduce((sum, allocation) => {
-        const salary = this.calculateSalaryFromFte(allocation.fte);
-        return sum + salary;
+        // Only use backend-calculated amount
+        if (allocation.allocated_amount !== undefined && allocation.allocated_amount !== null) {
+          return sum + parseFloat(allocation.allocated_amount);
+        }
+        // This should not happen if addAllocation works correctly
+        console.warn('⚠️ Allocation missing backend-calculated amount in total:', allocation);
+        return sum;
       }, 0);
     },
 
@@ -811,13 +853,13 @@ export default {
 
     computedProbationPassDate: {
       get() {
-        console.log('Getting probation date:', this.formData.probation_pass_date);
-        return this.formData.probation_pass_date;
+        console.log('Getting probation date:', this.formData.pass_probation_date);
+        return this.formData.pass_probation_date;
       },
       set(value) {
         console.log('Setting probation date:', value);
-        this.$set ? this.$set(this.formData, 'probation_pass_date', this.safeConvertToDate(value)) :
-          (this.formData.probation_pass_date = this.safeConvertToDate(value));
+        this.$set ? this.$set(this.formData, 'pass_probation_date', this.safeConvertToDate(value)) :
+          (this.formData.pass_probation_date = this.safeConvertToDate(value));
         this.debouncedSaveState();
       }
     }
@@ -839,10 +881,18 @@ export default {
       }
     },
 
-    'formData.position_salary'(newVal, oldVal) {
+    'formData.pass_probation_salary'(newVal, oldVal) {
       if (newVal !== oldVal && this.isComponentReady) {
         // Clear salary calculation cache when position salary changes
-        this.validationCache.clear();
+        this.clearValidationCache();
+        this.debouncedSaveState();
+      }
+    },
+
+    'formData.probation_salary'(newVal, oldVal) {
+      if (newVal !== oldVal && this.isComponentReady) {
+        // Clear salary calculation cache when probation salary changes
+        this.clearValidationCache();
         this.debouncedSaveState();
       }
     },
@@ -882,6 +932,12 @@ export default {
 
       // Create debounced save function
       this.debouncedSaveState = debounce(this.saveFormState, 1000);
+
+      // Create debounced filter function for employee search
+      this.debouncedFilterEmployees = debounce(this.filterEmployeesInternal, 300);
+
+      // Create debounced FTE change function to prevent excessive API calls
+      this.debouncedFteChange = debounce(this.onFteChangeInternal, 500);
 
       // Mark component as ready
       this.isComponentReady = true;
@@ -955,6 +1011,8 @@ export default {
 
     // Clear debounced functions
     this.debouncedSaveState = null;
+    this.debouncedFilterEmployees = null;
+    this.debouncedFteChange = null;
 
     // Clean up modal instance
     if (this.modalInstance && typeof this.modalInstance.dispose === 'function') {
@@ -995,8 +1053,8 @@ export default {
         if (draftData.formData.end_date instanceof Date) {
           draftData.formData.end_date = draftData.formData.end_date.toISOString();
         }
-        if (draftData.formData.probation_pass_date instanceof Date) {
-          draftData.formData.probation_pass_date = draftData.formData.probation_pass_date.toISOString();
+        if (draftData.formData.pass_probation_date instanceof Date) {
+          draftData.formData.pass_probation_date = draftData.formData.pass_probation_date.toISOString();
         }
 
         formStore.saveFormSection('employment', 'employmentForm', draftData);
@@ -1004,6 +1062,12 @@ export default {
       } catch (error) {
         console.error('❌ Error saving form draft:', error);
       }
+    },
+
+    // Handle employment status change from Ant Design Switch
+    onStatusChange(checked) {
+      console.log('Employment status changed to:', checked ? 'Active' : 'Inactive');
+      this.saveFormState();
     },
 
     async onDepartmentChange() {
@@ -1057,8 +1121,8 @@ export default {
             if (this.formData.end_date) {
               this.formData.end_date = this.safeConvertToDate(this.formData.end_date);
             }
-            if (this.formData.probation_pass_date) {
-              this.formData.probation_pass_date = this.safeConvertToDate(this.formData.probation_pass_date);
+            if (this.formData.pass_probation_date) {
+              this.formData.pass_probation_date = this.safeConvertToDate(this.formData.pass_probation_date);
             }
 
             // Restore related dropdowns if needed
@@ -1155,7 +1219,7 @@ export default {
         if (startDate) {
           const probationDate = new Date(startDate);
           probationDate.setMonth(probationDate.getMonth() + 3);
-          this.formData.probation_pass_date = probationDate;
+          this.formData.pass_probation_date = probationDate;
           console.log('Auto-calculated probation pass date:', probationDate);
           this.saveFormState();
         }
@@ -1169,7 +1233,7 @@ export default {
 
     handleProbationDateChange(newValue) {
       console.log('Probation date changed:', newValue);
-      this.handleDateChange('probation_pass_date', newValue);
+      this.handleDateChange('pass_probation_date', newValue);
     },
 
     // Format restored time for display
@@ -1313,9 +1377,10 @@ export default {
     },
 
     isOrgFundGrant(grantId) {
-      // This logic should be adapted based on how org-funded grants are identified.
-      // Using a hardcoded list of codes as an example, similar to grant-position-modal.
-      const hubGrantCodes = ['S0031', 'S22001'];
+      // Hub grants are identified by code, but they still use grant_items
+      // This method is kept for UI display purposes only (e.g., showing different labels)
+      // All allocations are created as 'grant' type with grant_item_id
+      const hubGrantCodes = ['S0031', 'BHF-GF']; // Updated to match backend
       const grant = this.grantOptions.find(g => g.id == grantId);
       return grant && hubGrantCodes.includes(grant.code);
     },
@@ -1384,6 +1449,25 @@ export default {
       this.alertClass = '';
     },
 
+    // Add to validation cache with size limit (LRU-style)
+    addToValidationCache(key, value) {
+      // If cache is at max size, remove oldest entry (first entry)
+      if (this.validationCache.size >= this.validationCacheMaxSize) {
+        const firstKey = this.validationCache.keys().next().value;
+        this.validationCache.delete(firstKey);
+      }
+      this.validationCache.set(key, value);
+    },
+
+    // Clear validation cache (useful for form reset and salary changes)
+    clearValidationCache() {
+      if (this.validationCache) {
+        this.validationCache.clear();
+        this.lastValidationTime = 0;
+        console.log('🗑️ Validation cache cleared');
+      }
+    },
+
     // OPTIMIZED: Cached validation with early returns
     validateForm() {
       const now = Date.now();
@@ -1415,9 +1499,9 @@ export default {
         { field: 'employment_type', message: 'Please select employment type' },
         { field: 'department_id', message: 'Please select department' },
         { field: 'position_id', message: 'Please select position' },
-        { field: 'work_location_id', message: 'Please select work location' },
+        { field: 'site_id', message: 'Please select site' },
         { field: 'start_date', message: 'Please select start date' },
-        { field: 'position_salary', message: 'Please enter position salary' }
+        { field: 'pass_probation_salary', message: 'Please enter position salary' }
       ];
 
       for (const { field, message } of requiredFields) {
@@ -1438,9 +1522,8 @@ export default {
         isValid = false;
       }
 
-      // Cache the result
-      const result = { isValid, errors, alertMessage, alertClass };
-      this.validationCache.set(cacheKey, result);
+      // Cache the result with size limit
+      this.addToValidationCache(cacheKey, { isValid, errors, alertMessage, alertClass });
       this.lastValidationTime = now;
 
       // Apply results
@@ -1461,24 +1544,10 @@ export default {
         isValid = false;
       }
 
-      if (this.isOrgFundGrant(this.currentAllocation.grant_id)) {
-        if (!this.currentAllocation.department_id) {
-          this.allocationErrors.department_id = 'Please select a department';
-          isValid = false;
-        }
-        if (!this.currentAllocation.position_id) {
-          this.allocationErrors.position_id = 'Please select a position';
-          isValid = false;
-        }
-      } else {
-        if (!this.currentAllocation.grant_items_id) {
-          this.allocationErrors.grant_items_id = 'Please select a grant position';
-          isValid = false;
-        }
-        if (!this.currentAllocation.position_slot_id) {
-          this.allocationErrors.position_slot_id = 'Please select a position slot';
-          isValid = false;
-        }
+      // All allocations require grant_item_id
+      if (!this.currentAllocation.grant_item_id) {
+        this.allocationErrors.grant_item_id = 'Please select a grant position';
+        isValid = false;
       }
 
       if (!this.currentAllocation.fte || this.currentAllocation.fte <= 0) {
@@ -1559,13 +1628,13 @@ export default {
           // Set display text for custom tree select
           this.selectedEmployeeDisplay = employee.title;
 
-          // Get subsidiary from parent node in tree structure
-          const subsidiary = sharedStore.getEmployeeSubsidiary(this.formData.employee_id);
+          // Get organization from parent node in tree structure
+          const organization = sharedStore.getEmployeeOrganization(this.formData.employee_id);
 
           this.selectedEmployeeInfo = {
             name: employee.title,
             staff_id: employee.staff_id || 'N/A',
-            subsidiary: subsidiary || 'N/A',
+            organization: organization || 'N/A',
             status: employee.status || 'N/A'
           };
 
@@ -1582,30 +1651,29 @@ export default {
       this.saveFormState();
     },
 
-    // Removed findEmployeeInTree and getEmployeeSubsidiary - now handled by shared store
+    // Removed findEmployeeInTree and getEmployeeOrganization - now handled by shared store
 
     // Auto-select benefits based on employee status
+    // Priority: Employee status > Employment type (status wins in conflicts)
     autoSelectBenefitsBasedOnStatus(status) {
-      console.log('Auto-selecting benefits for status:', status);
-
-      // Reset benefits first
-      this.formData.pvd = false;
-      this.formData.saving_fund = false;
+      console.log('Auto-selecting benefits for employee status:', status);
 
       if (!status) return;
 
-      // Auto-select based on status
+      // Auto-select based on status (this has priority over employment type)
       if (status === 'Local ID' || status === 'Local ID Staff') {
         this.formData.pvd = true;
         this.formData.saving_fund = false;
-        console.log('✅ Auto-selected PVD for Local ID staff');
+        console.log('✅ Auto-selected PVD for Local ID staff (from employee status)');
       } else if (status === 'Local non ID' || status === 'Local non ID Staff') {
         this.formData.pvd = false;
         this.formData.saving_fund = true;
-        console.log('✅ Auto-selected Saving Fund for Local non ID staff');
+        console.log('✅ Auto-selected Saving Fund for Local non ID staff (from employee status)');
       } else {
-        // For other statuses (Expats, etc.), don't auto-select anything
-        console.log('ℹ️ No auto-selection for status:', status);
+        // For other statuses (Expats, etc.), reset to defaults
+        this.formData.pvd = false;
+        this.formData.saving_fund = false;
+        console.log('ℹ️ Reset benefits for non-local employee status:', status);
       }
 
       // Save form state after auto-selection
@@ -1613,27 +1681,51 @@ export default {
     },
 
     // Auto-select benefits based on employment type
+    // Note: This only applies if employee status hasn't already set the benefits
+    // Employment type selection happens AFTER employee is selected, so it can override if needed
     autoSelectBenefitsBasedOnType(employmentType) {
       console.log('Auto-selecting benefits for employment type:', employmentType);
 
-      // Reset benefits first
-      this.formData.pvd = false;
-      this.formData.saving_fund = false;
-
       if (!employmentType) return;
 
-      // Auto-select based on employment type
-      if (employmentType === 'Local ID Staff') {
-        this.formData.pvd = true;
-        this.formData.saving_fund = false;
-        console.log('✅ Auto-selected PVD for Local ID Staff employment type');
-      } else if (employmentType === 'Local non ID Staff') {
-        this.formData.pvd = false;
-        this.formData.saving_fund = true;
-        console.log('✅ Auto-selected Saving Fund for Local non ID Staff employment type');
+      // Check if employee status already determined benefits
+      // If we have an employee selected with a status, prefer that
+      const hasEmployeeStatus = this.selectedEmployeeInfo && this.selectedEmployeeInfo.status;
+
+      if (hasEmployeeStatus) {
+        const status = this.selectedEmployeeInfo.status;
+        // Only override if employment type matches status category
+        if ((status === 'Local ID' || status === 'Local ID Staff') && employmentType === 'Local ID Staff') {
+          // Status and type agree - reinforce selection
+          this.formData.pvd = true;
+          this.formData.saving_fund = false;
+          console.log('✅ Confirmed PVD (employment type matches employee status)');
+        } else if ((status === 'Local non ID' || status === 'Local non ID Staff') && employmentType === 'Local non ID Staff') {
+          // Status and type agree - reinforce selection
+          this.formData.pvd = false;
+          this.formData.saving_fund = true;
+          console.log('✅ Confirmed Saving Fund (employment type matches employee status)');
+        } else {
+          // Conflict: employment type differs from employee status
+          // Keep employee status selection (higher priority)
+          console.log('⚠️ Employment type differs from employee status - keeping status-based selection');
+        }
       } else {
-        // For other employment types (Expats, Contract, etc.), don't auto-select anything
-        console.log('ℹ️ No auto-selection for employment type:', employmentType);
+        // No employee selected yet, use employment type
+        if (employmentType === 'Local ID Staff') {
+          this.formData.pvd = true;
+          this.formData.saving_fund = false;
+          console.log('✅ Auto-selected PVD for Local ID Staff employment type');
+        } else if (employmentType === 'Local non ID Staff') {
+          this.formData.pvd = false;
+          this.formData.saving_fund = true;
+          console.log('✅ Auto-selected Saving Fund for Local non ID Staff employment type');
+        } else {
+          // For other employment types, reset
+          this.formData.pvd = false;
+          this.formData.saving_fund = false;
+          console.log('ℹ️ Reset benefits for employment type:', employmentType);
+        }
       }
 
       // Save form state after auto-selection
@@ -1643,29 +1735,16 @@ export default {
     async onGrantChange() {
       console.log('Grant changed:', this.currentAllocation.grant_id);
 
-      // Determine allocation type and load necessary data
-      if (this.isOrgFundGrant(this.currentAllocation.grant_id)) {
-        this.currentAllocation.allocation_type = 'org_funded';
-        // Clear grant-specific fields
-        this.currentAllocation.grant_items_id = '';
-        this.currentAllocation.position_slot_id = '';
-        this.grantPositionOptions = [];
-        this.positionSlotOptions = [];
-        // Clear separate department and position fields
-        this.currentAllocation.department_id = '';
-        this.currentAllocation.position_id = '';
-        this.allocationPositions = [];
-      } else {
-        this.currentAllocation.allocation_type = 'grant';
-        // Clear org-funded fields
-        this.currentAllocation.department_position_id = '';
-        this.currentAllocation.department_id = '';
-        this.currentAllocation.position_id = '';
-        this.allocationPositions = [];
-        // Set options for grant position dropdown
-        this.grantPositionOptions = this.grantPositions[this.currentAllocation.grant_id] || [];
-        this.positionSlotOptions = [];
-      }
+      // All allocations are now grant type with grant_item_id
+      // Hub grants still use grant_items, so we just load the grant positions
+      this.currentAllocation.allocation_type = 'grant';
+      // Clear any old fields
+      this.currentAllocation.department_position_id = '';
+      this.currentAllocation.department_id = '';
+      this.currentAllocation.position_id = '';
+      this.allocationPositions = [];
+      // Set options for grant position dropdown
+      this.grantPositionOptions = this.grantPositions[this.currentAllocation.grant_id] || [];
 
       console.log('Available positions for grant:', this.grantPositionOptions);
       this.allocationErrors = {};
@@ -1719,58 +1798,30 @@ export default {
     },
 
     onGrantPositionChange() {
-      console.log('Grant position changed:', this.currentAllocation.grant_items_id);
-      this.currentAllocation.position_slot_id = '';
-      const position = this.grantPositionOptions.find(p => p.id == this.currentAllocation.grant_items_id);
-
-      // Add budget line information to position slots since it's now at the grant item level
-      this.positionSlotOptions = position ?
-        (position.position_slots || []).map(slot => ({
-          ...slot,
-          budgetline_code: position.budgetline_code || 'N/A'
-        })) : [];
-
-      delete this.allocationErrors.position_slot_id;
+      console.log('Grant position changed:', this.currentAllocation.grant_item_id);
+      delete this.allocationErrors.grant_item_id;
       this.saveFormState();
     },
 
     onEditGrantChange() {
-      this.editData.grant_items_id = '';
-      this.editData.position_slot_id = '';
+      this.editData.grant_item_id = '';
       this.editData.department_position_id = '';
       this.editData.department_id = '';
       this.editData.position_id = '';
       this.editData.fte = 100; // Reset FTE to 100 for new allocation
 
-      if (this.isOrgFundGrant(this.editData.grant_id)) {
-        this.editData.allocation_type = 'org_funded';
-        // Clear allocation positions when changing grant
-        this.allocationPositions = [];
-      } else {
-        this.editData.allocation_type = 'grant';
-        this.editGrantPositionOptions = this.grantPositions[this.editData.grant_id] || [];
-        const position = this.editGrantPositionOptions.find(p => p.id == this.editData.grant_items_id);
-        // Add budget line information to position slots since it's now at the grant item level
-        this.editPositionSlotOptions = position ?
-          (position.position_slots || []).map(slot => ({
-            ...slot,
-            budgetline_code: position.budgetline_code || 'N/A'
-          })) : [];
-      }
+      // All allocations are now grant type with grant_item_id
+      this.editData.allocation_type = 'grant';
+      this.allocationPositions = [];
+      this.editGrantPositionOptions = this.grantPositions[this.editData.grant_id] || [];
     },
 
     onEditGrantPositionChange() {
-      this.editData.position_slot_id = '';
-      const position = this.editGrantPositionOptions.find(p => p.id == this.editData.grant_items_id);
-      // Add budget line information to position slots since it's now at the grant item level
-      this.editPositionSlotOptions = position ?
-        (position.position_slots || []).map(slot => ({
-          ...slot,
-          budgetline_code: position.budgetline_code || 'N/A'
-        })) : [];
+      // Grant position changed, no additional logic needed for position slots
+      console.log('Grant position changed in edit mode:', this.editData.grant_item_id);
     },
 
-    addAllocation() {
+    async addAllocation() {
       console.log('Adding allocation to memory:', this.currentAllocation);
 
       if (!this.validateCurrentAllocation()) {
@@ -1781,16 +1832,8 @@ export default {
       const isDuplicate = this.fundingAllocations.some((a, i) => {
         if (this.editingIndex !== null && i === this.editingIndex) return false;
 
-        if (this.currentAllocation.allocation_type === 'grant') {
-          return a.position_slot_id === this.currentAllocation.position_slot_id;
-        }
-        if (this.currentAllocation.allocation_type === 'org_funded') {
-          // Check for unique combination of grant, department, and position for org_funded
-          return a.grant_id === this.currentAllocation.grant_id &&
-            a.department_id === this.currentAllocation.department_id &&
-            a.position_id === this.currentAllocation.position_id;
-        }
-        return false;
+        // All allocations are grant type, check by grant_item_id
+        return a.grant_item_id === this.currentAllocation.grant_item_id;
       });
 
       if (isDuplicate) {
@@ -1810,35 +1853,55 @@ export default {
         return;
       }
 
-      const allocation = { ...this.currentAllocation };
+      // Get backend calculation before adding allocation
+      console.log('🔄 Getting backend calculation before adding allocation...');
+      try {
+        await this.calculateAmount({
+          probation_salary: this.formData.probation_salary,
+          pass_probation_salary: this.formData.pass_probation_salary,
+          pass_probation_date: this.formData.pass_probation_date,
+          start_date: this.formData.start_date
+        }, this.currentAllocation.fte);
 
-      if (this.editingIndex !== null) {
-        this.fundingAllocations[this.editingIndex] = allocation;
-        this.editingIndex = null;
-        console.log('Updated allocation in memory');
-      } else {
-        this.fundingAllocations.push(allocation);
-        console.log('Added new allocation to memory. Total allocations:', this.fundingAllocations.length);
+        // Create allocation with backend-calculated amount
+        const allocation = {
+          ...this.currentAllocation,
+          allocated_amount: this.allocatedAmount, // Store backend-calculated amount
+          salary_type: this.salaryType, // Store which salary type was used
+          calculation_formula: this.calculationFormula // Store formula for reference
+        };
+
+        if (this.editingIndex !== null) {
+          this.fundingAllocations[this.editingIndex] = allocation;
+          this.editingIndex = null;
+          console.log('✅ Updated allocation in memory with backend calculation');
+        } else {
+          this.fundingAllocations.push(allocation);
+          console.log('✅ Added new allocation to memory with backend calculation. Total allocations:', this.fundingAllocations.length);
+        }
+
+        // Reset current allocation form
+        this.currentAllocation = {
+          allocation_type: '',
+          grant_id: '',
+          grant_item_id: '',
+          department_position_id: '',
+          department_id: '',
+          position_id: '',
+          fte: 100
+        };
+        this.grantPositionOptions = [];
+        this.allocationPositions = [];
+        this.allocationErrors = {};
+        this.alertMessage = '';
+        this.alertClass = '';
+        this.saveFormState();
+
+      } catch (error) {
+        console.error('❌ Failed to calculate allocation before adding:', error);
+        this.alertMessage = 'Failed to calculate allocation amount. Please try again.';
+        this.alertClass = 'alert-danger';
       }
-
-      // Reset current allocation form
-      this.currentAllocation = {
-        allocation_type: '',
-        grant_id: '',
-        grant_items_id: '',
-        position_slot_id: '',
-        department_position_id: '',
-        department_id: '',
-        position_id: '',
-        fte: 100
-      };
-      this.grantPositionOptions = [];
-      this.positionSlotOptions = [];
-      this.allocationPositions = [];
-      this.allocationErrors = {};
-      this.alertMessage = '';
-      this.alertClass = '';
-      this.saveFormState();
     },
 
     editAllocation(index) {
@@ -1847,31 +1910,109 @@ export default {
       this.editData = { ...this.fundingAllocations[index] };
 
       if (this.isOrgFundGrant(this.editData.grant_id)) {
-        this.editData.allocation_type = 'org_funded';
-        // Load positions for the selected department if editing org-funded allocation
-        if (this.editData.department_id) {
-          this.onEditAllocationDepartmentChange();
-        }
+        // All allocations are grant type
+        this.editData.allocation_type = 'grant';
       } else {
         this.editData.allocation_type = 'grant';
         this.editGrantPositionOptions = this.grantPositions[this.editData.grant_id] || [];
-        const position = this.editGrantPositionOptions.find(p => p.id == this.editData.grant_items_id);
-        // Add budget line information to position slots since it's now at the grant item level
-        this.editPositionSlotOptions = position ?
-          (position.position_slots || []).map(slot => ({
-            ...slot,
-            budgetline_code: position.budgetline_code || 'N/A'
-          })) : [];
       }
     },
 
-    saveEdit() {
-      // Similar validation and save logic as addAllocation
-      this.fundingAllocations[this.editingIndex] = { ...this.editData };
-      this.editingIndex = null;
-      this.alertMessage = '';
-      this.alertClass = '';
-      this.saveFormState();
+    async saveEdit() {
+      console.log('Saving edited allocation:', this.editData);
+
+      // Validate the edited allocation
+      if (!this.validateEditAllocation()) {
+        return;
+      }
+
+      // Check for duplicates (excluding current editing index)
+      const isDuplicate = this.fundingAllocations.some((a, i) => {
+        if (i === this.editingIndex) return false;
+
+        // All allocations are grant type, check by grant_item_id
+        return a.grant_item_id === this.editData.grant_item_id;
+      });
+
+      if (isDuplicate) {
+        this.alertMessage = 'This allocation is already added.';
+        this.alertClass = 'alert-danger';
+        return;
+      }
+
+      // Check if total FTE would exceed 100%
+      const currentTotal = this.fundingAllocations.reduce((sum, a, i) => {
+        return i === this.editingIndex ? sum : sum + a.fte;
+      }, 0);
+
+      if (currentTotal + this.editData.fte > 100) {
+        this.alertMessage = `Saving this allocation would exceed 100% FTE. Available: ${100 - currentTotal}%`;
+        this.alertClass = 'alert-danger';
+        return;
+      }
+
+      // Get backend calculation before saving edited allocation
+      console.log('🔄 Getting backend calculation for edited allocation...');
+      try {
+        await this.calculateAmount({
+          probation_salary: this.formData.probation_salary,
+          pass_probation_salary: this.formData.pass_probation_salary,
+          pass_probation_date: this.formData.pass_probation_date,
+          start_date: this.formData.start_date
+        }, this.editData.fte);
+
+        // Update allocation with backend-calculated amount
+        const updatedAllocation = {
+          ...this.editData,
+          allocated_amount: this.allocatedAmount, // Store backend-calculated amount
+          salary_type: this.salaryType, // Store which salary type was used
+          calculation_formula: this.calculationFormula // Store formula for reference
+        };
+
+        this.fundingAllocations[this.editingIndex] = updatedAllocation;
+        this.editingIndex = null;
+        this.alertMessage = '';
+        this.alertClass = '';
+        this.saveFormState();
+
+        console.log('✅ Successfully saved edited allocation with backend calculation');
+      } catch (error) {
+        console.error('❌ Failed to calculate edited allocation:', error);
+        this.alertMessage = 'Failed to calculate allocation amount. Please try again.';
+        this.alertClass = 'alert-danger';
+      }
+    },
+
+    // Validate edited allocation
+    validateEditAllocation() {
+      let isValid = true;
+
+      if (!this.editData.grant_id) {
+        this.alertMessage = 'Please select a grant';
+        this.alertClass = 'alert-danger';
+        isValid = false;
+      }
+
+      // All allocations require grant_item_id
+      if (!this.editData.grant_item_id) {
+        this.alertMessage = 'Please select a grant position';
+        this.alertClass = 'alert-danger';
+        isValid = false;
+      }
+
+      if (!this.editData.fte || this.editData.fte <= 0) {
+        this.alertMessage = 'Please enter a valid FTE percentage';
+        this.alertClass = 'alert-danger';
+        isValid = false;
+      }
+
+      if (this.editData.fte > 100) {
+        this.alertMessage = 'FTE percentage cannot exceed 100%';
+        this.alertClass = 'alert-danger';
+        isValid = false;
+      }
+
+      return isValid;
     },
 
     cancelEdit() {
@@ -1955,13 +2096,6 @@ export default {
       return slot ? `Slot ${slot.slot_number} - ${position.budgetline_code || 'N/A'}` : 'Unknown Slot';
     },
 
-    getOrgFundedName(orgFundedId, originalData = null) {
-      if (originalData && originalData.org_funded_name) {
-        return originalData.org_funded_name;
-      }
-      const orgFunded = this.orgFundedOptions.find(o => o.id == orgFundedId);
-      return orgFunded ? orgFunded.name : 'Unknown Org Funding';
-    },
 
     // Helper method to get grant salary from grant position
     getGrantSalary(grantId, grantItemsId, originalData = null) {
@@ -1985,40 +2119,207 @@ export default {
       return '-';
     },
 
-    // New method to calculate salary based on FTE percentage
-    calculateSalaryFromFte(ftePercentage) {
-      if (!this.formData.position_salary || !ftePercentage) {
-        return 0;
-      }
-      return (this.formData.position_salary * ftePercentage) / 100;
-    },
+    // ⚠️ REMOVED: This method is completely removed as all calculations are now done by backend
+    // All allocation amounts come from the backend API via calculateAmount() composable
 
     // Method to get calculated salary for current allocation display
-    getCalculatedSalary(ftePercentage) {
-      if (!ftePercentage || !this.formData.position_salary) {
-        return this.formatCurrency(0);
+    // Shows ONLY backend calculation - NO local fallback
+    getCalculatedSalary(ftePercentage, isEditMode = false) {
+      if (!ftePercentage || ftePercentage === 0) {
+        return '฿0.00';
       }
-      const salary = this.calculateSalaryFromFte(ftePercentage);
-      return this.formatCurrency(salary);
+
+      // For edit mode, check if we're currently editing and use calculation result
+      if (isEditMode && this.editingIndex !== null) {
+        // Use calculation result if it matches the edit FTE
+        if (this.calculationResult && this.calculationResult.fte === ftePercentage) {
+          return this.formattedAmount;
+        }
+        // Check if the edited allocation already has a stored amount
+        if (this.editData.allocated_amount !== undefined && this.editData.allocated_amount !== null) {
+          return this.formatCurrency(this.editData.allocated_amount);
+        }
+      }
+
+      // For current allocation (add mode)
+      if (!isEditMode) {
+        // ONLY use backend calculation result
+        if (this.calculationResult && this.calculationResult.fte === ftePercentage) {
+          return this.formattedAmount;
+        }
+      }
+
+      // No backend calculation yet - prompt user to wait
+      if (!this.formData.probation_salary && !this.formData.pass_probation_salary) {
+        return 'Enter salary first';
+      }
+
+      return 'Calculating...';
+    },
+
+    // Get salary type label for display (shows which salary is being used)
+    getSalaryTypeLabel() {
+      if (this.calculating) {
+        return 'Calculating...';
+      }
+
+      if (this.salaryTypeLabel) {
+        return this.salaryTypeLabel;
+      }
+
+      // Fallback label based on local logic
+      if (this.formData.probation_salary) {
+        return 'Probation Salary';
+      } else if (this.formData.pass_probation_salary) {
+        return 'Pass Probation Salary';
+      }
+
+      return 'Not Set';
     },
 
     // Method to get allocated salary for table display
+    // Shows ONLY backend-calculated amount - NO local calculation
     getAllocatedSalary(allocation) {
-      const salary = this.calculateSalaryFromFte(allocation.fte);
-      return this.formatCurrency(salary);
+      // ONLY use backend-calculated amount stored in allocation
+      if (allocation.allocated_amount !== undefined && allocation.allocated_amount !== null) {
+        return this.formatCurrency(allocation.allocated_amount);
+      }
+
+      // No backend calculation available - this should not happen if addAllocation works correctly
+      console.warn('⚠️ Allocation missing backend-calculated amount:', allocation);
+      return '฿0.00';
     },
 
-    // Event handler for FTE change in current allocation
+    // Event handler wrapper for FTE change - calls debounced version
     onFteChange() {
-      // This will trigger reactivity to update the calculated salary display
-      // No additional logic needed as the computed display will update automatically
+      // Save form state immediately for draft persistence
       this.saveFormState();
+
+      // Call debounced function to prevent excessive API calls
+      if (this.debouncedFteChange) {
+        this.debouncedFteChange();
+      } else {
+        // Fallback if debounced function not initialized
+        this.onFteChangeInternal();
+      }
+    },
+
+    // Internal FTE change handler (debounced)
+    // Triggers real-time backend calculation of allocated amount
+    async onFteChangeInternal() {
+      // Validate FTE in real-time
+      if (this.currentAllocation.fte < 0) {
+        this.alertMessage = 'FTE cannot be negative';
+        this.alertClass = 'alert-danger';
+        return;
+      }
+
+      if (this.currentAllocation.fte > 100) {
+        this.alertMessage = 'FTE cannot exceed 100%';
+        this.alertClass = 'alert-danger';
+        return;
+      }
+
+      // Check if total FTE would exceed 100% in real-time
+      const currentTotal = this.fundingAllocations.reduce((sum, a, i) => {
+        return i === this.editingIndex ? sum : sum + a.fte;
+      }, 0);
+
+      if (currentTotal + this.currentAllocation.fte > 100) {
+        this.alertMessage = `Adding this would make total ${currentTotal + this.currentAllocation.fte}%. Maximum is 100%. Available: ${100 - currentTotal}%`;
+        this.alertClass = 'alert-warning';
+        // Still allow input but show warning
+      } else {
+        // Clear warning if FTE is valid
+        if (this.alertClass === 'alert-warning') {
+          this.alertMessage = '';
+          this.alertClass = '';
+        }
+      }
+
+      // Skip calculation if FTE is invalid
+      if (!this.currentAllocation.fte || this.currentAllocation.fte <= 0) {
+        console.log('FTE is zero or invalid, skipping calculation');
+        return;
+      }
+
+      // Call backend API for real-time calculation (debounced to 500ms)
+      console.log('FTE changed to:', this.currentAllocation.fte, '- calling backend for calculation (debounced)');
+
+      try {
+        await this.calculateAmount({
+          probation_salary: this.formData.probation_salary,
+          pass_probation_salary: this.formData.pass_probation_salary,
+          pass_probation_date: this.formData.pass_probation_date,
+          start_date: this.formData.start_date
+        }, this.currentAllocation.fte);
+
+        console.log('✅ Backend calculation complete:', this.calculationResult);
+      } catch (error) {
+        console.error('❌ Error calculating allocation:', error);
+        this.alertMessage = 'Failed to calculate allocation. Please check your input and try again.';
+        this.alertClass = 'alert-danger';
+      }
     },
 
     // Event handler for FTE change in edit mode
-    onEditFteChange() {
-      // This will trigger reactivity to update the calculated salary display
-      // No additional logic needed as the computed display will update automatically
+    async onEditFteChange() {
+      // Save state for draft persistence
+      this.saveFormState();
+
+      // Validate FTE in real-time
+      if (this.editData.fte < 0) {
+        this.alertMessage = 'FTE cannot be negative';
+        this.alertClass = 'alert-danger';
+        return;
+      }
+
+      if (this.editData.fte > 100) {
+        this.alertMessage = 'FTE cannot exceed 100%';
+        this.alertClass = 'alert-danger';
+        return;
+      }
+
+      // Check if total FTE would exceed 100% in real-time
+      const currentTotal = this.fundingAllocations.reduce((sum, a, i) => {
+        return i === this.editingIndex ? sum : sum + a.fte;
+      }, 0);
+
+      if (currentTotal + this.editData.fte > 100) {
+        this.alertMessage = `Total FTE would be ${currentTotal + this.editData.fte}%. Maximum is 100%. Available: ${100 - currentTotal}%`;
+        this.alertClass = 'alert-warning';
+        // Still allow input but show warning
+      } else {
+        // Clear warning if FTE is valid
+        if (this.alertClass === 'alert-warning') {
+          this.alertMessage = '';
+          this.alertClass = '';
+        }
+      }
+
+      // Skip calculation if FTE is invalid
+      if (!this.editData.fte || this.editData.fte <= 0) {
+        return;
+      }
+
+      // Call backend API for real-time calculation in edit mode
+      try {
+        await this.calculateAmount({
+          probation_salary: this.formData.probation_salary,
+          pass_probation_salary: this.formData.pass_probation_salary,
+          pass_probation_date: this.formData.pass_probation_date,
+          start_date: this.formData.start_date
+        }, this.editData.fte);
+
+        console.log('✅ Backend calculation complete for edit:', this.calculationResult);
+      } catch (error) {
+        console.error('❌ Error calculating allocation in edit mode:', error);
+        this.alertMessage = 'Failed to calculate allocation. Please check your input and try again.';
+        this.alertClass = 'alert-danger';
+      }
+
+      // The display will automatically update via getCalculatedSalary()
+      console.log('Edit FTE changed to:', this.editData.fte);
     },
 
     // Helper method to format currency (updated for THB)
@@ -2085,80 +2386,40 @@ export default {
           console.log('Found funding allocations from API:', allocationsData);
 
           // Map the API response to our internal format
+          // All allocations now use grant_item_id (including hub/org grants)
           this.fundingAllocations = allocationsData.map(allocation => {
-            // Convert fte from decimal string to percentage number
-            const ftePercentage = parseFloat(allocation.fte) * 100;
+            // FTE is already in percentage from backend resource
+            const ftePercentage = parseFloat(allocation.fte);
 
-            if (allocation.allocation_type === 'org_funded') {
-              // Handle org_funded allocations
-              const deptPosition = allocation.org_funded?.department_position;
+            // All allocations use grant_item relationship
+            const grantItem = allocation.grant_item || {};
+            const grant = grantItem.grant || {};
 
-              // Extract department and position IDs from the department_position object
-              let departmentId = allocation.org_funded?.department?.id || '';
-              let positionId = allocation.org_funded?.position?.id || '';
+            return {
+              id: allocation.id,
+              allocation_type: 'grant', // All allocations are grant type now
+              grant_id: grant.id || '',
+              grant_item_id: allocation.grant_item_id || grantItem.id || '',
+              grant_items_id: allocation.grant_item_id || grantItem.id || '', // Keep for backward compatibility
+              position_slot_id: '', // No longer used
+              department_position_id: '',
+              department_id: '',
+              position_id: '',
+              fte: ftePercentage,
 
-              // If not available directly, try to extract from department_position
-              if (!departmentId && deptPosition) {
-                departmentId = deptPosition.department_id || '';
+              // Additional data for display purposes
+              _original: {
+                grant_name: grant.name || allocation.grant_name || 'Unknown Grant',
+                grant_code: grant.code || allocation.grant_code || '',
+                grant_position: grantItem.grant_position || allocation.grant_position || '',
+                slot_number: '', // No longer used
+                budget_line_code: grantItem.budgetline_code || allocation.budgetline_code || '',
+                allocated_amount: allocation.allocated_amount,
+                formatted_allocated_amount: allocation.formatted_allocated_amount,
+                start_date: allocation.start_date,
+                end_date: allocation.end_date
               }
-              if (!positionId && deptPosition) {
-                positionId = deptPosition.position_id || '';
-              }
-
-              return {
-                id: allocation.id,
-                allocation_type: 'org_funded',
-                grant_id: allocation.org_funded?.grant?.id || '',
-                grant_items_id: '',
-                position_slot_id: '',
-                department_position_id: deptPosition?.id || '',
-                department_id: departmentId,
-                position_id: positionId,
-                fte: ftePercentage,
-
-                // Additional data for display purposes
-                _original: {
-                  grant_name: allocation.org_funded?.grant?.name || 'Other Fund',
-                  grant_code: allocation.org_funded?.grant?.code || '',
-                  grant_position: '',
-                  slot_number: '',
-                  budget_line_code: '',
-                  allocated_amount: allocation.allocated_amount,
-                  formatted_allocated_amount: allocation.formatted_allocated_amount,
-                  start_date: allocation.start_date,
-                  end_date: allocation.end_date,
-                  org_funded_name: 'Org Funded',
-                  department_name: deptPosition?.department || '',
-                  position_name: deptPosition?.position || ''
-                }
-              };
-            } else {
-              // Handle grant allocations (position_slot based)
-              return {
-                id: allocation.id,
-                allocation_type: 'grant',
-                grant_id: allocation.position_slot?.grant_item?.grant?.id || '',
-                grant_items_id: allocation.position_slot?.grant_item?.id || '',
-                position_slot_id: allocation.position_slot_id || '',
-                department_position_id: '',
-                department_id: '',
-                position_id: '',
-                fte: ftePercentage,
-
-                // Additional data for display purposes
-                _original: {
-                  grant_name: allocation.position_slot?.grant_item?.grant?.name || 'Unknown Grant',
-                  grant_code: allocation.position_slot?.grant_item?.grant?.code || '',
-                  grant_position: allocation.position_slot?.grant_item?.name || '',
-                  slot_number: allocation.position_slot?.slot_number || '',
-                  budget_line_code: allocation.position_slot?.grant_item?.budgetline_code || '',
-                  allocated_amount: allocation.allocated_amount,
-                  formatted_allocated_amount: allocation.formatted_allocated_amount,
-                  start_date: allocation.start_date,
-                  end_date: allocation.end_date
-                }
-              };
-            }
+            };
           });
 
           console.log('Mapped funding allocations from API:', this.fundingAllocations);
@@ -2192,48 +2453,36 @@ export default {
         employee_id: this.formData.employee_id,
         employment_type: this.formData.employment_type,
         pay_method: this.formData.pay_method || null,
-        probation_pass_date: this.formatDateForAPI(this.formData.probation_pass_date),
+        pass_probation_date: this.formatDateForAPI(this.formData.pass_probation_date),
         start_date: this.formatDateForAPI(this.formData.start_date),
         end_date: this.formatDateForAPI(this.formData.end_date),
         department_id: this.formData.department_id || null,
         position_id: this.formData.position_id || null,
         section_department: this.formData.section_department || null,
-        work_location_id: this.formData.work_location_id || null,
-        position_salary: this.formData.position_salary,
+        site_id: this.formData.site_id || null,
+        pass_probation_salary: this.formData.pass_probation_salary,
         probation_salary: this.formData.probation_salary || null,
+        status: !!this.formData.status, // Boolean: true = Active, false = Inactive
         health_welfare: !!this.formData.health_welfare,
-        health_welfare_percentage: this.formData.health_welfare_percentage || null,
         pvd: !!this.formData.pvd,
-        pvd_percentage: this.formData.pvd_percentage || null,
-        saving_fund: !!this.formData.saving_fund,
-        saving_fund_percentage: this.formData.saving_fund_percentage || null
+        saving_fund: !!this.formData.saving_fund
+        // NOTE: Benefit percentages are now managed globally in benefit_settings table
       };
 
       // For create mode, all fields are required as per backend create validation
       return {
         ...basePayload,
         // Funding allocation data - required for create
+        // ✅ IMPORTANT: Do NOT send allocated_amount - backend calculates it
+        // Backend uses correct salary field (probation_salary or pass_probation_salary)
         allocations: this.fundingAllocations.map(allocation => {
-          const isOrgFunded = allocation.allocation_type === 'org_funded';
-          const calculatedSalary = this.calculateSalaryFromFte(allocation.fte);
-
-          if (isOrgFunded) {
-            return {
-              allocation_type: 'org_funded',
-              grant_id: allocation.grant_id,
-              department_id: allocation.department_id,
-              position_id: allocation.position_id,
-              fte: allocation.fte, // Send as percentage (0-100) as expected by backend
-              allocated_amount: calculatedSalary
-            };
-          } else {
-            return {
-              allocation_type: 'grant',
-              position_slot_id: allocation.position_slot_id,
-              fte: allocation.fte, // Send as percentage (0-100) as expected by backend
-              allocated_amount: calculatedSalary
-            };
-          }
+          // All allocations are now grant type with grant_item_id
+          return {
+            allocation_type: 'grant',
+            grant_item_id: allocation.grant_item_id || allocation.grant_items_id || '',
+            fte: allocation.fte // Send as percentage (0-100), backend converts to decimal
+            // ✅ NO allocated_amount - backend calculates using correct salary
+          };
         })
       };
     },
@@ -2346,25 +2595,22 @@ export default {
         department_id: '',
         position_id: '',
         section_department: '',
-        work_location_id: '',
+        site_id: '',
         start_date: null,
         end_date: null,
-        probation_pass_date: null,
-        position_salary: '',
+        pass_probation_date: null,
+        pass_probation_salary: '',
         probation_salary: '',
+        status: true, // Boolean: true = Active (default), false = Inactive
 
         health_welfare: false,
-        health_welfare_percentage: null,
         pvd: false,
-        pvd_percentage: null,
-        saving_fund: false,
-        saving_fund_percentage: null
+        saving_fund: false
       };
       this.currentAllocation = {
         allocation_type: '',
         grant_id: '',
-        grant_items_id: '',
-        position_slot_id: '',
+        grant_item_id: '',
         department_position_id: '',
         department_id: '',
         position_id: '',
@@ -2373,8 +2619,7 @@ export default {
       this.editData = {
         allocation_type: '',
         grant_id: '',
-        grant_items_id: '',
-        position_slot_id: '',
+        grant_item_id: '',
         department_position_id: '',
         department_id: '',
         position_id: '',
@@ -2389,7 +2634,6 @@ export default {
       this.restoredDataNotification.show = false;
       this.restoredDataNotification.timestamp = null;
       this.grantPositionOptions = [];
-      this.positionSlotOptions = [];
 
       // Reset custom tree select
       this.showEmployeeDropdown = false;
@@ -2398,6 +2642,7 @@ export default {
       this.filteredEmployeeTree = [];
 
       this.clearValidationErrors();
+      this.clearValidationCache();
       this.clearFormDraft();
       // Keep dataLoaded as true to avoid reloading data unnecessarily
       console.log('Form reset complete. Memory cleared.');
@@ -2439,8 +2684,8 @@ export default {
     getVisibleEmployees(employees) {
       if (!employees) return [];
 
-      const subsidiaryKey = this.getCurrentSubsidiaryKey(employees);
-      const loadedCount = this.loadedEmployeeCounts.get(subsidiaryKey) || this.visibleEmployeeCount;
+      const organizationKey = this.getCurrentOrganizationKey(employees);
+      const loadedCount = this.loadedEmployeeCounts.get(organizationKey) || this.visibleEmployeeCount;
 
       return employees.slice(0, Math.min(loadedCount, employees.length));
     },
@@ -2448,20 +2693,20 @@ export default {
     hasMoreEmployees(employees) {
       if (!employees) return false;
 
-      const subsidiaryKey = this.getCurrentSubsidiaryKey(employees);
-      const loadedCount = this.loadedEmployeeCounts.get(subsidiaryKey) || this.visibleEmployeeCount;
+      const organizationKey = this.getCurrentOrganizationKey(employees);
+      const loadedCount = this.loadedEmployeeCounts.get(organizationKey) || this.visibleEmployeeCount;
 
       return employees.length > loadedCount;
     },
 
-    getCurrentSubsidiaryKey(employees) {
+    getCurrentOrganizationKey(employees) {
       // Generate a simple key based on the first employee's data
-      return employees[0]?.subsidiary || 'unknown';
+      return employees[0]?.organization || 'unknown';
     },
 
-    loadMoreEmployees(subsidiaryKey) {
-      const currentCount = this.loadedEmployeeCounts.get(subsidiaryKey) || this.visibleEmployeeCount;
-      this.loadedEmployeeCounts.set(subsidiaryKey, currentCount + this.visibleEmployeeCount);
+    loadMoreEmployees(organizationKey) {
+      const currentCount = this.loadedEmployeeCounts.get(organizationKey) || this.visibleEmployeeCount;
+      this.loadedEmployeeCounts.set(organizationKey, currentCount + this.visibleEmployeeCount);
     },
 
     handleDropdownScroll(event) {
@@ -2476,9 +2721,9 @@ export default {
         // Auto-load more when near bottom
         if (scrollHeight - scrollTop - clientHeight < 100) {
           // Find subsidiaries that need more loading
-          this.filteredEmployeeTree.forEach(subsidiary => {
-            if (subsidiary.expanded && this.hasMoreEmployees(subsidiary.children)) {
-              this.loadMoreEmployees(subsidiary.key);
+          this.filteredEmployeeTree.forEach(organization => {
+            if (organization.expanded && this.hasMoreEmployees(organization.children)) {
+              this.loadMoreEmployees(organization.key);
             }
           });
         }
@@ -2487,16 +2732,16 @@ export default {
 
     initializeEmployeeTree() {
       // Initialize filtered tree with all data and expand subsidiaries
-      this.filteredEmployeeTree = this.employeeTreeData.map(subsidiary => ({
-        ...subsidiary,
+      this.filteredEmployeeTree = this.employeeTreeData.map(organization => ({
+        ...organization,
         expanded: true // Auto-expand all subsidiaries
       }));
     },
 
-    toggleSubsidiary(subsidiaryKey) {
-      const subsidiary = this.filteredEmployeeTree.find(s => s.key === subsidiaryKey);
-      if (subsidiary) {
-        subsidiary.expanded = !subsidiary.expanded;
+    toggleOrganization(organizationKey) {
+      const organization = this.filteredEmployeeTree.find(s => s.key === organizationKey);
+      if (organization) {
+        organization.expanded = !organization.expanded;
       }
     },
 
@@ -2509,25 +2754,36 @@ export default {
       this.saveFormState();
     },
 
+    // Public method that triggers debounced filtering
     filterEmployees() {
+      if (this.debouncedFilterEmployees) {
+        this.debouncedFilterEmployees();
+      } else {
+        // Fallback if debounced function not initialized
+        this.filterEmployeesInternal();
+      }
+    },
+
+    // Internal filtering logic (debounced)
+    filterEmployeesInternal() {
       if (!this.employeeSearchTerm.trim()) {
         this.initializeEmployeeTree();
         return;
       }
 
       const searchTerm = this.employeeSearchTerm.toLowerCase();
-      this.filteredEmployeeTree = this.employeeTreeData.map(subsidiary => {
-        const filteredChildren = subsidiary.children?.filter(employee =>
+      this.filteredEmployeeTree = this.employeeTreeData.map(organization => {
+        const filteredChildren = organization.children?.filter(employee =>
           employee.title.toLowerCase().includes(searchTerm) ||
           (employee.staff_id && employee.staff_id.toLowerCase().includes(searchTerm))
         ) || [];
 
         return {
-          ...subsidiary,
+          ...organization,
           children: filteredChildren,
           expanded: filteredChildren.length > 0 // Auto-expand if has matching children
         };
-      }).filter(subsidiary => subsidiary.children.length > 0);
+      }).filter(organization => organization.children.length > 0);
     },
 
     // Click outside handler to close dropdown
@@ -2644,13 +2900,13 @@ export default {
 }
 
 .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 .form-group label,
 .form-label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   font-weight: 500;
   color: #1d2636;
 }
@@ -2700,7 +2956,7 @@ select {
 
 .date-row {
   display: flex;
-  gap: 14px;
+  gap: 16px;
 }
 
 .date-row .form-group {
@@ -2719,7 +2975,7 @@ select {
 
 .btn-row {
   text-align: right;
-  margin-top: 18px;
+  margin-top: 24px;
 }
 
 .btn {
@@ -2758,8 +3014,8 @@ select {
   text-align: center;
   color: #169b53;
   font-weight: bold;
-  margin-bottom: 14px;
-  padding: 8px 12px;
+  margin-bottom: 20px;
+  padding: 10px 14px;
   background: #f0f9f4;
   border: 1px solid #d4edda;
   border-radius: 6px;
@@ -2769,8 +3025,8 @@ select {
   text-align: center;
   color: #e53e3e;
   font-weight: bold;
-  margin-bottom: 14px;
-  padding: 8px 12px;
+  margin-bottom: 20px;
+  padding: 10px 14px;
   background: #fff5f5;
   border: 1px solid #f5c6cb;
   border-radius: 6px;
@@ -2779,13 +3035,13 @@ select {
 .allocation-table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .allocation-table th,
 .allocation-table td {
   border: 1px solid #e5eaf0;
-  padding: 8px 7px;
+  padding: 10px 12px;
   text-align: left;
   font-size: 0.97em;
 }
@@ -3065,6 +3321,117 @@ select {
   padding-top: 20px;
 }
 
+/* Enhanced Prerequisites Warning UI */
+.allocation-prerequisites-warning {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
+  border: 2px solid #ffc107;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.15);
+}
+
+.allocation-prerequisites-warning .warning-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  background: rgba(255, 193, 7, 0.15);
+  border-bottom: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.allocation-prerequisites-warning .warning-header i {
+  font-size: 1.3em;
+  color: #f57c00;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.allocation-prerequisites-warning .warning-header strong {
+  font-size: 1em;
+  color: #f57c00;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.allocation-prerequisites-warning .warning-content {
+  padding: 16px 18px;
+}
+
+.allocation-prerequisites-warning .warning-description {
+  margin: 0 0 12px 0;
+  color: #856404;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.allocation-prerequisites-warning .prerequisites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.allocation-prerequisites-warning .prerequisite-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: white;
+  border-radius: 6px;
+  border-left: 3px solid #ffc107;
+  transition: all 0.2s ease;
+}
+
+.allocation-prerequisites-warning .prerequisite-item:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 6px rgba(255, 193, 7, 0.2);
+}
+
+.allocation-prerequisites-warning .prerequisite-item i {
+  font-size: 1.1em;
+  color: #ff6f00;
+  min-width: 20px;
+}
+
+.allocation-prerequisites-warning .prerequisite-item span {
+  color: #5d4037;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.allocation-prerequisites-warning .warning-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 193, 7, 0.1);
+  border-radius: 6px;
+}
+
+.allocation-prerequisites-warning .warning-footer i {
+  font-size: 0.95em;
+  color: #ff8f00;
+}
+
+.allocation-prerequisites-warning .warning-footer span {
+  color: #6c5400;
+  font-size: 0.85em;
+  font-style: italic;
+  line-height: 1.4;
+}
+
 .checkbox-group {
   display: flex;
   flex-wrap: wrap;
@@ -3123,6 +3490,69 @@ select {
   font-weight: 500;
   color: #6c757d;
   font-size: 0.9em;
+}
+
+/* Employment Status with Ant Design Switch */
+.employment-status-container {
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.employment-status-container:hover {
+  border-color: #d0d7de;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.status-switch-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.status-label {
+  font-weight: 600;
+  font-size: 0.95em;
+  transition: color 0.3s ease;
+  min-width: 70px;
+}
+
+.status-label.status-active {
+  color: #52c41a;
+}
+
+.status-label.status-inactive {
+  color: #8c8c8c;
+}
+
+.status-hint {
+  display: block;
+  font-size: 0.85em;
+  line-height: 1.4;
+  margin-top: 8px;
+}
+
+.status-hint .ti {
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+/* Ant Design Switch customization */
+.employment-status-container .ant-switch {
+  min-width: 60px;
+  height: 26px;
+}
+
+.employment-status-container .ant-switch-checked {
+  background-color: #52c41a;
+}
+
+.employment-status-container .ant-switch-inner {
+  font-size: 12px;
+  font-weight: 500;
 }
 
 /* Status badge styles */
@@ -3257,11 +3687,11 @@ select {
   padding: 8px 0;
 }
 
-.subsidiary-group {
+.organization-group {
   margin-bottom: 4px;
 }
 
-.subsidiary-header {
+.organization-header {
   display: flex;
   align-items: center;
   padding: 8px 16px;
@@ -3273,17 +3703,17 @@ select {
   transition: background-color 0.15s ease;
 }
 
-.subsidiary-header:hover {
+.organization-header:hover {
   background: #e9ecef;
 }
 
-.subsidiary-header i {
+.organization-header i {
   margin-right: 8px;
   font-size: 0.8em;
   transition: transform 0.15s ease;
 }
 
-.subsidiary-name {
+.organization-name {
   flex: 1;
 }
 
@@ -3407,8 +3837,121 @@ select {
     padding: 8px 16px;
   }
 
-  .subsidiary-header {
+  .organization-header {
     padding: 6px 12px;
   }
+}
+
+/* Spinner animation for calculating state */
+@keyframes spin {
+  from {
+    transform: translateY(-50%) rotate(0deg);
+  }
+
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+/* Calculated salary wrapper - maintains alignment */
+.calculated-amount-wrapper {
+  position: relative;
+  height: 38px;
+  /* Match other input heights */
+}
+
+/* Make Calculated Salary field wider in the allocation row */
+.date-row .form-group:has(.calculated-amount-wrapper) {
+  flex: 1.4;
+  /* Wider than other fields (default is 1) */
+}
+
+/* Make Add button container smaller */
+.date-row .form-group:has(.btn-save) {
+  flex: 0 0 auto;
+  min-width: 60px !important;
+  /* Reduced from 72px */
+}
+
+.calculated-salary-input {
+  width: 100%;
+  height: 38px;
+  padding-right: 35px !important;
+  /* Space for icon */
+  transition: background-color 0.3s ease;
+  font-weight: 500;
+}
+
+/* Background states for calculated salary */
+.calculated-salary-input.calculating-bg {
+  background-color: #fff3cd !important;
+  color: #856404;
+}
+
+.calculated-salary-input.calculated-bg {
+  background-color: #e8f5e9 !important;
+  color: #2e7d32;
+}
+
+.calculated-salary-input.default-bg {
+  background-color: #f7f8fa !important;
+  color: #6c757d;
+}
+
+/* Icon positioning - aligned to right */
+.spinner-icon,
+.checkmark-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.spinner-icon {
+  color: #ffc107;
+  font-size: 1.1em;
+  animation: spin 1s linear infinite;
+}
+
+.checkmark-icon {
+  color: #28a745;
+  font-size: 1.2em;
+}
+
+/* Badge styles for salary type indicator */
+.badge-warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.badge-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.badge-sm {
+  font-size: 0.65em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* Formula text styling - below input, doesn't affect alignment */
+.formula-text {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75em;
+  color: #6c757d;
+  line-height: 1.3;
+  font-style: italic;
+}
+
+.position-relative {
+  position: relative;
 }
 </style>

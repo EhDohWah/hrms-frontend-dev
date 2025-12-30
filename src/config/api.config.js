@@ -17,7 +17,8 @@ export const API_ENDPOINTS = {
         FORGOT_PASSWORD: '/forgot-password',
         RESET_PASSWORD: '/reset-password',
         VERIFY_EMAIL: '/verify-email',
-        USER: '/user'
+        USER: '/user',
+        MY_PERMISSIONS: '/me/permissions'
     },
 
     // Admin endpoints
@@ -34,7 +35,25 @@ export const API_ENDPOINTS = {
         },
         PERMISSIONS: {
             LIST: '/admin/permissions'
+        },
+        DASHBOARD: {
+            ALL_WIDGETS: '/admin/dashboard/widgets',
+            USER_WIDGETS: '/admin/dashboard/users/:userId/widgets',
+            USER_AVAILABLE_WIDGETS: '/admin/dashboard/users/:userId/available-widgets'
         }
+    },
+
+    // Dashboard endpoints
+    DASHBOARD: {
+        MY_WIDGETS: '/dashboard/my-widgets',
+        UPDATE_WIDGETS: '/dashboard/my-widgets',
+        AVAILABLE_WIDGETS: '/dashboard/available-widgets',
+        ADD_WIDGET: '/dashboard/widgets/add',
+        REMOVE_WIDGET: '/dashboard/widgets/:widgetId',
+        TOGGLE_VISIBILITY: '/dashboard/widgets/:widgetId/toggle-visibility',
+        TOGGLE_COLLAPSE: '/dashboard/widgets/:widgetId/toggle-collapse',
+        REORDER_WIDGETS: '/dashboard/widgets/reorder',
+        RESET_DEFAULTS: '/dashboard/reset-defaults'
     },
 
     // User endpoints
@@ -54,7 +73,7 @@ export const API_ENDPOINTS = {
     // Employee endpoints
     EMPLOYEE: {
         TREE_SEARCH: '/employees/tree-search',
-        LIST: '/employees?per_page=&staff_id=&status=&subsidiary=&gender=&date_of_birth=&sort_by=&sort_order=',
+        LIST: '/employees?per_page=&staff_id=&status=&organization=&gender=&date_of_birth=&sort_by=&sort_order=',
         SINGLE: '/employees/staff-id/:staffId',
         CREATE: '/employees',
         UPDATE: '/employees/:id',
@@ -73,13 +92,14 @@ export const API_ENDPOINTS = {
 
     // Role endpoints
     ROLE: {
-        LIST: '/roles',
-        CREATE: '/roles',
-        UPDATE: '/roles/:id',
-        DELETE: '/roles/:id',
-        DETAILS: '/roles/:id',
-        GET_PERMISSIONS: '/roles/:id/permissions',
-        UPDATE_PERMISSIONS: '/roles/:id/permissions'
+        LIST: '/admin/roles',
+        OPTIONS: '/admin/roles/options',
+        CREATE: '/admin/roles',
+        UPDATE: '/admin/roles/:id',
+        DELETE: '/admin/roles/:id',
+        DETAILS: '/admin/roles/:id',
+        GET_PERMISSIONS: '/admin/roles/:id/permissions',
+        UPDATE_PERMISSIONS: '/admin/roles/:id/permissions'
     },
 
     // Employment endpoints
@@ -87,6 +107,10 @@ export const API_ENDPOINTS = {
         LIST: '/employments',
         SEARCH_BY_STAFF_ID: '/employments/search/staff-id/:staffId',
         FUNDING_ALLOCATIONS: '/employments/:id/funding-allocations',
+        PROBATION_HISTORY: '/employments/:id/probation-history',
+        PROBATION_STATUS: '/employments/:id/probation-status',
+        CALCULATE_ALLOCATION: '/employments/calculate-allocation',
+        COMPLETE_PROBATION: '/employments/:id/complete-probation',
         CREATE: '/employments',
         UPDATE: '/employments/:id',
         DELETE: '/employments/:id',
@@ -158,7 +182,7 @@ export const API_ENDPOINTS = {
         SEARCH: '/lookups/search'
     },
 
-    // Department Position endpoints
+    // Department Position endpoints (legacy)
     DEPARTMENT_POSITION: {
         LIST: '/department-positions',
         CREATE: '/department-positions',
@@ -167,7 +191,17 @@ export const API_ENDPOINTS = {
         DETAILS: '/department-positions/:id'
     },
 
-    // Department endpoints (new)
+    // Site endpoints
+    SITE: {
+        LIST: '/sites',
+        CREATE: '/sites',
+        UPDATE: '/sites/:id',
+        DELETE: '/sites/:id',
+        DETAILS: '/sites/:id',
+        OPTIONS: '/sites/options'
+    },
+
+    // Department endpoints
     DEPARTMENT: {
         LIST: '/departments',
         CREATE: '/departments',
@@ -179,7 +213,7 @@ export const API_ENDPOINTS = {
         MANAGERS: '/departments/:id/managers'
     },
 
-    // Position endpoints (new)
+    // Position endpoints
     POSITION: {
         LIST: '/positions',
         CREATE: '/positions',
@@ -188,6 +222,17 @@ export const API_ENDPOINTS = {
         DETAILS: '/positions/:id',
         OPTIONS: '/positions/options',
         DIRECT_REPORTS: '/positions/:id/direct-reports'
+    },
+
+    // Section Department endpoints
+    SECTION_DEPARTMENT: {
+        LIST: '/section-departments',
+        CREATE: '/section-departments',
+        UPDATE: '/section-departments/:id',
+        DELETE: '/section-departments/:id',
+        DETAILS: '/section-departments/:id',
+        OPTIONS: '/section-departments/options',
+        BY_DEPARTMENT: '/section-departments/by-department/:departmentId'
     },
 
 
@@ -204,6 +249,7 @@ export const API_ENDPOINTS = {
     LEAVE: {
         TYPES: {
             LIST: '/leaves/types',
+            DROPDOWN: '/leaves/types/dropdown',
             CREATE: '/leaves/types',
             UPDATE: '/leaves/types/:id',
             DELETE: '/leaves/types/:id',
@@ -266,6 +312,7 @@ export const API_ENDPOINTS = {
     PAYROLL: {
         LIST: '/payrolls',
         SEARCH: '/payrolls/search',
+        BUDGET_HISTORY: '/payrolls/budget-history',
         CREATE: '/payrolls',
         UPDATE: '/payrolls/:id',
         DELETE: '/payrolls/:id',
@@ -275,7 +322,12 @@ export const API_ENDPOINTS = {
         PREVIEW_ADVANCES: '/payrolls/preview-advances',
         TAX_SUMMARY: '/payrolls/tax-summary/:id',
         CALCULATE: '/payrolls/calculate',
-        BULK_CALCULATE: '/payrolls/bulk-calculate'
+        BULK_CALCULATE: '/payrolls/bulk-calculate',
+        // Bulk payroll creation with real-time progress tracking
+        BULK_PREVIEW: '/payrolls/bulk/preview',
+        BULK_CREATE_NEW: '/payrolls/bulk/create',
+        BULK_STATUS: '/payrolls/bulk/status/:batchId',
+        BULK_ERRORS: '/payrolls/bulk/errors/:batchId'
     },
 
     // Employee grant allocation endpoints
@@ -346,7 +398,8 @@ export const API_ENDPOINTS = {
     // Notification endpoints
     NOTIFICATION: {
         LIST: '/notifications',
-        MARK_ALL_READ: '/notifications/mark-all-read'
+        MARK_ALL_READ: '/notifications/mark-all-read',
+        MARK_READ: '/notifications/:id/mark-read'
     },
 
     // Employee children endpoints
@@ -425,6 +478,15 @@ export const API_ENDPOINTS = {
         THAI_REPORT: '/tax-calculations/thai-report'
     },
 
+    // Benefit Settings endpoints
+    BENEFIT_SETTINGS: {
+        LIST: '/benefit-settings',
+        CREATE: '/benefit-settings',
+        UPDATE: '/benefit-settings/:id',
+        DELETE: '/benefit-settings/:id',
+        DETAILS: '/benefit-settings/:id'
+    },
+
     // Resignation endpoints
     RESIGNATION: {
         LIST: '/resignations',
@@ -446,6 +508,25 @@ export const API_ENDPOINTS = {
         DELETE_SELECTED: '/travel-requests/bulk-delete',
         OPTIONS: '/travel-requests/options',
         SEARCH_BY_EMPLOYEE: '/travel-requests/search/employee/:staffId'
+    },
+
+    // File Upload endpoints
+    UPLOAD: {
+        EMPLOYEE: '/uploads/employee',
+        EMPLOYEE_TEMPLATE: '/uploads/employee/template',
+        EMPLOYMENT: '/uploads/employment',
+        EMPLOYMENT_TEMPLATE: '/uploads/employment/template',
+        PAYROLL: '/uploads/payroll',
+        PAYROLL_TEMPLATE: '/uploads/payroll/template'
+    },
+
+    // Module endpoints (Dynamic Menu System)
+    MODULE: {
+        LIST: '/admin/modules',
+        HIERARCHICAL: '/admin/modules/hierarchical',
+        BY_CATEGORY: '/admin/modules/by-category',
+        PERMISSIONS: '/admin/modules/permissions',
+        DETAILS: '/admin/modules/:id'
     }
 
 };

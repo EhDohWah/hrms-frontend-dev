@@ -38,6 +38,31 @@ class LeaveService extends BaseService {
     }
   }
 
+  async getLeaveTypesForDropdown() {
+    try {
+      const response = await apiService.get(API_ENDPOINTS.LEAVE.TYPES.DROPDOWN);
+
+      // Transform the response data
+      if (response.success && response.data) {
+        const transformedData = Array.isArray(response.data)
+          ? response.data.map(item => dataMapper.mapLeaveType(item))
+          : response.data;
+
+        console.log(`✅ Fetched ${transformedData.length} leave types for dropdown (non-paginated)`);
+
+        return {
+          ...response,
+          data: transformedData
+        };
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Error fetching leave types for dropdown:', error);
+      throw error;
+    }
+  }
+
   async createLeaveType(data) {
     try {
       // Transform data to backend format

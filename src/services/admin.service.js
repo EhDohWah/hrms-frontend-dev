@@ -8,6 +8,14 @@ class AdminService {
     return await apiService.get(API_ENDPOINTS.ADMIN.USERS.LIST);
   }
 
+  async getUsersPaginated(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString 
+      ? `${API_ENDPOINTS.ADMIN.USERS.LIST}?${queryString}`
+      : API_ENDPOINTS.ADMIN.USERS.LIST;
+    return await apiService.get(url);
+  }
+
   async createUser(userData) {
     // Check if userData is already FormData
     if (userData instanceof FormData) {

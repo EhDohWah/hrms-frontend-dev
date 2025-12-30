@@ -30,16 +30,17 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
-                  <label class="form-label" for="edit-subsidiary">Subsidiary</label>
-                  <select id="edit-subsidiary" v-model="editFormData.subsidiary" class="form-control" required
+                  <label class="form-label" for="edit-organization">Organization</label>
+                  <select id="edit-organization" v-model="editFormData.organization" class="form-control" required
                     @change="saveFormState('editFormData')">
-                    <option value="" disabled selected>Select a subsidiary</option>
-                    <option v-for="subsidiary in subsidiaries" :key="subsidiary.id" :value="subsidiary.value" :class="[
-                      subsidiary.value === 'SMRU' ? 'text-primary' :
-                        subsidiary.value === 'BHF' ? 'text-primary' :
-                          'text-secondary'
-                    ]">
-                      {{ subsidiary.value }}
+                    <option value="" disabled selected>Select a organization</option>
+                    <option v-for="organization in subsidiaries" :key="organization.id" :value="organization.value"
+                      :class="[
+                        organization.value === 'SMRU' ? 'text-primary' :
+                          organization.value === 'BHF' ? 'text-primary' :
+                            'text-secondary'
+                      ]">
+                      {{ organization.value }}
                     </option>
                   </select>
                 </div>
@@ -1094,7 +1095,7 @@ export default {
         mobile_phone: '',
         current_address: '',
         permanent_address: '',
-        subsidiary: '',
+        organization: '',
         gender: '',
         nationality: '',
         religion: '',
@@ -1330,7 +1331,7 @@ export default {
         this.religions = lookupStore.getLookupsByType('religion') || [];
         this.maritalStatuses = lookupStore.getLookupsByType('marital_status') || [];
         this.statuses = lookupStore.getLookupsByType('employee_status') || [];
-        this.subsidiaries = lookupStore.getLookupsByType('subsidiary') || [];
+        this.subsidiaries = lookupStore.getLookupsByType('organization') || [];
         this.employeeInitialEN = lookupStore.getLookupsByType('employee_initial_en') || [];
         this.employeeInitialTH = lookupStore.getLookupsByType('employee_initial_th') || [];
         this.idTypes = lookupStore.getLookupsByType('identification_types') || [];
@@ -1674,7 +1675,7 @@ export default {
             initial_th: this.employee.initial_th || '',
             staff_id: this.employee.staff_id || '',
             status: this.employee.status || '',
-            subsidiary: this.employee.subsidiary || '',
+            organization: this.employee.organization || '',
             gender: this.employee.gender || '',
             date_of_birth: this.safeConvertToDate(this.employee.date_of_birth),
           };
@@ -2702,7 +2703,7 @@ export default {
             initial_th: newVal.initial_th || '',
             staff_id: newVal.staff_id || '',
             status: newVal.status || '',
-            subsidiary: newVal.subsidiary || '',
+            organization: newVal.organization || '',
             gender: newVal.gender || '',
             date_of_birth: this.safeConvertToDate(newVal.date_of_birth),
           };

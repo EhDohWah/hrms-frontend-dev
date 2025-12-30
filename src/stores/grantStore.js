@@ -39,7 +39,7 @@ export const useGrantStore = defineStore('grant', {
           page: params.page || 1,
           per_page: params.per_page || 10,
           ...(params.search && { search: params.search }),
-          ...(params.subsidiary && { subsidiary: params.subsidiary }),
+          ...(params.organization && { organization: params.organization }),
           ...(params.code && { code: params.code }),
           ...(params.sort_by && { sort_by: params.sort_by }),
           ...(params.sort_order && { sort_order: params.sort_order })
@@ -81,7 +81,7 @@ export const useGrantStore = defineStore('grant', {
           per_page: params.per_page || 10,
           with_items: params.with_items || true,
           ...(params.search && { search: params.search }),
-          ...(params.subsidiary && { subsidiary: params.subsidiary }),
+          ...(params.organization && { organization: params.organization }),
           ...(params.code && { code: params.code }),
           ...(params.name && { name: params.name }),
           ...(params.end_date_after && { end_date_after: params.end_date_after }),

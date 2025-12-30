@@ -1,141 +1,223 @@
 <template>
-  <!-- Add Department -->
-  <div class="modal fade" id="add_department">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Add Department</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Department Name</label>
-                  <input type="text" class="form-control" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Status</label>
-                  <vue-select
-                    :options="DepartActive"
-                    id="departacti"
-                    placeholder="Select"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">
-              Cancel
-            </button>
-            <button type="submit" class="btn btn-primary">Add Department</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <!-- /Add Department -->
-
-  <!-- Edit Department -->
-  <div class="modal fade" id="edit_department">
-    <div class="modal-dialog modal-dialog-centered modal-md">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Edit Department</h4>
-          <button
-            type="button"
-            class="btn-close custom-btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          >
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Department Name</label>
-                  <input type="text" class="form-control" value="Finance" />
-                </div>
-              </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Status</label>
-                  <vue-select
-                    :options="EditDepartActive"
-                    id="editdepartacti"
-                    placeholder="Select"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light me-2" data-bs-dismiss="modal">
-              Cancel
-            </button>
-            <button type="submit" class="btn btn-primary">Save Department</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <!-- /Edit Department -->
-
-  <!-- Delete Modal -->
-  <div class="modal fade" id="delete_modal">
+  <!-- Add/Edit Department Modal -->
+  <div class="modal fade" id="add_department_modal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-body text-center">
-          <span class="avatar avatar-xl bg-transparent-danger text-danger mb-3">
-            <i class="ti ti-trash-x fs-36"></i>
-          </span>
-          <h4 class="mb-1">Confirm Delete</h4>
-          <p class="mb-3">
-            You want to delete all the marked items, this cant be undone once you delete.
-          </p>
-          <div class="d-flex justify-content-center">
-            <a
-              href="javascript:void(0);"
-              class="btn btn-light me-3"
-              data-bs-dismiss="modal"
-              >Cancel</a
-            >
-            <router-link to="/employee/departments" class="btn btn-danger"
-              >Yes, Delete</router-link
-            >
+        <div class="modal-header">
+          <h4 class="modal-title" id="departmentModalLabel">
+            {{ isEditMode ? 'Edit Department' : 'Add New Department' }}
+          </h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div v-if="alertMessage" class="alert mx-3 mt-3" :class="alertClass" role="alert">
+          {{ alertMessage }}
+        </div>
+
+        <form @submit.prevent="handleSubmit">
+          <div class="modal-body">
+            <div class="row g-3">
+              <!-- Name -->
+              <div class="col-md-12">
+                <label class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" v-model="formData.name"
+                  :class="{ 'is-invalid': validationErrors.name }" placeholder="Enter department name" required>
+                <div v-if="validationErrors.name" class="invalid-feedback">
+                  {{ validationErrors.name }}
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="col-md-12">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" v-model="formData.description" rows="3"
+                  placeholder="Enter description"></textarea>
+              </div>
+
+              <!-- Status -->
+              <div class="col-md-12">
+                  <label class="form-label">Status</label>
+                <select class="form-select" v-model="formData.is_active">
+                  <option :value="true">Active</option>
+                  <option :value="false">Inactive</option>
+                </select>
+                </div>
+              </div>
+            </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+              {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }}
+            </button>
           </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="delete_department_modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">Delete Department</h4>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this department? This action cannot be undone.</p>
+          <p class="text-warning"><i class="ti ti-alert-triangle me-1"></i>Note: Departments with active positions cannot be deleted.</p>
+          </div>
+          <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" @click="deleteDepartment" :disabled="isSubmitting">
+            <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
+            {{ isSubmitting ? 'Deleting...' : 'Delete' }}
+            </button>
         </div>
       </div>
     </div>
   </div>
-  <!-- /Delete Modal -->
 </template>
+
 <script>
+import { Modal } from 'bootstrap';
+import { useDepartmentStore } from '@/stores/departmentStore';
+
 export default {
+  name: 'DepartmentModal',
+  emits: ['department-added', 'department-updated'],
   data() {
     return {
-      DepartActive: ["Select", "Active", "Inactive"],
-      EditDepartActive: ["Select", "Active", "Inactive"],
+      isEditMode: false,
+      currentId: null,
+      formData: {
+        name: '',
+        description: '',
+        is_active: true,
+      },
+      validationErrors: {},
+      alertMessage: '',
+      alertClass: '',
+      isSubmitting: false,
+      addModalInstance: null,
+      deleteModalInstance: null,
+      deleteId: null,
     };
   },
   methods: {
-    submitForm() {
-      this.$router.push("/employee/departments");
+    setEditDepartment(record) {
+      this.isEditMode = true;
+      this.currentId = record.id;
+      this.formData = {
+        name: record.name || '',
+        description: record.description || '',
+        is_active: record.is_active !== undefined ? record.is_active : true,
+      };
+      this.validationErrors = {};
+      this.alertMessage = '';
+      this.openModal();
     },
+
+    openModal() {
+      if (!this.addModalInstance) {
+        this.addModalInstance = new Modal(document.getElementById('add_department_modal'));
+      }
+      this.addModalInstance.show();
+    },
+
+    closeModal() {
+      if (this.addModalInstance) {
+        this.addModalInstance.hide();
+      }
+      this.resetForm();
+    },
+
+    resetForm() {
+      this.isEditMode = false;
+      this.currentId = null;
+      this.formData = {
+        name: '',
+        description: '',
+        is_active: true,
+      };
+      this.validationErrors = {};
+      this.alertMessage = '';
+    },
+
+    confirmDeleteDepartment(departmentId) {
+      this.deleteId = departmentId;
+      if (!this.deleteModalInstance) {
+        this.deleteModalInstance = new Modal(document.getElementById('delete_department_modal'));
+      }
+      this.deleteModalInstance.show();
+    },
+
+    async handleSubmit() {
+      this.validationErrors = {};
+      this.alertMessage = '';
+      this.isSubmitting = true;
+
+      try {
+        const departmentStore = useDepartmentStore();
+
+        if (this.isEditMode) {
+          await departmentStore.updateDepartment(this.currentId, this.formData);
+          this.alertMessage = 'Department updated successfully!';
+          this.$emit('department-updated');
+        } else {
+          await departmentStore.createDepartment(this.formData);
+          this.alertMessage = 'Department created successfully!';
+          this.$emit('department-added');
+        }
+
+        this.alertClass = 'alert-success';
+
+        setTimeout(() => {
+          this.closeModal();
+        }, 1500);
+      } catch (error) {
+        if (error.errors) {
+          this.validationErrors = error.errors;
+          this.alertMessage = 'Please fix the validation errors';
+        } else {
+          this.alertMessage = error.message || `Failed to ${this.isEditMode ? 'update' : 'create'} department`;
+        }
+        this.alertClass = 'alert-danger';
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    async deleteDepartment() {
+      this.isSubmitting = true;
+
+      try {
+        const departmentStore = useDepartmentStore();
+        await departmentStore.deleteDepartment(this.deleteId);
+
+        if (this.deleteModalInstance) {
+          this.deleteModalInstance.hide();
+        }
+
+        this.$emit('department-updated');
+        this.$message.success('Department deleted successfully');
+      } catch (error) {
+        this.$message.error(error.message || 'Failed to delete department');
+      } finally {
+        this.isSubmitting = false;
+        this.deleteId = null;
+      }
+    },
+  },
+  mounted() {
+    const modalEl = document.getElementById('add_department_modal');
+    if (modalEl) {
+      modalEl.addEventListener('hidden.bs.modal', () => {
+        this.resetForm();
+      });
+    }
   },
 };
 </script>

@@ -150,13 +150,6 @@ class GrantService extends BaseService {
     return result;
   }
 
-  // Upload grant file
-  async uploadGrantFile(formData) {
-    return await this.handleApiResponse(
-      () => apiService.postFormData(API_ENDPOINTS.GRANT.UPLOAD, formData),
-      'upload grant file'
-    );
-  }
 
   // Get grant details
   async getGrantDetails(id) {
@@ -349,30 +342,6 @@ class GrantService extends BaseService {
     return await this.createGrantItem(itemData);
   }
 
-  /**
-   * Upload grant file with validation
-   * @param {File} file - File to upload
-   * @returns {Promise} API response
-   */
-  async uploadGrantFileWithValidation(file) {
-    const validation = this.validateFile(file, {
-      maxSize: 10 * 1024 * 1024, // 10MB
-      allowedTypes: [
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-        'application/vnd.ms-excel', // .xls
-        'text/csv' // .csv
-      ]
-    });
-
-    if (!validation.isValid) {
-      throw this.createValidationError(validation.errors);
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    return await this.uploadGrantFile(formData);
-  }
 }
 
 export const grantService = new GrantService();

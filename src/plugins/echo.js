@@ -106,7 +106,7 @@ export function initEcho(token) {
         disableStats: true,
         authEndpoint: process.env.VUE_APP_API_BASE_URL
             ? `${process.env.VUE_APP_PUBLIC_URL}/broadcasting/auth`
-            : 'http://127.0.0.1:8000/broadcasting/auth',
+            : 'http://127.0.0.1:8000/broadcasting/auth', // TODO: Change to the actual auth endpoint
         auth: {
             headers: { Authorization: `Bearer ${token}` },
         },

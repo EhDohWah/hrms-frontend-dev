@@ -334,6 +334,7 @@ import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
 import { grantService } from '@/services/grant.service';
+import { uploadGrantService } from '@/services/upload-grant.service';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
 import { cloneDeep } from 'lodash-es';
@@ -1245,10 +1246,10 @@ export default {
       }
     },
 
-    async handleGrantUploadSubmit(formData) {
+    async handleGrantUploadSubmit(file) {
       this.loading = true;
       try {
-        await this.grantService.uploadGrantFile(formData);
+        await uploadGrantService.uploadGrantData(file);
         this.showNotification('Success', 'Grant file uploaded successfully', 'bg-success text-white');
         // Refresh the grants list
         this.fetchGrants();

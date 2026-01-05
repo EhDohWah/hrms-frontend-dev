@@ -32,6 +32,27 @@
         </div>
         <div class="card-body p-0">
           
+          <!-- Grant Uploads Section -->
+          <div class="upload-category">
+            <div class="category-header">
+              <h6 class="mb-0"><i class="ti ti-award"></i> Grant Data</h6>
+            </div>
+            <div class="table-responsive">
+              <table class="table custom-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Upload Type</th>
+                    <th>Select File</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <GrantUpload :can-edit="canEdit" @upload-complete="onUploadComplete" />
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- Employee Uploads Section -->
           <div class="upload-category">
             <div class="category-header">
@@ -103,6 +124,7 @@
 </template>
 
 <script>
+import GrantUpload from '@/components/uploads/grant-upload.vue';
 import EmployeeUpload from '@/components/uploads/employee-upload.vue';
 import EmploymentUpload from '@/components/uploads/employment-upload.vue';
 import PayrollUpload from '@/components/uploads/payroll-upload.vue';
@@ -115,6 +137,7 @@ import { usePermissions } from '@/composables/usePermissions';
 export default {
   name: 'FileUploadsList',
   components: { 
+    GrantUpload,
     EmployeeUpload, 
     EmploymentUpload, 
     PayrollUpload,
@@ -226,26 +249,34 @@ export default {
 
 /* Custom styling for each category */
 .upload-category:nth-child(1) .category-header {
-  border-left-color: #28a745;
+  border-left-color: #007bff;
 }
 
 .upload-category:nth-child(1) .category-header i {
-  color: #28a745;
+  color: #007bff;
 }
 
 .upload-category:nth-child(2) .category-header {
-  border-left-color: #ffc107;
+  border-left-color: #28a745;
 }
 
 .upload-category:nth-child(2) .category-header i {
-  color: #ffc107;
+  color: #28a745;
 }
 
 .upload-category:nth-child(3) .category-header {
-  border-left-color: #6f42c1;
+  border-left-color: #ffc107;
 }
 
 .upload-category:nth-child(3) .category-header i {
+  color: #ffc107;
+}
+
+.upload-category:nth-child(4) .category-header {
+  border-left-color: #6f42c1;
+}
+
+.upload-category:nth-child(4) .category-header i {
   color: #6f42c1;
 }
 </style>

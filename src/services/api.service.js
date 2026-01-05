@@ -301,14 +301,28 @@ class ApiService {
     }
 
     // GET request
-    async get(endpoint) {
+    async get(endpoint, options = {}) {
         const fullURL = this.getFullURL(endpoint);
         try {
-            const response = await fetch(fullURL, {
+            const fetchOptions = {
                 method: 'GET',
                 headers: this.headers,
                 credentials: 'include'
-            });
+            };
+
+            const response = await fetch(fullURL, fetchOptions);
+
+            // If responseType is 'blob', return blob directly
+            if (options.responseType === 'blob') {
+                if (!response.ok) {
+                    const error = new Error(`HTTP error! Status: ${response.status}`);
+                    error.response = response;
+                    throw error;
+                }
+                return await response.blob();
+            }
+
+            // Otherwise, handle as JSON
             return this.handleResponse(response, { endpoint, method: 'GET' });
         } catch (error) {
             if (!error.response) {

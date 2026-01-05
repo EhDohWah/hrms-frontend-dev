@@ -44,18 +44,12 @@ import "vue-form-wizard/dist/vue-form-wizard.min.css";
 import VueEasyLightbox from "vue-easy-lightbox";
 import CKEditor from '@ckeditor/ckeditor5-vue';
 import SimpleLineIcons from "vue-simple-line";
-import ThemifyIcon from "vue-themify-icons";
 
 // Essential CSS imports
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'ionicons-npm/css/ionicons.css';
-import 'material-icons/css/material-icons.min.css';
-import 'material-icons/css/material-icons.css';
-import 'pe7-icon/dist/dist/pe-icon-7-stroke.css';
-import 'typicons.font/src/font/typicons.css';
-import 'weathericons/css/weather-icons.css'
 import '@/assets/css/feather.css'
 import '@/assets/css/sticky.css'
 import '@/assets/css/tabler-icons.css'
@@ -145,7 +139,6 @@ app.component(VueFeather.name, VueFeather);
 app.component('star-rating', StarRating);
 app.component('circle-progress', CircleProgress);
 app.component('IconHome', IconHome);
-app.component('themify-icon', ThemifyIcon);
 
 // ============================================================================
 // USE PLUGINS

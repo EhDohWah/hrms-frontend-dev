@@ -70,6 +70,7 @@ Authentication, login/logout, and routing
 - Intended route fixes
 - Role updates
 - Session management
+- Real-time permissions integration
 
 ### 👨‍👩‍👧‍👦 `/family`
 Family information management
@@ -91,6 +92,18 @@ Grant management UI and reporting
 - Grant position optimization
 - Grant headcount reports
 - Grant allocation interfaces
+- Budget history tracking
+
+### ⚡ `/optimization`
+Template optimization and cleanup documentation
+- Complete optimization summary
+- Cleanup verification reports
+- Package analysis
+- Router cleanup
+- Modal deletion results
+- Lazy component fixes
+- Asset cleanup reports
+- Phase completion summaries
 
 ### 🏗️ `/components`
 Reusable Vue components documentation
@@ -150,6 +163,7 @@ General guides, architecture, and references
 ### Most Important Documents
 - **Frontend Architecture**: `/general/HRMS_FRONTEND_ARCHITECTURE.md`
 - **Feature Implementation**: `/general/FEATURE_IMPLEMENTATION_TEMPLATE.md`
+- **Template Optimization**: `/optimization/OPTIMIZATION_COMPLETE_SUMMARY.md`
 - **Employment Management**: `/employment/EMPLOYMENT_MANAGEMENT_DOCUMENTATION.md`
 - **Leave Management**: `/leave/LEAVE_MANAGEMENT_IMPLEMENTATION_SUMMARY.md`
 - **Styling Guide**: `/styling/STYLING_ARCHITECTURE_DOCUMENTATION.md`
@@ -198,6 +212,14 @@ General guides, architecture, and references
 - **Allocations**: `/allocation/`
 - **Performance**: `/performance/GRANT_POSITION_LCP_OPTIMIZATION.md`
 - **Reports**: `/reports/TOTAL_GRANT_REPORT_DOCUMENTATION.md`
+- **Budget History**: `/grants/BUDGET_HISTORY_PRODUCTION_READY.md`
+
+### Template Optimization
+- **Main Summary**: `/optimization/OPTIMIZATION_COMPLETE_SUMMARY.md`
+- **Cleanup Verification**: `/optimization/CLEANUP_VERIFICATION_REPORT.md`
+- **Package Analysis**: `/optimization/PACKAGE_ANALYSIS_REPORT.md`
+- **Router Cleanup**: `/optimization/ROUTER_CLEANUP_SUMMARY.md`
+- **Asset Cleanup**: `/optimization/UNUSED_ASSETS_REPORT.md`
 
 ---
 
@@ -226,7 +248,7 @@ General guides, architecture, and references
 ---
 
 ## 🔄 Last Updated
-November 20, 2025
+December 30, 2025
 
 ---
 

@@ -1,6 +1,7 @@
 // create a store for the grant
 import { defineStore } from 'pinia';
 import { grantService } from '@/services/grant.service';
+import { uploadGrantService } from '@/services/upload-grant.service';
 import { toRaw } from 'vue';
 
 
@@ -338,13 +339,13 @@ export const useGrantStore = defineStore('grant', {
       }
     },
 
-    async uploadGrantFile(formData) {
-      // Unwrap the reactive proxy to get the native FormData instance
-      const rawFormData = toRaw(formData);
+    async uploadGrantFile(file) {
+      // Unwrap the reactive proxy to get the native File instance
+      const rawFile = toRaw(file);
       try {
         this.loading = true;
         this.error = null;
-        const response = await grantService.uploadGrantFile(rawFormData);
+        const response = await uploadGrantService.uploadGrantData(rawFile);
         // Refresh grants list after upload
         await this.fetchGrants();
         return response;

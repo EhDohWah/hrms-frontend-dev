@@ -1,0 +1,70 @@
+{
+  "name": "hrms-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tabler/icons-vue": "^3.19.0",
+    "ant-design-vue": "^4.2.6",
+    "apexcharts": "^3.54.1",
+    "axios": "^1.7.7",
+    "bootstrap": "^5.3.3",
+    "date-fns": "^4.1.0",
+    "echarts": "^5.5.1",
+    "laravel-echo": "^1.16.1",
+    "luxon": "^3.5.0",
+    "pinia": "^3.0.1",
+    "pusher-js": "^8.4.0-rc2",
+    "sortablejs": "^1.15.3",
+    "vee-validate": "^4.14.7",
+    "vue": "^3.5.12",
+    "vue-apexcharts": "^1.7.0",
+    "vue-router": "^4.4.5",
+    "vue3-echarts": "^1.0.1",
+    "yup": "^1.4.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.8",
+    "@babel/eslint-parser": "^7.25.8",
+    "@babel/preset-env": "^7.25.8",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "@vue/cli-plugin-babel": "~5.0.8",
+    "@vue/cli-plugin-eslint": "~5.0.8",
+    "@vue/cli-plugin-router": "~5.0.8",
+    "@vue/cli-service": "~5.0.8",
+    "@vue/eslint-config-standard": "^8.0.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.6.0",
+    "eslint-plugin-vue": "^9.29.1",
+    "sass": "^1.79.5",
+    "sass-loader": "^16.0.2",
+    "vite": "^5.4.10"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "@vue/standard"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ]
+}

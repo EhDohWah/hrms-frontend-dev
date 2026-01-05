@@ -137,7 +137,8 @@ export const API_ENDPOINTS = {
         UPDATE: '/grants/:id',
         DELETE: '/grants/:id',
         DETAILS: '/grants/:id',
-        UPLOAD: '/grants/upload',
+        UPLOAD: '/uploads/grant',
+        DOWNLOAD_TEMPLATE: '/downloads/grant-template',
         ITEMS: {
             LIST: '/grants/items',
             CREATE: '/grants/items',
@@ -513,9 +514,9 @@ export const API_ENDPOINTS = {
     // File Upload endpoints
     UPLOAD: {
         EMPLOYEE: '/uploads/employee',
-        EMPLOYEE_TEMPLATE: '/uploads/employee/template',
+        EMPLOYEE_TEMPLATE: '/downloads/employee-template',
         EMPLOYMENT: '/uploads/employment',
-        EMPLOYMENT_TEMPLATE: '/uploads/employment/template',
+        EMPLOYMENT_TEMPLATE: '/downloads/employment-template',
         PAYROLL: '/uploads/payroll',
         PAYROLL_TEMPLATE: '/uploads/payroll/template'
     },

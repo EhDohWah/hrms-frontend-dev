@@ -38,7 +38,7 @@
   </template>
   
   <script>
-  import { grantService } from '@/services/grant.service';
+  import { uploadGrantService } from '@/services/upload-grant.service';
 
   export default {
     name: 'GrantUploadModal',
@@ -72,14 +72,10 @@
           return;
         }
   
-        // Create FormData and append file and description
-        const formData = new FormData();
-        formData.append('file', this.file);
-  
         this.isUploading = true;
         try {
-          // Use grantService directly
-          const response = await grantService.uploadGrantFile(formData);
+          // Use uploadGrantService directly
+          const response = await uploadGrantService.uploadGrantData(this.file);
           
           // Handle successful response with potential warnings
           if (response) {

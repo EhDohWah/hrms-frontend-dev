@@ -1,14 +1,14 @@
 import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
-class UploadEmployeeService {
+class UploadGrantService {
     /**
-     * Upload employee Excel file
+     * Upload grant Excel file
      * @param {File} file - Excel file
      * @param {Function} onProgress - Progress callback
      * @returns {Promise<Object>} API response
      */
-    async uploadEmployeeData(file, onProgress = null) {
+    async uploadGrantData(file, onProgress = null) {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -28,26 +28,26 @@ class UploadEmployeeService {
 
         try {
             const response = await apiService.post(
-                API_ENDPOINTS.UPLOAD.EMPLOYEE,
+                API_ENDPOINTS.GRANT.UPLOAD,
                 formData,
                 config
             );
             return response;
         } catch (error) {
-            console.error('Error uploading employee data:', error);
+            console.error('Error uploading grant data:', error);
             throw error;
         }
     }
 
     /**
-     * Download employee import template
+     * Download grant import template
      * @returns {Promise<void>}
      */
     async downloadTemplate() {
         try {
             // Get blob response directly
             const blob = await apiService.get(
-                API_ENDPOINTS.UPLOAD.EMPLOYEE_TEMPLATE,
+                API_ENDPOINTS.GRANT.DOWNLOAD_TEMPLATE,
                 { responseType: 'blob' }
             );
 
@@ -58,7 +58,7 @@ class UploadEmployeeService {
             
             // Generate filename with timestamp
             const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-            link.setAttribute('download', `employee_import_template_${timestamp}.xlsx`);
+            link.setAttribute('download', `grant_import_template_${timestamp}.xlsx`);
             
             // Append to html link element page
             document.body.appendChild(link);
@@ -72,13 +72,13 @@ class UploadEmployeeService {
 
             return { success: true };
         } catch (error) {
-            console.error('Error downloading template:', error);
+            console.error('Error downloading grant template:', error);
             throw error;
         }
     }
 
     /**
-     * Validate employee data before upload (optional client-side validation)
+     * Validate grant data before upload (optional client-side validation)
      * @param {File} file - File to validate
      * @returns {Object} Validation result
      */
@@ -110,31 +110,5 @@ class UploadEmployeeService {
     }
 }
 
-export const uploadEmployeeService = new UploadEmployeeService();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export const uploadGrantService = new UploadGrantService();
 

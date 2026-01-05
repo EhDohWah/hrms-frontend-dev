@@ -14,10 +14,10 @@
 <script>
 import UploadRow from '@/components/uploads/upload-row.vue';
 import { message } from 'ant-design-vue';
-import { uploadPayrollService } from '@/services/upload-payroll.service';
+import { uploadGrantService } from '@/services/upload-grant.service';
 
 export default {
-    name: 'PayrollUpload',
+    name: 'GrantUpload',
     components: {
         UploadRow
     },
@@ -25,10 +25,10 @@ export default {
     data() {
         return {
             upload: {
-                id: 3,
-                name: "Payroll Data Import",
-                description: "Upload Excel file with payroll information (bulk import)",
-                icon: "calculator",
+                id: 1,
+                name: "Grant Data Import",
+                description: "Upload Excel file with grant information (bulk import)",
+                icon: "award",
                 templateUrl: true
             },
             uploading: false,
@@ -47,11 +47,19 @@ export default {
         async downloadTemplate() {
             try {
                 message.loading({ content: 'Downloading template...', key: 'template' });
-                await uploadPayrollService.downloadTemplate();
-                message.success({ content: 'Template downloaded!', key: 'template' });
+                await uploadGrantService.downloadTemplate();
+                message.success({ content: 'Template downloaded successfully!', key: 'template' });
             } catch (error) {
                 console.error('Error downloading template:', error);
-                message.error({ content: 'Failed to download template.', key: 'template' });
+                
+                let errorMessage = 'Failed to download template. Please try again.';
+                if (error.response && error.response.data && error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                message.error({ content: errorMessage, key: 'template' });
             }
         },
         async handleUpload(file) {
@@ -64,32 +72,33 @@ export default {
             this.uploadProgress = 0;
 
             try {
-                message.loading({ content: 'Uploading payroll data...', key: 'upload' });
+                message.loading({ content: 'Uploading grant data...', key: 'upload' });
 
+                // Simulate progress (replace with actual progress if your API supports it)
                 const progressInterval = setInterval(() => {
                     if (this.uploadProgress < 90) {
                         this.uploadProgress += 10;
                     }
                 }, 200);
 
-                const response = await uploadPayrollService.uploadPayrollData(file, (progress) => {
-                    this.uploadProgress = progress;
-                });
+                const response = await uploadGrantService.uploadGrantData(file);
 
                 clearInterval(progressInterval);
                 this.uploadProgress = 100;
 
                 const totalRecords = response.data?.total_records || response.total_records || 0;
                 message.success({ 
-                    content: `Successfully uploaded ${totalRecords} payroll records!`, 
+                    content: `Successfully uploaded ${totalRecords} grant records!`, 
                     key: 'upload' 
                 });
 
+                // Show summary if available
                 const summary = response.data?.summary || response.summary;
                 if (summary) {
                     message.info(`Inserted: ${summary.inserted || 0}, Updated: ${summary.updated || 0}, Failed: ${summary.failed || 0}`);
                 }
 
+                // Clear the file after successful upload
                 this.onFileCleared();
                 if (this.$refs.uploadRow) {
                     this.$refs.uploadRow.resetFile();
@@ -97,9 +106,9 @@ export default {
                 this.$emit('upload-complete', response.data || response);
 
             } catch (error) {
-                console.error('Error uploading payroll data:', error);
+                console.error('Error uploading grant data:', error);
                 
-                let errorMessage = 'Failed to upload payroll data. Please try again.';
+                let errorMessage = 'Failed to upload grant data. Please try again.';
                 if (error.response && error.response.data && error.response.data.message) {
                     errorMessage = error.response.data.message;
                 } else if (error.message) {
@@ -108,6 +117,7 @@ export default {
                 
                 message.error({ content: errorMessage, key: 'upload' });
 
+                // Show detailed errors if available
                 if (error.response && error.response.data && error.response.data.errors) {
                     const errors = error.response.data.errors;
                     Object.keys(errors).forEach(key => {
@@ -121,31 +131,4 @@ export default {
     }
 };
 </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

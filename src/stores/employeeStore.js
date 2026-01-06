@@ -21,7 +21,7 @@ export const useEmployeeStore = defineStore('employee', {
       activeCount: 0,
       inactiveCount: 0,
       newJoinerCount: 0,
-      subsidiaryCount: { SMRU_count: 0, BHF_count: 0 },
+      organizationCount: { SMRU_count: 0, BHF_count: 0 },
     },
   }),
 
@@ -41,7 +41,7 @@ export const useEmployeeStore = defineStore('employee', {
     },
     getEmployeesByLocation: (state) => (locationId) => {
       return state.employees.filter(employee =>
-        employee.employment && employee.employment.work_location_id === locationId
+        employee.employment && employee.employment.site_id === locationId
       );
     },
     getEmployeesByStatus: (state) => (status) => {
@@ -58,7 +58,7 @@ export const useEmployeeStore = defineStore('employee', {
     },
     getEmploymentsByLocation: (state) => (locationId) => {
       return state.employments.filter(employment =>
-        employment.work_location_id === locationId
+        employment.site_id === locationId
       );
     },
     getActiveEmployments: (state) => {
@@ -114,9 +114,9 @@ export const useEmployeeStore = defineStore('employee', {
             activeCount: stats.activeCount || 0,
             inactiveCount: stats.inactiveCount || 0,
             newJoinerCount: stats.newJoinerCount || 0,
-            subsidiaryCount: {
-              SMRU_count: stats.subsidiaryCount?.SMRU_count || 0,
-              BHF_count: stats.subsidiaryCount?.BHF_count || 0
+            organizationCount: {
+              SMRU_count: stats.organizationCount?.SMRU_count || 0,
+              BHF_count: stats.organizationCount?.BHF_count || 0
             }
           };
         } else {
@@ -342,10 +342,10 @@ export const useEmployeeStore = defineStore('employee', {
         return d && d >= threeMonthsAgo && d <= now;
       }).length;
 
-      // 3) subsidiary from the statistics subsidiaryCount total 
-      this.statistics.subsidiaryCount = {
-        SMRU_count: this.employees.filter(e => e.subsidiary === 'SMRU').length,
-        BHF_count: this.employees.filter(e => e.subsidiary === 'BHF').length
+      // 3) organization from the statistics organizationCount total 
+      this.statistics.organizationCount = {
+        SMRU_count: this.employees.filter(e => e.organization === 'SMRU').length,
+        BHF_count: this.employees.filter(e => e.organization === 'BHF').length
       };
     },
 

@@ -7,9 +7,21 @@
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnlyTravel" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="mb-2 me-2">
+          <div v-if="canEditTravel" class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openAddTravelRequestModal"
               :disabled="openingAddTravelRequest">
               <template v-if="openingAddTravelRequest">
@@ -312,6 +324,7 @@ import { useTravelRequestStore } from '@/stores/travelRequestStore';
 import { useSharedDataStore } from '@/stores/sharedDataStore';
 import moment from 'moment';
 import { Modal, message } from 'ant-design-vue';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
   name: 'TravelList',
@@ -322,7 +335,24 @@ export default {
     LayoutSidebar,
     LayoutFooter,
   },
+  setup() {
+    // Initialize permission checks for travel module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('travel');
 
+    return {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
+  },
   data() {
     return {
       title: "Travel Requests",
@@ -359,6 +389,29 @@ export default {
   },
 
   computed: {
+    // Permission checks - primary source for reactivity
+    canEditTravel() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasEdit = Array.isArray(permissions) && permissions.includes('travel.edit');
+        return hasEdit || (this.canEdit?.value ?? false);
+      } catch (e) {
+        console.error('[TravelList] Error checking permissions:', e);
+        return this.canEdit?.value ?? false;
+      }
+    },
+    canReadTravel() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasRead = Array.isArray(permissions) && permissions.includes('travel.read');
+        return hasRead || (this.canRead?.value ?? false);
+      } catch (e) {
+        return this.canRead?.value ?? false;
+      }
+    },
+    isReadOnlyTravel() {
+      return this.canReadTravel && !this.canEditTravel;
+    },
     columns() {
       return [
         {

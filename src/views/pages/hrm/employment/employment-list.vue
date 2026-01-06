@@ -6,9 +6,21 @@
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnly" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="mb-2 me-2">
+          <div v-if="canEdit" class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openAddEmploymentModal"
               @mouseenter="preloadEmploymentModal" :disabled="openingAddModal">
               <template v-if="openingAddModal">
@@ -20,12 +32,12 @@
               </template>
             </button>
           </div>
-          <div class="mb-2 me-2">
+          <div v-if="canEdit" class="mb-2 me-2">
             <button class="btn btn-outline-primary d-flex align-items-center" @click="openActionChangeModal">
               <i class="ti ti-exchange me-2"></i>Action Change
             </button>
           </div>
-          <div class="mb-2 me-2">
+          <div v-if="canEdit" class="mb-2 me-2">
             <button class="btn btn-outline-secondary d-flex align-items-center" @click="openFundingChangeModal">
               <i class="ti ti-currency-dollar me-2"></i>Funding Change
             </button>
@@ -71,7 +83,7 @@
               <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === 'actions'">
                   <div class="action-icon d-inline-flex" v-memo="[record.id, editingEmploymentId]">
-                    <a href="javascript:void(0);" class="me-2 edit-button" @click="openEditEmploymentModal(record)"
+                    <a v-if="canEdit" href="javascript:void(0);" class="me-2 edit-button" @click="openEditEmploymentModal(record)"
                       @mouseenter="preloadEmploymentEditModal" :class="{ 'loading': editingEmploymentId === record.id }"
                       :disabled="editingEmploymentId === record.id">
                       <span class="button-content">
@@ -83,7 +95,7 @@
                         </div>
                       </span>
                     </a>
-                    <a href="javascript:void(0);" class="text-danger" @click="confirmDeleteEmployment(record.id)">
+                    <a v-if="canEdit" href="javascript:void(0);" class="text-danger" @click="confirmDeleteEmployment(record.id)">
                       <i class="ti ti-trash"></i>
                     </a>
                   </div>
@@ -116,14 +128,14 @@
                   </span>
                   <span v-else class="text-muted">-</span>
                 </template>
-                <template v-else-if="column.dataIndex === 'subsidiary'">
+                <template v-else-if="column.dataIndex === 'organization'">
                   <span v-if="record.employee" :class="[
                     'badge badge-sm fw-normal',
-                    record.employee.subsidiary === 'SMRU' ? 'badge-primary' :
-                      record.employee.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                    record.employee.organization === 'SMRU' ? 'badge-primary' :
+                      record.employee.organization === 'BHF' ? 'badge-soft-primary fw-bold' :
                         'badge-secondary'
                   ]">
-                    {{ record.employee.subsidiary }}
+                    {{ record.employee.organization }}
                   </span>
                   <span v-else class="text-muted">-</span>
                 </template>
@@ -131,18 +143,15 @@
                   {{ formatCurrency(record[column.dataIndex]) }}
                 </template>
                 <template
-                  v-else-if="column.dataIndex === 'start_date' || column.dataIndex === 'end_date' || column.dataIndex === 'probation_pass_date'">
+                  v-else-if="column.dataIndex === 'start_date' || column.dataIndex === 'end_date' || column.dataIndex === 'pass_probation_date'">
                   {{ formatDate(record[column.dataIndex]) }}
                 </template>
                 <template v-else-if="column.dataIndex === 'status'">
                   <span :class="[
                     'badge',
-                    record.status === 'Active' ? 'bg-success' :
-                      record.status === 'Pending' ? 'bg-warning' :
-                        record.status === 'Expired' ? 'bg-danger' :
-                          'bg-secondary'
+                    record.status === true ? 'bg-success' : 'bg-secondary'
                   ]">
-                    {{ record.status }}
+                    {{ record.status === true ? 'Active' : 'Inactive' }}
                   </span>
                 </template>
               </template>
@@ -188,7 +197,7 @@
 </template>
 
 <script>
-import { defineAsyncComponent, shallowRef, markRaw } from 'vue';
+import { defineAsyncComponent, shallowRef, markRaw, ref } from 'vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 // Lazy load modal components for better performance
 const EmploymentModal = defineAsyncComponent(() => import('@/components/modal/employment-modal.vue'));
@@ -200,6 +209,7 @@ import { employmentService } from '@/services/employment.service';
 import moment from 'moment';
 import { Modal } from 'ant-design-vue';
 import { debounce } from '@/utils/performance.js';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
   name: 'EmploymentList',
@@ -210,6 +220,36 @@ export default {
     LayoutHeader,
     LayoutSidebar,
     LayoutFooter,
+  },
+  setup() {
+    // Server-side pagination, filtering, and sorting state
+    const filteredInfo = ref({});
+    const sortedInfo = ref({});
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const total = ref(0);
+    
+    // Initialize permission checks for employment module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('employment');
+
+    return {
+      filteredInfo,
+      sortedInfo,
+      currentPage,
+      pageSize,
+      total,
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
   },
   data() {
     return {
@@ -223,16 +263,9 @@ export default {
       notificationClass: '',
 
       // Data properties optimized for performance
-      filteredInfo: {},
-      sortedInfo: {},
       employments: shallowRef([]), // Use shallowRef to prevent deep reactivity
       loading: false,
       searchLoading: false,
-
-      // SEPARATE PAGINATION PROPERTIES
-      currentPage: 1,
-      pageSize: 10,
-      total: 0,
 
       // Loading states for individual actions
       editingEmploymentId: null,
@@ -265,17 +298,17 @@ export default {
       // Return cached columns configuration to prevent recreation
       return markRaw([
         {
-          title: 'Subsidiary',
-          dataIndex: 'subsidiary',
-          key: 'subsidiary',
+          title: 'Organization',
+          dataIndex: 'organization',
+          key: 'organization',
           width: 150,
           filters: [
             { text: 'SMRU', value: 'SMRU' },
             { text: 'BHF', value: 'BHF' },
           ],
-          filteredValue: filtered.subsidiary || null,
+          filteredValue: filtered.organization || null,
           sorter: true, // Enable server-side sorting
-          sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
+          sortOrder: sorted.columnKey === 'organization' && sorted.order,
           filterSearch: true
         },
         {
@@ -328,7 +361,7 @@ export default {
           sortOrder: sorted.columnKey === 'position' && sorted.order
         },
         {
-          title: 'Work Location',
+          title: 'Site',
           dataIndex: 'work_location',
           key: 'work_location',
           width: 150,
@@ -344,34 +377,26 @@ export default {
           sortOrder: sorted.columnKey === 'start_date' && sorted.order
         },
         {
-          title: 'End Date',
-          dataIndex: 'end_date',
-          key: 'end_date',
-          width: 120,
-          sorter: true, // Enable server-side sorting
-          sortOrder: sorted.columnKey === 'end_date' && sorted.order
-        },
-        {
           title: 'Probation Pass Date',
-          dataIndex: 'probation_pass_date',
-          key: 'probation_pass_date',
+          dataIndex: 'pass_probation_date',
+          key: 'pass_probation_date',
           width: 150,
           sorter: true, // Enable server-side sorting
-          sortOrder: sorted.columnKey === 'probation_pass_date' && sorted.order
+          sortOrder: sorted.columnKey === 'pass_probation_date' && sorted.order
         },
         {
-          title: 'Salary',
-          dataIndex: 'salary',
-          key: 'salary',
-          width: 120,
+          title: 'Pass.Probation Salary',
+          dataIndex: 'pass_probation_salary',
+          key: 'pass_probation_salary',
+          width: 200,
           sorter: true, // Enable server-side sorting
-          sortOrder: sorted.columnKey === 'salary' && sorted.order
+          sortOrder: sorted.columnKey === 'pass_probation_salary' && sorted.order
         },
         {
           title: 'Probation Salary',
           dataIndex: 'probation_salary',
           key: 'probation_salary',
-          width: 120,
+          width: 200,
           sorter: true, // Enable server-side sorting
           sortOrder: sorted.columnKey === 'probation_salary' && sorted.order
         },
@@ -381,9 +406,8 @@ export default {
           key: 'status',
           width: 100,
           filters: [
-            { text: 'Active', value: 'Active' },
-            { text: 'Pending', value: 'Pending' },
-            { text: 'Expired', value: 'Expired' },
+            { text: 'Active', value: true },
+            { text: 'Inactive', value: false },
           ],
           filteredValue: filtered.status || null,
           sorter: true, // Enable server-side sorting
@@ -407,19 +431,14 @@ export default {
       }
 
       const result = this.employments.map(emp => {
-        // Use cached status calculation
-        let status;
-        if (this.statusCache.has(emp)) {
-          status = this.statusCache.get(emp);
-        } else {
-          status = this.calculateEmploymentStatus(emp.start_date, emp.end_date);
-          this.statusCache.set(emp, status);
-        }
+        // ✅ Use backend-provided boolean status directly (no calculation needed)
+        // Backend manages status based on business logic
+        const status = emp.status !== undefined ? emp.status : true; // Default to active if not provided
 
         return Object.freeze({
           ...emp,
           key: emp.id,
-          subsidiary: emp.employee?.subsidiary || 'N/A',
+          organization: emp.employee?.organization || 'N/A',
           staff_id: emp.employee?.staff_id || 'N/A',
           employee_name: emp.employee ? `${emp.employee.first_name_en} ${emp.employee.last_name_en}` : 'N/A',
           employment_type: emp.employment_type,
@@ -427,9 +446,9 @@ export default {
           position: emp.position?.title || emp.department_position?.position || 'N/A',
           work_location: emp.work_location?.name || 'N/A',
           start_date: emp.start_date,
-          end_date: emp.end_date,
-          salary: emp.position_salary,
-          status: status,
+          pass_probation_salary: emp.pass_probation_salary,
+          probation_salary: emp.probation_salary,
+          status: status, // Boolean from backend: true = Active, false = Inactive
         });
       });
 
@@ -507,8 +526,8 @@ export default {
 
       // Add filter parameters
       if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
-        if (this.filteredInfo.subsidiary && this.filteredInfo.subsidiary.length > 0) {
-          params.filter_subsidiary = this.filteredInfo.subsidiary.join(',');
+        if (this.filteredInfo.organization && this.filteredInfo.organization.length > 0) {
+          params.filter_organization = this.filteredInfo.organization.join(',');
         }
         if (this.filteredInfo.employment_type && this.filteredInfo.employment_type.length > 0) {
           params.filter_employment_type = this.filteredInfo.employment_type.join(',');
@@ -582,9 +601,9 @@ export default {
         'position': 'position',
         'work_location': 'work_location',
         'start_date': 'start_date',
-        'end_date': 'end_date',
-        'salary': 'salary',
-        'subsidiary': 'subsidiary'
+        'probation_salary': 'probation_salary',
+        'pass_probation_salary': 'pass_probation_salary',
+        'organization': 'organization'
       };
       return fieldMapping[field] || field;
     },
@@ -649,9 +668,8 @@ export default {
             employment_type: emp.employment_type,
             work_location: emp.work_location,
             start_date: emp.start_date,
-            end_date: emp.end_date,
-            position_salary: emp.position_salary,
-            probation_pass_date: emp.probation_pass_date,
+            pass_probation_salary: emp.pass_probation_salary,
+            pass_probation_date: emp.pass_probation_date,
             probation_salary: emp.probation_salary,
             fte: emp.fte,
             department_position: emp.department_position,
@@ -729,8 +747,9 @@ export default {
             employment_type: emp.employment_type,
             work_location: Object.freeze(emp.work_location || {}),
             start_date: emp.start_date,
-            end_date: emp.end_date,
-            position_salary: emp.position_salary,
+            pass_probation_date: emp.pass_probation_date,
+            pass_probation_salary: emp.pass_probation_salary,
+            probation_salary: emp.probation_salary,
             department_position: Object.freeze(emp.department_position || {}),
             active: emp.active,
             // Keep original object for editing
@@ -776,9 +795,15 @@ export default {
     },
 
     // Calculate employment status based on start_date and end_date
+    // ⚠️ DEPRECATED: Backend now provides boolean status field directly
+    // This method is kept for backward compatibility but is no longer used
     calculateEmploymentStatus(startDate, endDate) {
+      // Backend returns boolean: true = Active, false = Inactive
+      // Status is managed on backend based on business logic
+      console.warn('⚠️ calculateEmploymentStatus is deprecated. Use backend status field directly.');
+
       if (!startDate) {
-        return 'Pending'; // No start date means not started yet
+        return false; // Inactive if no start date
       }
 
       const today = new Date();
@@ -792,23 +817,18 @@ export default {
         end.setHours(0, 0, 0, 0);
       }
 
-      // Future start date
+      // Future start date = Inactive
       if (start > today) {
-        return 'Pending';
+        return false;
       }
 
-      // No end date and start date is today or in the past
-      if (!end) {
-        return 'Active';
+      // Has end date and past end date = Inactive
+      if (end && end < today) {
+        return false;
       }
 
-      // Has end date - check if expired
-      if (end < today) {
-        return 'Expired';
-      }
-
-      // Currently active (start date passed, end date not reached)
-      return 'Active';
+      // Currently active
+      return true;
     },
 
     toggleHeader() {

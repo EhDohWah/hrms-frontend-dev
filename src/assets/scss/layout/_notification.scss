@@ -1,6 +1,34 @@
 .notification-dropdown {
     max-width: 100%;
     min-width: 450px !important;
+    transform-origin: top right;
+    
+    // Default hidden state - Bootstrap will toggle display
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    
+    // Visible state when Bootstrap adds 'show' class
+    &.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+    }
+    
+    // Handle when Bootstrap sets display: block (before show class)
+    &[style*="display: block"]:not(.show) {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    
+    // Smooth animation when both display and show are present
+    &[style*="display: block"].show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    
     .topnav-dropdown-header {
         border-bottom: 1px solid $light-900
     }
@@ -248,5 +276,26 @@
         .noti-delete {            
             display: block;
         }
+    }
+}
+
+.notification-item-link {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    display: block;
+    
+    &:hover {
+        background-color: #f8f9fa !important;
+        text-decoration: none;
+        transform: translateX(2px);
+    }
+    
+    .text-dark {
+        transition: color 0.2s ease;
+    }
+    
+    &:hover .text-dark {
+        color: var(--primary-color, #4a7fff) !important;
     }
 }

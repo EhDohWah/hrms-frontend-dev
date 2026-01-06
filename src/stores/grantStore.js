@@ -1,6 +1,7 @@
 // create a store for the grant
 import { defineStore } from 'pinia';
 import { grantService } from '@/services/grant.service';
+import { uploadGrantService } from '@/services/upload-grant.service';
 import { toRaw } from 'vue';
 
 
@@ -39,7 +40,7 @@ export const useGrantStore = defineStore('grant', {
           page: params.page || 1,
           per_page: params.per_page || 10,
           ...(params.search && { search: params.search }),
-          ...(params.subsidiary && { subsidiary: params.subsidiary }),
+          ...(params.organization && { organization: params.organization }),
           ...(params.code && { code: params.code }),
           ...(params.sort_by && { sort_by: params.sort_by }),
           ...(params.sort_order && { sort_order: params.sort_order })
@@ -81,7 +82,7 @@ export const useGrantStore = defineStore('grant', {
           per_page: params.per_page || 10,
           with_items: params.with_items || true,
           ...(params.search && { search: params.search }),
-          ...(params.subsidiary && { subsidiary: params.subsidiary }),
+          ...(params.organization && { organization: params.organization }),
           ...(params.code && { code: params.code }),
           ...(params.name && { name: params.name }),
           ...(params.end_date_after && { end_date_after: params.end_date_after }),
@@ -338,13 +339,13 @@ export const useGrantStore = defineStore('grant', {
       }
     },
 
-    async uploadGrantFile(formData) {
-      // Unwrap the reactive proxy to get the native FormData instance
-      const rawFormData = toRaw(formData);
+    async uploadGrantFile(file) {
+      // Unwrap the reactive proxy to get the native File instance
+      const rawFile = toRaw(file);
       try {
         this.loading = true;
         this.error = null;
-        const response = await grantService.uploadGrantFile(rawFormData);
+        const response = await uploadGrantService.uploadGrantData(rawFile);
         // Refresh grants list after upload
         await this.fetchGrants();
         return response;

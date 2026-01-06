@@ -254,7 +254,7 @@ class ResignationService {
                     id: employee.id,
                     staffId: employee.staff_id,
                     name: `${employee.first_name_en} ${employee.last_name_en}`.trim(),
-                    subsidiary: employee.subsidiary,
+                    organization: employee.organization,
                     department: employee.employment?.department?.name,
                     position: employee.employment?.position?.title,
                     email: employee.email,

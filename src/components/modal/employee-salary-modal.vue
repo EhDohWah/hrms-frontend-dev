@@ -47,8 +47,8 @@
                   <input class="form-input" :value="selectedEmployee.name" readonly>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Subsidiary</label>
-                  <input class="form-input" :value="selectedEmployee.subsidiary" readonly>
+                  <label class="form-label">Organization</label>
+                  <input class="form-input" :value="selectedEmployee.organization" readonly>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Department</label>
@@ -120,7 +120,7 @@
               <div class="tab-bar">
                 <button v-for="(allocation, index) in selectedEmployee.allocations" :key="index" class="tab"
                   :class="{ active: activeTabIndex === index }" @click="setActiveTab(index)">
-                  {{ allocation.source }}{{ allocation.allocation_type === 'org_funded' ? ' (Org)' : ' (Grant)' }}
+                  {{ allocation.source }} (Grant)
                 </button>
               </div>
               <div class="tab-content">
@@ -171,7 +171,7 @@ export default {
           id: "0012",
           staff_id: "0012",
           name: "Chanchai Siri",
-          subsidiary: "ACME",
+          organization: "ACME",
           department: "Finance",
           funding_description: "Org Funded Only",
           employment: {
@@ -184,7 +184,7 @@ export default {
           allocations: [
             {
               source: "ACME General Fund",
-              allocation_type: "org_funded",
+              allocation_type: "grant",
               position_slot: null,
               loe: 100
             }
@@ -195,7 +195,7 @@ export default {
           id: "0155",
           staff_id: "0155",
           name: "Mr.xxxxxxxx",
-          subsidiary: "BHF",
+          organization: "BHF",
           department: "Admin",
           funding_description: "Grant+Org Funding",
           employment: {
@@ -214,7 +214,7 @@ export default {
             },
             {
               source: "BHF General Fund",
-              allocation_type: "org_funded",
+              allocation_type: "grant",
               position_slot: null,
               loe: 20
             }
@@ -225,7 +225,7 @@ export default {
           id: "0200",
           staff_id: "0200",
           name: "Somchai P.",
-          subsidiary: "IHRP",
+          organization: "IHRP",
           department: "Programs",
           funding_description: "Org + 2 Grants",
           employment: {
@@ -250,7 +250,7 @@ export default {
             },
             {
               source: "IHRP Central Fund",
-              allocation_type: "org_funded",
+              allocation_type: "grant",
               position_slot: null,
               loe: 25
             }

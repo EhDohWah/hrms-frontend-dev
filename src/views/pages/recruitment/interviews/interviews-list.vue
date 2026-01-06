@@ -6,9 +6,22 @@
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnly" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="mb-2 me-2">
+          <!-- Add Interview Button - Only visible if user can edit -->
+          <div v-if="canEdit" class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openAddInterviewModal">
               <i class="ti ti-circle-plus me-2"></i>Add Interview
             </button>
@@ -67,13 +80,37 @@
 
                 <template v-if="column.dataIndex === 'actions'">
                   <div class="action-icon d-inline-flex">
-                    <router-link :to="`/recruitment/interviews-details/${record.id}`" class="me-2">
+                    <!-- View Interview - Always visible -->
+                    <router-link 
+                      :to="`/recruitment/interviews-details/${record.id}`" 
+                      class="me-2"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="View Details"
+                    >
                       <i class="ti ti-eye"></i>
                     </router-link>
-                    <a href="javascript:void(0);" class="me-2" @click="openEditInterviewModal(record)">
+                    <!-- Edit Interview - Only visible if user can edit -->
+                    <a 
+                      v-if="canEdit" 
+                      href="javascript:void(0);" 
+                      class="me-2" 
+                      @click="openEditInterviewModal(record)"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Edit Interview"
+                    >
                       <i class="ti ti-edit"></i>
                     </a>
-                    <a href="javascript:void(0);" @click="deleteInterview(record.id)">
+                    <!-- Delete Interview - Only visible if user can edit -->
+                    <a 
+                      v-if="canEdit" 
+                      href="javascript:void(0);" 
+                      @click="deleteInterview(record.id)"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Delete Interview"
+                    >
                       <i class="ti ti-trash"></i>
                     </a>
                   </div>
@@ -125,6 +162,8 @@ import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useInterviewStore } from '@/stores/interviewStore';
 import { interviewService } from '@/services/interview.service';
 import moment from 'moment';
+import { usePermissions } from '@/composables/usePermissions';
+import { ref, computed } from 'vue';
 
 export default {
   name: 'InterviewsList',
@@ -144,14 +183,7 @@ export default {
       notificationTitle: '',
       notificationMessage: '',
       notificationClass: '',
-      isCollapsed: false, // Add missing property for collapse functionality
-
-      // Server-side pagination, filtering, and sorting state
-      filteredInfo: {},
-      sortedInfo: {},
-      currentPage: 1,
-      pageSize: 10,
-      total: 0,
+      isCollapsed: false,
 
       // Field mapping for server-side sorting
       fieldMapping: {
@@ -254,9 +286,37 @@ export default {
     }
   },
   setup() {
+    // Server-side pagination, filtering, and sorting state
+    const filteredInfo = ref({});
+    const sortedInfo = ref({});
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const total = ref(0);
+    
+    // Initialize interview store
     const interviewStore = useInterviewStore();
+    
+    // Initialize permission checks for interviews module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('interviews');
+
     return {
-      interviewStore
+      filteredInfo,
+      sortedInfo,
+      currentPage,
+      pageSize,
+      total,
+      interviewStore,
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     };
   },
   mounted() {
@@ -266,25 +326,27 @@ export default {
     // Helper method to build complete API parameters
     buildApiParams(baseParams = {}) {
       const params = {
-        page: this.currentPage,
-        per_page: this.pageSize,
+        page: this.currentPage || 1,
+        per_page: this.pageSize || 10,
         ...baseParams
       };
 
       // Add sorting parameters
-      if (this.sortedInfo && this.sortedInfo.field) {
-        const sortField = this.mapSortField(this.sortedInfo.field);
+      const sorted = this.sortedInfo || {};
+      if (sorted.field) {
+        const sortField = this.mapSortField(sorted.field);
         params.sort_by = sortField;
-        params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
+        params.sort_order = sorted.order === 'ascend' ? 'asc' : 'desc';
       }
 
       // Add filter parameters
-      if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
-        if (this.filteredInfo.job_position && this.filteredInfo.job_position.length > 0) {
-          params.filter_job_position = this.filteredInfo.job_position.join(',');
+      const filtered = this.filteredInfo || {};
+      if (Object.keys(filtered).length > 0) {
+        if (filtered.job_position && filtered.job_position.length > 0) {
+          params.filter_job_position = filtered.job_position.join(',');
         }
-        if (this.filteredInfo.hired_status && this.filteredInfo.hired_status.length > 0) {
-          params.filter_hired_status = this.filteredInfo.hired_status.join(',');
+        if (filtered.hired_status && filtered.hired_status.length > 0) {
+          params.filter_hired_status = filtered.hired_status.join(',');
         }
       }
 
@@ -330,8 +392,10 @@ export default {
       console.log('Table change (sorting/filtering):', filters, sorter);
 
       // Check if there's actually a meaningful change
-      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
-      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
+      const filtered = this.filteredInfo || {};
+      const sorted = this.sortedInfo || {};
+      const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(filtered);
+      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(sorted);
 
       // Only proceed if there's an actual filter or sort change
       if (!hasFilterChange && !hasSorterChange) {
@@ -465,7 +529,7 @@ export default {
       try {
         const queryParams = {
           page: params.page || this.currentPage || 1,
-          per_page: params.per_page || this.pageSize,
+          per_page: params.per_page || this.pageSize || 10,
           ...params
         };
 

@@ -107,6 +107,9 @@ class AuthService {
   // Clears all authentication-related data
   clearAuthData() {
     Object.values(STORAGE_KEYS).forEach((key) => this.removeStorageItem(key));
+    // NOTE: DO NOT clear 'intendedRoute' here!
+    // It needs to persist through the login process for post-login redirect
+    // It will be cleared in login-index.vue after successful redirect
     this.token = null;
     this.user = null;
     if (this.tokenTimer) {
@@ -260,21 +263,9 @@ class AuthService {
     return this.getStorageItem(STORAGE_KEYS.USER_ROLE);
   }
 
-  // Determine redirect path based on the role
+  // All users go to the unified dynamic dashboard
   getRedirectPath(role) {
-    if (!role) return '/dashboard';
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return '/dashboard/admin-dashboard';
-      case 'hr-manager':
-        return '/dashboard/hr-manager-dashboard';
-      case 'hr-assistant':
-        return '/dashboard/hr-assistant-dashboard';
-      case 'employee':
-        return '/dashboard/employee-dashboard';
-      default:
-        return '/dashboard';
-    }
+    return '/dashboard';
   }
 }
 

@@ -367,6 +367,7 @@ export const useLeaveStore = defineStore('leave', {
 
         /**
          * Fetch leave types with request deduplication
+         * Note: Fetches ALL leave types (no pagination) for use in dropdowns
          */
         async fetchLeaveTypes(forceRefresh = false) {
             // Check cache first
@@ -386,12 +387,14 @@ export const useLeaveStore = defineStore('leave', {
             // Create and store the pending request promise
             this.pendingLeaveTypesRequest = (async () => {
                 try {
-                    const response = await leaveService.getLeaveTypes();
+                    // Fetch ALL leave types using non-paginated dropdown endpoint
+                    const response = await leaveService.getLeaveTypesForDropdown();
 
                     if (response.success) {
                         this.leaveTypes = response.data || [];
                         this.leaveTypesTimestamp = Date.now();
 
+                        console.log(`✅ LeaveStore: Fetched ${this.leaveTypes.length} leave types for dropdowns (non-paginated)`);
                         return { success: true, data: this.leaveTypes, fromCache: false };
                     } else {
                         this.error = response.message || 'Failed to fetch leave types';

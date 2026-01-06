@@ -5,6 +5,7 @@ import { ref } from "vue";
 import { onMounted } from "vue";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
   
@@ -23,6 +24,15 @@ export default {
   },
   setup() {
     const dateRangeInput = ref(null);
+    
+    // Initialize permission checks for holidays module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('holidays');
 
     // Move the function declaration outside of the onMounted callback
     function booking_range(start, end) {
@@ -60,7 +70,38 @@ export default {
 
     return {
       dateRangeInput,
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     };
+  },
+  computed: {
+    // Permission checks - primary source for reactivity
+    canEditHolidays() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasEdit = Array.isArray(permissions) && permissions.includes('holidays.edit');
+        // Also check if setup() computed is available
+        return hasEdit || (this.canEdit?.value ?? false);
+      } catch (e) {
+        console.error('[HolidaysList] Error checking permissions:', e);
+        return this.canEdit?.value ?? false;
+      }
+    },
+    canReadHolidays() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasRead = Array.isArray(permissions) && permissions.includes('holidays.read');
+        return hasRead || (this.canRead?.value ?? false);
+      } catch (e) {
+        return this.canRead?.value ?? false;
+      }
+    },
+    isReadOnlyHolidays() {
+      return this.canReadHolidays && !this.canEditHolidays;
+    },
   },
 };
 </script>
@@ -76,9 +117,22 @@ export default {
       <div
         class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
       >
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnlyHolidays" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="mb-2">
+          <!-- Add Holiday Button - Only visible if user can edit -->
+          <div v-if="canEditHolidays" class="mb-2">
             <a
               href="javascript:void(0);"
               data-bs-toggle="modal"

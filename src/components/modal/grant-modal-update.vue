@@ -27,12 +27,12 @@
             <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
-                  <label class="form-label" for="grant-subsidiary">Subsidiary</label>
-                  <input type="text" id="grant-subsidiary" v-model="formData.subsidiary" class="form-control"
-                    :class="{ 'is-invalid': validationErrors.subsidiary }" placeholder="e.g., SMRU" required
+                  <label class="form-label" for="grant-organization">Organization</label>
+                  <input type="text" id="grant-organization" v-model="formData.organization" class="form-control"
+                    :class="{ 'is-invalid': validationErrors.organization }" placeholder="e.g., SMRU" required
                     @input="handleFormChange">
-                  <div v-if="validationErrors.subsidiary" class="invalid-feedback">
-                    {{ validationErrors.subsidiary }}
+                  <div v-if="validationErrors.organization" class="invalid-feedback">
+                    {{ validationErrors.organization }}
                   </div>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default {
         code: '',
         description: '',
         end_date: null,
-        subsidiary: ''
+        organization: ''
       },
       originalFormData: {},
 
@@ -546,8 +546,8 @@ export default {
         isValid = false;
       }
 
-      if (!this.formData.subsidiary?.trim()) {
-        this.validationErrors.subsidiary = 'Subsidiary is required';
+      if (!this.formData.organization?.trim()) {
+        this.validationErrors.organization = 'Organization is required';
         isValid = false;
       }
 
@@ -618,7 +618,7 @@ export default {
         code: '',
         description: '',
         end_date: null,
-        subsidiary: ''
+        organization: ''
       };
       this.originalFormData = {};
       this.isDraftMode = false;

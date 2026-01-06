@@ -6,9 +6,22 @@
         <div class="content">
             <!-- Breadcrumb -->
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
+                <div class="d-flex align-items-center">
                 <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                    <!-- Read-Only Badge -->
+                    <span 
+                        v-if="isReadOnly" 
+                        class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="You have view-only access to this module"
+                    >
+                        <i class="ti ti-eye me-1"></i> Read Only
+                    </span>
+                </div>
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-                    <div class="mb-2 me-2">
+                    <!-- Add Job Offer Button - Only visible if user can edit -->
+                    <div v-if="canEdit" class="mb-2 me-2">
                         <button class="btn btn-primary d-flex align-items-center" @click="openAddJobOfferModal">
                             <i class="ti ti-circle-plus me-2"></i>Add Job Offer
                         </button>
@@ -76,19 +89,49 @@
 
                                 <template v-if="column.dataIndex === 'actions'">
                                     <div class="action-icon d-inline-flex">
-                                        <a href="javascript:void(0);" class="me-2"
-                                            @click="openJobOfferModal(record.custom_offer_id)">
+                                        <!-- View Job Offer - Always visible -->
+                                        <a 
+                                            href="javascript:void(0);" 
+                                            class="me-2"
+                                            @click="openJobOfferModal(record.custom_offer_id)"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="View Details"
+                                        >
                                             <i class="ti ti-eye"></i>
                                         </a>
-                                        <a href="javascript:void(0);" class="me-2"
-                                            @click="downloadJobOfferPDF(record.custom_offer_id)">
+                                        <!-- Download PDF - Always visible (read permission) -->
+                                        <a 
+                                            href="javascript:void(0);" 
+                                            class="me-2"
+                                            @click="downloadJobOfferPDF(record.custom_offer_id)"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Download PDF"
+                                        >
                                             <i class="ti ti-download"></i>
                                         </a>
-                                        <a href="javascript:void(0);" class="me-2"
-                                            @click="openEditJobOfferModal(record)">
+                                        <!-- Edit Job Offer - Only visible if user can edit -->
+                                        <a 
+                                            v-if="canEdit" 
+                                            href="javascript:void(0);" 
+                                            class="me-2"
+                                            @click="openEditJobOfferModal(record)"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Edit Job Offer"
+                                        >
                                             <i class="ti ti-edit"></i>
                                         </a>
-                                        <a href="javascript:void(0);" @click="deleteJobOffer(record.id)">
+                                        <!-- Delete Job Offer - Only visible if user can edit -->
+                                        <a 
+                                            v-if="canEdit" 
+                                            href="javascript:void(0);" 
+                                            @click="deleteJobOffer(record.id)"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Delete Job Offer"
+                                        >
                                             <i class="ti ti-trash"></i>
                                         </a>
                                     </div>
@@ -146,6 +189,7 @@ import { ref, computed } from 'vue';
 import moment from 'moment';
 import { jobOfferService } from '@/services/job-offer.service';
 import JobOfferReportModal from '@/components/modal/reports/joboffer-report-modal.vue';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
     name: 'JobOffersList',
@@ -161,6 +205,15 @@ export default {
         const pageSize = ref(10);
         const total = ref(0);
         const jobOfferStore = useJobOfferStore();
+        
+        // Initialize permission checks for job_offers module
+        const { 
+            canRead, 
+            canEdit, 
+            isReadOnly, 
+            accessLevelText, 
+            accessLevelBadgeClass 
+        } = usePermissions('job_offers');
 
         return {
             filteredInfo,
@@ -169,6 +222,11 @@ export default {
             pageSize,
             total,
             jobOfferStore,
+            canRead,
+            canEdit,
+            isReadOnly,
+            accessLevelText,
+            accessLevelBadgeClass
         };
     },
     data() {

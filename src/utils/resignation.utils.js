@@ -185,7 +185,7 @@ export const dataMapper = {
                 firstNameEn: backendData.employee.first_name_en,
                 lastNameEn: backendData.employee.last_name_en,
                 name: `${backendData.employee.first_name_en} ${backendData.employee.last_name_en}`.trim(),
-                subsidiary: backendData.employee.subsidiary,
+                organization: backendData.employee.organization,
                 email: backendData.employee.email,
                 mobilePhone: backendData.employee.mobile_phone
             } : null,

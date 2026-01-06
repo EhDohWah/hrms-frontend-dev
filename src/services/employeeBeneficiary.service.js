@@ -208,7 +208,7 @@ class EmployeeBeneficiaryService {
                 id: beneficiary.employee.id,
                 staffId: beneficiary.employee.staff_id,
                 name: `${beneficiary.employee.first_name_en || ''} ${beneficiary.employee.last_name_en || ''}`.trim(),
-                subsidiary: beneficiary.employee.subsidiary
+                organization: beneficiary.employee.organization
             } : null
         };
     }

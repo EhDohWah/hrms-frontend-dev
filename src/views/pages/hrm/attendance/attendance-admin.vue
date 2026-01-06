@@ -1,8 +1,28 @@
 <script>
 import { ref } from "vue";
+import { usePermissions } from '@/composables/usePermissions';
+
 const currentDate = ref(new Date());
 
 export default {
+    setup() {
+        // Initialize permission checks for attendance_admin module
+        const { 
+            canRead, 
+            canEdit, 
+            isReadOnly, 
+            accessLevelText, 
+            accessLevelBadgeClass 
+        } = usePermissions('attendance_admin');
+
+        return {
+            canRead,
+            canEdit,
+            isReadOnly,
+            accessLevelText,
+            accessLevelBadgeClass
+        };
+    },
     data() {
         return {
             title: "Attendance Admin",
@@ -11,6 +31,31 @@ export default {
             startdate: currentDate,
             dateFormat: "dd-MM-yyyy",
         }
+    },
+    computed: {
+        // Permission checks - primary source for reactivity
+        canEditAttendanceAdmin() {
+            try {
+                const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+                const hasEdit = Array.isArray(permissions) && permissions.includes('attendance_admin.edit');
+                return hasEdit || (this.canEdit?.value ?? false);
+            } catch (e) {
+                console.error('[AttendanceAdmin] Error checking permissions:', e);
+                return this.canEdit?.value ?? false;
+            }
+        },
+        canReadAttendanceAdmin() {
+            try {
+                const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+                const hasRead = Array.isArray(permissions) && permissions.includes('attendance_admin.read');
+                return hasRead || (this.canRead?.value ?? false);
+            } catch (e) {
+                return this.canRead?.value ?? false;
+            }
+        },
+        isReadOnlyAttendanceAdmin() {
+            return this.canReadAttendanceAdmin && !this.canEditAttendanceAdmin;
+        },
     },
     methods: {
         toggleHeader() {
@@ -31,7 +76,19 @@ export default {
 
             <!-- Breadcrumb -->
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-                <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                <div class="d-flex align-items-center">
+                    <index-breadcrumb :title="title" :text="text" :text1="text1" />
+                    <!-- Read-Only Badge -->
+                    <span 
+                        v-if="isReadOnlyAttendanceAdmin" 
+                        class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="top"
+                        title="You have view-only access to this module"
+                    >
+                        <i class="ti ti-eye me-1"></i> Read Only
+                    </span>
+                </div>
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap ">
                     <div class="me-2 mb-2">
                         <div class="d-flex align-items-center border bg-white rounded p-1 me-2">
@@ -60,7 +117,7 @@ export default {
                             </ul>
                         </div>
                     </div>
-                    <div class="mb-2">
+                    <div v-if="canEditAttendanceAdmin" class="mb-2">
                         <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
                             data-bs-target="#attendance_report" data-bs-toggle="modal"><i
                                 class="ti ti-file-analytics me-2"></i>Report</a>

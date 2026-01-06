@@ -3,6 +3,15 @@
     visibility: hidden
 }
 
+/* Global fix for Ant Design dropdowns in modals */
+.ant-select-dropdown,
+.ant-picker-dropdown,
+.ant-cascader-dropdown,
+.ant-tooltip,
+.ant-popover {
+    z-index: 1060 !important;
+}
+
 .visuallyhidden {
     border: 0;
     clip: rect(0 0 0 0);
@@ -14,7 +23,8 @@
     width: 1px
 }
 
-.visuallyhidden.focusable:active, .visuallyhidden.focusable:focus {
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus {
     clip: auto;
     height: auto;
     margin: 0;
@@ -27,7 +37,8 @@
     visibility: hidden
 }
 
-.clearfix:before, .clearfix:after {
+.clearfix:before,
+.clearfix:after {
     content: " ";
     display: table
 }
@@ -36,7 +47,9 @@
     clear: both
 }
 
-.noflick, .note, .button {
+.noflick,
+.note,
+.button {
     -webkit-perspective: 1000;
     perspective: 1000;
     -webkit-backface-visibility: hidden;
@@ -147,7 +160,8 @@
     right: -10px;
     color: #999
 }
-.sticky-note .title{
+
+.sticky-note .title {
     height: auto !important;
 }
 

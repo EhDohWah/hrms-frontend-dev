@@ -51,15 +51,16 @@
               <div class="text-center px-3 pb-3 border-bottom">
                 <div class="mb-3">
                   <h5 class="d-flex align-items-center justify-content-center mb-1">
-                    {{ employee.initial_en }}. {{ employee.first_name_en }} {{ employee.last_name_en }}
+                    {{ employee?.initial_en || '' }}{{ employee?.initial_en ? '.' : '' }} {{ employee?.first_name_en ||
+                    '' }} {{ employee?.last_name_en || '' }}
                   </h5>
                   <span :class="[
                     'badge badge-sm fw-bold',
-                    employee.subsidiary === 'SMRU' ? 'badge-primary' :
-                      employee.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                    employee?.organization === 'SMRU' ? 'badge-primary' :
+                      employee?.organization === 'BHF' ? 'badge-soft-primary fw-bold' :
                         'badge-secondary'
-                  ]" class="me-2">
-                    {{ employee.subsidiary }}
+                  ]" class="me-2" v-if="employee?.organization">
+                    {{ employee.organization }}
                   </span>
                   <span class="badge badge-soft-dark fw-medium me-2">
                     <i class="ti ti-point-filled text-dark me-1"></i>{{ employee.status || 'Status N/A' }}
@@ -772,10 +773,10 @@
                       <div class="d-flex flex-column text-sm text-muted">
                         <span v-if="beneficiary.phone_number"><i class="ti ti-phone me-1"></i>{{
                           beneficiary.phone_number
-                          }}</span>
+                        }}</span>
                         <span v-if="beneficiary.beneficiary_email"><i class="ti ti-mail me-1"></i>{{
                           beneficiary.beneficiary_email
-                          }}</span>
+                        }}</span>
                       </div>
                     </div>
                     <div class="dropdown">
@@ -1033,10 +1034,10 @@
 
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
-                                      Subsidiary
+                                      Organization
                                     </span>
                                     <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.position_slot?.grant_item?.grant?.subsidiary || 'N/A' }}
+                                      {{ allocation.position_slot?.grant_item?.grant?.organization || 'N/A' }}
                                     </h6>
                                   </div>
 
@@ -1096,57 +1097,6 @@
                                   </div>
                                 </div>
 
-                                <!-- Org funded specific details -->
-                                <div v-if="allocation.allocation_type === 'org_funded'" class="row mt-3">
-                                  <div class="col-md-3">
-                                    <span class="d-inline-flex align-items-center">
-                                      Org Funded ID
-                                    </span>
-                                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.org_funded_id || 'N/A' }}
-                                    </h6>
-                                  </div>
-
-                                  <div class="col-md-3">
-                                    <span class="d-inline-flex align-items-center">
-                                      Org Funded Salary
-                                    </span>
-                                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.org_funded.org_funded_salary ?
-                                        `${Number(allocation.org_funded.org_funded_salary).toLocaleString()} THB` :
-                                        'N/A' }}
-                                    </h6>
-                                  </div>
-
-                                  <div class="col-md-3">
-                                    <span class="d-inline-flex align-items-center">
-                                      Department Position
-                                    </span>
-                                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.org_funded.department_position.position || 'N/A' }}
-                                    </h6>
-                                  </div>
-
-                                  <div class="col-md-3">
-                                    <span class="d-inline-flex align-items-center">
-                                      Subsidiary
-                                    </span>
-                                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.org_funded.grant.subsidiary || 'N/A' }}
-                                    </h6>
-                                  </div>
-                                </div>
-                                <div v-if="allocation.allocation_type === 'org_funded'" class="row mt-3">
-                                  <div class="col-md-3">
-                                    <span class="d-inline-flex align-items-center">
-                                      Allocated Amount
-                                    </span>
-                                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.allocated_amount ?
-                                        `${Number(allocation.allocated_amount).toLocaleString()} ฿` : 'N/A' }}
-                                    </h6>
-                                  </div>
-                                </div>
                               </div>
                               <!-- Funding allocation details end -->
                             </div>
@@ -1379,14 +1329,14 @@
                             <div class="d-flex justify-content-between align-items-center mb-3">
                               <h6 class="mb-0 fw-medium d-flex align-items-center">
                                 <i class="ti ti-building-community me-2"></i>
-                                <span>Subsidiary:</span>
+                                <span>Organization:</span>
                                 <span :class="[
                                   'badge badge-sm fw-bold ms-2',
-                                  employee.subsidiary === 'SMRU' ? 'badge-primary' :
-                                    employee.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
-                                      employee.subsidiary ? 'badge-secondary' : 'badge-soft-dark'
+                                  employee.organization === 'SMRU' ? 'badge-primary' :
+                                    employee.organization === 'BHF' ? 'badge-soft-primary fw-bold' :
+                                      employee.organization ? 'badge-secondary' : 'badge-soft-dark'
                                 ]">
-                                  {{ employee.subsidiary || 'N/A' }}
+                                  {{ employee.organization || 'N/A' }}
                                 </span>
                               </h6>
                             </div>
@@ -1418,14 +1368,14 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-calendar-plus me-2"></i>Start Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.start_date) || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-calendar-event me-2"></i>End Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.end_date) || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1434,7 +1384,7 @@
                                         Date</span>
                                       <span class="fw-medium">{{ formatDate(employee.employment?.probation_pass_date) ||
                                         'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1459,7 +1409,7 @@
                                       <span class="text-muted"><i class="ti ti-building me-2"></i>Department Position
                                         ID</span>
                                       <span class="fw-medium">{{ employee.employment?.department_position_id || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                 </ul>
@@ -1472,14 +1422,14 @@
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-location me-2"></i>Work Location</span>
                                       <span class="fw-medium">{{ employee.employment?.work_location?.name || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-map-pin me-2"></i>Location Type</span>
                                       <span class="fw-medium">{{ employee.employment?.work_location?.type || 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1488,7 +1438,7 @@
                                         Salary</span>
                                       <span class="fw-medium">{{ employee.employment?.position_salary ?
                                         `${Number(employee.employment.position_salary).toLocaleString()} THB` : 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1496,7 +1446,7 @@
                                       <span class="text-muted"><i class="ti ti-cash me-2"></i>Probation Salary</span>
                                       <span class="fw-medium">{{ employee.employment?.probation_salary ?
                                         `${Number(employee.employment.probation_salary).toLocaleString()} THB` : 'N/A'
-                                        }}</span>
+                                      }}</span>
                                     </div>
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
@@ -1572,7 +1522,7 @@
                                     <h6 class="mb-2"><i class="ti ti-user me-2"></i>Created By</h6>
                                     <p class="mb-0">{{ employee.employment?.created_by || 'N/A' }}</p>
                                     <small class="text-muted">{{ formatDate(employee.employment?.created_at) || 'N/A'
-                                      }}</small>
+                                    }}</small>
                                   </div>
                                 </div>
                               </div>
@@ -1582,7 +1532,7 @@
                                     <h6 class="mb-2"><i class="ti ti-user-edit me-2"></i>Updated By</h6>
                                     <p class="mb-0">{{ employee.employment?.updated_by || 'N/A' }}</p>
                                     <small class="text-muted">{{ formatDate(employee.employment?.updated_at) || 'N/A'
-                                      }}</small>
+                                    }}</small>
                                   </div>
                                 </div>
                               </div>
@@ -1660,7 +1610,7 @@
                         <div class="d-flex align-items-center mb-2">
                           <i class="ti ti-calendar-time me-2 text-primary"></i>
                           <span class="fw-medium text-dark">{{ balance.leave_type?.name || 'Unknown Leave Type'
-                          }}</span>
+                            }}</span>
                           <span v-if="balance.leave_type?.requires_attachment" class="badge badge-soft-warning ms-2"
                             title="Requires attachment">
                             <i class="ti ti-paperclip me-1"></i>Attachment Required
@@ -1704,7 +1654,7 @@
                             </div>
                           </div>
                           <small class="text-muted mt-1">{{ getUsagePercentage(balance.used_days, balance.total_days)
-                          }}%</small>
+                            }}%</small>
                         </div>
                       </div>
                     </div>
@@ -1733,6 +1683,23 @@
           </div>
         </div>
         <!-- /Grants Tab -->
+
+        <!-- Activity History Section -->
+        <div class="col-12 mt-4" v-if="employee?.id">
+          <div class="card">
+            <div class="card-body">
+              <ActivityLogTimeline
+                subject-type="employee"
+                :subject-id="employee.id"
+                title="Employee Activity History"
+                :show-filter="true"
+                :show-subject-type="false"
+                :per-page="15"
+              />
+            </div>
+          </div>
+        </div>
+        <!-- /Activity History Section -->
       </div>
     </div>
     <layout-footer></layout-footer>
@@ -1748,13 +1715,21 @@ import { Modal } from 'bootstrap';
 import employeeChildrenService from "@/services/employee-children.service";
 import employeeBeneficiaryService from "@/services/employeeBeneficiary.service";
 import employeeEducationService from "@/services/employeeEducation.service";
+import ActivityLogTimeline from '@/components/activity-log/ActivityLogTimeline.vue';
 
 
 export default {
   name: 'EmployeeDetails',
   data() {
     return {
-      employee: null,
+      employee: {
+        initial_en: '',
+        first_name_en: '',
+        last_name_en: '',
+        organization: '',
+        staff_id: '',
+        employment: null
+      },
       loading: true,
       leaveBalances: [],
 
@@ -1833,7 +1808,7 @@ export default {
         mobile_phone: employee.mobile_phone,
         current_address: employee.current_address,
         permanent_address: employee.permanent_address,
-        subsidiary: employee.subsidiary,
+        organization: employee.organization,
         gender: employee.gender,
         nationality: employee.nationality,
         religion: employee.religion,

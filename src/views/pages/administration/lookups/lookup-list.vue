@@ -6,30 +6,26 @@
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnly" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="me-2 mb-2">
-            <div class="dropdown">
-              <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-                data-bs-toggle="dropdown">
-                <i class="ti ti-file-export me-1"></i>Export
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end p-3">
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"><i
-                      class="ti ti-file-type-pdf me-1"></i>Export as PDF</a>
-                </li>
-                <li>
-                  <a href="javascript:void(0);" class="dropdown-item rounded-1"><i
-                      class="ti ti-file-type-xls me-1"></i>Export as Excel
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="mb-2">
+          <!-- Add Lookup Button - Only visible if user can edit -->
+          <div v-if="canEdit" class="mb-2">
             <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_lookup"
-              class="btn btn-primary d-flex align-items-center"><i class="ti ti-circle-plus me-2"></i>Add Lookup</a>
+              class="btn btn-primary d-flex align-items-center">
+              <i class="ti ti-circle-plus me-2"></i>Add Lookup
+            </a>
           </div>
           <div class="head-icons ms-2">
             <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -44,44 +40,37 @@
       <!-- Lookups List -->
       <div class="card">
         <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
-          <h5>Lookups List ({{ lookupStore.getTotalItems }} total)</h5>
-          <div class="d-flex my-xl-auto right-content align-items-center flex-wrap row-gap-3">
-            <!-- Search Input -->
-            <div class="me-3">
-              <div class="input-group" style="width: 300px;">
-                <input type="text" class="form-control" placeholder="Search lookups and press Enter..."
-                  v-model="searchTerm" @keyup.enter="handleSearch">
-                <button class="btn btn-primary" type="button" @click="handleSearch">
-                  <i class="ti ti-search"></i>
-                </button>
-                <button class="btn btn-outline-secondary" type="button" @click="clearSearch" v-if="searchTerm">
-                  <i class="ti ti-x"></i>
-                </button>
-              </div>
-            </div>
-
+          <h5>Lookups List</h5>
+          <div class="d-flex align-items-center flex-wrap row-gap-2">
             <!-- Type Filter -->
-            <div class="me-3">
-              <select class="form-select" v-model="selectedFilterType" @change="handleTypeFilter" style="width: 200px;">
-                <option value="">All Types</option>
-                <option v-for="type in availableFilterTypes" :key="type" :value="type">{{ type }}</option>
-              </select>
+            <div class="me-2">
+              <a-select
+                v-model:value="selectedFilterType"
+                @change="handleTypeFilter"
+                placeholder="Filter by Type"
+                style="width: 200px;"
+                allowClear
+              >
+                <a-select-option value="">All Types</a-select-option>
+                <a-select-option v-for="type in availableFilterTypes" :key="type" :value="type">
+                  {{ type }}
+                </a-select-option>
+              </a-select>
             </div>
-
-            <!-- Per Page Selector -->
-            <div class="me-3">
-              <select class="form-select" v-model="perPage" @change="handlePerPageChange" style="width: 100px;">
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-              </select>
+            <div class="me-2">
+              <a-button class="me-2" @click="clearFilters">Clear filters</a-button>
+              <a-button @click="clearAll">Clear filters and sorters</a-button>
             </div>
-
-            <div class="ms-3">
-              <a-button @click="clearFilters">Clear filters</a-button>
-              <a-button @click="clearAll" class="ms-2">Clear all</a-button>
+            <div class="input-icon-end">
+              <a-input-search
+                v-model:value="searchValue"
+                placeholder="Search by type or value..."
+                enter-button="Search"
+                @search="handleSearch"
+                @change="onSearchChange"
+                style="width: 250px;"
+                class="search-input-primary"
+              />
             </div>
           </div>
         </div>
@@ -94,88 +83,49 @@
               <p class="mt-2">Loading lookups...</p>
             </div>
 
-            <div v-else>
-              <!-- Lookups Table -->
-              <a-table class="table datatable thead-light" :columns="columns" :data-source="data"
-                :row-selection="rowSelection" :pagination="false" @change="handleTableChange">
+            <a-table v-else class="table datatable thead-light" :columns="columns" :data-source="data"
+              :row-selection="canEdit ? rowSelection : null" 
+              :pagination="paginationConfig"
+              @change="handleChange">
                 <template #bodyCell="{ column, record }">
-                  <template v-if="column.key === 'Type'">
-                    <a-tag :color="getTypeColor(record.type)">{{ record.type }}</a-tag>
+                <template v-if="column.key === 'id'">
+                  <span>{{ record.id }}</span>
                   </template>
-                  <template v-if="column.key === 'Value'">
-                    <span>{{ record.value }}</span>
+                <template v-if="column.key === 'type'">
+                  <span class="badge badge-primary p-2 fs-10">{{ record.type }}</span>
                   </template>
-                  <template v-if="column.key === 'created_at'">
-                    <a-tag color="blue">{{ formatDate(record.created_at) }}</a-tag>
+                <template v-if="column.key === 'value'">
+                  <span class="fw-medium">{{ record.value }}</span>
                   </template>
                   <template v-if="column.key === 'action'">
                     <div class="action-icon d-inline-flex">
-                      <a-button type="primary" size="small" class="me-2" @click="editLookup(record)">
-                        <template #icon><i class="ti ti-edit"></i></template>
-                      </a-button>
-                      <a-button type="danger" size="small" @click="confirmDeleteLookup(record.id)">
-                        <template #icon><i class="ti ti-trash"></i></template>
-                      </a-button>
+                    <!-- View - Always visible -->
+                    <a href="javascript:void(0);" class="me-2" title="View Lookup" @click="editLookup(record)">
+                      <i class="ti ti-eye"></i>
+                    </a>
+                    <!-- Edit - Only visible if user can edit -->
+                    <a 
+                      v-if="canEdit" 
+                      href="javascript:void(0);" 
+                      class="me-2" 
+                      title="Edit Lookup" 
+                      @click="editLookup(record)"
+                    >
+                      <i class="ti ti-edit"></i>
+                    </a>
+                    <!-- Delete - Only visible if user can edit -->
+                    <a 
+                      v-if="canEdit" 
+                      href="javascript:void(0);" 
+                      title="Delete Lookup" 
+                      @click="confirmDeleteLookup(record.id)"
+                    >
+                      <i class="ti ti-trash"></i>
+                    </a>
                     </div>
                   </template>
                 </template>
               </a-table>
-
-              <!-- Pagination Controls -->
-              <div class="d-flex justify-content-between align-items-center mt-3 px-3 pb-3" v-if="pagination.total > 0">
-                <div class="pagination-info">
-                  <span class="text-muted">
-                    Showing {{ pagination.from }} to {{ pagination.to }} of {{ pagination.total }} entries
-                    <span v-if="searchTerm || selectedFilterType">
-                      (filtered{{ searchTerm ? ` from search: "${searchTerm}"` : '' }}{{ selectedFilterType ? ` in type:
-                      "${selectedFilterType}"` : '' }})
-                    </span>
-                  </span>
-                </div>
-
-                <div class="pagination-controls d-flex align-items-center">
-                  <a-button :disabled="pagination.current_page <= 1" @click="goToPage(1)" class="me-1" size="small">
-                    <i class="ti ti-chevrons-left"></i>
-                  </a-button>
-
-                  <a-button :disabled="pagination.current_page <= 1" @click="previousPage" class="me-2" size="small">
-                    <i class="ti ti-chevron-left"></i>
-                  </a-button>
-
-                  <span class="mx-3">
-                    Page {{ pagination.current_page }} of {{ pagination.last_page }}
-                  </span>
-
-                  <a-button :disabled="!pagination.has_more_pages" @click="nextPage" class="ms-2" size="small">
-                    <i class="ti ti-chevron-right"></i>
-                  </a-button>
-
-                  <a-button :disabled="!pagination.has_more_pages" @click="goToPage(pagination.last_page)" class="ms-1"
-                    size="small">
-                    <i class="ti ti-chevrons-right"></i>
-                  </a-button>
-                </div>
-              </div>
-
-              <!-- No Results Message -->
-              <div v-else-if="!loading" class="text-center py-4">
-                <div class="empty-state">
-                  <i class="ti ti-search fs-48 text-muted mb-3"></i>
-                  <h5 class="text-muted">No lookups found</h5>
-                  <p class="text-muted">
-                    <span v-if="searchTerm || selectedFilterType">
-                      Try adjusting your search criteria or filters.
-                    </span>
-                    <span v-else>
-                      No lookup values have been created yet.
-                    </span>
-                  </p>
-                  <a-button @click="clearAll" v-if="searchTerm || selectedFilterType">
-                    Clear all filters
-                  </a-button>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -184,33 +134,46 @@
 
     <div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
       <p class="mb-0">2014 - 2025 &copy; SmartHR.</p>
-      <p>
-        Designed &amp; Developed By
-        <a href="javascript:void(0);" class="text-primary">Dreams</a>
-      </p>
+      <p>Designed &amp; Developed By <a href="javascript:void(0);" class="text-primary">Dreams</a></p>
     </div>
   </div>
   <!-- /Page Wrapper -->
-  <lookup-modal ref="lookupModal" @lookup-added="onLookupChanged" @lookup-updated="onLookupChanged"
-    @lookup-deleted="onLookupChanged"></lookup-modal>
+  <lookup-modal ref="lookupModal" @lookup-added="onLookupChanged" @lookup-updated="onLookupChanged"></lookup-modal>
 </template>
+
 <script>
-import "daterangepicker/daterangepicker.css";
-import "daterangepicker/daterangepicker.js";
 import moment from "moment";
-import DateRangePicker from "daterangepicker";
 import { useLookupStore } from "@/stores/lookupStore";
 import LookupModal from "@/components/modal/lookup-modal.vue";
+import { usePermissions } from '@/composables/usePermissions';
 
 const rowSelection = {
-  onChange: () => { },
-  onSelect: () => { },
-  onSelectAll: () => { },
+  onChange: () => {},
+  onSelect: () => {},
+  onSelectAll: () => {},
 };
 
 export default {
   components: {
     LookupModal
+  },
+  setup() {
+    // Initialize permission checks for lookups module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('lookups');
+    
+    return {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
   },
   data() {
     return {
@@ -223,20 +186,23 @@ export default {
       sortedInfo: null,
       loading: false,
       lookupStore: useLookupStore(),
-      lookupTypes: [],
-      // Search and filter state
-      searchTerm: '',
       selectedFilterType: '',
-      perPage: 10,
-      // Computed properties cache
       availableFilterTypes: [],
+      searchValue: '',
+      searchTimeout: null,
     };
   },
   computed: {
-    pagination() {
-      return this.lookupStore.getPagination;
+    paginationConfig() {
+      return {
+        current: this.lookupStore.pagination.current_page,
+        pageSize: this.lookupStore.pagination.per_page,
+        total: this.lookupStore.pagination.total,
+        showSizeChanger: true,
+        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`,
+        pageSizeOptions: ['10', '20', '50', '100'],
+      };
     },
-
     columns() {
       const { filteredInfo, sortedInfo } = this;
       const filtered = filteredInfo || {};
@@ -244,25 +210,63 @@ export default {
 
       return [
         {
+          sorter: false,
+        },
+        {
+          title: "ID",
+          dataIndex: "id",
+          key: "id",
+          sorter: {
+            compare: (a, b) => a.id - b.id,
+          },
+          sortOrder: sorted.columnKey === "id" && sorted.order,
+        },
+        {
           title: "Type",
           dataIndex: "type",
-          key: "Type",
-          sorter: true,
-          sortOrder: sorted.columnKey === "Type" && sorted.order,
+          key: "type",
+          filters: this.getTypeFilters(),
+          filteredValue: filtered.type || null,
+          filterSearch: true,
+          onFilter: (value, record) => record.type.toLowerCase().includes(value.toLowerCase()),
+          sorter: {
+            compare: (a, b) => {
+              a = a.type.toLowerCase();
+              b = b.type.toLowerCase();
+              return a > b ? -1 : b > a ? 1 : 0;
+            },
+          },
+          sortOrder: sorted.columnKey === "type" && sorted.order,
         },
         {
           title: "Value",
           dataIndex: "value",
-          key: "Value",
-          sorter: true,
-          sortOrder: sorted.columnKey === "Value" && sorted.order,
+          key: "value",
+          filters: this.getValueFilters(),
+          filteredValue: filtered.value || null,
+          filterSearch: true,
+          onFilter: (value, record) => record.value.toLowerCase().includes(value.toLowerCase()),
+          sorter: {
+            compare: (a, b) => {
+              a = a.value.toLowerCase();
+              b = b.value.toLowerCase();
+              return a > b ? -1 : b > a ? 1 : 0;
+            },
+          },
+          sortOrder: sorted.columnKey === "value" && sorted.order,
         },
         {
           title: "Created Date",
           dataIndex: "created_at",
-          key: "created_at",
-          sorter: true,
-          sortOrder: sorted.columnKey === "created_at" && sorted.order,
+          render: (text) => {
+            return moment(text).format('DD MMM YYYY');
+          },
+          sorter: {
+            compare: (a, b) => {
+              return moment(a.created_at).unix() - moment(b.created_at).unix();
+            },
+          },
+          sortOrder: sorted.columnKey === "CreatedDate" && sorted.order,
         },
         {
           title: "Action",
@@ -272,82 +276,41 @@ export default {
       ];
     },
   },
-  async created() {
-    await this.fetchLookups();
-    await this.fetchLookupTypes();
-  },
-  mounted() {
-    this.initDateRangePicker();
+  created() {
+    this.fetchLookups();
+    this.fetchLookupTypes();
   },
   methods: {
-    getTypeColor(type) {
-      const colors = {
-        'gender': 'blue',
-        'subsidiary': 'green',
-        'employee_status': 'orange',
-        'nationality': 'purple',
-        'religion': 'cyan',
-        'marital_status': 'magenta',
-        'site': 'gold',
-        'user_status': 'lime',
-        'interview_mode': 'geekblue',
-        'interview_status': 'volcano',
-        'identification_types': 'red',
-        'employment_type': 'pink',
-        'employee_language': 'lime',
-        'employee_education': 'lime',
-        'employee_initial_en': 'lime',
-        'employee_initial_th': 'lime',
-        'Default': 'default'
-      };
-      return colors[type] || colors['Default'];
-    },
-
-    formatDate(date) {
-      return moment(date).format('DD MMM YYYY');
-    },
-
     async fetchLookupTypes() {
       try {
         await this.lookupStore.fetchLookupTypes();
-        this.lookupTypes = this.lookupStore.getAllLookupTypes;
+        this.availableFilterTypes = this.lookupStore.getAllLookupTypes;
       } catch (error) {
         console.error('Error loading lookup types:', error);
-        // Fallback to extracting types from existing data
-        this.lookupTypes = this.lookupStore.getAllLookupTypes;
       }
     },
 
     async fetchLookups() {
       this.loading = true;
       try {
-        // Set current filters in store
-        this.lookupStore.setSearchTerm(this.searchTerm);
+        // Set filters in store
+        this.lookupStore.setSearchTerm(this.searchValue);
         this.lookupStore.setFilterType(this.selectedFilterType);
-        this.lookupStore.setPerPage(this.perPage);
 
         await this.lookupStore.fetchAllLookups(true);
 
-        // Get processed data from store
-        this.data = this.lookupStore.getLookups.map(lookup => ({
+        this.data = this.lookupStore.lookups.map(lookup => ({
           key: lookup.id.toString(),
           id: lookup.id,
-          type: lookup.type,
+          type: lookup.type || '',
           value: lookup.value || '',
-          created_at: lookup.created_at || '',
-          updated_at: lookup.updated_at || '',
+          created_at: lookup.created_at ? moment(lookup.created_at).format('DD/MM/YYYY') : '',
+          updated_at: lookup.updated_at ? moment(lookup.updated_at).format('DD/MM/YYYY') : '',
           created_by: lookup.created_by || '',
           updated_by: lookup.updated_by || ''
         }));
 
-        // Update available filter types
-        this.availableFilterTypes = this.lookupStore.getAvailableFilterTypes.length > 0
-          ? this.lookupStore.getAvailableFilterTypes
-          : this.lookupStore.getAllLookupTypes;
-
-        if (this.data.length > 0) {
-          this.$message.success(`Loaded ${this.pagination.total} lookups`);
-        }
+        this.$message.success('Lookups loaded successfully');
       } catch (error) {
         console.error('Error loading lookups:', error);
         this.$message.error('Failed to load lookups');
@@ -356,143 +319,17 @@ export default {
       }
     },
 
-
-
     editLookup(record) {
-      // Pass the lookup data to the modal component
       this.$refs.lookupModal.setEditLookup(record);
     },
 
     confirmDeleteLookup(lookupId) {
-      this.$confirm({
-        title: 'Are you sure you want to delete this lookup?',
-        content: 'This action cannot be undone.',
-        okText: 'Yes, Delete',
-        okType: 'danger',
-        cancelText: 'Cancel',
-        onOk: () => {
-          this.deleteLookup(lookupId);
-        }
-      });
-    },
-
-    async deleteLookup(lookupId) {
-      try {
-        const result = await this.lookupStore.deleteLookup(lookupId);
-        if (result) {
-          this.$message.success('Lookup deleted successfully');
-          this.fetchLookups();
-        } else {
-          this.$message.error('Failed to delete lookup');
-        }
-      } catch (error) {
-        console.error('Error deleting lookup:', error);
-        this.$message.error('An error occurred while deleting the lookup');
-      }
+      this.$refs.lookupModal.confirmDeleteLookup(lookupId);
     },
 
     async onLookupChanged() {
-      // Refresh both lookups and lookup types when any lookup is added/updated/deleted
       await this.fetchLookups();
       await this.fetchLookupTypes();
-    },
-
-    // Search functionality - triggers only on Enter or search button click
-    async handleSearch() {
-      await this.fetchLookups();
-    },
-
-    clearSearch() {
-      this.searchTerm = '';
-      this.fetchLookups();
-    },
-
-    // Filter functionality
-    async handleTypeFilter() {
-      await this.fetchLookups();
-    },
-
-    async handlePerPageChange() {
-      await this.fetchLookups();
-    },
-
-    // Pagination methods
-    async nextPage() {
-      await this.lookupStore.nextPage();
-      this.updateDataFromStore();
-    },
-
-    async previousPage() {
-      await this.lookupStore.prevPage();
-      this.updateDataFromStore();
-    },
-
-    async goToPage(page) {
-      await this.lookupStore.goToPage(page);
-      this.updateDataFromStore();
-    },
-
-    // Table sorting
-    async handleTableChange(pagination, filters, sorter) {
-      if (sorter && sorter.field) {
-        let sortBy = sorter.field;
-        let sortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
-
-        // Map frontend sort fields to backend fields
-        if (sortBy === 'Type') sortBy = 'type';
-        if (sortBy === 'Value') sortBy = 'value';
-
-        this.lookupStore.setSort(sortBy, sortOrder);
-        await this.fetchLookups();
-      }
-    },
-
-    // Update local data from store
-    updateDataFromStore() {
-      this.data = this.lookupStore.getLookups.map(lookup => ({
-        key: lookup.id.toString(),
-        id: lookup.id,
-        type: lookup.type,
-        value: lookup.value || '',
-        created_at: lookup.created_at || '',
-        updated_at: lookup.updated_at || '',
-        created_by: lookup.created_by || '',
-        updated_by: lookup.updated_by || ''
-      }));
-    },
-
-    initDateRangePicker() {
-      const dateRangeInput = document.getElementById('daterange');
-      if (dateRangeInput) {
-        const start = moment().subtract(6, "days");
-        const end = moment();
-
-        new DateRangePicker(
-          dateRangeInput,
-          {
-            startDate: start,
-            endDate: end,
-            ranges: {
-              Today: [moment(), moment()],
-              Yesterday: [moment().subtract(1, "days"), moment().subtract(1, "days")],
-              "Last 7 Days": [moment().subtract(6, "days"), moment()],
-              "Last 30 Days": [moment().subtract(29, "days"), moment()],
-              "This Month": [moment().startOf("month"), moment().endOf("month")],
-              "Last Month": [
-                moment().subtract(1, "month").startOf("month"),
-                moment().subtract(1, "month").endOf("month"),
-              ],
-            },
-          },
-          this.date_range
-        );
-
-        this.date_range(start, end);
-      }
-    },
-
-    date_range(start, end) {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
     },
 
     toggleHeader() {
@@ -501,29 +338,114 @@ export default {
     },
 
     handleChange(pagination, filters, sorter) {
-      console.log("Various parameters", pagination, filters, sorter);
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
+      
+      // Handle pagination changes
+      if (pagination.current !== this.lookupStore.pagination.current_page || 
+          pagination.pageSize !== this.lookupStore.pagination.per_page) {
+        this.lookupStore.pagination.current_page = pagination.current;
+        if (pagination.pageSize !== this.lookupStore.pagination.per_page) {
+          this.lookupStore.pagination.per_page = pagination.pageSize;
+        }
+        this.fetchLookups();
+      }
     },
 
-    async clearFilters() {
-      this.searchTerm = '';
+    clearFilters() {
+      this.filteredInfo = null;
       this.selectedFilterType = '';
-      this.lookupStore.clearFilters();
-      await this.fetchLookups();
+      this.lookupStore.setFilterType('');
     },
 
-    async clearAll() {
-      this.searchTerm = '';
-      this.selectedFilterType = '';
-      this.perPage = 10;
+    clearAll() {
       this.filteredInfo = null;
       this.sortedInfo = null;
-      this.lookupStore.clearAllFilters();
+      this.searchValue = '';
+      this.selectedFilterType = '';
+      this.lookupStore.setSearchTerm('');
+      this.lookupStore.setFilterType('');
+      this.fetchLookups();
+    },
+
+    handleSearch(value) {
+      this.lookupStore.setSearchTerm(value);
+      this.fetchLookups();
+    },
+
+    onSearchChange(e) {
+      const value = e.target.value;
+      if (this.searchTimeout) {
+        clearTimeout(this.searchTimeout);
+      }
+      this.searchTimeout = setTimeout(() => {
+        this.lookupStore.setSearchTerm(value);
+        this.fetchLookups();
+      }, 500);
+    },
+
+    async handleTypeFilter() {
       await this.fetchLookups();
     },
 
+    getTypeFilters() {
+      if (!this.data || this.data.length === 0) {
+        return [];
+      }
+      const types = [...new Set(this.data.map(item => item.type))];
+      return types.map(type => ({ text: type, value: type }));
+    },
 
+    getValueFilters() {
+      if (!this.data || this.data.length === 0) {
+        return [];
+      }
+      const values = [...new Set(this.data.map(item => item.value))];
+      return values.slice(0, 50).map(value => ({ text: value, value: value })); // Limit to 50 for performance
+    },
   },
 };
 </script>
+
+<style scoped>
+/* Pagination dropdown fixes */
+:deep(.ant-pagination-options-size-changer) {
+  margin-right: 8px;
+}
+
+:deep(.ant-pagination-options-quick-jumper) {
+  margin-left: 8px;
+}
+
+/* Fix dropdown placement - force dropdown to appear above */
+:deep(.ant-pagination-options-size-changer .ant-select) {
+  z-index: 1000;
+}
+
+:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
+  z-index: 1050 !important;
+  top: auto !important;
+  bottom: calc(100% + 4px) !important;
+}
+
+/* Force dropdown to appear above the trigger */
+:deep(.ant-select-dropdown) {
+  z-index: 1050 !important;
+}
+
+/* Override Ant Design dropdown placement */
+:deep(.ant-pagination .ant-select-dropdown) {
+  position: absolute !important;
+  bottom: calc(100% + 4px) !important;
+  top: auto !important;
+  margin-bottom: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Ensure select selector is properly displayed */
+:deep(.ant-select-selector) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

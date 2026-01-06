@@ -124,9 +124,82 @@ class PayrollService {
     return await apiService.post(API_ENDPOINTS.PAYROLL.BULK_CALCULATE, bulkData);
   }
 
-  // Create bulk payroll for multiple employees
+  // Create bulk payroll for multiple employees (old method - kept for compatibility)
   async createBulkPayroll(bulkData) {
     return await apiService.post(API_ENDPOINTS.PAYROLL.BULK_CREATE || `${API_ENDPOINTS.PAYROLL.CREATE}/bulk`, bulkData);
+  }
+
+  // ============================================
+  // NEW: Bulk Payroll Creation with Real-Time Progress Tracking
+  // ============================================
+
+  /**
+   * Preview bulk payroll creation (dry-run)
+   * @param {Object} data - { pay_period, filters }
+   * @returns {Promise} Preview data with totals and warnings
+   */
+  async bulkPreview(data) {
+    return await apiService.post(API_ENDPOINTS.PAYROLL.BULK_PREVIEW || '/payrolls/bulk/preview', data);
+  }
+
+  /**
+   * Create bulk payroll batch and start processing
+   * @param {Object} data - { pay_period, filters }
+   * @returns {Promise} Batch creation response with batch_id
+   */
+  async bulkCreate(data) {
+    return await apiService.post(API_ENDPOINTS.PAYROLL.BULK_CREATE_NEW || '/payrolls/bulk/create', data);
+  }
+
+  /**
+   * Get bulk payroll batch status (HTTP polling fallback)
+   * @param {Number} batchId - Batch ID
+   * @returns {Promise} Current batch status
+   */
+  async getBatchStatus(batchId) {
+    const endpoint = (API_ENDPOINTS.PAYROLL.BULK_STATUS || '/payrolls/bulk/status/:batchId').replace(':batchId', batchId);
+    return await apiService.get(endpoint);
+  }
+
+  /**
+   * Download batch error report as CSV
+   * @param {Number} batchId - Batch ID
+   * @returns {Promise} Blob for CSV download
+   */
+  async downloadBatchErrors(batchId) {
+    const endpoint = (API_ENDPOINTS.PAYROLL.BULK_ERRORS || '/payrolls/bulk/errors/:batchId').replace(':batchId', batchId);
+    return await apiService.get(endpoint, { responseType: 'blob' });
+  }
+
+  /**
+   * Get budget history for grant-centric view
+   * @param {Object} params - { start_date, end_date, organization, department, page, per_page }
+   * @returns {Promise} Budget history data grouped by employee and grant allocation
+   */
+  async getBudgetHistory(params = {}) {
+    const queryParams = new URLSearchParams();
+
+    // Normalize pagination
+    if (params && Object.prototype.hasOwnProperty.call(params, 'page')) {
+      const pageNum = Number(params.page);
+      params.page = Number.isFinite(pageNum) && pageNum >= 1 ? pageNum : 1;
+    }
+    if (params && Object.prototype.hasOwnProperty.call(params, 'per_page')) {
+      const perNum = Number(params.per_page);
+      params.per_page = Number.isFinite(perNum) && perNum > 0 ? perNum : 50;
+    }
+
+    // Add all parameters to query string
+    Object.keys(params).forEach(key => {
+      if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
+        queryParams.append(key, params[key]);
+      }
+    });
+
+    const queryString = queryParams.toString();
+    const url = queryString ? `${API_ENDPOINTS.PAYROLL.BUDGET_HISTORY}?${queryString}` : API_ENDPOINTS.PAYROLL.BUDGET_HISTORY;
+
+    return apiService.get(url);
   }
 }
 

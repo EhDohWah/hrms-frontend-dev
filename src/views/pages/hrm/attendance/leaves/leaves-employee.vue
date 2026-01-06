@@ -3,15 +3,59 @@ import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
+import { usePermissions } from '@/composables/usePermissions';
 
 
 export default {
+  setup() {
+    // Initialize permission checks for leaves_employee module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('leaves_employee');
+
+    return {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
+  },
   data() {
     return {
       title: "Leaves",
       text: "Employee",
       text1: "My Leaves",
     };
+  },
+  computed: {
+    // Permission checks - primary source for reactivity
+    canEditLeavesEmployee() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasEdit = Array.isArray(permissions) && permissions.includes('leaves_employee.edit');
+        return hasEdit || (this.canEdit?.value ?? false);
+      } catch (e) {
+        console.error('[LeavesEmployee] Error checking permissions:', e);
+        return this.canEdit?.value ?? false;
+      }
+    },
+    canReadLeavesEmployee() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasRead = Array.isArray(permissions) && permissions.includes('leaves_employee.read');
+        return hasRead || (this.canRead?.value ?? false);
+      } catch (e) {
+        return this.canRead?.value ?? false;
+      }
+    },
+    isReadOnlyLeavesEmployee() {
+      return this.canReadLeavesEmployee && !this.canEditLeavesEmployee;
+    },
   },
   methods: {
     toggleHeader() {
@@ -68,7 +112,19 @@ export default {
       <div
         class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3"
       >
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnlyLeavesEmployee" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="me-2 mb-2">
             <div class="dropdown">
@@ -93,7 +149,7 @@ export default {
               </ul>
             </div>
           </div>
-          <div class="mb-2">
+          <div v-if="canEditLeavesEmployee" class="mb-2">
             <a
               href="javascript:void(0);"
               data-bs-toggle="modal"

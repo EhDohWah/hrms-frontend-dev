@@ -1,5 +1,28 @@
 import { API_CONFIG } from '../config/api.config';
 
+/**
+ * Permission error event handler
+ * Emits a custom event when a 403 permission error occurs
+ */
+function emitPermissionError(message, requiredPermissions = []) {
+    if (typeof window !== 'undefined') {
+        const event = new CustomEvent('permission-denied', {
+            detail: {
+                message: message || "You don't have permission to perform this action",
+                requiredPermissions,
+                timestamp: Date.now()
+            }
+        });
+        window.dispatchEvent(event);
+    }
+}
+
+/**
+ * Debounce permission error toasts to prevent spam
+ */
+let lastPermissionErrorTime = 0;
+const PERMISSION_ERROR_DEBOUNCE = 2000; // 2 seconds
+
 class ApiService {
     constructor() {
         this.baseURL = API_CONFIG.BASE_URL;
@@ -35,7 +58,26 @@ class ApiService {
     async handleResponse(response, originalRequest) {
         // Check if response is unauthorized
         if (response.status === 401) {
-            // Attempt to refresh token
+            // First, try to parse the response to get the actual error message
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                data = { message: 'Unauthenticated.' };
+            }
+
+            // Check if this is a login-related error (has error_type from backend)
+            // These should NOT trigger token refresh - they are authentication failures
+            if (data.error_type && ['EMAIL_NOT_FOUND', 'INVALID_PASSWORD', 'ACCOUNT_INACTIVE'].includes(data.error_type)) {
+                const error = new Error(data.message || 'Authentication failed');
+                error.response = {
+                    status: response.status,
+                    data: data
+                };
+                throw error;
+            }
+
+            // For other 401 errors (token expiration), attempt to refresh token
             const refreshed = await this.attemptRefreshToken();
             if (refreshed) {
                 // Retry the original request with new token
@@ -44,7 +86,12 @@ class ApiService {
                 // If refresh fails, clear stored token and reject
                 localStorage.removeItem('token');
                 localStorage.removeItem('tokenExpiration');
-                throw new Error('Unauthenticated.');
+                const error = new Error(data.message || 'Unauthenticated.');
+                error.response = {
+                    status: response.status,
+                    data: data
+                };
+                throw error;
             }
         }
 
@@ -55,6 +102,23 @@ class ApiService {
                 status: response.status,
                 data: data
             };
+            
+            // Handle 403 Forbidden - Permission denied
+            if (response.status === 403) {
+                const now = Date.now();
+                // Debounce permission error events to prevent toast spam
+                if (now - lastPermissionErrorTime > PERMISSION_ERROR_DEBOUNCE) {
+                    lastPermissionErrorTime = now;
+                    
+                    // Extract permission info from response if available
+                    const requiredPermissions = data.required_permissions || [];
+                    const message = data.message || "You don't have permission to perform this action";
+                    
+                    console.warn('[ApiService] Permission denied:', message, requiredPermissions);
+                    emitPermissionError(message, requiredPermissions);
+                }
+            }
+            
             throw error;
         }
         return data;
@@ -237,14 +301,28 @@ class ApiService {
     }
 
     // GET request
-    async get(endpoint) {
+    async get(endpoint, options = {}) {
         const fullURL = this.getFullURL(endpoint);
         try {
-            const response = await fetch(fullURL, {
+            const fetchOptions = {
                 method: 'GET',
                 headers: this.headers,
                 credentials: 'include'
-            });
+            };
+
+            const response = await fetch(fullURL, fetchOptions);
+
+            // If responseType is 'blob', return blob directly
+            if (options.responseType === 'blob') {
+                if (!response.ok) {
+                    const error = new Error(`HTTP error! Status: ${response.status}`);
+                    error.response = response;
+                    throw error;
+                }
+                return await response.blob();
+            }
+
+            // Otherwise, handle as JSON
             return this.handleResponse(response, { endpoint, method: 'GET' });
         } catch (error) {
             if (!error.response) {

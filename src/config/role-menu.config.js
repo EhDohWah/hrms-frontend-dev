@@ -7,13 +7,13 @@ export const ROLE_HIERARCHY = {
     'site-admin': 5
 };
 
-// Default routes for each role
+// Default routes for each role - all roles go to the unified dynamic dashboard
 export const DEFAULT_ROUTES = {
-    'admin': '/dashboard/admin-dashboard',
-    'hr-manager': '/dashboard/hr-manager-dashboard',
-    'hr-assistant-senior': '/dashboard/hr-assistant-senior-dashboard',
-    'hr-assistant-junior': '/dashboard/hr-assistant-junior-dashboard',
-    'site-admin': '/dashboard/site-admin-dashboard'
+    'admin': '/dashboard',
+    'hr-manager': '/dashboard',
+    'hr-assistant-senior': '/dashboard',
+    'hr-assistant-junior': '/dashboard',
+    'site-admin': '/dashboard'
 };
 
 // Role-based menu access configuration
@@ -23,13 +23,13 @@ export const ROLE_MENU_ACCESS = {
             'Dashboard',
             'User Management',
             'Lookups',
-            'Department Positions',
+            'Organization Structure',
+            'File Uploads',
         ],
         allowedSubMenus: {
-            'Dashboard': ['Admin Dashboard'],
-            'User Management': ['Users', 'Roles & Permissions'],
+            'User Management': ['Users', 'Roles'],
             'Lookups': ['Lookup List'],
-            'Department Positions': ['Department Position List'],
+            'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments'],
         },
         permissions: [
             'admin.*',
@@ -51,7 +51,8 @@ export const ROLE_MENU_ACCESS = {
             'travel_request.*',
             'leave_request.*',
             'job_offer.*',
-            'tax.*'
+            'tax.*',
+            'upload.*'
         ]
     },
     'hr-manager': {
@@ -80,22 +81,26 @@ export const ROLE_MENU_ACCESS = {
             'Travel',
             'Job Offers',
             'Tax',
-            'Recycle Bin'
+            'Lookups',
+            'Organization Structure',
+            'Recycle Bin',
+            'File Uploads'
         ],
         allowedSubMenus: {
-            'Dashboard': ['HR Manager Dashboard'],
-            'User Management': ['Users', 'Roles & Permissions'],
+            'User Management': ['Users', 'Roles'],
             'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
             'Travel': ['Travel (Admin)', 'Travel Requests'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
             'Recruitment': ['Interviews', 'Job Offers'],
-            'Employee': ['Employees', 'Employment Records', 'Site Location', 'Employee Resignation'],
+            'Employee': ['Employees', 'Employment Records', 'Employee Resignation'],
             'Employment': ['Employment List', 'Employment History'],
-            'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items', 'Tax Settings'],
+            'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items', 'Tax Settings', 'Benefit Settings'],
             'Training': ['Training List', 'Employee Training'],
             'Reports': ['Report List'],
             'Grants': ['Grants List', 'Grant Position'],
-            'Recycle Bin': ['Recycle Bin List']
+            'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments'],
+            'Recycle Bin': ['Recycle Bin List'],
+            'Lookups': ['Lookup List']
         },
         permissions: [
             'admin.*',
@@ -117,7 +122,8 @@ export const ROLE_MENU_ACCESS = {
             'travel_request.*',
             'leave_request.*',
             'job_offer.*',
-            'tax.*'
+            'tax.*',
+            'upload.*'
         ]
     },
     'hr-assistant-senior': {
@@ -139,19 +145,21 @@ export const ROLE_MENU_ACCESS = {
             'Leaves',
             'Travel',
             'Job Offers',
-            'Tax'
+            'Tax',
+            'Organization Structure',
+            'File Uploads'
         ],
         allowedSubMenus: {
-            'Dashboard': ['HR Assistant Senior Dashboard'],
             'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
             'Travel': ['Travel (Admin)', 'Travel (Employee)'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
             'Recruitment': ['Interviews', 'Job Offers'],
             'Employee': ['Employees', 'Employment Records', 'Site Location'],
             'Employment': ['Employment List', 'Employment History'],
-            'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items', 'Tax Settings'],
+            'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items', 'Tax Settings', 'Benefit Settings'],
             'Training': ['Training List', 'Employee Training'],
-            'Reports': ['Report List']
+            'Reports': ['Report List'],
+            'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments']
         },
         permissions: [
             'admin.*',
@@ -172,7 +180,8 @@ export const ROLE_MENU_ACCESS = {
             'travel_request.*',
             'leave_request.*',
             'job_offer.*',
-            'tax.*'
+            'tax.*',
+            'upload.*'
         ]
     },
     'hr-assistant-junior': {
@@ -195,7 +204,6 @@ export const ROLE_MENU_ACCESS = {
             'Tax'
         ],
         allowedSubMenus: {
-            'Dashboard': ['HR Assistant Junior Dashboard'],
             'Leaves': ['Leaves (Admin)', 'Leave Types'],
             'Travel': ['Travel (Admin)', 'Travel (Employee)'],
             'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
@@ -230,7 +238,6 @@ export const ROLE_MENU_ACCESS = {
             'Travel'
         ],
         allowedSubMenus: {
-            'Dashboard': ['Site Admin Dashboard'],
             'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
             'Travel': ['Travel (Admin)', 'Travel Requests'],
             'Training': ['Training List', 'Employee Training']

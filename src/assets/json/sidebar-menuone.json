@@ -13,24 +13,9 @@
         "active_link": "dashboard",
         "subMenus": [
           {
-            "menuValue": "Admin Dashboard",
-            "route": "/dashboard/admin-dashboard",
-            "active_link": "/dashboard/admin-dashboard"
-          },
-          {
-            "menuValue": "Employee Dashboard",
-            "route": "/dashboard/employee-dashboard",
-            "active_link": "/dashboard/employee-dashboard"
-          },
-          {
-            "menuValue": "Deals Dashboard",
-            "route": "/dashboard/deals-dashboard",
-            "active_link": "/dashboard/deals-dashboard"
-          },
-          {
-            "menuValue": "Leads Dashboard",
-            "route": "/dashboard/leads-dashboard",
-            "active_link": "/dashboard/leads-dashboard"
+            "menuValue": "My Dashboard",
+            "route": "/dashboard",
+            "active_link": "/dashboard"
           }
         ]
       },
@@ -677,9 +662,9 @@
                 "active_link": "/user-management/users"
               },
               {
-                "menuValue": "Roles & Permissions",
-                "route": "/user-management/roles-permissions",
-                "active_link": "/user-management/roles-permissions"
+                "menuValue": "Roles",
+                "route": "/user-management/roles",
+                "active_link": "/user-management/roles"
               }
             ]
           },

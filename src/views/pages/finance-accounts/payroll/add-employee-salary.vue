@@ -62,14 +62,14 @@
                   placeholder="Select an employee..." allow-clear style="width: 280px" show-search
                   tree-default-expand-all :tree-data="employeeTreeData" tree-node-filter-prop="title"
                   :loading="employeesLoading" :disabled="employeesLoading">
-                  <template #title="{ title, staff_id, subsidiary, status }">
+                  <template #title="{ title, staff_id, organization, status }">
                     <div class="employee-tree-option">
                       <div class="employee-main">
                         <strong>{{ staff_id }}</strong> {{ title }}
                       </div>
                       <div class="employee-details" v-if="staff_id">
                         <small class="text-muted">
-                          {{ subsidiary }} •
+                          {{ organization }} •
                           <span :class="[
                             'badge badge-xs',
                             status === 'Local ID' ? 'bg-success' :
@@ -104,10 +104,6 @@
                 <a-select v-model:value="fundingTypeFilter" @change="applyFilters" placeholder="All Types" allow-clear
                   style="width: 200px">
                   <a-select-option value="">All Types</a-select-option>
-                  <a-select-option value="org_funded">
-                    <a-tag color="blue" class="me-1">ORG</a-tag>
-                    Organization Funded
-                  </a-select-option>
                   <a-select-option value="grant">
                     <a-tag color="green" class="me-1">GRANT</a-tag>
                     Grant Funded
@@ -176,7 +172,7 @@
                   <small class="text-muted">Staff ID: {{ selectedEmployeeData.staff_id }}</small>
                 </div>
                 <div class="info-item">
-                  <small class="text-muted">Subsidiary: {{ selectedEmployeeData.subsidiary }}</small>
+                  <small class="text-muted">Organization: {{ selectedEmployeeData.organization }}</small>
                 </div>
               </div>
               <div class="col-md-6">
@@ -337,8 +333,8 @@
 
                     <!-- Funding type with badge -->
                     <template v-else-if="column.dataIndex === 'allocationType'">
-                      <a-tag :color="text === 'org_funded' ? 'blue' : 'green'">
-                        {{ text === 'org_funded' ? 'Organization' : 'Grant' }}
+                      <a-tag color="green">
+                        Grant
                       </a-tag>
                     </template>
 
@@ -738,15 +734,6 @@ const rowSelection = {
       },
     },
     {
-      key: 'org-funded',
-      text: 'Select Org Funded',
-      onSelect: () => {
-        const orgRows = filteredTableData.value.filter(row => row.allocationType === 'org_funded');
-        selectedRowKeys.value = orgRows.map(row => row.key);
-        message.success(`Selected ${orgRows.length} organization funded entries`);
-      },
-    },
-    {
       key: 'grant-funded',
       text: 'Select Grant Funded',
       onSelect: () => {
@@ -885,8 +872,9 @@ const updateTableWithEmployeeData = () => {
     let fundingSource = 'Unknown';
     let allocationType = allocation.allocation_type;
 
-    if (allocation.allocation_type === 'org_funded' && allocation.org_funded) {
-      fundingSource = allocation.org_funded.grant?.name || 'Organization Funded';
+    // All allocations are now grant type with grant_item
+    if (allocation.grant_item?.grant) {
+      fundingSource = allocation.grant_item.grant.name || 'Grant Funded';
     } else if (allocation.allocation_type === 'grant' && allocation.position_slot) {
       fundingSource = allocation.position_slot.grant_item?.grant?.name || 'Grant Position Slot';
     }
@@ -905,7 +893,7 @@ const updateTableWithEmployeeData = () => {
       employeeId: employee.id,
       staffId: employee.staff_id,
       name: `${employee.first_name_en} ${employee.last_name_en}`,
-      subsidiary: employee.subsidiary,
+      organization: employee.organization,
       department: employee.employment?.department?.name || 'N/A',
       position: employee.employment?.position?.title || 'N/A',
       employmentType: employee.employment?.employment_type || 'N/A',
@@ -1243,7 +1231,7 @@ const submitForm = async () => {
       return {
         allocation_id: row.allocationId,
         employment_id: selectedEmployeeData.value.employment.id,
-        allocation_type: row.allocationType === 'org_funded' ? 'organization' : 'grant', // Backend expects 'organization' not 'org_funded'
+        allocation_type: 'grant', // All allocations are grant type now
         level_of_effort: parseFloat(row.loe) / 100, // Convert percentage back to decimal
         funding_source: row.fundingSource,
         salary_by_fte: parseFloat(row.salaryByFte) || 0,
@@ -1283,7 +1271,7 @@ const submitForm = async () => {
       message.success(
         `Successfully created ${response.data.summary.total_payrolls_created} payroll record(s)` +
         (response.data.summary.total_advances_created > 0
-          ? ` with ${response.data.summary.total_advances_created} inter-subsidiary advance(s)`
+          ? ` with ${response.data.summary.total_advances_created} inter-organization advance(s)`
           : '')
       );
 

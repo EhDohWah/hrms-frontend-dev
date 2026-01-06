@@ -5,7 +5,13 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">{{ isEditing ? 'Edit' : 'Add' }} Resignation</h4>
+                    <div class="d-flex align-items-center">
+                        <h4 class="modal-title me-2">{{ isEditing ? (isReadOnly ? 'View' : 'Edit') : 'Add' }} Resignation</h4>
+                        <span v-if="isReadOnly" class="badge bg-warning text-dark d-flex align-items-center"
+                            data-bs-toggle="tooltip" data-bs-placement="top" title="You have view-only access">
+                            <i class="ti ti-eye me-1"></i> Read Only
+                        </span>
+                    </div>
                     <button type="button" class="btn-close custom-btn-close" aria-label="Close" @click="$emit('close')">
                         <i class="ti ti-x"></i>
                     </button>
@@ -20,7 +26,7 @@
                                     <input type="text" class="form-control" v-model="employeeSearchQuery"
                                         :class="{ 'is-invalid': errors.employeeId }" placeholder="Search employee..."
                                         @input="searchEmployees" @focus="showEmployeeDropdown = true"
-                                        @blur="hideEmployeeDropdown" autocomplete="off" />
+                                        @blur="hideEmployeeDropdown" autocomplete="off" :disabled="isReadOnly" />
                                     <div v-if="showEmployeeDropdown && filteredEmployees.length > 0"
                                         class="dropdown-menu show position-absolute w-100" style="z-index: 1050;">
                                         <a href="javascript:void(0);" v-for="employee in filteredEmployees"
@@ -30,7 +36,7 @@
                                                 <div>
                                                     <strong>{{ employee.name }}</strong>
                                                     <small class="text-muted d-block">{{ employee.staffId }} - {{
-                                                        employee.subsidiary }}</small>
+                                                        employee.organization }}</small>
                                                     <small class="text-muted">{{ employee.department }} - {{
                                                         employee.position }}</small>
                                                 </div>
@@ -60,9 +66,9 @@
                                 <label class="form-label">Resignation Date <span class="text-danger">*</span></label>
                                 <div class="input-icon-end position-relative">
                                     <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                                        :editable="true" :clearable="false" :input-format="displayFormat"
+                                        :editable="!isReadOnly" :clearable="false" :input-format="displayFormat"
                                         v-model="form.resignationDate" :class="{ 'is-invalid': errors.resignationDate }"
-                                        @update:model-value="handleDateChange('resignationDate', $event)" />
+                                        @update:model-value="handleDateChange('resignationDate', $event)" :disabled="isReadOnly" />
                                     <span class="input-icon-addon">
                                         <i class="ti ti-calendar text-gray-7"></i>
                                     </span>
@@ -76,9 +82,9 @@
                                 <label class="form-label">Last Working Date <span class="text-danger">*</span></label>
                                 <div class="input-icon-end position-relative">
                                     <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                                        :editable="true" :clearable="false" :input-format="displayFormat"
+                                        :editable="!isReadOnly" :clearable="false" :input-format="displayFormat"
                                         v-model="form.lastWorkingDate" :class="{ 'is-invalid': errors.lastWorkingDate }"
-                                        @update:model-value="handleDateChange('lastWorkingDate', $event)" />
+                                        @update:model-value="handleDateChange('lastWorkingDate', $event)" :disabled="isReadOnly" />
                                     <span class="input-icon-addon">
                                         <i class="ti ti-calendar text-gray-7"></i>
                                     </span>
@@ -102,7 +108,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Resignation Reason <span class="text-danger">*</span></label>
                                 <select class="form-select" v-model="form.reason"
-                                    :class="{ 'is-invalid': errors.reason }">
+                                    :class="{ 'is-invalid': errors.reason }" :disabled="isReadOnly">
                                     <option value="">Select reason...</option>
                                     <option v-for="reason in resignationReasons" :key="reason" :value="reason">{{
                                         reason }}</option>
@@ -116,7 +122,7 @@
                                 <textarea class="form-control" v-model="form.reasonDetails" rows="3"
                                     :class="{ 'is-invalid': errors.reasonDetails }"
                                     placeholder="Additional details about the resignation..."
-                                    maxlength="1000"></textarea>
+                                    maxlength="1000" :disabled="isReadOnly"></textarea>
                                 <div class="d-flex justify-content-between">
                                     <div v-if="errors.reasonDetails" class="invalid-feedback">{{ errors.reasonDetails }}
                                     </div>
@@ -128,7 +134,7 @@
                             <!-- Acknowledgement Status (for editing) -->
                             <div v-if="isEditing" class="col-md-6 mb-3">
                                 <label class="form-label">Acknowledgement Status</label>
-                                <select class="form-select" v-model="form.acknowledgementStatus">
+                                <select class="form-select" v-model="form.acknowledgementStatus" :disabled="isReadOnly">
                                     <option v-for="status in acknowledgementStatusOptions" :key="status.value"
                                         :value="status.value">{{ status.label }}</option>
                                 </select>
@@ -162,9 +168,9 @@
 
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" @click="$emit('close')" :disabled="isSaving">
-                            Cancel
+                            {{ isReadOnly ? 'Close' : 'Cancel' }}
                         </button>
-                        <button type="submit" class="btn btn-primary" :disabled="isSaving || hasValidationIssues">
+                        <button v-if="!isReadOnly" type="submit" class="btn btn-primary" :disabled="isSaving || hasValidationIssues">
                             <span v-if="isSaving" class="spinner-border spinner-border-sm me-2" role="status"></span>
                             {{ isEditing ? 'Update Resignation' : 'Add Resignation' }}
                         </button>
@@ -193,6 +199,10 @@ export default {
         resignation: {
             type: Object,
             default: null
+        },
+        isReadOnly: {
+            type: Boolean,
+            default: false
         }
     },
     emits: ['close', 'save'],
@@ -502,5 +512,20 @@ export default {
 
 :deep(.mx-icon-calendar) {
     display: none;
+}
+
+/* Read-only styling */
+.form-control:disabled,
+.form-select:disabled,
+textarea:disabled {
+    background-color: #f8f9fa;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+:deep(.mx-input:disabled) {
+    background-color: #f8f9fa !important;
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 </style>

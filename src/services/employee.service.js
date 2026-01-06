@@ -177,7 +177,7 @@ class EmployeeService extends BaseService {
     formatEmployeeData(data) {
         return {
             staff_id: data.staff_id,
-            subsidiary: data.subsidiary,
+            organization: data.organization,
             first_name_en: data.first_name_en,
             last_name_en: data.last_name_en,
             first_name_th: data.first_name_th,

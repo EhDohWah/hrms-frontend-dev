@@ -18,11 +18,11 @@
     <!-- /Welcome Wrap -->
 
     <div class="row">
-        <!-- Employee By Subsidiary -->
+        <!-- Employee By Organization -->
         <div class="col-xxl-4 col-xl-6 col-lg-6 col-md-12 d-flex">
             <div class="card flex-fill">
                 <div class="card-header pb-2 d-flex align-items-center justify-content-between flex-wrap">
-                    <h5 class="mb-2">Employee By Subsidiary</h5>
+                    <h5 class="mb-2">Employee By Organization</h5>
                     <div class="dropdown mb-2">
                         <a href="javascript:void(0);"
                             class="btn btn-white border btn-sm d-inline-flex align-items-center"
@@ -65,7 +65,7 @@
                                     <p class="fs-13 mb-1">
                                         <i class="ti ti-square-filled text-primary fs-12 me-2"></i>Total Employees
                                     </p>
-                                    <h4 class="text-primary">{{ employeeStore.statistics.subsidiaryCount.SMRU_count }}
+                                    <h4 class="text-primary">{{ employeeStore.statistics.organizationCount.SMRU_count }}
                                     </h4>
                                 </div>
                             </div>
@@ -75,7 +75,7 @@
                                     <p class="fs-13 mb-1">
                                         <i class="ti ti-square-filled text-secondary fs-12 me-2"></i>Total Employees
                                     </p>
-                                    <h4 class="text-secondary">{{ employeeStore.statistics.subsidiaryCount.BHF_count }}
+                                    <h4 class="text-secondary">{{ employeeStore.statistics.organizationCount.BHF_count }}
                                     </h4>
                                 </div>
                             </div>
@@ -124,7 +124,7 @@
                 </div>
             </div>
         </div>
-        <!-- /Employee By Subsidiary -->
+        <!-- /Employee By Organization -->
 
         <!-- Upcoming Interviews -->
         <div class="col-xxl-4 d-flex">
@@ -256,13 +256,13 @@ export default {
         const smruPercentage = computed(() => {
             const total = employeeStore.statistics.totalEmployees;
             if (total === 0) return 0;
-            return Math.round((employeeStore.statistics.subsidiaryCount.SMRU_count / total) * 100);
+            return Math.round((employeeStore.statistics.organizationCount.SMRU_count / total) * 100);
         });
 
         const bhfPercentage = computed(() => {
             const total = employeeStore.statistics.totalEmployees;
             if (total === 0) return 0;
-            return Math.round((employeeStore.statistics.subsidiaryCount.BHF_count / total) * 100);
+            return Math.round((employeeStore.statistics.organizationCount.BHF_count / total) * 100);
         });
 
         // Fetch employees data when component is mounted

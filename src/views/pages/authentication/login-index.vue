@@ -80,16 +80,29 @@ export default {
         const response = await authStore.login(formData);
 
         if (response.success) {
-          // Use the redirect path from the auth store
-
+          // Disconnect and reinitialize Echo with new token
           if (window.Echo) {
             window.Echo.disconnect();
           }
 
           initEcho(localStorage.getItem('token'));
 
-          const redirectPath = authStore.getRedirectPath();
-          router.push(redirectPath);
+          // Check for intended route (saved by authGuard when user tried to access protected route)
+          const intendedRoute = localStorage.getItem('intendedRoute');
+          console.log('🔍 intendedRoute from localStorage:', intendedRoute);
+          if (intendedRoute) {
+            // Clear the intended route from localStorage BEFORE navigating
+
+            console.log('✅ Redirecting to intended route:', intendedRoute);
+            // Use replace to avoid adding /login to history
+            await router.replace(intendedRoute);
+            localStorage.removeItem('intendedRoute');
+          } else {
+            // No intended route, use role-based default dashboard
+            const redirectPath = authStore.getRedirectPath();
+            console.log('✅ Redirecting to default dashboard:', redirectPath);
+            await router.replace(redirectPath);
+          }
 
         } else if (response.error && response.error.includes('Unauthenticated.')) {
           loginError.value = 'Invalid email or password';
@@ -99,19 +112,24 @@ export default {
       } catch (error) {
         console.error('Login error:', error);
 
-        // Handle error based on type
-        if (error.type === 'AUTH_ERROR') {
+        // Handle error based on type from backend or error object
+        if (error.response?.data?.error_type) {
+          // Use the specific error message from the backend
+          loginError.value = error.response.data.message;
+        } else if (error.type === 'AUTH_ERROR') {
           loginError.value = 'Invalid email or password';
         } else if (error.type === 'VALIDATION_ERROR' && error.errors) {
           loginError.value = Object.values(error.errors).flat().join(', ');
-        } else if (error.type === 'NETWORK_ERROR') {
+        } else if (error.type === 'NETWORK_ERROR' || error.message === 'Network Error: Server is not responding') {
           loginError.value = 'Unable to connect to the server. Please check your connection.';
         } else if (error.type === 'RATE_LIMIT_ERROR') {
           loginError.value = 'Too many login attempts. Please try again later.';
         } else if (error.response?.data?.message) {
           loginError.value = error.response.data.message;
+        } else if (error.message) {
+          loginError.value = error.message;
         } else {
-          loginError.value = error.message || 'An unexpected error occurred';
+          loginError.value = 'An unexpected error occurred';
         }
       } finally {
         isLoading.value = false;

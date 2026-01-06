@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
     USER_ROLE: 'userRole',
     PERMISSIONS: 'permissions',
     TOKEN_EXPIRATION: 'tokenExpiration',
-    JUST_LOGGED_IN: 'justLoggedIn', // <-- new key
+    JUST_LOGGED_IN: 'justLoggedIn',
+    MODULES_CACHE: 'hrms_modules_cache', // Module cache for sidebar menu
   };
   

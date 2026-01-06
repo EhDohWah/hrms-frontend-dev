@@ -6,14 +6,26 @@
     <div class="content">
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
-        <index-breadcrumb :title="title" :text="text" :text1="text1" />
+        <div class="d-flex align-items-center">
+          <index-breadcrumb :title="title" :text="text" :text1="text1" />
+          <!-- Read-Only Badge -->
+          <span 
+            v-if="isReadOnlyGrants" 
+            class="badge bg-warning text-dark ms-3 d-flex align-items-center"
+            data-bs-toggle="tooltip"
+            data-bs-placement="top"
+            title="You have view-only access to this module"
+          >
+            <i class="ti ti-eye me-1"></i> Read Only
+          </span>
+        </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="mb-2 me-2">
+          <div v-if="canEditGrants" class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openAddGrantModal">
               <i class="ti ti-circle-plus me-2"></i>Add Grant
             </button>
           </div>
-          <div class="mb-2">
+          <div v-if="canEditGrants" class="mb-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openGrantUploadModal">
               <i class="ti ti-upload me-2"></i>Upload Grant Excel File
             </button>
@@ -67,7 +79,7 @@
                         <small class="text-muted ms-2">Calculated columns are hidden during editing</small>
                       </div>
                     </div>
-                    <a-button class="editable-add-btn" @click="handleAddItem(record.id)"
+                    <a-button v-if="canEditGrants" class="editable-add-btn" @click="handleAddItem(record.id)"
                       :disabled="Object.keys(editableData).length > 0">
                       Add Position
                     </a-button>
@@ -209,7 +221,7 @@
                               <a>Cancel</a>
                             </a-popconfirm>
                           </span>
-                          <span v-else>
+                          <span v-else-if="canEditGrants">
                             <a @click="edit(itemRecord.id)">Edit</a>
                             <a href="javascript:void(0);" class="text-danger ms-2"
                               @click="confirmDeleteItem(itemRecord)">
@@ -227,25 +239,34 @@
               <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === 'actions'">
                   <div class="action-icon d-inline-flex">
-                    <router-link :to="`/grant/details/${record.id}`" class="me-2">
+                    <router-link :to="`/grant/details/${record.id}`" class="me-2"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="View Details">
                       <i class="ti ti-eye"></i>
                     </router-link>
-                    <a href="javascript:void(0);" class="me-2" @click="openEditGrantModal(record)">
+                    <a v-if="canEditGrants" href="javascript:void(0);" class="me-2" @click="openEditGrantModal(record)"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Edit">
                       <i class="ti ti-edit"></i>
                     </a>
-                    <a href="javascript:void(0);" class="text-danger" @click="confirmDeleteGrant(record.id)">
+                    <a v-if="canEditGrants" href="javascript:void(0);" class="text-danger" @click="confirmDeleteGrant(record.id)"
+                      data-bs-toggle="tooltip"
+                      data-bs-placement="top"
+                      title="Delete">
                       <i class="ti ti-trash"></i>
                     </a>
                   </div>
                 </template>
-                <template v-if="column.dataIndex === 'subsidiary'">
+                <template v-if="column.dataIndex === 'organization'">
                   <span :class="[
                     'badge badge-sm fw-normal',
-                    record.subsidiary === 'SMRU' ? 'badge-primary' :
-                      record.subsidiary === 'BHF' ? 'badge-soft-primary fw-bold' :
+                    record.organization === 'SMRU' ? 'badge-primary' :
+                      record.organization === 'BHF' ? 'badge-soft-primary fw-bold' :
                         'badge-secondary'
                   ]">
-                    {{ record.subsidiary }}
+                    {{ record.organization }}
                   </span>
                 </template>
 
@@ -313,10 +334,12 @@ import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
 import { grantService } from '@/services/grant.service';
+import { uploadGrantService } from '@/services/upload-grant.service';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
 import { cloneDeep } from 'lodash-es';
 import { Modal } from 'ant-design-vue';
+import { usePermissions } from '@/composables/usePermissions';
 
 export default {
   name: 'GrantList',
@@ -329,6 +352,24 @@ export default {
     LayoutSidebar,
     LayoutFooter,
     InfoCircleOutlined,
+  },
+  setup() {
+    // Initialize permission checks for grants module
+    const { 
+      canRead, 
+      canEdit, 
+      isReadOnly, 
+      accessLevelText, 
+      accessLevelBadgeClass 
+    } = usePermissions('grants_list');
+
+    return {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    };
   },
   data() {
     return {
@@ -423,15 +464,38 @@ export default {
     };
   },
   computed: {
+    // Permission checks - primary source for reactivity
+    canEditGrants() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasEdit = Array.isArray(permissions) && permissions.includes('grants_list.edit');
+        return hasEdit || (this.canEdit?.value ?? false);
+      } catch (e) {
+        console.error('[GrantsList] Error checking permissions:', e);
+        return this.canEdit?.value ?? false;
+      }
+    },
+    canReadGrants() {
+      try {
+        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
+        const hasRead = Array.isArray(permissions) && permissions.includes('grants_list.read');
+        return hasRead || (this.canRead?.value ?? false);
+      } catch (e) {
+        return this.canRead?.value ?? false;
+      }
+    },
+    isReadOnlyGrants() {
+      return this.canReadGrants && !this.canEditGrants;
+    },
     columns() {
       const filtered = this.filteredInfo || {};
       const sorted = this.sortedInfo || {};
 
       return [
         {
-          title: 'Subsidiary',
-          dataIndex: 'subsidiary',
-          key: 'subsidiary',
+          title: 'Organization',
+          dataIndex: 'organization',
+          key: 'organization',
           width: 150,
           filters: [
             {
@@ -443,10 +507,10 @@ export default {
               value: 'BHF',
             },
           ],
-          filteredValue: filtered.subsidiary || null,
+          filteredValue: filtered.organization || null,
           // Remove onFilter for server-side filtering
           sorter: true, // Enable server-side sorting
-          sortOrder: sorted.columnKey === 'subsidiary' && sorted.order,
+          sortOrder: sorted.columnKey === 'organization' && sorted.order,
           filterSearch: true
         },
 
@@ -625,8 +689,8 @@ export default {
 
       // Add filter parameters
       if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
-        if (this.filteredInfo.subsidiary && this.filteredInfo.subsidiary.length > 0) {
-          params.filter_subsidiary = this.filteredInfo.subsidiary.join(',');
+        if (this.filteredInfo.organization && this.filteredInfo.organization.length > 0) {
+          params.filter_organization = this.filteredInfo.organization.join(',');
         }
         if (this.filteredInfo.status && this.filteredInfo.status.length > 0) {
           params.filter_status = this.filteredInfo.status.join(',');
@@ -883,7 +947,7 @@ export default {
       const fieldMapping = {
         'code': 'code',
         'name': 'name',
-        'subsidiary': 'subsidiary'
+        'organization': 'organization'
       };
       return fieldMapping[field] || field;
     },
@@ -966,7 +1030,7 @@ export default {
             id: grantData.id,
             code: grantData.code,
             name: grantData.name,
-            subsidiary: grantData.subsidiary,
+            organization: grantData.organization,
             description: grantData.description,
             startDate: grantData.startDate || moment(new Date()).format('DD/MM/YYYY'),
             endDate: moment(isoEndDate).format('DD/MM/YYYY'),
@@ -1018,7 +1082,7 @@ export default {
               id: grant.id,
               code: grant.code,
               name: grant.name,
-              subsidiary: grant.subsidiary,
+              organization: grant.organization,
               description: grant.description,
               startDate: grant.startDate || moment(new Date()).format('DD/MM/YYYY'),
               endDate: grant.end_date ? moment(grant.end_date).format('DD MMM YYYY') : '',
@@ -1118,7 +1182,7 @@ export default {
     openEditGrantModal(grant) {
       const grantData = {
         id: grant.id,
-        subsidiary: grant.subsidiary,
+        organization: grant.organization,
         code: grant.code,
         name: grant.name,
         description: grant.description,
@@ -1182,10 +1246,10 @@ export default {
       }
     },
 
-    async handleGrantUploadSubmit(formData) {
+    async handleGrantUploadSubmit(file) {
       this.loading = true;
       try {
-        await this.grantService.uploadGrantFile(formData);
+        await uploadGrantService.uploadGrantData(file);
         this.showNotification('Success', 'Grant file uploaded successfully', 'bg-success text-white');
         // Refresh the grants list
         this.fetchGrants();

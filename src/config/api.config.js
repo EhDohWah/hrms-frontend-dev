@@ -517,8 +517,10 @@ export const API_ENDPOINTS = {
         EMPLOYEE_TEMPLATE: '/downloads/employee-template',
         EMPLOYMENT: '/uploads/employment',
         EMPLOYMENT_TEMPLATE: '/downloads/employment-template',
+        EMPLOYEE_FUNDING_ALLOCATION: '/uploads/employee-funding-allocation',
+        EMPLOYEE_FUNDING_ALLOCATION_TEMPLATE: '/downloads/employee-funding-allocation-template',
         PAYROLL: '/uploads/payroll',
-        PAYROLL_TEMPLATE: '/uploads/payroll/template'
+        PAYROLL_TEMPLATE: '/downloads/payroll-template'
     },
 
     // Module endpoints (Dynamic Menu System)

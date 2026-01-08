@@ -55,11 +55,22 @@ Performance optimization and best practices
 - Leave admin performance
 - Data optimization guides
 
+### 🧠 `/memory-leaks`
+Memory leak analysis and remediation (January 2026)
+- Comprehensive memory leak analysis (85 pages)
+- Executive summary for management
+- Developer quick reference guide
+- Actionable fix checklist
+- 78 memory leak patterns identified
+- 35+ files requiring fixes
+- Expected 80-90% memory improvement
+
 ### 🐛 `/bugs-fixes`
 Bug reports, fixes, and troubleshooting
 - Benefit fields fixes
 - Bootstrap dropdown fixes
 - Site admin route access
+- Blob download fix (Excel file parsing)
 - Modal fixes
 - Cache fix verification
 
@@ -149,11 +160,13 @@ Travel request management UI
 General guides, architecture, and references
 - Frontend architecture
 - Feature implementation templates
-- Service refactoring guides
+- Service refactoring guides (Grant upload service)
+- Service consistency patterns
 - Date picker standardization
 - Implementation summaries
 - Session summaries
 - Dashboard implementations
+- Frontend routes verification
 - Netlify deployment
 
 ---
@@ -183,6 +196,13 @@ General guides, architecture, and references
 - Employment: `/performance/employment-performance-optimization-summary.md`
 - Dropdowns: `/performance/DROPDOWN_PERFORMANCE_OPTIMIZATION.md`
 - LCP Optimization: `/performance/LEAVES_ADMIN_LCP_OPTIMIZATION.md`
+
+### Memory Leak Remediation
+- **Analysis Overview**: `/memory-leaks/MEMORY_LEAK_README.md` ⚠️ START HERE
+- **For Management**: `/memory-leaks/MEMORY_LEAK_EXECUTIVE_SUMMARY.md`
+- **For Developers**: `/memory-leaks/MEMORY_LEAK_FIX_QUICK_REFERENCE.md`
+- **Complete Analysis**: `/memory-leaks/MEMORY_LEAK_ANALYSIS_COMPREHENSIVE.md`
+- **Progress Tracking**: `/memory-leaks/MEMORY_LEAK_FIX_CHECKLIST.md`
 
 ### Bug Fixes & Troubleshooting
 - Bootstrap Issues: `/bugs-fixes/BOOTSTRAP_DROPDOWN_FIX.md`
@@ -248,7 +268,16 @@ General guides, architecture, and references
 ---
 
 ## 🔄 Last Updated
-December 30, 2025
+January 8, 2026
+
+### Recent Updates
+- **January 8, 2026**: 
+  - Added comprehensive memory leak analysis documentation (`/memory-leaks/`)
+  - Organized all root-level markdown files into appropriate folders
+  - Moved `BLOB_DOWNLOAD_FIX.md` to `/bugs-fixes/`
+  - Moved `FRONTEND_ROUTES_VERIFICATION.md` to `/general/`
+  - Moved `SERVICE_CONSISTENCY_REFACTOR.md` to `/general/`
+- **December 30, 2025**: Previous updates
 
 ---
 

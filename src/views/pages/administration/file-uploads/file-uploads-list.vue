@@ -95,6 +95,27 @@
             </div>
           </div>
 
+          <!-- Employee Funding Allocations Upload Section -->
+          <div class="upload-category">
+            <div class="category-header">
+              <h6 class="mb-0"><i class="ti ti-chart-pie"></i> Employee Funding Allocations</h6>
+            </div>
+            <div class="table-responsive">
+              <table class="table custom-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Upload Type</th>
+                    <th>Select File</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <FundingAllocationUpload :can-edit="canEdit" @upload-complete="onUploadComplete" />
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           <!-- Payroll Uploads Section -->
           <div class="upload-category">
             <div class="category-header">
@@ -127,6 +148,7 @@
 import GrantUpload from '@/components/uploads/grant-upload.vue';
 import EmployeeUpload from '@/components/uploads/employee-upload.vue';
 import EmploymentUpload from '@/components/uploads/employment-upload.vue';
+import FundingAllocationUpload from '@/components/uploads/funding-allocation-upload.vue';
 import PayrollUpload from '@/components/uploads/payroll-upload.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
@@ -139,7 +161,8 @@ export default {
   components: { 
     GrantUpload,
     EmployeeUpload, 
-    EmploymentUpload, 
+    EmploymentUpload,
+    FundingAllocationUpload,
     PayrollUpload,
     LayoutHeader,
     LayoutSidebar,
@@ -273,10 +296,18 @@ export default {
 }
 
 .upload-category:nth-child(4) .category-header {
-  border-left-color: #6f42c1;
+  border-left-color: #17a2b8;
 }
 
 .upload-category:nth-child(4) .category-header i {
+  color: #17a2b8;
+}
+
+.upload-category:nth-child(5) .category-header {
+  border-left-color: #6f42c1;
+}
+
+.upload-category:nth-child(5) .category-header i {
   color: #6f42c1;
 }
 </style>

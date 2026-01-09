@@ -333,12 +333,32 @@ class ApiService {
     }
 
     // POST request
-    async post(endpoint, data) {
+    async post(endpoint, data, config = {}) {
         try {
+            // Check if data is FormData
+            const isFormData = data instanceof FormData;
+            
+            // Prepare headers
+            let headers = { ...this.headers };
+            
+            // If FormData, remove Content-Type to let browser set it with boundary
+            if (isFormData) {
+                delete headers['Content-Type'];
+            }
+            
+            // Merge with custom headers from config if provided
+            if (config.headers) {
+                // Don't override Content-Type for FormData
+                if (isFormData && config.headers['Content-Type']) {
+                    delete config.headers['Content-Type'];
+                }
+                headers = { ...headers, ...config.headers };
+            }
+            
             const response = await fetch(this.getFullURL(endpoint), {
                 method: 'POST',
-                headers: this.headers,
-                body: JSON.stringify(data),
+                headers: headers,
+                body: isFormData ? data : JSON.stringify(data),
                 credentials: 'include'
             });
             return this.handleResponse(response, { endpoint, method: 'POST', data });

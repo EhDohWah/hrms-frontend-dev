@@ -12,11 +12,7 @@ class UploadFundingAllocationService {
         const formData = new FormData();
         formData.append('file', file);
 
-        const config = {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        };
+        const config = {};
 
         // Add progress tracking if callback provided
         if (onProgress) {
@@ -62,6 +58,33 @@ class UploadFundingAllocationService {
             window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Error downloading template:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Download grant items reference list (contains Grant Item IDs for imports)
+     * @returns {Promise<void>}
+     */
+    async downloadGrantItemsReference() {
+        try {
+            const response = await apiService.get(
+                API_ENDPOINTS.UPLOAD.GRANT_ITEMS_REFERENCE,
+                { responseType: 'blob' }
+            );
+
+            // Create a URL for the blob and trigger download
+            const blob = response.data || response;
+            const url = window.URL.createObjectURL(new Blob([blob]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'grant-items-reference.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error downloading grant items reference:', error);
             throw error;
         }
     }

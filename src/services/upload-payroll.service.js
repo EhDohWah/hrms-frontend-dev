@@ -12,11 +12,7 @@ class UploadPayrollService {
         const formData = new FormData();
         formData.append('file', file);
 
-        const config = {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        };
+        const config = {};
 
         // Add progress tracking if callback provided
         if (onProgress) {
@@ -45,23 +41,71 @@ class UploadPayrollService {
      */
     async downloadTemplate() {
         try {
-            const response = await apiService.get(
+            // Get blob response directly
+            const blob = await apiService.get(
                 API_ENDPOINTS.UPLOAD.PAYROLL_TEMPLATE,
                 { responseType: 'blob' }
             );
 
-            // Create a URL for the blob and trigger download
-            const blob = response.data || response;
-            const url = window.URL.createObjectURL(new Blob([blob]));
+            // Create blob link to download
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', 'payroll-import-template.xlsx');
+            
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            link.setAttribute('download', `payroll_import_template_${timestamp}.xlsx`);
+            
+            // Append to html link element page
             document.body.appendChild(link);
+            
+            // Start download
             link.click();
-            link.remove();
+            
+            // Clean up and remove the link
+            link.parentNode.removeChild(link);
             window.URL.revokeObjectURL(url);
+
+            return { success: true };
         } catch (error) {
             console.error('Error downloading template:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Download employee funding allocations reference list (contains Funding Allocation IDs for payroll imports)
+     * @returns {Promise<void>}
+     */
+    async downloadFundingAllocationsReference() {
+        try {
+            const blob = await apiService.get(
+                API_ENDPOINTS.UPLOAD.EMPLOYEE_FUNDING_ALLOCATIONS_REFERENCE,
+                { responseType: 'blob' }
+            );
+
+            // Create blob link to download
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            link.setAttribute('download', `employee_funding_allocations_reference_${timestamp}.xlsx`);
+            
+            // Append to html link element page
+            document.body.appendChild(link);
+            
+            // Start download
+            link.click();
+            
+            // Clean up and remove the link
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error downloading funding allocations reference:', error);
             throw error;
         }
     }

@@ -12,11 +12,7 @@ class UploadGrantService {
         const formData = new FormData();
         formData.append('file', file);
 
-        const config = {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        };
+        const config = {};
 
         // Add progress tracking if callback provided
         if (onProgress) {

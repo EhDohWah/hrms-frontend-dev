@@ -9,7 +9,25 @@
         @file-selected="onFileSelected"
         @file-cleared="onFileCleared"
         @download-template="downloadTemplate"
-    />
+    >
+        <template #additional-downloads>
+            <span class="text-muted fs-12 mx-2">|</span>
+            <a 
+                href="javascript:void(0);" 
+                @click="downloadGrantItemsReference" 
+                class="text-success fs-12"
+                :class="{ 'disabled': downloadingReference }"
+            >
+                <i class="ti ti-list-check me-1"></i>
+                {{ downloadingReference ? 'Downloading...' : 'Download Grant Items Reference' }}
+            </a>
+            <i 
+                class="ti ti-info-circle text-info ms-1" 
+                style="cursor: help;"
+                title="Download this file first to get Grant Item IDs needed for the import"
+            ></i>
+        </template>
+    </UploadRow>
 </template>
 
 <script>
@@ -40,7 +58,8 @@ export default {
             },
             uploading: false,
             uploadProgress: 0,
-            selectedFile: null
+            selectedFile: null,
+            downloadingReference: false
         };
     },
     methods: {
@@ -69,6 +88,31 @@ export default {
                 message.error({ content: errorMessage, key: 'template' });
             }
         },
+        async downloadGrantItemsReference() {
+            this.downloadingReference = true;
+            try {
+                message.loading({ content: 'Downloading grant items reference...', key: 'reference' });
+                await uploadFundingAllocationService.downloadGrantItemsReference();
+                message.success({ 
+                    content: 'Grant items reference downloaded successfully! Use this file to find Grant Item IDs for your import.', 
+                    key: 'reference',
+                    duration: 5
+                });
+            } catch (error) {
+                console.error('Error downloading grant items reference:', error);
+                
+                let errorMessage = 'Failed to download grant items reference. Please try again.';
+                if (error.response && error.response.data && error.response.data.message) {
+                    errorMessage = error.response.data.message;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                message.error({ content: errorMessage, key: 'reference' });
+            } finally {
+                this.downloadingReference = false;
+            }
+        },
         async handleUpload(file) {
             if (!file) {
                 message.error('Please select a file to upload');
@@ -95,16 +139,22 @@ export default {
                 clearInterval(progressInterval);
                 this.uploadProgress = 100;
 
-                const totalRecords = response.data?.total_records || response.total_records || 0;
+                // Funding allocation upload is queued - show queued message
+                const data = response.data || response;
+                const importId = data.import_id;
+                const status = data.status;
+                
                 message.success({ 
-                    content: `Successfully uploaded employee funding allocation data! Import is processing...`, 
+                    content: response.message || 'Employee funding allocation import started successfully. You will receive a notification when the import is complete.', 
                     key: 'upload',
-                    duration: 5
+                    duration: 6
                 });
 
-                // Show import ID info
-                if (response.data?.import_id) {
-                    message.info(`Import ID: ${response.data.import_id}. You will receive a notification when complete.`, 7);
+                if (importId) {
+                    message.info({
+                        content: `Import ID: ${importId} | Status: ${status || 'processing'}`,
+                        duration: 5
+                    });
                 }
 
                 // Clear the file after successful upload
@@ -112,7 +162,7 @@ export default {
                 if (this.$refs.uploadRow) {
                     this.$refs.uploadRow.resetFile();
                 }
-                this.$emit('upload-complete', response.data || response);
+                this.$emit('upload-complete', data);
 
             } catch (error) {
                 console.error('Error uploading employee funding allocation data:', error);
@@ -141,3 +191,10 @@ export default {
 };
 </script>
 
+<style scoped>
+a.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+</style>

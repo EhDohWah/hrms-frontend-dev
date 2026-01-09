@@ -10,9 +10,12 @@
                 <div>
                     <h6 class="mb-0">{{ upload.name }}</h6>
                     <p class="text-muted fs-12 mb-0">{{ upload.description }}</p>
-                    <a v-if="upload.templateUrl" href="javascript:void(0);" @click="downloadTemplate" class="text-primary fs-12">
-                        <i class="ti ti-download me-1"></i>Download Template
-                    </a>
+                    <div v-if="upload.templateUrl" class="d-flex align-items-center gap-2">
+                        <a href="javascript:void(0);" @click="downloadTemplate" class="text-primary fs-12">
+                            <i class="ti ti-download me-1"></i>Download Template
+                        </a>
+                        <slot name="additional-downloads"></slot>
+                    </div>
                 </div>
             </div>
         </td>

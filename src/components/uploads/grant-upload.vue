@@ -86,16 +86,42 @@ export default {
                 clearInterval(progressInterval);
                 this.uploadProgress = 100;
 
-                const totalRecords = response.data?.total_records || response.total_records || 0;
+                // Extract data from response
+                const data = response.data || response;
+                const processedGrants = data.processed_grants || 0;
+                const processedItems = data.processed_items || 0;
+                const warnings = data.warnings || [];
+                const errors = data.errors || [];
+
+                // Show success message
                 message.success({ 
-                    content: `Successfully uploaded ${totalRecords} grant records!`, 
-                    key: 'upload' 
+                    content: `Successfully uploaded ${processedGrants} grant(s) with ${processedItems} position(s)!`, 
+                    key: 'upload',
+                    duration: 5
                 });
 
-                // Show summary if available
-                const summary = response.data?.summary || response.summary;
-                if (summary) {
-                    message.info(`Inserted: ${summary.inserted || 0}, Updated: ${summary.updated || 0}, Failed: ${summary.failed || 0}`);
+                // Show warnings if available
+                if (warnings.length > 0) {
+                    warnings.forEach((warning, index) => {
+                        setTimeout(() => {
+                            message.warning({
+                                content: warning,
+                                duration: 6
+                            });
+                        }, (index + 1) * 100);
+                    });
+                }
+
+                // Show errors if available
+                if (errors.length > 0) {
+                    errors.forEach((error, index) => {
+                        setTimeout(() => {
+                            message.error({
+                                content: error,
+                                duration: 8
+                            });
+                        }, (index + 1) * 100);
+                    });
                 }
 
                 // Clear the file after successful upload
@@ -103,7 +129,7 @@ export default {
                 if (this.$refs.uploadRow) {
                     this.$refs.uploadRow.resetFile();
                 }
-                this.$emit('upload-complete', response.data || response);
+                this.$emit('upload-complete', data);
 
             } catch (error) {
                 console.error('Error uploading grant data:', error);

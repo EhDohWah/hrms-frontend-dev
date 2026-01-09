@@ -37,7 +37,7 @@
                         <!-- Row 1: Employee (full width) -->
                         <div class="form-group">
                             <label class="form-label required">Employee</label>
-                            <a-tree-select v-model:value="formData.employee_id" @change="onEmployeeChange" show-search
+                            <a-tree-select v-if="isModalVisible" v-model:value="formData.employee_id" @change="onEmployeeChange" show-search
                                 style="width: 100%;" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }"
                                 placeholder="Select employee" allow-clear tree-default-expand-all
                                 :tree-data="employeeTreeData" tree-node-filter-prop="title"
@@ -1009,7 +1009,6 @@ import { useAllocationCalculation } from '@/composables/useAllocationCalculation
 export default {
     name: 'EmploymentEditModal',
     setup() {
-        const employmentData = ref(null);
         const alertMessage = ref('');
         const alertClass = ref('');
 
@@ -1028,7 +1027,6 @@ export default {
         } = useAllocationCalculation();
 
         return {
-            employmentData,
             alertMessage,
             alertClass,
             calculating,
@@ -1048,6 +1046,9 @@ export default {
             // Performance optimization flag
             dataLoaded: false,
             isModalVisible: false,
+            
+            // Employment data to edit (moved from setup to data for proper reactivity)
+            employmentData: null,
 
             formData: {
                 employment_id: null,
@@ -1483,15 +1484,13 @@ export default {
     },
 
     mounted() {
-        // Initialize the Bootstrap modal
+        console.log('📦 Employment edit modal mounted');
+        // Don't initialize modal instance here - it will be created in openModal() if needed
+        // This prevents issues with lazy-loaded components
+        
+        // Set up event listener for cleanup when modal is hidden
         const modalElement = document.getElementById('employmentEditModal');
         if (modalElement) {
-            this.modalInstance = new Modal(modalElement, {
-                backdrop: 'static',
-                keyboard: false
-            });
-
-            // Clean up when modal is actually hidden
             modalElement.addEventListener('hidden.bs.modal', () => {
                 this.employmentData = null;
                 this.isModalVisible = false;
@@ -2764,9 +2763,13 @@ export default {
     },
 
     async openModal() {
+        console.log('🔵 openModal() called');
         this.clearValidationErrors();
         // Control DatePicker rendering lifecycle
         this.isModalVisible = true;
+        
+        // Wait for DOM to update after setting isModalVisible
+        await nextTick();
 
         // Always ensure initial data is loaded before proceeding
         if (!this.dataLoaded) {
@@ -2834,14 +2837,27 @@ export default {
             }
         }
 
-        if (this.modalInstance) {
-            this.modalInstance.show();
-        } else {
-            const modalElement = document.getElementById('employmentEditModal');
-            if (modalElement) {
-                this.modalInstance = new Modal(modalElement);
+        // Show the Bootstrap modal
+        try {
+            if (this.modalInstance) {
+                console.log('✅ Using existing modal instance');
                 this.modalInstance.show();
+            } else {
+                console.log('🔧 Creating new modal instance');
+                const modalElement = document.getElementById('employmentEditModal');
+                if (modalElement) {
+                    this.modalInstance = new Modal(modalElement, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    console.log('✅ Modal instance created, showing modal...');
+                    this.modalInstance.show();
+                } else {
+                    console.error('❌ Modal element not found: employmentEditModal');
+                }
             }
+        } catch (error) {
+            console.error('❌ Error showing modal:', error);
         }
     },
 

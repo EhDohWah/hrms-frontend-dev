@@ -519,6 +519,8 @@ export const API_ENDPOINTS = {
         EMPLOYMENT_TEMPLATE: '/downloads/employment-template',
         EMPLOYEE_FUNDING_ALLOCATION: '/uploads/employee-funding-allocation',
         EMPLOYEE_FUNDING_ALLOCATION_TEMPLATE: '/downloads/employee-funding-allocation-template',
+        GRANT_ITEMS_REFERENCE: '/downloads/grant-items-reference',
+        EMPLOYEE_FUNDING_ALLOCATIONS_REFERENCE: '/downloads/employee-funding-allocations-reference',
         PAYROLL: '/uploads/payroll',
         PAYROLL_TEMPLATE: '/downloads/payroll-template'
     },

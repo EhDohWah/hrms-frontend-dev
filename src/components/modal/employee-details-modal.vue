@@ -431,27 +431,27 @@
     <div class="modal-dialog modal-dialog-centered modal-md">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">{{ $parent.isEditingBeneficiary ? 'Edit Beneficiary' : 'Add Beneficiary' }}</h4>
-          <button type="button" class="btn-close custom-btn-close" @click="$parent.closeBeneficiaryModal()"
+          <h4 class="modal-title">{{ isEditingBeneficiary ? 'Edit Beneficiary' : 'Add Beneficiary' }}</h4>
+          <button type="button" class="btn-close custom-btn-close" @click="closeBeneficiaryModal()"
             aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
 
-        <form @submit.prevent="$parent.submitBeneficiaryForm()">
+        <form @submit.prevent="submitBeneficiaryForm()">
           <div class="modal-body pb-0">
             <div class="row">
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Beneficiary Name <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" v-model="$parent.beneficiaryForm.beneficiary_name" required
+                  <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_name" required
                     placeholder="Enter beneficiary name" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Relationship <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="$parent.beneficiaryForm.beneficiary_relationship" required>
+                  <select class="form-select" v-model="beneficiaryForm.beneficiary_relationship" required>
                     <option value="" disabled>Select Relationship</option>
                     <option value="Spouse">Spouse</option>
                     <option value="Child">Child</option>
@@ -464,7 +464,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Phone Number <span class="text-danger"> *</span></label>
-                  <input type="tel" class="form-control" v-model="$parent.beneficiaryForm.phone_number" required
+                  <input type="tel" class="form-control" v-model="beneficiaryForm.phone_number" required
                     placeholder="Enter phone number" />
                 </div>
               </div>
@@ -472,11 +472,11 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-outline-light border me-2"
-              @click="$parent.closeBeneficiaryModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="$parent.isSubmitting">
-              <span v-if="$parent.isSubmitting" class="spinner-border spinner-border-sm" role="status"
+              @click="closeBeneficiaryModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+              <span v-if="isSubmitting" class="spinner-border spinner-border-sm" role="status"
                 aria-hidden="true"></span>
-              {{ $parent.isEditingBeneficiary ? 'Update' : 'Save' }}
+              {{ isEditingBeneficiary ? 'Update' : 'Save' }}
             </button>
           </div>
         </form>
@@ -982,6 +982,7 @@ import { useLookupStore } from "@/stores/lookupStore";
 import employeeService from "@/services/employee.service";
 import employeeChildrenService from "@/services/employee-children.service";
 import employeeEducationService from "@/services/employeeEducation.service";
+import employeeBeneficiaryService from "@/services/employeeBeneficiary.service";
 // Ant Design is globally imported in main.js
 
 const currentDate = ref(new Date());
@@ -1149,6 +1150,14 @@ export default {
         employee_id: '',
         name: '',
         date_of_birth: null, // Initialize as null instead of empty string
+      },
+
+      beneficiaryForm: {
+        id: null,
+        employee_id: '',
+        beneficiary_name: '',
+        beneficiary_relationship: '',
+        phone_number: '',
       },
 
       editingChild: null,
@@ -1912,6 +1921,123 @@ export default {
       }
 
       await this.safeShowModal('edit_bank');
+    },
+
+    // Submit beneficiary form
+    async submitBeneficiaryForm() {
+      if (this.isDestroyed) return;
+
+      try {
+        this.isSubmitting = true;
+
+        // Validate required fields
+        if (!this.beneficiaryForm.beneficiary_name || !this.beneficiaryForm.beneficiary_relationship || !this.beneficiaryForm.phone_number) {
+          this.$message.error('Please fill in all required fields');
+          return;
+        }
+
+        // Prepare payload
+        const payload = {
+          employee_id: this.employee.id,
+          beneficiary_name: this.beneficiaryForm.beneficiary_name,
+          beneficiary_relationship: this.beneficiaryForm.beneficiary_relationship,
+          phone_number: this.beneficiaryForm.phone_number,
+        };
+
+        console.log('Submitting beneficiary form:', payload);
+
+        let response;
+        if (this.isEditingBeneficiary && this.beneficiaryForm.id) {
+          // Update existing beneficiary
+          response = await employeeBeneficiaryService.updateBeneficiary(this.beneficiaryForm.id, payload);
+        } else {
+          // Create new beneficiary
+          response = await employeeBeneficiaryService.createBeneficiary(payload);
+        }
+
+        if (response.success) {
+          this.$message.success(this.isEditingBeneficiary ? 'Beneficiary updated successfully' : 'Beneficiary added successfully');
+          this.$emit('employee-updated');
+
+          // Clear saved form data after successful submission
+          this.clearFormSection(this.employee.id, 'beneficiaryForm');
+          this.markAsSaved(this.employee.id);
+
+          // Reset form
+          this.resetBeneficiaryForm();
+
+          // Close modal
+          await this.safeHideModal('add_beneficiary');
+        } else {
+          throw new Error(response.message || 'Failed to save beneficiary information');
+        }
+      } catch (error) {
+        console.error('Error submitting beneficiary form:', error);
+
+        // Handle validation errors from backend
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+          const errors = error.response.data.errors;
+          const errorMessage = Object.values(errors).flat().join(', ');
+          this.$message.error(`Validation Error: ${errorMessage}`);
+        } else if (error.response?.status === 404) {
+          this.$message.error('Employee not found');
+        } else {
+          this.$message.error(error.response?.data?.message || 'Failed to save beneficiary information');
+        }
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+
+    // Reset beneficiary form
+    resetBeneficiaryForm() {
+      if (this.isDestroyed) return;
+
+      this.beneficiaryForm = {
+        id: null,
+        employee_id: '',
+        beneficiary_name: '',
+        beneficiary_relationship: '',
+        phone_number: '',
+      };
+      this.isEditingBeneficiary = false;
+    },
+
+    // Open Beneficiary Modal (for both add and edit)
+    async openBeneficiaryModal(beneficiaryData = null) {
+      if (this.isDestroyed) return;
+
+      if (beneficiaryData && beneficiaryData.beneficiary_name) {
+        // Edit mode - has existing beneficiary data
+        this.isEditingBeneficiary = true;
+        this.beneficiaryForm = {
+          id: beneficiaryData.id || null,
+          employee_id: beneficiaryData.employee_id || this.employee.id,
+          beneficiary_name: beneficiaryData.beneficiary_name || '',
+          beneficiary_relationship: beneficiaryData.beneficiary_relationship || '',
+          phone_number: beneficiaryData.phone_number || '',
+        };
+        console.log('Opening beneficiary modal in edit mode with data:', this.beneficiaryForm);
+      } else {
+        // Add mode
+        this.isEditingBeneficiary = false;
+        this.resetBeneficiaryForm();
+        this.beneficiaryForm.employee_id = this.employee.id;
+        console.log('Opening beneficiary modal in add mode');
+      }
+
+      await this.safeShowModal('add_beneficiary');
+    },
+
+    // Close Beneficiary Modal
+    async closeBeneficiaryModal() {
+      if (this.isDestroyed) return;
+
+      // Save form state before closing
+      this.saveFormState('beneficiaryForm');
+
+      // Close modal
+      await this.safeHideModal('add_beneficiary');
     },
 
     // Submit family form

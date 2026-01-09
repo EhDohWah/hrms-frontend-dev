@@ -124,7 +124,7 @@
                                 <div class="mb-3">
                                     <p class="text-muted mb-3">
                                         <i class="ti ti-info-circle me-1"></i>
-                                        Review the preview before creating payroll records.
+                                        Review the detailed preview before creating payroll records.
                                     </p>
                                 </div>
 
@@ -133,28 +133,28 @@
                                     <div class="col-md-3">
                                         <div class="preview-card text-center">
                                             <div class="preview-icon"><i class="ti ti-users text-primary"></i></div>
-                                            <div class="preview-number">{{ previewData.total_employees }}</div>
+                                            <div class="preview-number">{{ previewData.summary?.total_employees || 0 }}</div>
                                             <div class="preview-label">Employees</div>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="preview-card text-center">
                                             <div class="preview-icon"><i class="ti ti-file-invoice text-info"></i></div>
-                                            <div class="preview-number">{{ previewData.total_payrolls }}</div>
+                                            <div class="preview-number">{{ previewData.summary?.total_payrolls || 0 }}</div>
                                             <div class="preview-label">Payroll Records</div>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="preview-card text-center">
                                             <div class="preview-icon"><i class="ti ti-cash text-success"></i></div>
-                                            <div class="preview-number">฿{{ previewData.total_net_salary }}</div>
+                                            <div class="preview-number">฿{{ previewData.summary?.total_net_salary || '0.00' }}</div>
                                             <div class="preview-label">Total Net Salary</div>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="preview-card text-center">
                                             <div class="preview-icon"><i class="ti ti-arrows-exchange text-warning"></i></div>
-                                            <div class="preview-number">{{ previewData.advances_needed }}</div>
+                                            <div class="preview-number">{{ previewData.summary?.advances_needed || 0 }}</div>
                                             <div class="preview-label">Inter-Sub Advances</div>
                                         </div>
                                     </div>
@@ -191,11 +191,162 @@
                                     </div>
                                 </div>
 
+                                <!-- NEW: Detailed Employee Breakdown -->
+                                <div v-if="previewData.employees && previewData.employees.length > 0" class="preview-details mt-4">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">
+                                            <i class="ti ti-list-details me-2"></i>Detailed Breakdown
+                                            <span class="text-muted small ms-2">
+                                                ({{ filteredPreviewEmployees.length }} employees)
+                                            </span>
+                                        </h6>
+                                        <!-- Search -->
+                                        <input
+                                            v-model="previewSearchQuery"
+                                            type="text"
+                                            class="form-control form-control-sm"
+                                            placeholder="Search by name or staff ID..."
+                                            style="max-width: 250px"
+                                        />
+                                    </div>
+
+                                    <!-- Employee Accordion -->
+                                    <a-collapse v-model:active-key="expandedEmployees" accordion class="preview-accordion">
+                                        <a-collapse-panel
+                                            v-for="(emp, index) in paginatedPreviewEmployees"
+                                            :key="index"
+                                        >
+                                            <template #header>
+                                                <div class="employee-header-preview d-flex align-items-center justify-content-between w-100">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <a-avatar :style="{ backgroundColor: getOrgColor(emp.organization) }">
+                                                            {{ emp.name.charAt(0) }}
+                                                        </a-avatar>
+                                                        <div>
+                                                            <strong>{{ emp.staff_id }}</strong> - {{ emp.name }}
+                                                            <br />
+                                                            <small class="text-muted">{{ emp.department }} • {{ emp.position }}</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <a-badge v-if="emp.has_warnings" count="!" :style="{ backgroundColor: '#f5222d' }" />
+                                                        <span class="text-muted small">{{ emp.allocation_count }} allocation(s)</span>
+                                                        <span class="text-success fw-bold">฿{{ emp.total_net }}</span>
+                                                    </div>
+                                                </div>
+                                            </template>
+
+                                            <!-- Allocation Details Table -->
+                                            <div class="allocation-details">
+                                                <table class="table table-sm table-bordered mb-0">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th style="width: 200px">Grant</th>
+                                                            <th style="width: 60px">FTE</th>
+                                                            <th style="width: 120px">Gross</th>
+                                                            <th style="width: 120px">Deductions</th>
+                                                            <th style="width: 120px">Net</th>
+                                                            <th style="width: 80px" class="text-center">Advance</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="(alloc, idx) in emp.allocations" :key="idx">
+                                                            <td>
+                                                                <div class="grant-info">
+                                                                    <strong class="text-primary">{{ alloc.grant_code }}</strong>
+                                                                    <br />
+                                                                    <small class="text-muted">{{ alloc.grant_name }}</small>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge bg-info">{{ alloc.fte }}</span>
+                                                            </td>
+                                                            <td>
+                                                                <div class="salary-breakdown">
+                                                                    <div class="main-amount text-primary fw-bold">
+                                                                        ฿{{ alloc.gross_salary }}
+                                                                    </div>
+                                                                    <small class="text-muted">
+                                                                        By FTE: ฿{{ alloc.gross_salary_by_fte }}
+                                                                    </small>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <a-popover title="Deduction Breakdown" trigger="click">
+                                                                    <template #content>
+                                                                        <div class="breakdown-popover">
+                                                                            <div class="d-flex justify-content-between mb-1">
+                                                                                <span>Tax:</span>
+                                                                                <strong>฿{{ alloc.deductions.tax }}</strong>
+                                                                            </div>
+                                                                            <div class="d-flex justify-content-between mb-1">
+                                                                                <span>Employee SS:</span>
+                                                                                <strong>฿{{ alloc.deductions.employee_ss }}</strong>
+                                                                            </div>
+                                                                            <div class="d-flex justify-content-between mb-1">
+                                                                                <span>Employee HW:</span>
+                                                                                <strong>฿{{ alloc.deductions.employee_hw }}</strong>
+                                                                            </div>
+                                                                            <hr class="my-2" />
+                                                                            <div class="d-flex justify-content-between">
+                                                                                <strong>Total:</strong>
+                                                                                <strong class="text-danger">
+                                                                                    ฿{{ alloc.deductions.total }}
+                                                                                </strong>
+                                                                            </div>
+                                                                        </div>
+                                                                    </template>
+                                                                    <span class="text-danger cursor-pointer">
+                                                                        ฿{{ alloc.deductions.total }}
+                                                                        <i class="ti ti-info-circle ms-1"></i>
+                                                                    </span>
+                                                                </a-popover>
+                                                            </td>
+                                                            <td>
+                                                                <strong class="text-success">
+                                                                    ฿{{ alloc.net_salary }}
+                                                                </strong>
+                                                            </td>
+                                                            <td class="text-center">
+                                                                <a-tag v-if="alloc.needs_advance" color="warning">
+                                                                    <i class="ti ti-arrow-right-circle me-1"></i>Yes
+                                                                </a-tag>
+                                                                <span v-else class="text-muted">-</span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                    <tfoot class="table-light">
+                                                        <tr>
+                                                            <td colspan="2" class="text-end"><strong>Employee Total:</strong></td>
+                                                            <td><strong>฿{{ emp.total_gross }}</strong></td>
+                                                            <td colspan="2">
+                                                                <strong class="text-success">฿{{ emp.total_net }}</strong>
+                                                            </td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </a-collapse-panel>
+                                    </a-collapse>
+
+                                    <!-- Pagination -->
+                                    <div v-if="filteredPreviewEmployees.length > previewPageSize" class="d-flex justify-content-center mt-3">
+                                        <a-pagination
+                                            v-model:current="previewPage"
+                                            v-model:page-size="previewPageSize"
+                                            :total="filteredPreviewEmployees.length"
+                                            :show-size-changer="false"
+                                            size="small"
+                                        />
+                                    </div>
+                                </div>
+
                                 <!-- Confirmation Note -->
-                                <div class="alert alert-primary mb-0">
+                                <div class="alert alert-primary mb-0 mt-4">
                                     <strong><i class="ti ti-info-circle me-1"></i>Ready to Create:</strong>
-                                    This will create <strong>{{ previewData.total_payrolls }} payroll records</strong> for
-                                    <strong>{{ previewData.total_employees }} employees</strong> in {{ selectedOrganization }}.
+                                    This will create <strong>{{ previewData.summary?.total_payrolls || 0 }} payroll records</strong> for
+                                    <strong>{{ previewData.summary?.total_employees || 0 }} employees</strong> in {{ selectedOrganization }}.
                                     Click "Create Payroll" to proceed.
                                 </div>
                             </div>
@@ -411,6 +562,12 @@ export default {
         const previewData = ref(null);
         const batchData = ref(null);
 
+        // Preview search and pagination
+        const previewSearchQuery = ref('');
+        const expandedEmployees = ref([]);
+        const previewPage = ref(1);
+        const previewPageSize = ref(10);
+
         // WebSocket and polling
         const wsConnected = ref(false);
         const httpPollingInterval = ref(null);
@@ -436,6 +593,28 @@ export default {
             return showAllWarnings.value
                 ? previewData.value.warnings
                 : previewData.value.warnings.slice(0, 5);
+        });
+
+        // Filtered preview employees based on search
+        const filteredPreviewEmployees = computed(() => {
+            if (!previewData.value?.employees) return [];
+            
+            const employees = previewData.value.employees;
+            if (!previewSearchQuery.value) return employees;
+            
+            const search = previewSearchQuery.value.toLowerCase();
+            return employees.filter(emp => 
+                emp.name.toLowerCase().includes(search) ||
+                emp.staff_id.toLowerCase().includes(search) ||
+                emp.department.toLowerCase().includes(search)
+            );
+        });
+
+        // Paginated preview employees
+        const paginatedPreviewEmployees = computed(() => {
+            const start = (previewPage.value - 1) * previewPageSize.value;
+            const end = start + previewPageSize.value;
+            return filteredPreviewEmployees.value.slice(start, end);
         });
 
         const isProcessing = computed(() => batchData.value?.status === 'processing');
@@ -754,9 +933,21 @@ export default {
             previewData.value = null;
             batchData.value = null;
             showAllWarnings.value = false;
+            previewSearchQuery.value = '';
+            expandedEmployees.value = [];
+            previewPage.value = 1;
             Object.keys(formErrors).forEach(key => formErrors[key] = '');
             stopHttpPolling();
             disconnectWebSocket();
+        };
+
+        // Helper: Get organization color for avatar
+        const getOrgColor = (organization) => {
+            const colors = {
+                'SMRU': '#1890ff',
+                'BHF': '#52c41a',
+            };
+            return colors[organization] || '#8c8c8c';
         };
 
         // Helper function to check if user has unsaved data
@@ -955,8 +1146,14 @@ export default {
             previewData,
             batchData,
             wsConnected,
+            previewSearchQuery,
+            expandedEmployees,
+            previewPage,
+            previewPageSize,
             canProceedFromStep1,
             displayedWarnings,
+            filteredPreviewEmployees,
+            paginatedPreviewEmployees,
             isProcessing,
             isCompleted,
             isFailed,
@@ -974,6 +1171,7 @@ export default {
             createBulkPayroll,
             downloadErrors,
             handleModalClose,
+            getOrgColor,
         };
     },
 };
@@ -1146,6 +1344,73 @@ export default {
     z-index: 1060 !important;
 }
 
+/* Preview Details Styles */
+.preview-details {
+    margin-top: 1.5rem;
+}
+
+.preview-accordion :deep(.ant-collapse-header) {
+    padding: 12px 16px !important;
+}
+
+.employee-header-preview {
+    pointer-events: none;
+}
+
+.employee-header-preview > * {
+    pointer-events: auto;
+}
+
+.grant-info {
+    line-height: 1.4;
+}
+
+.salary-breakdown {
+    line-height: 1.3;
+}
+
+.main-amount {
+    font-size: 14px;
+}
+
+.breakdown-popover {
+    min-width: 200px;
+}
+
+.breakdown-popover .d-flex {
+    font-size: 13px;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-pointer:hover {
+    text-decoration: underline;
+}
+
+.allocation-details {
+    margin-top: 12px;
+}
+
+.allocation-details table {
+    font-size: 13px;
+}
+
+.allocation-details thead th {
+    font-weight: 600;
+    font-size: 12px;
+    text-align: center;
+}
+
+.allocation-details tbody td {
+    vertical-align: middle;
+}
+
+.allocation-details tfoot {
+    font-weight: 600;
+}
+
 @media (max-width: 768px) {
     .steps-container {
         flex-wrap: wrap;
@@ -1153,6 +1418,16 @@ export default {
 
     .step-line {
         width: 40px;
+    }
+
+    .employee-header-preview {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+    }
+
+    .allocation-details {
+        overflow-x: auto;
     }
 }
 </style>

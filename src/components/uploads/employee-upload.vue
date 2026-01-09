@@ -80,24 +80,27 @@ export default {
                 clearInterval(progressInterval);
                 this.uploadProgress = 100;
 
-                const totalRecords = response.data?.total_records || response.total_records || 0;
+                // Employee upload is queued - show queued message
+                const data = response.data || response;
+                const importId = data.import_id;
+                
                 message.success({ 
-                    content: `Successfully uploaded ${totalRecords} employee records!`, 
-                    key: 'upload' 
+                    content: response.message || "Your file is being imported. You'll be notified when it's done.", 
+                    key: 'upload',
+                    duration: 6
                 });
 
-                // Show summary if available
-                const summary = response.data?.summary || response.summary;
-                if (summary) {
-                    message.info(`Inserted: ${summary.inserted || 0}, Updated: ${summary.updated || 0}, Failed: ${summary.failed || 0}`);
-                }
+                message.info({
+                    content: `Import ID: ${importId}`,
+                    duration: 4
+                });
 
                 // Clear the file after successful upload
                 this.onFileCleared();
                 if (this.$refs.uploadRow) {
                     this.$refs.uploadRow.resetFile();
                 }
-                this.$emit('upload-complete', response.data || response);
+                this.$emit('upload-complete', data);
 
             } catch (error) {
                 console.error('Error uploading employee data:', error);

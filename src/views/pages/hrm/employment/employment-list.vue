@@ -933,9 +933,15 @@ export default {
           if (this.$refs.employmentEditModal && typeof this.$refs.employmentEditModal.openModal === 'function') {
             // Set the employment data to the edit modal
             this.$refs.employmentEditModal.employmentData = response.data;
+            
+            // Wait for next tick to ensure component is fully rendered
+            await this.$nextTick();
+            
             // Open the modal
+            console.log('🚀 Opening employment edit modal...');
             await this.$refs.employmentEditModal.openModal();
           } else {
+            console.error('❌ Modal ref not ready:', this.$refs.employmentEditModal);
             this.$message && this.$message.warning && this.$message.warning('Edit form is loading, please try again.');
           }
         } else {

@@ -1,14 +1,14 @@
 import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
-class UploadPayrollService {
+class UploadFundingAllocationService {
     /**
-     * Upload payroll Excel file
+     * Upload employee funding allocation Excel file
      * @param {File} file - Excel file
      * @param {Function} onProgress - Progress callback
      * @returns {Promise<Object>} API response
      */
-    async uploadPayrollData(file, onProgress = null) {
+    async uploadFundingAllocationData(file, onProgress = null) {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -24,49 +24,38 @@ class UploadPayrollService {
 
         try {
             const response = await apiService.post(
-                API_ENDPOINTS.UPLOAD.PAYROLL,
+                API_ENDPOINTS.UPLOAD.EMPLOYEE_FUNDING_ALLOCATION,
                 formData,
                 config
             );
             return response;
         } catch (error) {
-            console.error('Error uploading payroll data:', error);
+            console.error('Error uploading employee funding allocation data:', error);
             throw error;
         }
     }
 
     /**
-     * Download payroll import template
+     * Download employee funding allocation import template
      * @returns {Promise<void>}
      */
     async downloadTemplate() {
         try {
-            // Get blob response directly
-            const blob = await apiService.get(
-                API_ENDPOINTS.UPLOAD.PAYROLL_TEMPLATE,
+            const response = await apiService.get(
+                API_ENDPOINTS.UPLOAD.EMPLOYEE_FUNDING_ALLOCATION_TEMPLATE,
                 { responseType: 'blob' }
             );
 
-            // Create blob link to download
-            const url = window.URL.createObjectURL(blob);
+            // Create a URL for the blob and trigger download
+            const blob = response.data || response;
+            const url = window.URL.createObjectURL(new Blob([blob]));
             const link = document.createElement('a');
             link.href = url;
-            
-            // Generate filename with timestamp
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-            link.setAttribute('download', `payroll_import_template_${timestamp}.xlsx`);
-            
-            // Append to html link element page
+            link.setAttribute('download', 'employee-funding-allocation-import-template.xlsx');
             document.body.appendChild(link);
-            
-            // Start download
             link.click();
-            
-            // Clean up and remove the link
-            link.parentNode.removeChild(link);
+            link.remove();
             window.URL.revokeObjectURL(url);
-
-            return { success: true };
         } catch (error) {
             console.error('Error downloading template:', error);
             throw error;
@@ -74,44 +63,34 @@ class UploadPayrollService {
     }
 
     /**
-     * Download employee funding allocations reference list (contains Funding Allocation IDs for payroll imports)
+     * Download grant items reference list (contains Grant Item IDs for imports)
      * @returns {Promise<void>}
      */
-    async downloadFundingAllocationsReference() {
+    async downloadGrantItemsReference() {
         try {
-            const blob = await apiService.get(
-                API_ENDPOINTS.UPLOAD.EMPLOYEE_FUNDING_ALLOCATIONS_REFERENCE,
+            const response = await apiService.get(
+                API_ENDPOINTS.UPLOAD.GRANT_ITEMS_REFERENCE,
                 { responseType: 'blob' }
             );
 
-            // Create blob link to download
-            const url = window.URL.createObjectURL(blob);
+            // Create a URL for the blob and trigger download
+            const blob = response.data || response;
+            const url = window.URL.createObjectURL(new Blob([blob]));
             const link = document.createElement('a');
             link.href = url;
-            
-            // Generate filename with timestamp
-            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-            link.setAttribute('download', `employee_funding_allocations_reference_${timestamp}.xlsx`);
-            
-            // Append to html link element page
+            link.setAttribute('download', 'grant-items-reference.xlsx');
             document.body.appendChild(link);
-            
-            // Start download
             link.click();
-            
-            // Clean up and remove the link
-            link.parentNode.removeChild(link);
+            link.remove();
             window.URL.revokeObjectURL(url);
-
-            return { success: true };
         } catch (error) {
-            console.error('Error downloading funding allocations reference:', error);
+            console.error('Error downloading grant items reference:', error);
             throw error;
         }
     }
 
     /**
-     * Validate payroll data before upload (optional client-side validation)
+     * Validate funding allocation data before upload (optional client-side validation)
      * @param {File} file - File to validate
      * @returns {Object} Validation result
      */
@@ -143,27 +122,5 @@ class UploadPayrollService {
     }
 }
 
-export const uploadPayrollService = new UploadPayrollService();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export const uploadFundingAllocationService = new UploadFundingAllocationService();
 

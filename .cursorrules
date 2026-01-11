@@ -1,0 +1,9 @@
+# Include: ../cursorrules (inherits workspace rules)
+
+## Vue.js Specific
+- Use Composition API with <script setup>
+- Clean up listeners in onUnmounted (fix memory leaks!)
+- Use Pinia for state management
+- Implement proper error boundaries
+- Lazy load routes
+- Bootstrap 5 + Ant Design Vue 4 compatibility

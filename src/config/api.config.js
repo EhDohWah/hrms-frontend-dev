@@ -136,6 +136,7 @@ export const API_ENDPOINTS = {
         CREATE: '/grants',
         UPDATE: '/grants/:id',
         DELETE: '/grants/:id',
+        DELETE_SELECTED: '/grants/delete-selected',
         DETAILS: '/grants/:id',
         UPLOAD: '/uploads/grant',
         DOWNLOAD_TEMPLATE: '/downloads/grant-template',

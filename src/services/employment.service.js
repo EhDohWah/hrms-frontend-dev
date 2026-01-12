@@ -76,6 +76,76 @@ class EmploymentService extends BaseService {
         );
     }
 
+    /**
+     * Create funding allocations separately (decoupled workflow)
+     * This is used when employment is saved first, then allocations are added later.
+     * Backend automatically calculates allocated_amount using deriveSalaryContext()
+     * based on the employment's probation status.
+     * 
+     * @param {Object} data - Allocation data
+     * @param {number} data.employee_id - Employee ID
+     * @param {number} data.employment_id - Employment ID (must exist)
+     * @param {string} data.start_date - Start date for allocations
+     * @param {string} [data.end_date] - End date for allocations (optional)
+     * @param {Array} data.allocations - Array of allocation objects
+     * @param {string} data.allocations[].allocation_type - Type ('grant')
+     * @param {number} data.allocations[].grant_item_id - Grant item ID
+     * @param {number} data.allocations[].fte - FTE percentage (0-100)
+     * 
+     * @returns {Promise<Object>} Response with:
+     *   - data: Created allocations with auto-calculated amounts
+     *   - total_created: Number of allocations created
+     *   - salary_info: Object with salary type used, amount, probation status
+     * 
+     * @example
+     * const result = await employmentService.createFundingAllocations({
+     *   employee_id: 123,
+     *   employment_id: 456,
+     *   start_date: '2026-01-15',
+     *   allocations: [
+     *     { allocation_type: 'grant', grant_item_id: 789, fte: 60 },
+     *     { allocation_type: 'grant', grant_item_id: 790, fte: 40 }
+     *   ]
+     * });
+     */
+    async createFundingAllocations(data) {
+        return await this.handleApiResponse(
+            () => apiService.post(API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.CREATE, data),
+            'create funding allocations for employment'
+        );
+    }
+
+    /**
+     * Calculate allocation preview without persisting
+     * Used for real-time UI feedback in the decoupled workflow.
+     * Returns calculated amount based on employment's salary and probation status.
+     * 
+     * @param {Object} data - Preview data
+     * @param {number} data.employment_id - Employment ID (required)
+     * @param {number} data.fte - FTE percentage (0-100)
+     * @param {string} [data.effective_date] - Date to calculate for (defaults to today)
+     * 
+     * @returns {Promise<Object>} Preview result with:
+     *   - fte_decimal: FTE as decimal
+     *   - allocated_amount: Calculated amount
+     *   - salary_type: Which salary is being used
+     *   - salary_amount: The base salary amount
+     *   - is_probation_period: Whether in probation period
+     * 
+     * @example
+     * const preview = await employmentService.calculateAllocationPreview({
+     *   employment_id: 456,
+     *   fte: 60
+     * });
+     * // Returns: { allocated_amount: 30000, salary_type: 'probation_salary', is_probation_period: true }
+     */
+    async calculateAllocationPreview(data) {
+        return await this.handleApiResponse(
+            () => apiService.post(API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.CALCULATE_PREVIEW, data),
+            'calculate allocation preview'
+        );
+    }
+
     // Update employment
     async updateEmployment(id, data) {
         const endpoint = API_ENDPOINTS.EMPLOYMENT.UPDATE.replace(':id', id);

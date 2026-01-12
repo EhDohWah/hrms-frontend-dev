@@ -281,14 +281,123 @@
               </div>
             </div>
 
+            <!-- Row: Employment Status -->
+            <div class="form-group">
+              <label class="form-label">Employment Status</label>
+              <div class="employment-status-container">
+                <div class="status-switch-wrapper">
+                  <a-switch v-model:checked="formData.status" @change="onStatusChange" checked-children="Active"
+                    un-checked-children="Inactive" size="default" />
+                  <span class="status-label"
+                    :class="{ 'status-active': formData.status, 'status-inactive': !formData.status }">
+                    {{ formData.status ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+                <small class="text-muted status-hint">
+                  <i class="ti ti-info-circle"></i> Toggle to set employment as Active or Inactive
+                </small>
+              </div>
+            </div>
 
+            <!-- Benefits Section -->
+            <div class="form-group">
+              <label class="form-label">Benefits</label>
+              <div class="benefits-container">
+                <!-- Health & Welfare -->
+                <div class="benefit-item">
+                  <label class="checkbox-item">
+                    <input type="checkbox" v-model="formData.health_welfare" @change="saveFormState" />
+                    <span class="checkmark"></span>
+                    Health & Welfare
+                  </label>
+                  <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                    Percentage is managed globally in Benefit Settings
+                  </small>
+                </div>
+                <!-- Saving Fund -->
+                <div class="benefit-item">
+                  <label class="checkbox-item">
+                    <input type="checkbox" v-model="formData.saving_fund" @change="saveFormState" />
+                    <span class="checkmark"></span>
+                    Saving Fund
+                  </label>
+                  <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                    Percentage is managed globally in Benefit Settings
+                  </small>
+                </div>
+                <!-- PVD -->
+                <div class="benefit-item">
+                  <label class="checkbox-item">
+                    <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
+                    <span class="checkmark"></span>
+                    PVD
+                  </label>
+                  <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                    Percentage is managed globally in Benefit Settings
+                  </small>
+                </div>
+              </div>
+            </div>
 
-            <!-- Funding Allocation with added spacing -->
-            <div class="form-group funding-allocation-section" style="margin-top: 32px; margin-bottom: 0;">
-              <label>Funding Allocation</label>
+            <!-- ============================================
+                 SECTION 1: EMPLOYMENT DETAILS - SAVE BUTTON
+                 ============================================ -->
+            <div class="section-save-row">
+              <div class="section-save-status">
+                <span v-if="isEmploymentSaved" class="status-indicator status-saved">
+                  <i class="ti ti-circle-check"></i>
+                  Employment saved (ID: {{ savedEmploymentId }})
+                </span>
+                <span v-else class="status-indicator status-pending">
+                  <i class="ti ti-info-circle"></i>
+                  Fill in employment details and save
+                </span>
+              </div>
+              <button 
+                type="button" 
+                class="btn btn-section-save" 
+                @click="handleSaveEmploymentOnly"
+                :disabled="isSubmittingEmployment || isLoadingData || isEmploymentSaved">
+                <span v-if="isSubmittingEmployment">
+                  <i class="ti ti-loader spinner-icon"></i> Saving...
+                </span>
+                <span v-else-if="isEmploymentSaved">
+                  <i class="ti ti-check"></i> Saved
+                </span>
+                <span v-else>
+                  <i class="ti ti-device-floppy"></i> Save Employment
+                </span>
+              </button>
+            </div>
 
-              <!-- Warning message when prerequisites are not met -->
-              <div v-if="!canAddAllocation" class="allocation-prerequisites-warning">
+            <!-- ============================================
+                 SECTION 2: FUNDING ALLOCATION
+                 ============================================ -->
+            <div class="form-section funding-allocation-section" :class="{ 'section-disabled': !isEmploymentSaved }">
+              <div class="section-header-with-status">
+                <label class="section-title">Employee Funding Allocation</label>
+                <!-- Status badge showing employment save status -->
+                <span v-if="isEmploymentSaved && isAllocationsSaved" class="badge badge-success section-status-badge">
+                  <i class="ti ti-check"></i> Allocations Saved
+                </span>
+                <span v-else-if="isEmploymentSaved" class="badge badge-info section-status-badge">
+                  <i class="ti ti-edit"></i> Ready to Add Allocations
+                </span>
+                <span v-else class="badge badge-secondary section-status-badge">
+                  <i class="ti ti-lock"></i> Save employment first
+                </span>
+              </div>
+
+              <!-- Overlay message when section is disabled -->
+              <div v-if="!isEmploymentSaved" class="section-disabled-overlay">
+                <div class="disabled-message">
+                  <i class="ti ti-lock"></i>
+                  <span>Save the employment details above to enable funding allocation</span>
+                </div>
+              </div>
+
+              <!-- Warning message when prerequisites are not met (only show when employment is saved) -->
+              <div v-if="isEmploymentSaved && !canAddAllocation" class="allocation-prerequisites-warning">
                 <div class="warning-header">
                   <i class="ti ti-alert-triangle"></i>
                   <strong>Required Fields Missing</strong>
@@ -425,7 +534,6 @@
                 </div>
 
               </div>
-            </div>
 
             <!-- Funding Allocations Table -->
             <table v-if="fundingAllocations.length > 0" class="allocation-table">
@@ -531,81 +639,76 @@
             </div>
 
             <!-- No Allocations Message -->
-            <div v-else-if="formData.employee_id && !isLoadingData" class="no-allocations-msg">
+            <div v-else-if="formData.employee_id && !isLoadingData && isEmploymentSaved" class="no-allocations-msg">
               <p class="text-muted text-center">No funding allocations added. Please add at least one allocation.</p>
             </div>
 
-            <!-- Row: Employment Status -->
-            <div class="form-group">
-              <label class="form-label">Employment Status</label>
-              <div class="employment-status-container">
-                <div class="status-switch-wrapper">
-                  <a-switch v-model:checked="formData.status" @change="onStatusChange" checked-children="Active"
-                    un-checked-children="Inactive" size="default" />
-                  <span class="status-label"
-                    :class="{ 'status-active': formData.status, 'status-inactive': !formData.status }">
-                    {{ formData.status ? 'Active' : 'Inactive' }}
+              <!-- Section Save Row for Allocations -->
+              <div class="section-save-row" v-if="isEmploymentSaved">
+                <div class="section-status">
+                  <span v-if="isAllocationsSaved" class="status-indicator status-saved">
+                    <i class="ti ti-circle-check"></i>
+                    Allocations saved successfully
+                  </span>
+                  <span v-else-if="fundingAllocations.length > 0 && totalFte === 100" class="status-indicator status-ready">
+                    <i class="ti ti-info-circle"></i>
+                    Ready to save (FTE: {{ totalFte }}%)
+                  </span>
+                  <span v-else-if="fundingAllocations.length > 0" class="status-indicator status-warning">
+                    <i class="ti ti-alert-triangle"></i>
+                    FTE must equal 100% (Current: {{ totalFte }}%)
+                  </span>
+                  <span v-else class="status-indicator status-pending">
+                    <i class="ti ti-info-circle"></i>
+                    Add funding allocations above
                   </span>
                 </div>
-                <small class="text-muted status-hint">
-                  <i class="ti ti-info-circle"></i> Toggle to set employment as Active or Inactive
-                </small>
+                <button 
+                  type="button" 
+                  class="btn btn-section-save" 
+                  @click="handleSaveAllocationsOnly"
+                  :disabled="isSubmittingAllocations || fundingAllocations.length === 0 || totalFte !== 100 || isAllocationsSaved">
+                  <span v-if="isSubmittingAllocations">
+                    <i class="ti ti-loader spinner-icon"></i> Saving...
+                  </span>
+                  <span v-else-if="isAllocationsSaved">
+                    <i class="ti ti-check"></i> Saved
+                  </span>
+                  <span v-else>
+                    <i class="ti ti-device-floppy"></i> Save Allocations
+                  </span>
+                </button>
               </div>
-            </div>
+            </div><!-- End of funding-allocation-section -->
 
-            <!-- Enhanced Benefits Section -->
-            <div class="form-group">
-              <label class="form-label">Benefits</label>
-
-              <div class="benefits-container">
-                <!-- Health & Welfare -->
-                <div class="benefit-item">
-                  <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.health_welfare" @change="saveFormState" />
-                    <span class="checkmark"></span>
-                    Health & Welfare
-                  </label>
-                  <small class="text-muted"
-                    style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
-                    Percentage is managed globally in Benefit Settings
-                  </small>
-                </div>
-
-                <!-- Saving Fund -->
-                <div class="benefit-item">
-                  <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.saving_fund" @change="saveFormState" />
-                    <span class="checkmark"></span>
-                    Saving Fund
-                  </label>
-                  <small class="text-muted"
-                    style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
-                    Percentage is managed globally in Benefit Settings
-                  </small>
-                </div>
-
-                <!-- PVD -->
-                <div class="benefit-item">
-                  <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
-                    <span class="checkmark"></span>
-                    PVD
-                  </label>
-                  <small class="text-muted"
-                    style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
-                    Percentage is managed globally in Benefit Settings
-                  </small>
-                </div>
+            <!-- Modal Footer Actions -->
+            <div class="modal-footer-actions">
+              <div class="progress-summary">
+                <span v-if="isEmploymentSaved && isAllocationsSaved" class="progress-complete">
+                  <i class="ti ti-circle-check"></i> All sections completed
+                </span>
+                <span v-else-if="isEmploymentSaved" class="progress-partial">
+                  <i class="ti ti-progress"></i> Employment saved. Complete funding allocations above.
+                </span>
+                <span v-else class="progress-pending">
+                  <i class="ti ti-info-circle"></i> Start by saving employment details above.
+                </span>
               </div>
-            </div>
-
-            <!-- Submit Buttons -->
-            <div class="btn-row">
-              <button type="button" class="btn btn-cancel" @click="handleModalClose">Cancel</button>
-              <button type="submit" class="btn btn-save" :disabled="isSubmitting || isLoadingData">
-                <span v-if="isSubmitting">Saving...</span>
-                <span v-else>Save Employment</span>
-              </button>
+              
+              <div class="btn-row">
+                <button type="button" class="btn btn-cancel" @click="handleModalClose">
+                  <i class="ti ti-x"></i> {{ isEmploymentSaved ? 'Close' : 'Cancel' }}
+                </button>
+                
+                <!-- Complete & Close Button (when both are saved) -->
+                <button 
+                  v-if="isEmploymentSaved && isAllocationsSaved"
+                  type="button" 
+                  class="btn btn-success" 
+                  @click="handleModalClose">
+                  <i class="ti ti-check"></i> Complete
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -696,6 +799,16 @@ export default {
         pvd: false,
         saving_fund: false
       },
+      
+      // Decoupled workflow state - employment and allocations are saved separately
+      isEmploymentSaved: false,           // Track if employment has been saved
+      savedEmploymentId: null,            // Store the employment ID after save
+      isAllocationsSaved: false,          // Track if allocations have been saved
+      employmentSaveMessage: '',          // Message to show after employment save
+      showAllocationReminder: false,      // Show reminder to add allocations
+      isSubmittingEmployment: false,      // Track employment-only submission
+      isSubmittingAllocations: false,     // Track allocation-only submission
+      
       currentAllocation: {
         allocation_type: '',
         grant_id: '',
@@ -2487,6 +2600,250 @@ export default {
       };
     },
 
+    /**
+     * Build payload for employment-only API call (decoupled workflow)
+     * Does not include allocations - they are saved separately
+     */
+    buildEmploymentOnlyPayload() {
+      return {
+        employee_id: this.formData.employee_id,
+        employment_type: this.formData.employment_type,
+        pay_method: this.formData.pay_method || null,
+        pass_probation_date: this.formatDateForAPI(this.formData.pass_probation_date),
+        start_date: this.formatDateForAPI(this.formData.start_date),
+        end_date: this.formatDateForAPI(this.formData.end_date),
+        department_id: this.formData.department_id || null,
+        position_id: this.formData.position_id || null,
+        section_department: this.formData.section_department || null,
+        site_id: this.formData.site_id || null,
+        pass_probation_salary: this.formData.pass_probation_salary,
+        probation_salary: this.formData.probation_salary || null,
+        status: !!this.formData.status,
+        health_welfare: !!this.formData.health_welfare,
+        pvd: !!this.formData.pvd,
+        saving_fund: !!this.formData.saving_fund
+        // NOTE: No allocations - employment created without allocations
+      };
+    },
+
+    /**
+     * Build payload for allocations-only API call (decoupled workflow)
+     * Requires savedEmploymentId to be set
+     */
+    buildAllocationsOnlyPayload() {
+      if (!this.savedEmploymentId) {
+        throw new Error('Employment must be saved before creating allocations');
+      }
+
+      return {
+        employee_id: this.formData.employee_id,
+        employment_id: this.savedEmploymentId,
+        start_date: this.formatDateForAPI(this.formData.start_date),
+        end_date: this.formatDateForAPI(this.formData.end_date) || null,
+        allocations: this.fundingAllocations.map(allocation => ({
+          allocation_type: 'grant',
+          grant_item_id: allocation.grant_item_id || allocation.grant_items_id || '',
+          fte: allocation.fte
+          // allocated_amount calculated by backend using deriveSalaryContext()
+        }))
+      };
+    },
+
+    /**
+     * Validate employment fields only (for decoupled workflow)
+     */
+    validateEmploymentOnly() {
+      this.clearValidationErrors();
+      let isValid = true;
+      const errors = {};
+
+      const requiredFields = [
+        { field: 'employee_id', message: 'Please select an employee' },
+        { field: 'employment_type', message: 'Please select employment type' },
+        { field: 'department_id', message: 'Please select department' },
+        { field: 'position_id', message: 'Please select position' },
+        { field: 'site_id', message: 'Please select site' },
+        { field: 'start_date', message: 'Please select start date' },
+        { field: 'pass_probation_salary', message: 'Please enter position salary' }
+      ];
+
+      for (const { field, message } of requiredFields) {
+        if (!this.formData[field]) {
+          errors[field] = message;
+          isValid = false;
+        }
+      }
+
+      this.validationErrors = errors;
+      return isValid;
+    },
+
+    /**
+     * Handle saving employment only (decoupled workflow - Step 1)
+     * Creates employment record without allocations
+     */
+    async handleSaveEmploymentOnly() {
+      try {
+        console.log('Saving employment only (decoupled workflow)...', {
+          formData: this.formData
+        });
+
+        if (!this.validateEmploymentOnly()) {
+          console.log('Employment validation failed');
+          this.alertMessage = 'Please fill in all required employment fields';
+          this.alertClass = 'alert-danger';
+          return;
+        }
+
+        this.isSubmittingEmployment = true;
+        this.alertMessage = '';
+
+        const payload = this.buildEmploymentOnlyPayload();
+        console.log('Employment payload:', payload);
+
+        const response = await employmentService.createEmployment(payload);
+        console.log('Employment API Response:', response);
+
+        // Store employment ID for allocation creation
+        this.savedEmploymentId = response.data?.employment?.id || response.data?.id;
+        this.isEmploymentSaved = true;
+        this.showAllocationReminder = true;
+
+        // Show success message with guidance
+        this.employmentSaveMessage = response.message || 'Employment saved successfully';
+        this.alertMessage = `${this.employmentSaveMessage}. You can now add funding allocations below.`;
+        this.alertClass = 'alert-success';
+
+        // Clear draft for employment data
+        this.hasUnsavedChanges = false;
+
+        // Emit event for parent components
+        this.$emit('employment-saved', {
+          success: true,
+          message: this.employmentSaveMessage,
+          employmentId: this.savedEmploymentId,
+          data: response.data
+        });
+
+      } catch (error) {
+        console.error('Error saving employment:', error);
+        this.handleApiError(error);
+      } finally {
+        this.isSubmittingEmployment = false;
+      }
+    },
+
+    /**
+     * Handle saving allocations only (decoupled workflow - Step 2)
+     * Creates funding allocations for existing employment
+     */
+    async handleSaveAllocationsOnly() {
+      try {
+        if (!this.savedEmploymentId) {
+          this.alertMessage = 'Please save the employment first before adding allocations';
+          this.alertClass = 'alert-danger';
+          return;
+        }
+
+        if (this.fundingAllocations.length === 0) {
+          this.alertMessage = 'Please add at least one funding allocation';
+          this.alertClass = 'alert-danger';
+          return;
+        }
+
+        if (this.totalFte !== 100) {
+          this.alertMessage = `Total FTE must equal 100%. Current total: ${this.totalFte}%`;
+          this.alertClass = 'alert-danger';
+          return;
+        }
+
+        console.log('Saving allocations only (decoupled workflow)...', {
+          employmentId: this.savedEmploymentId,
+          allocations: this.fundingAllocations
+        });
+
+        this.isSubmittingAllocations = true;
+        this.alertMessage = '';
+
+        const payload = this.buildAllocationsOnlyPayload();
+        console.log('Allocations payload:', payload);
+
+        // Use the separate allocation API endpoint
+        const response = await employmentService.createFundingAllocations(payload);
+        console.log('Allocations API Response:', response);
+
+        this.isAllocationsSaved = true;
+        this.showAllocationReminder = false;
+
+        // Show success with salary info from backend
+        const salaryInfo = response.salary_info;
+        let successMessage = response.message || 'Funding allocations saved successfully';
+        if (salaryInfo) {
+          const salaryType = salaryInfo.is_probation_period ? 'Probation' : 'Regular';
+          successMessage += ` (Using ${salaryType} salary: ${this.formatCurrency(salaryInfo.salary_amount_used)})`;
+        }
+
+        this.alertMessage = successMessage;
+        this.alertClass = 'alert-success';
+
+        // Clear draft
+        this.clearFormDraft();
+        this.hasUnsavedChanges = false;
+        this.isDraftMode = false;
+
+        // Emit event for parent components
+        this.$emit('allocations-saved', {
+          success: true,
+          message: successMessage,
+          employmentId: this.savedEmploymentId,
+          data: response.data,
+          salaryInfo: salaryInfo
+        });
+
+        // Emit combined success event
+        this.$emit('employment-added', {
+          success: true,
+          message: 'Employment and allocations created successfully',
+          data: {
+            employment_id: this.savedEmploymentId,
+            allocations: response.data
+          }
+        });
+
+      } catch (error) {
+        console.error('Error saving allocations:', error);
+        this.handleApiError(error);
+      } finally {
+        this.isSubmittingAllocations = false;
+      }
+    },
+
+    /**
+     * Handle API errors consistently
+     */
+    handleApiError(error) {
+      this.validationErrors = {};
+
+      if (error.status && error.success === false) {
+        if (error.errors && typeof error.errors === 'object' && !Array.isArray(error.errors)) {
+          this.validationErrors = error.errors;
+          this.alertMessage = error.error || error.message || 'Validation failed';
+        } else {
+          this.alertMessage = error.error || error.message || 'An error occurred';
+        }
+      } else if (error.response?.data) {
+        const errorData = error.response.data;
+        this.alertMessage = errorData.error || errorData.message || 'An error occurred';
+        if (errorData.errors && typeof errorData.errors === 'object') {
+          this.validationErrors = errorData.errors;
+        }
+      } else {
+        this.alertMessage = error.message || 'An error occurred. Please try again.';
+      }
+
+      this.alertClass = 'alert-danger';
+    },
+
     async handleSubmit() {
       try {
         console.log('Creating employment with funding allocations...', {
@@ -2634,6 +2991,15 @@ export default {
       this.restoredDataNotification.show = false;
       this.restoredDataNotification.timestamp = null;
       this.grantPositionOptions = [];
+
+      // Reset decoupled workflow state
+      this.isEmploymentSaved = false;
+      this.savedEmploymentId = null;
+      this.isAllocationsSaved = false;
+      this.employmentSaveMessage = '';
+      this.showAllocationReminder = false;
+      this.isSubmittingEmployment = false;
+      this.isSubmittingAllocations = false;
 
       // Reset custom tree select
       this.showEmployeeDropdown = false;
@@ -3321,6 +3687,178 @@ select {
   padding-top: 20px;
 }
 
+/* Section-based Save Row Styles */
+.section-save-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f5 100%);
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  gap: 16px;
+}
+
+.section-status {
+  flex: 1;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+.status-indicator.status-saved {
+  color: #28a745;
+  background: rgba(40, 167, 69, 0.1);
+}
+
+.status-indicator.status-pending {
+  color: #6c757d;
+  background: rgba(108, 117, 125, 0.1);
+}
+
+.status-indicator.status-ready {
+  color: #17a2b8;
+  background: rgba(23, 162, 184, 0.1);
+}
+
+.status-indicator.status-warning {
+  color: #f57c00;
+  background: rgba(255, 193, 7, 0.1);
+}
+
+.btn-section-save {
+  min-width: 150px;
+  padding: 8px 20px;
+  font-size: 0.9em;
+  font-weight: 500;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-section-save:hover:not(:disabled) {
+  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-section-save:disabled {
+  background: #d9d9d9;
+  color: #8c8c8c;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-section-save .spinner-icon {
+  animation: spin 1s linear infinite;
+}
+
+/* Section Disabled Overlay */
+.section-disabled {
+  position: relative;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.section-disabled-overlay {
+  background: rgba(248, 249, 250, 0.9);
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.disabled-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #6c757d;
+  font-size: 0.95em;
+}
+
+.disabled-message i {
+  font-size: 1.2em;
+}
+
+/* Section Header with Status Badge */
+.section-header-with-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-status-badge {
+  font-size: 0.75em;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+/* Employment Settings Section */
+.employment-settings-section {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px dashed #e9ecef;
+}
+
+/* Modal Footer Actions */
+.modal-footer-actions {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 2px solid #e9ecef;
+}
+
+.progress-summary {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.progress-complete {
+  color: #28a745;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-partial {
+  color: #17a2b8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-pending {
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-footer-actions .btn-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 /* Enhanced Prerequisites Warning UI */
 .allocation-prerequisites-warning {
   background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%);
@@ -3953,5 +4491,158 @@ select {
 
 .position-relative {
   position: relative;
+}
+
+/* ============================================
+   DECOUPLED WORKFLOW STYLES
+   Styles for the two-step employment + allocation flow
+   ============================================ */
+
+/* Section header with status badge */
+.section-header-with-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.section-header-with-status label {
+  margin-bottom: 0;
+}
+
+.section-status-badge {
+  font-size: 0.75em;
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.section-status-badge i {
+  font-size: 0.9em;
+}
+
+/* Employment saved indicator */
+.employment-saved-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 1px solid #28a745;
+  border-radius: 8px;
+  color: #155724;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.employment-saved-indicator i {
+  color: #28a745;
+  font-size: 1.2em;
+}
+
+/* Allocation reminder warning */
+.allocation-reminder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
+
+.allocation-reminder i {
+  font-size: 1.1em;
+}
+
+/* Warning when employment not saved */
+.allocation-employment-warning {
+  background: linear-gradient(135deg, #e7f3ff 0%, #d1e7ff 100%);
+  border: 1px solid #1890ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.allocation-employment-warning .warning-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: #1890ff;
+}
+
+.allocation-employment-warning .warning-content {
+  color: #444;
+}
+
+.allocation-employment-warning .warning-description {
+  margin: 0;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* Submit section styling */
+.submit-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+/* Button styling for allocations save */
+.btn-save-allocations {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+  border-color: #52c41a;
+}
+
+.btn-save-allocations:hover {
+  background: linear-gradient(135deg, #389e0d 0%, #237804 100%);
+  border-color: #389e0d;
+}
+
+.btn-save-allocations:disabled {
+  background: #d9d9d9;
+  border-color: #d9d9d9;
+  cursor: not-allowed;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+  border-color: #28a745;
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #1e7e34 0%, #155724 100%);
+}
+
+/* FTE warning in button */
+.fte-warning {
+  display: block;
+  font-size: 0.75em;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 2px;
+}
+
+/* Spinner icon animation in buttons */
+.btn .spinner-icon {
+  animation: spin 1s linear infinite;
+  margin-right: 4px;
+}
+
+/* Badge variations */
+.badge-secondary {
+  background-color: #f0f0f0;
+  color: #666;
+  border: 1px solid #d9d9d9;
+}
+
+.badge-success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
 }
 </style>

@@ -353,7 +353,11 @@ export const API_ENDPOINTS = {
         UPDATE: '/employee-funding-allocations/:id',
         DELETE: '/employee-funding-allocations/:id',
         BY_GRANT_ITEM: '/employee-funding-allocations/by-grant-item/:grantItemId',
-        GRANT_STRUCTURE: '/employee-funding-allocations/grant-structure'
+        GRANT_STRUCTURE: '/employee-funding-allocations/grant-structure',
+        CALCULATE_PREVIEW: '/employee-funding-allocations/calculate-preview',
+        BULK_DEACTIVATE: '/employee-funding-allocations/bulk-deactivate',
+        BY_EMPLOYEE: '/employee-funding-allocations/employee/:employeeId',
+        UPDATE_EMPLOYEE_ALLOCATIONS: '/employee-funding-allocations/employee/:employeeId'
     },
 
     // JobOffer endpoints 

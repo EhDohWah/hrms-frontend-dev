@@ -40,7 +40,7 @@
           </div> -->
           <div class="ms-2 head-icons">
             <a href="javascript:void(0);" :class="{ active: isCollapsed }" @click="toggleCollapse"
-              data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Collapse" id="collapse-header">
+              id="collapse-header">
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>

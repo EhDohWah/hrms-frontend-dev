@@ -43,8 +43,7 @@
             </button>
           </div>
           <div class="head-icons ms-2">
-            <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
-              data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
+            <a href="javascript:void(0);" class="" id="collapse-header" @click="toggleHeader">
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
@@ -199,9 +198,22 @@
 <script>
 import { defineAsyncComponent, shallowRef, markRaw, ref } from 'vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-// Lazy load modal components for better performance
-const EmploymentModal = defineAsyncComponent(() => import('@/components/modal/employment-modal.vue'));
-const EmploymentEditModal = defineAsyncComponent(() => import('@/components/modal/employment-edit-modal.vue'));
+// Lazy load Add modal (doesn't need direct method access during load)
+const EmploymentModal = defineAsyncComponent({
+  loader: () => import('@/components/modal/employment-modal.vue'),
+  timeout: 10000,
+  onError(error, retry, fail, attempts) {
+    console.error('❌ Failed to load EmploymentModal:', error, 'Attempt:', attempts);
+    if (attempts <= 2) {
+      retry();
+    } else {
+      fail();
+    }
+  }
+});
+// FIXED: Use regular import for Edit modal - defineAsyncComponent wraps component
+// and prevents direct method access via refs (Vue 3 limitation)
+import EmploymentEditModal from '@/components/modal/employment-edit-modal.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
@@ -914,15 +926,9 @@ export default {
           await this.$nextTick();
         }
 
-        // On first mount with async component, ref may not be ready immediately; wait briefly
-        let attempts = 0;
-        while (
-          (!this.$refs.employmentEditModal || typeof this.$refs.employmentEditModal.openModal !== 'function') &&
-          attempts < 40
-        ) {
-          await new Promise(resolve => setTimeout(resolve, 25));
-          attempts++;
-        }
+        // With regular import (not defineAsyncComponent), ref should be ready immediately
+        // Just wait one tick for Vue to update the DOM
+        await this.$nextTick();
 
         // Fetch complete employment details with all related data
         const response = await employmentService.getEmploymentById(record.id);
@@ -930,19 +936,24 @@ export default {
         if (response.success && response.data) {
           console.log('Employment details loaded:', response.data);
 
-          if (this.$refs.employmentEditModal && typeof this.$refs.employmentEditModal.openModal === 'function') {
+          const modalRef = this.$refs.employmentEditModal;
+          if (modalRef && typeof modalRef.openModal === 'function') {
             // Set the employment data to the edit modal
-            this.$refs.employmentEditModal.employmentData = response.data;
+            modalRef.employmentData = response.data;
             
             // Wait for next tick to ensure component is fully rendered
             await this.$nextTick();
             
             // Open the modal
             console.log('🚀 Opening employment edit modal...');
-            await this.$refs.employmentEditModal.openModal();
+            await modalRef.openModal();
           } else {
-            console.error('❌ Modal ref not ready:', this.$refs.employmentEditModal);
-            this.$message && this.$message.warning && this.$message.warning('Edit form is loading, please try again.');
+            console.error('❌ Modal ref not ready:', {
+              ref: modalRef,
+              refType: typeof modalRef,
+              hasOpenModal: modalRef ? typeof modalRef.openModal : 'undefined'
+            });
+            this.$message && this.$message.warning && this.$message.warning('Edit form is not available. Please refresh the page.');
           }
         } else {
           console.error('Failed to load employment details:', response);

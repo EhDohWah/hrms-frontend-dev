@@ -1162,6 +1162,19 @@
             }
         }
 
+        // Fix: Add background to sidebar logo area when header is collapsed
+        .sidebar {
+            .sidebar-logo {
+                background: $white;
+                border-right: 1px solid $gray-200;
+                
+                @include respond-below(lg) {
+                    background: transparent;
+                    border-right: none;
+                }
+            }
+        }
+
         #collapse-header {
             i {
                 transform: rotate(180deg);
@@ -1170,7 +1183,7 @@
             }
         }
 
-        @include respond-below (lg) {
+        @include respond-below(lg) {
             display: block;
         }
     }

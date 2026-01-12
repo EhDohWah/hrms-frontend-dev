@@ -39,6 +39,9 @@ export default {
     };
   },
   mounted() {
+    // Set data-layout attribute for CSS selectors to work (matching original template)
+    document.documentElement.setAttribute('data-layout', 'default');
+    
     // Listen for permission denied events from API service
     window.addEventListener('permission-denied', this.handlePermissionDenied);
   },

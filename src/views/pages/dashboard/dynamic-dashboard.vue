@@ -54,7 +54,7 @@
                 <div class="card-actions">
                   <button 
                     class="btn btn-sm btn-link p-0 me-2"
-                    @click="toggleCollapse(widget)"
+                    @click="toggleWidgetCollapse(widget)"
                     :title="widget.is_collapsed ? 'Expand' : 'Collapse'"
                   >
                     <i :class="widget.is_collapsed ? 'ti ti-chevron-down' : 'ti ti-chevron-up'"></i>
@@ -403,22 +403,22 @@ export default {
       }
     },
 
-    async toggleCollapse(widget) {
-      if (typeof widget === 'object') {
-        try {
-          await dashboardService.toggleWidgetCollapse(widget.id);
-          widget.is_collapsed = !widget.is_collapsed;
-        } catch (error) {
-          console.error('Error toggling collapse:', error);
-        }
+    async toggleWidgetCollapse(widget) {
+      try {
+        await dashboardService.toggleWidgetCollapse(widget.id);
+        widget.is_collapsed = !widget.is_collapsed;
+      } catch (error) {
+        console.error('Error toggling widget collapse:', error);
+      }
+    },
+
+    toggleCollapse() {
+      // Navbar header collapse toggle - consistent with other pages
+      this.isCollapsed = !this.isCollapsed;
+      if (this.isCollapsed) {
+        document.body.classList.add('header-collapse');
       } else {
-        // Header collapse toggle
-        this.isCollapsed = !this.isCollapsed;
-        if (this.isCollapsed) {
-          document.body.classList.add('header-collapse');
-        } else {
-          document.body.classList.remove('header-collapse');
-        }
+        document.body.classList.remove('header-collapse');
       }
     },
 

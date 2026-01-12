@@ -130,6 +130,25 @@ class GrantService extends BaseService {
     );
   }
 
+  // Delete selected grants (bulk delete)
+  async deleteSelectedGrants(ids) {
+    const result = await this.handleApiResponse(
+      () => apiService.delete(API_ENDPOINTS.GRANT.DELETE_SELECTED, { ids }),
+      'delete selected grants'
+    );
+
+    // Invalidate grant structure cache after bulk delete
+    try {
+      const sharedStore = useSharedDataStore();
+      sharedStore.invalidateCache('grantStructure');
+      console.log('🗑️ Cache invalidated after bulk deleting grants');
+    } catch (error) {
+      console.warn('⚠️ Failed to invalidate cache after bulk deleting grants:', error);
+    }
+
+    return result;
+  }
+
   // Delete a grant item
   async deleteGrantItem(id) {
     const endpoint = API_ENDPOINTS.GRANT.ITEMS.DELETE.replace(':id', id);

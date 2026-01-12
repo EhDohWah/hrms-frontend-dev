@@ -25,9 +25,16 @@
               <i class="ti ti-circle-plus me-2"></i>Add Grant
             </button>
           </div>
-          <div v-if="canEditGrants" class="mb-2">
+          <div v-if="canEditGrants" class="mb-2 me-2">
             <button class="btn btn-primary d-flex align-items-center" @click="openGrantUploadModal">
               <i class="ti ti-upload me-2"></i>Upload Grant Excel File
+            </button>
+          </div>
+          <!-- Delete Selected Button - Only visible if user can edit -->
+          <div v-if="canEditGrants" class="mb-2">
+            <button class="btn btn-danger d-flex align-items-center" @click="confirmDeleteSelectedGrants"
+              :class="{ 'disabled': selectedRowKeys.length === 0 }">
+              <i class="ti ti-trash me-2"></i>Delete Selected
             </button>
           </div>
           <div class="head-icons ms-2">
@@ -65,7 +72,7 @@
           <div v-else class="resize-observer-fix">
             <!-- TABLE WITHOUT PAGINATION -->
             <a-table :columns="columns" :data-source="tableData" :pagination="false" :scroll="{ x: 'max-content' }"
-              row-key="id" @change="handleTableChange">
+              row-key="id" @change="handleTableChange" :row-selection="rowSelection">
               <!-- Expandable row for grant items -->
               <template #expandedRowRender="{ record }">
                 <div>
@@ -338,7 +345,7 @@ import { uploadGrantService } from '@/services/upload-grant.service';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
 import { cloneDeep } from 'lodash-es';
-import { Modal } from 'ant-design-vue';
+import { Modal, Table } from 'ant-design-vue';
 import { usePermissions } from '@/composables/usePermissions';
 
 export default {
@@ -393,6 +400,7 @@ export default {
       searchLoading: false,
       editableData: {},
       grantService,
+      selectedRowKeys: [],
 
       // SEPARATE PAGINATION PROPERTIES
       currentPage: 1,
@@ -579,9 +587,50 @@ export default {
         // When not editing, show all columns
         return this.baseInnerColumns;
       }
-    }
+    },
 
-
+    // Row selection configuration for bulk operations
+    rowSelection() {
+      // Only show row selection if user has edit permission
+      if (!this.canEditGrants) {
+        return null;
+      }
+      
+      return {
+        // fix the column to the left
+        fixed: 'left',
+        // give it a more appropriate width for checkboxes
+        columnWidth: 60,
+        // your existing config
+        selectedRowKeys: this.selectedRowKeys,
+        onChange: this.onSelectChange,
+        hideDefaultSelections: false,
+        selections: [
+          Table.SELECTION_ALL,
+          Table.SELECTION_NONE,
+          {
+            key: 'smru',
+            text: 'Select SMRU Grants',
+            onSelect: () => {
+              const smruGrants = this.grants
+                .filter(g => g.organization === 'SMRU')
+                .map(g => g.id);
+              this.selectedRowKeys = smruGrants;
+            },
+          },
+          {
+            key: 'bhf',
+            text: 'Select BHF Grants',
+            onSelect: () => {
+              const bhfGrants = this.grants
+                .filter(g => g.organization === 'BHF')
+                .map(g => g.id);
+              this.selectedRowKeys = bhfGrants;
+            },
+          },
+        ],
+      }
+    },
   },
   mounted() {
     // Initialize DateRangePicker
@@ -1241,6 +1290,49 @@ export default {
       } catch (error) {
         console.error('Error deleting grant:', error);
         this.$message.error('Failed to delete grant');
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    // Row selection change handler
+    onSelectChange(selectedRowKeys) {
+      this.selectedRowKeys = selectedRowKeys;
+      console.log('selectedRowKeys changed: ', selectedRowKeys);
+    },
+
+    // Confirm delete selected grants
+    confirmDeleteSelectedGrants() {
+      if (this.selectedRowKeys.length === 0) {
+        this.$message.warning('Please select at least one grant to delete');
+        return;
+      }
+
+      Modal.confirm({
+        title: `Are you sure you want to delete ${this.selectedRowKeys.length} selected grant(s)?`,
+        content: 'This will delete all selected grants and their associated grant items. This action cannot be undone.',
+        centered: true,
+        okText: 'Yes, Delete All',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: () => {
+          this.deleteSelectedGrants();
+        }
+      });
+    },
+
+    // Delete selected grants
+    async deleteSelectedGrants() {
+      this.loading = true;
+      try {
+        console.log('Sending IDs to delete:', this.selectedRowKeys);
+        await this.grantService.deleteSelectedGrants(this.selectedRowKeys);
+        this.$message.success(`${this.selectedRowKeys.length} grant(s) deleted successfully`);
+        this.selectedRowKeys = [];
+        this.fetchGrants();
+      } catch (error) {
+        this.$message.error('Failed to delete grants');
+        console.error("Error deleting grants:", error);
       } finally {
         this.loading = false;
       }

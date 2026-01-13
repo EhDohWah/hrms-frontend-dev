@@ -55,33 +55,56 @@ export default {
         this.loading = true;
         this.message = '';
         this.error = '';
+        this.secondsRemaining = 0;
 
         const response = await authService.forgotPassword(this.formData.email);
         
-        this.message = response.message || 'Password reset link has been sent to your email';
+        this.message = response.message || 'We have emailed your password reset link!';
+        
+        // Reset form
+        this.formData.email = '';
+        this.v$.$reset();
+        
         setTimeout(() => {
           this.$router.push('/login');
-        }, 3000);
+        }, 5000);
       } catch (err) {
         console.error('Forgot password error:', err);
         
-        // Bad request error
-        if (err.response?.status === 400) {
-          this.error = err.response.data.message || 'Unable to send reset link';
+        // Rate limit error (429)
+        if (err.response?.status === 429) {
+          this.error = err.response.data.message || 'Too many requests. Please wait before trying again.';
+          
+          // Extract seconds from error message if available
+          const match = err.response.data.message?.match(/(\d+) seconds/);
+          if (match) {
+            this.secondsRemaining = parseInt(match[1]);
+            const countdown = setInterval(() => {
+              this.secondsRemaining--;
+              if (this.secondsRemaining <= 0) {
+                clearInterval(countdown);
+              }
+            }, 1000);
+          }
         }
-        // Validation error
+        // Bad request error (400) - inactive account
+        else if (err.response?.status === 400) {
+          this.error = err.response.data.message || 'Unable to send reset link. Please contact the administrator.';
+        }
+        // Validation error (422)
         else if (err.response?.status === 422) {
-          this.error = err.response.data.errors?.email?.[0] 
+          const errors = err.response.data.errors || {};
+          this.error = errors.email?.[0] 
             || err.response.data.message 
-            || 'The email field is invalid.';
+            || 'Please enter a valid email address.';
         }
         // Network or connection error
         else if (!err.response) {
-          this.error = 'Unable to connect to the server. Please check your connection and try again.';
+          this.error = 'Unable to connect to the server. Please check your internet connection and try again.';
         }
         // Other errors
         else {
-          this.error = 'Failed to send reset link. Please try again.';
+          this.error = err.response?.data?.message || 'Failed to send reset link. Please try again later.';
         }
       } finally {
         this.loading = false;
@@ -95,51 +118,34 @@ export default {
   <div class="container-fuild">
     <div class="w-100 overflow-hidden position-relative flex-wrap d-block vh-100">
       <div class="row">
+
         <div class="col-lg-5">
           <div
-            class="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100"
-          >
-            <div class="bg-overlay-img">
-              <img src="@/assets/img/bg/bg-01.png" class="bg-1" alt="" />
-              <img src="@/assets/img/bg/bg-02.png" class="bg-2" alt="" />
-              <img src="@/assets/img/bg/bg-03.png" class="bg-3" alt="" />
-            </div>
-            <div class="authentication-card w-100">
-              <div class="authen-overlay-item border w-100">
-                <h1 class="text-white fs-40">
-                  Empowering people <br />
-                  through seamless HR <br />
-                  management.
-                </h1>
-                <div class="my-4 mx-auto authen-overlay-img">
-                  <img src="@/assets/img/bg/authentication-bg-01.png" alt="" />
-                </div>
-                <div>
-                  <p class="text-white fs-20 fw-semibold text-center">
-                    Efficiently manage your workforce, streamline <br />
-                    operations effortlessly.
-                  </p>
-                </div>
-              </div>
-            </div>
+            class="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100">
+            <!-- Add picture for background -->
+
+            <!-- Overlay -->
           </div>
         </div>
+
         <div class="col-lg-7 col-md-12 col-sm-12">
-          <div
-            class="row justify-content-center align-items-center vh-100 overflow-auto flex-wrap"
-          >
-            <div class="col-md-7 mx-auto p-4">
-              <form @submit.prevent="submitForm">
-                <div>
-                  <div class="mx-auto mb-5 text-center">
-                    <img src="@/assets/img/logo.svg" class="img-fluid" alt="Logo" />
+          <div class="row justify-content-center align-items-center vh-100 overflow-auto flex-wrap">
+            <div class="col-md-7 mx-auto p-4 d-flex flex-column">
+              <!-- Form with @submit.prevent -->
+              <div class="flex-grow-1 d-flex flex-column">
+                <div class="mx-auto mb-5 text-center">
+                  <!-- Custom Logo Box -->
+                  <div class="login-logo-box">
+                    <h1 class="login-logo-title">HRMS</h1>
+                    <span class="login-logo-tagline">SMRU / BHF</span>
                   </div>
-                  <div class="">
+                </div>
+
+                <form @submit.prevent="submitForm" class="flex-grow-1 d-flex flex-column">
+                  <div class="flex-grow-1">
                     <div class="text-center mb-3">
                       <h2 class="mb-2">Forgot Password?</h2>
-                      <p class="mb-0">
-                        Enter your email and we'll send you instructions to reset your password.
-                      </p>
+                      <p class="mb-0">Enter your email and we'll send you instructions to reset your password.</p>
                     </div>
 
                     <!-- Success Message -->
@@ -157,6 +163,7 @@ export default {
                       <button type="button" class="btn-close" @click="error = ''"></button>
                     </div>
 
+                    <!-- Email Input -->
                     <div class="mb-3">
                       <label class="form-label">Email Address</label>
                       <div class="input-group" :class="{ 'is-invalid': v$.email.$error }">
@@ -176,17 +183,17 @@ export default {
                       </div>
                     </div>
 
-                    <div class="mb-3">
-                      <button 
-                        type="submit" 
-                        class="btn btn-primary w-100"
-                        :disabled="loading || secondsRemaining > 0"
-                      >
-                        <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
-                        {{ loading ? 'Sending...' : 'Send Reset Link' }}
-                      </button>
-                    </div>
+                    <!-- Submit Button -->
+                    <button 
+                      type="submit" 
+                      class="btn btn-primary w-100 mb-3"
+                      :disabled="loading || secondsRemaining > 0"
+                    >
+                      <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+                      {{ loading ? 'Sending...' : 'Send Reset Link' }}
+                    </button>
 
+                    <!-- Back to Login Link -->
                     <div class="text-center">
                       <h6 class="fw-normal text-dark mb-0">
                         Return to
@@ -194,13 +201,19 @@ export default {
                       </h6>
                     </div>
                   </div>
-                  <div class="mt-5 text-center">
-                    <p class="mb-0 text-gray-9">
-                      Copyright &copy; {{ new Date().getFullYear() }} - Smarthr
-                    </p>
-                  </div>
+                </form>
+              </div>
+
+              <!-- Footer with logos -->
+              <div class="footer mt-4">
+                <div class="d-flex justify-content-center align-items-center">
+                  <img src="@/assets/img/smru-logo.png" alt="SMRU Logo" class="me-4" style="max-height: 50px;" />
+                  <img src="@/assets/img/bhf-logo.png" alt="BHF Logo" style="max-height: 50px;" />
                 </div>
-              </form>
+                <div class="text-center mt-2">
+                  <small class="text-muted">&copy; {{ new Date().getFullYear() }} SMRU/BHF HR Management System</small>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -208,3 +221,13 @@ export default {
     </div>
   </div>
 </template>
+
+<style scoped>
+.input-group-text {
+  cursor: pointer;
+}
+
+.invalid-feedback {
+  display: block;
+}
+</style>

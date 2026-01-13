@@ -28,7 +28,7 @@ export default {
             <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
                 <breadcrumb :title="title" :text="text" :text1="text1" />
                 <div class="head-icons ms-2">
-                    <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
+                    <a href="javascript:void(0);" class="" id="collapse-header" @click="toggleHeader">
                         <i class="ti ti-chevrons-up"></i>
                     </a>
                 </div>

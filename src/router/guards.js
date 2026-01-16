@@ -34,6 +34,8 @@ export const authGuard = (to, from, next) => {
         const user = JSON.parse(localStorage.getItem('user'));
         if (user?.id) {
             initPermissionUpdateListener(user.id);
+            // Note: Notification subscription is handled in layout-header.vue
+            // to properly show toast notifications with retry logic
         }
     }
 

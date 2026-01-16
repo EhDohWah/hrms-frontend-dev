@@ -200,7 +200,7 @@ import sideBarData from "@/assets/json/sidebar-menuone.json";
 import { Modal, notification } from 'ant-design-vue'
 import { notification as antNotification } from 'ant-design-vue';
 import eventBus from '@/plugins/eventBus';
-import { disconnectEcho, getEcho } from '@/plugins/echo';
+import { disconnectEcho, getEcho, subscribeToNotifications, unsubscribeFromNotifications } from '@/plugins/echo';
 
 export default {
   data() {
@@ -248,44 +248,25 @@ export default {
     const user = JSON.parse(localStorage.getItem('user'));
     const userId = user ? user.id : null;
 
-    if (userId && getEcho()) {
-      getEcho().private(`App.Models.User.${userId}`)
-        .notification((notif) => {
-          console.log('[Echo] Notification received:', notif);
-
-          // Ensure the notification has the proper structure for Laravel notifications
-          const formattedNotif = {
-            id: notif.id || Date.now().toString(),
-            data: notif.data || { message: notif.message },
-            read_at: null,
-            created_at: new Date().toISOString(),
-            ...notif
-          };
-
-          // Add to store
-          this.notificationStore.addNotification(formattedNotif);
-
-          // Show toast notification
-          notification.open({
-            message: 'New Notification',
-            description: this.getNotificationMessage(formattedNotif),
-            placement: 'topRight',
-            onClick: () => {
-              console.log('Notification Clicked!');
-            },
-          });
-          console.log('Notification Event Fired!');
-          eventBus.emit('notification-clicked', formattedNotif);
-        });
+    if (userId) {
+      // Use the centralized subscribeToNotifications function
+      // This handles the case where Echo might not be ready yet
+      this.initNotificationSubscription(userId);
     }
   },
 
   beforeUnmount() {
-    // Clean up Echo listener
+    // Clear notification retry timeout if exists
+    if (this._notificationRetryTimeout) {
+      clearTimeout(this._notificationRetryTimeout);
+      this._notificationRetryTimeout = null;
+    }
+
+    // Clean up Echo listener using centralized cleanup
     const user = JSON.parse(localStorage.getItem('user'));
     const userId = user ? user.id : null;
-    if (userId && window.Echo) {
-      window.Echo.leave(`private-App.Models.User.${userId}`);
+    if (userId) {
+      unsubscribeFromNotifications(userId);
     }
 
     // Clean up event listeners
@@ -296,6 +277,7 @@ export default {
   mounted() {
     this.initMouseoverListener();
     this.handleOutsideClick = this.handleOutsideClick.bind(this);
+    document.addEventListener('click', this.handleOutsideClick);
 
     // Check the persisted flag and show notification if it's true
     if (this.authStore.justLoggedIn) {
@@ -326,6 +308,82 @@ export default {
   },
 
   methods: {
+    /**
+     * Initialize notification subscription with retry logic
+     * Handles case where Echo might not be initialized yet
+     */
+    initNotificationSubscription(userId) {
+      const trySubscribe = () => {
+        if (getEcho()) {
+          subscribeToNotifications(userId, (notif) => {
+            console.log('[LayoutHeader] 🔔 Real-time notification received:', notif);
+
+            // Ensure the notification has the proper structure for Laravel notifications
+            const formattedNotif = {
+              id: notif.id || Date.now().toString(),
+              data: notif.data || { message: notif.message },
+              read_at: null,
+              created_at: new Date().toISOString(),
+              ...notif
+            };
+
+            // Add to store
+            this.notificationStore.addNotification(formattedNotif);
+
+            // Show toast notification
+            notification.open({
+              message: 'New Notification',
+              description: this.getNotificationMessage(formattedNotif),
+              placement: 'topRight',
+              onClick: () => {
+                console.log('Notification Clicked!');
+              },
+            });
+            console.log('Notification Event Fired!');
+            eventBus.emit('notification-clicked', formattedNotif);
+          });
+          return true;
+        }
+        return false;
+      };
+
+      // Try immediately
+      if (!trySubscribe()) {
+        // If Echo not ready, retry after a short delay (Echo might be initializing in guards.js)
+        console.log('[LayoutHeader] Echo not ready, will retry notification subscription...');
+        const retryTimeout = setTimeout(() => {
+          if (!trySubscribe()) {
+            console.warn('[LayoutHeader] Echo still not ready after retry, notifications may not work in real-time');
+          }
+        }, 1000);
+
+        // Store timeout for cleanup
+        this._notificationRetryTimeout = retryTimeout;
+      }
+    },
+
+    initMouseoverListener() {
+      this.handleMouseover = (e) => {
+        const target = e.target.closest('.submenu');
+        if (target) {
+          this.openSubmenuOneItem = target.querySelector('a')?.textContent.trim() || null;
+        }
+      };
+      document.addEventListener("mouseover", this.handleMouseover);
+    },
+
+    handleOutsideClick(event) {
+      const isClickInsideDropdown = event.target.closest('.nav-item.dropdown');
+      if (!isClickInsideDropdown) {
+        this.openMenuItem = null;
+        this.openSubmenuOneItem = null;
+      }
+    },
+
+    initNotificationDropdown() {
+      // Any additional notification dropdown initialization
+    },
+
     // Use store action for marking all as read
     async markAllAsRead() {
       try {

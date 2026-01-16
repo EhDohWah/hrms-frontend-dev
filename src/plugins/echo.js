@@ -104,9 +104,7 @@ export function initEcho(token) {
         forceTLS: (process.env.VUE_APP_REVERB_SCHEME || 'http') === 'https',
         enabledTransports: ['ws', 'wss'],
         disableStats: true,
-        authEndpoint: process.env.VUE_APP_API_BASE_URL
-            ? `${process.env.VUE_APP_PUBLIC_URL}/broadcasting/auth`
-            : 'http://127.0.0.1:8000/broadcasting/auth', // TODO: Change to the actual auth endpoint
+        authEndpoint: `${process.env.VUE_APP_API_BASE_URL || 'http://127.0.0.1:8000/api/v1'}/broadcasting/auth`,
         auth: {
             headers: { Authorization: `Bearer ${token}` },
         },

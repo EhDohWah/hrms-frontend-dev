@@ -6,11 +6,6 @@
   # bump Node’s heap to 4 GB so Vue CLI doesn’t OOM
   NODE_OPTIONS = "--max-old-space-size=4096"
 
-  # your Vue CLI env vars
-  VUE_APP_API_BASE_URL = "https://hrms.one/api/v1"
-  VUE_APP_ENV          = "production"
-
-
 [[redirects]]
   from = "/*"
   to = "/index.html"

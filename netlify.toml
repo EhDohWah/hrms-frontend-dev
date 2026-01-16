@@ -7,7 +7,7 @@
   NODE_OPTIONS = "--max-old-space-size=4096"
 
   # your Vue CLI env vars
-  VUE_APP_API_BASE_URL = "https://api.hrms.one/api/v1"
+  VUE_APP_API_BASE_URL = "https://hrms-backend-api-v1-wyrrskey.on-forge.com/api/v1"
   VUE_APP_ENV          = "production"
 
 

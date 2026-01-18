@@ -17,22 +17,27 @@ import { debounce } from '@/utils/performance.js';
  * @param {Function} options.onGrantChange - Callback when grant changes
  * @param {Function} options.onEmployeeChange - Callback when employee changes
  * @param {number} options.debounceDelay - Debounce delay for auto-save (default: 1000ms)
+ * @param {string} options.draftKey - Key for localStorage draft (default: 'employment-modal-draft')
  * @returns {Object} Draft persistence interface
  * 
  * @example
- * const {
- *   isDraftMode,
- *   hasUnsavedChanges,
- *   restoredDataNotification,
- *   saveFormState,
- *   loadFormDraft,
- *   clearFormDraft
- * } = useDraftPersistence({
+ * // Create mode - uses default draft key
+ * const { saveFormState, loadFormDraft } = useDraftPersistence({
  *   formData,
  *   fundingAllocations,
  *   currentAllocation,
  *   selectedEmployeeInfo,
  *   safeConvertToDate
+ * });
+ * 
+ * // Edit mode - uses separate draft key
+ * const { saveFormState, loadFormDraft } = useDraftPersistence({
+ *   formData,
+ *   fundingAllocations,
+ *   currentAllocation,
+ *   selectedEmployeeInfo,
+ *   safeConvertToDate,
+ *   draftKey: 'employment-edit-modal-draft'
  * });
  */
 export function useDraftPersistence(options = {}) {
@@ -44,7 +49,8 @@ export function useDraftPersistence(options = {}) {
     safeConvertToDate,
     onGrantChange,
     onEmployeeChange,
-    debounceDelay = 1000
+    debounceDelay = 1000,
+    draftKey = 'employment-modal-draft'
   } = options;
 
   // ============================================
@@ -80,9 +86,9 @@ export function useDraftPersistence(options = {}) {
   });
 
   /**
-   * Form draft storage key
+   * Form draft storage key (configurable via options.draftKey)
    */
-  const formDraftKey = 'employment-modal-draft';
+  const formDraftKey = draftKey;
 
   // ============================================
   // SAVE DRAFT

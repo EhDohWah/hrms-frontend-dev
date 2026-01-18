@@ -4,7 +4,7 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content new-modal-design">
         <div class="modal-header-new">
-          <h2 class="modal-title-new" id="employmentEditModalLabel">
+          <h2 class="modal-title-new" id="employmentEditModalLabel" v-once>
             Edit Employment
           </h2>
           <button type="button" class="btn-close-custom" @click="handleModalClose" aria-label="Close">
@@ -12,6 +12,14 @@
           </button>
         </div>
         <div class="modal-body-new">
+          <!-- Restored Data Notification -->
+          <div v-if="restoredDataNotification.show" class="alert alert-info alert-dismissible fade show mb-3"
+            role="alert">
+            <i class="ti ti-info-circle me-2"></i>
+            Restored your previous unsaved changes from {{ formatRestoredTime(restoredDataNotification.timestamp) }}
+            <button type="button" class="btn-close" @click="restoredDataNotification.show = false"></button>
+          </div>
+
           <div v-if="isLoadingData" class="text-center mb-3">
             <div class="spinner-border spinner-border-sm" role="status">
               <span class="visually-hidden">Loading...</span>
@@ -28,7 +36,7 @@
               {{ alertMessage }}
             </div>
 
-            <!-- Row 1: Employee (full width) - READ ONLY for edit -->
+            <!-- Row 1: Employee (READ-ONLY for edit mode) -->
             <div class="form-group">
               <label class="form-label">Employee</label>
               <div class="employee-display-card">
@@ -36,7 +44,18 @@
                   <strong>{{ selectedEmployeeInfo.name }}</strong>
                   <span class="text-muted ms-2">({{ selectedEmployeeInfo.staff_id }})</span>
                   <br>
-                  <small class="text-muted">{{ selectedEmployeeInfo.organization }}</small>
+                  <small class="text-muted">Organization: {{ selectedEmployeeInfo.organization }}</small>
+                  <br>
+                  <small class="text-muted">Status:
+                    <span :class="[
+                      'badge badge-sm',
+                      selectedEmployeeInfo.status === 'Local ID' || selectedEmployeeInfo.status === 'Local ID Staff' ? 'bg-success' :
+                        selectedEmployeeInfo.status === 'Local non ID' || selectedEmployeeInfo.status === 'Local non ID Staff' ? 'bg-primary' :
+                          selectedEmployeeInfo.status === 'Expats' ? 'bg-warning' : 'bg-secondary'
+                    ]">
+                      {{ selectedEmployeeInfo.status }}
+                    </span>
+                  </small>
                 </div>
                 <div v-else class="text-muted">
                   Loading employee info...
@@ -49,7 +68,8 @@
               <div class="form-group">
                 <label class="form-label required">Employment Type</label>
                 <select class="form-control" v-model="formData.employment_type"
-                  :class="{ 'is-invalid': validationErrors.employment_type }" required :disabled="isLoadingData">
+                  :class="{ 'is-invalid': validationErrors.employment_type }" required @change="saveFormState"
+                  :disabled="isLoadingData">
                   <option disabled value="">Select Type</option>
                   <option v-for="type in employmentTypes" :key="type.id" :value="type.value">
                     {{ type.value }}
@@ -63,7 +83,7 @@
               <div class="form-group">
                 <label class="form-label">Pay Method</label>
                 <select class="form-control" v-model="formData.pay_method"
-                  :class="{ 'is-invalid': validationErrors.pay_method }">
+                  :class="{ 'is-invalid': validationErrors.pay_method }" @change="saveFormState">
                   <option disabled value="">Select Pay Method</option>
                   <option v-for="method in payMethods" :key="method.id" :value="method.value">
                     {{ method.value }}
@@ -91,7 +111,7 @@
               <div class="form-group">
                 <label class="form-label required">Position</label>
                 <select class="form-control" v-model="formData.position_id"
-                  :class="{ 'is-invalid': validationErrors.position_id }" required
+                  :class="{ 'is-invalid': validationErrors.position_id }" required @change="saveFormState"
                   :disabled="!formData.department_id || positionsLoading">
                   <option disabled value="">{{ positionsLoading ? 'Loading...' : 'Select Position' }}</option>
                   <option v-for="pos in positions" :key="pos.id" :value="pos.id">
@@ -109,7 +129,7 @@
               <div class="form-group">
                 <label class="form-label required">Site</label>
                 <select class="form-control" v-model="formData.site_id"
-                  :class="{ 'is-invalid': validationErrors.site_id }" required>
+                  :class="{ 'is-invalid': validationErrors.site_id }" required @change="saveFormState">
                   <option disabled value="">Select Site</option>
                   <option v-for="location in workLocations" :key="location.id" :value="location.id">
                     {{ location.name }}
@@ -121,9 +141,9 @@
               </div>
 
               <div class="form-group">
-                <label class="form-label">Section Department</label>
-                <select class="form-control" v-model="formData.section_department" :disabled="isLoadingData">
-                  <option disabled value="">Select Section Department</option>
+                <label class="form-label">Section/Department</label>
+                <select class="form-control" v-model="formData.section_department" @change="saveFormState">
+                  <option disabled value="">Select Section</option>
                   <option v-for="section in sectionDepartments" :key="section.id" :value="section.value">
                     {{ section.value }}
                   </option>
@@ -131,70 +151,68 @@
               </div>
             </div>
 
-            <!-- Row 5: Start Date + Pass Probation Date -->
+            <!-- Row 5: Start Date + End Date -->
             <div class="date-row">
               <div class="form-group">
                 <label class="form-label required">Start Date</label>
-                <div class="input-icon-end position-relative">
-                  <date-picker v-if="isModalVisible" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                    :editable="true" :clearable="false" :input-format="dateFormat" v-model="computedStartDate"
-                    :class="{ 'is-invalid': validationErrors.start_date }" required />
-                  <span class="input-icon-addon">
-                    <i class="ti ti-calendar text-gray-7"></i>
-                  </span>
+                <div class="input-icon-end">
+                  <VueDatePicker v-model="computedStartDate" :format="dateFormat" :enable-time-picker="false"
+                    auto-apply placeholder="Select start date" :class="{ 'is-invalid': validationErrors.start_date }"
+                    :disabled="isLoadingData" />
+                  <span class="input-icon-addon"><i class="ti ti-calendar"></i></span>
                 </div>
-                <div v-if="validationErrors.start_date" class="invalid-feedback">
+                <div v-if="validationErrors.start_date" class="invalid-feedback d-block">
                   {{ validationErrors.start_date }}
                 </div>
               </div>
 
               <div class="form-group">
-                <label class="form-label">Pass Probation Date</label>
-                <div class="input-icon-end position-relative">
-                  <date-picker v-if="isModalVisible" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                    :editable="true" :clearable="false" :input-format="dateFormat" v-model="computedProbationPassDate"
-                    :class="{ 'is-invalid': validationErrors.pass_probation_date }" />
-                  <span class="input-icon-addon">
-                    <i class="ti ti-calendar text-gray-7"></i>
-                  </span>
+                <label class="form-label">End Date</label>
+                <div class="input-icon-end">
+                  <VueDatePicker v-model="computedEndDate" :format="dateFormat" :enable-time-picker="false"
+                    auto-apply placeholder="Select end date" :disabled="isLoadingData" />
+                  <span class="input-icon-addon"><i class="ti ti-calendar"></i></span>
                 </div>
               </div>
             </div>
 
-            <!-- Row 6: Probation Salary + Pass Probation Salary -->
+            <!-- Row 6: Pass Probation Date -->
             <div class="date-row">
               <div class="form-group">
-                <label class="form-label">Probation Salary</label>
-                <input type="number" class="form-control" v-model.number="formData.probation_salary"
-                  :class="{ 'is-invalid': validationErrors.probation_salary }" placeholder="Salary during probation">
+                <label class="form-label">Probation Pass Date</label>
+                <div class="input-icon-end">
+                  <VueDatePicker v-model="computedProbationPassDate" :format="dateFormat" :enable-time-picker="false"
+                    auto-apply placeholder="Select probation pass date" :disabled="isLoadingData" />
+                  <span class="input-icon-addon"><i class="ti ti-calendar"></i></span>
+                </div>
+              </div>
+              <div class="form-group d-flex align-items-center">
+                <label class="form-label mb-0 me-3">Status</label>
+                <a-switch v-model:checked="formData.status" checked-children="Active" un-checked-children="Inactive"
+                  @change="onStatusChange" />
+              </div>
+            </div>
+
+            <!-- Salary Section -->
+            <div class="date-row">
+              <div class="form-group">
+                <label class="form-label required">Probation Salary</label>
+                <input type="number" class="form-control" v-model="formData.probation_salary"
+                  :class="{ 'is-invalid': validationErrors.probation_salary }" required @input="saveFormState"
+                  placeholder="Enter probation salary" min="0" step="0.01" :disabled="isLoadingData" />
+                <div v-if="validationErrors.probation_salary" class="invalid-feedback">
+                  {{ validationErrors.probation_salary }}
+                </div>
               </div>
 
               <div class="form-group">
                 <label class="form-label required">Pass Probation Salary</label>
-                <input type="number" class="form-control" v-model.number="formData.pass_probation_salary"
-                  :class="{ 'is-invalid': validationErrors.pass_probation_salary }" required
-                  placeholder="Regular salary after probation">
+                <input type="number" class="form-control" v-model="formData.pass_probation_salary"
+                  :class="{ 'is-invalid': validationErrors.pass_probation_salary }" required @input="saveFormState"
+                  placeholder="Enter pass probation salary" min="0" step="0.01" :disabled="isLoadingData" />
                 <div v-if="validationErrors.pass_probation_salary" class="invalid-feedback">
                   {{ validationErrors.pass_probation_salary }}
                 </div>
-              </div>
-            </div>
-
-            <!-- Row: Employment Status -->
-            <div class="form-group">
-              <label class="form-label">Employment Status</label>
-              <div class="employment-status-container">
-                <div class="status-switch-wrapper">
-                  <a-switch v-model:checked="formData.status" checked-children="Active" un-checked-children="Inactive"
-                    size="default" />
-                  <span class="status-label"
-                    :class="{ 'status-active': formData.status, 'status-inactive': !formData.status }">
-                    {{ formData.status ? 'Active' : 'Inactive' }}
-                  </span>
-                </div>
-                <small class="text-muted status-hint">
-                  <i class="ti ti-info-circle"></i> Toggle to set employment as Active or Inactive
-                </small>
               </div>
             </div>
 
@@ -204,21 +222,21 @@
               <div class="benefits-container">
                 <div class="benefit-item">
                   <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.health_welfare" />
+                    <input type="checkbox" v-model="formData.health_welfare" @change="saveFormState" />
                     <span class="checkmark"></span>
                     Health & Welfare
                   </label>
                 </div>
                 <div class="benefit-item">
                   <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.saving_fund" />
+                    <input type="checkbox" v-model="formData.saving_fund" @change="saveFormState" />
                     <span class="checkmark"></span>
                     Saving Fund
                   </label>
                 </div>
                 <div class="benefit-item">
                   <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.pvd" />
+                    <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
                     <span class="checkmark"></span>
                     PVD
                   </label>
@@ -226,12 +244,38 @@
               </div>
             </div>
 
+            <!-- Employment Save Section -->
+            <div class="section-save-row">
+              <div class="section-status">
+                <span v-if="isEmploymentSaved" class="status-indicator status-saved">
+                  <i class="ti ti-circle-check"></i>
+                  {{ employmentSaveMessage || 'Employment updated successfully' }}
+                </span>
+                <span v-else class="status-indicator status-pending">
+                  <i class="ti ti-info-circle"></i>
+                  Update employment details
+                </span>
+              </div>
+              <button type="button" class="btn btn-section-save" @click="handleUpdateEmployment"
+                :disabled="isSubmittingEmployment">
+                <span v-if="isSubmittingEmployment">
+                  <i class="ti ti-loader spinner-icon"></i> Saving...
+                </span>
+                <span v-else-if="isEmploymentSaved">
+                  <i class="ti ti-check"></i> Saved
+                </span>
+                <span v-else>
+                  <i class="ti ti-device-floppy"></i> Save Employment
+                </span>
+              </button>
+            </div>
+
             <!-- Funding Allocations Section -->
             <div class="form-section funding-allocation-section">
               <div class="section-header-with-status">
                 <label class="section-title">Funding Allocations</label>
                 <span v-if="fundingAllocations.length > 0" class="badge badge-info">
-                  {{ fundingAllocations.length }} allocation(s)
+                  {{ fundingAllocations.length }} allocation(s) | FTE: {{ totalFte }}%
                 </span>
               </div>
 
@@ -242,6 +286,7 @@
                     <tr>
                       <th>Grant</th>
                       <th>Budget Line</th>
+                      <th>Position</th>
                       <th>FTE (%)</th>
                       <th>Allocated Amount</th>
                       <th>Actions</th>
@@ -249,12 +294,18 @@
                   </thead>
                   <tbody>
                     <tr v-for="(allocation, index) in fundingAllocations" :key="allocation.id || index">
-                      <td>{{ allocation._original?.grant_name || 'N/A' }}</td>
-                      <td>{{ allocation._original?.budget_line_code || 'N/A' }}</td>
+                      <td>{{ allocation.grant_name || 'N/A' }}</td>
+                      <td>{{ allocation.budget_line_code || 'N/A' }}</td>
+                      <td>{{ allocation.position_name || 'N/A' }}</td>
                       <td>{{ allocation.fte }}%</td>
-                      <td>{{ formatCurrency(allocation._original?.allocated_amount || allocation.allocated_amount) }}</td>
+                      <td>{{ formatCurrency(allocation.allocated_amount) }}</td>
                       <td>
-                        <button type="button" class="btn btn-sm btn-outline-danger" @click="removeAllocation(index)">
+                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                          @click="editAllocation(index)" :disabled="editingIndex !== null">
+                          <i class="ti ti-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                          @click="deleteAllocation(index)">
                           <i class="ti ti-trash"></i>
                         </button>
                       </td>
@@ -262,73 +313,150 @@
                   </tbody>
                   <tfoot>
                     <tr class="total-row">
-                      <td colspan="2"><strong>Total</strong></td>
-                      <td><strong>{{ totalFte }}%</strong></td>
+                      <td colspan="3"><strong>Total</strong></td>
+                      <td><strong :class="{ 'text-danger': totalFte !== 100, 'text-success': totalFte === 100 }">
+                          {{ totalFte }}%
+                        </strong></td>
                       <td colspan="2"><strong>{{ formatCurrency(totalAllocatedSalary) }}</strong></td>
                     </tr>
                   </tfoot>
                 </table>
               </div>
 
+              <!-- No Allocations Message -->
+              <div v-else class="no-allocations-msg">
+                <p class="text-muted text-center">No funding allocations. Click "Add Allocation" to add one.</p>
+              </div>
+
               <!-- Add New Allocation Form -->
               <div v-if="showAddAllocationForm" class="add-allocation-form">
+                <h6 class="mb-3">Add New Allocation</h6>
                 <div class="date-row">
                   <div class="form-group">
                     <small class="text-muted">Grant</small>
-                    <select v-model="currentAllocation.grant_id" @change="onGrantChange" class="form-control">
+                    <select v-model="currentAllocation.grant_id" @change="onGrantChange" class="form-control"
+                      :class="{ 'is-invalid': allocationErrors.grant_id }">
                       <option value="">Select grant</option>
                       <option v-for="grant in grantOptions" :key="grant.id" :value="grant.id">
-                        {{ grant.name }} ({{ grant.code }})
+                        {{ grant.project_name || grant.name }} ({{ grant.grant_code || grant.code }})
                       </option>
                     </select>
+                    <div v-if="allocationErrors.grant_id" class="invalid-feedback">
+                      {{ allocationErrors.grant_id }}
+                    </div>
                   </div>
                   <div class="form-group">
-                    <small class="text-muted">Grant Item (Budget Line)</small>
+                    <small class="text-muted">Grant Position (Budget Line)</small>
                     <select v-model="currentAllocation.grant_item_id" class="form-control"
-                      :disabled="!currentAllocation.grant_id || grantItemsLoading">
-                      <option value="">{{ grantItemsLoading ? 'Loading...' : 'Select grant item' }}</option>
-                      <option v-for="item in grantItems" :key="item.id" :value="item.id">
-                        {{ item.budgetline_code }} - {{ item.grant_position || 'N/A' }}
+                      :class="{ 'is-invalid': allocationErrors.grant_item_id }"
+                      :disabled="!currentAllocation.grant_id || grantPositionOptions.length === 0">
+                      <option value="">{{ grantPositionOptions.length === 0 ? 'Select grant first' : 'Select position'
+                        }}</option>
+                      <option v-for="item in grantPositionOptions" :key="item.id" :value="item.id">
+                        {{ item.budget_line_code }} - {{ item.position?.name || 'N/A' }}
                       </option>
                     </select>
+                    <div v-if="allocationErrors.grant_item_id" class="invalid-feedback">
+                      {{ allocationErrors.grant_item_id }}
+                    </div>
                   </div>
                 </div>
                 <div class="date-row">
                   <div class="form-group">
                     <small class="text-muted">FTE (%)</small>
-                    <input type="number" class="form-control" v-model.number="currentAllocation.fte" min="1" max="100"
-                      placeholder="e.g., 100">
+                    <input type="number" class="form-control" v-model.number="currentAllocation.fte"
+                      :class="{ 'is-invalid': allocationErrors.fte }" min="1" max="100" placeholder="e.g., 100">
+                    <div v-if="allocationErrors.fte" class="invalid-feedback">
+                      {{ allocationErrors.fte }}
+                    </div>
                   </div>
-                  <div class="form-group d-flex align-items-end">
-                    <button type="button" class="btn btn-primary me-2" @click="addAllocation" :disabled="!canAddCurrentAllocation">
-                      <i class="ti ti-plus"></i> Add
-                    </button>
-                    <button type="button" class="btn btn-secondary" @click="cancelAddAllocation">
-                      Cancel
-                    </button>
+                  <div class="form-group">
+                    <small class="text-muted">Preview Amount</small>
+                    <div class="form-control-plaintext">
+                      <span v-if="calculating" class="text-muted">
+                        <i class="ti ti-loader spinner-icon"></i> Calculating...
+                      </span>
+                      <span v-else-if="formattedAmount">
+                        {{ formattedAmount }}
+                        <small class="text-muted">({{ salaryTypeLabel }})</small>
+                      </span>
+                      <span v-else class="text-muted">Enter FTE to calculate</span>
+                    </div>
                   </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                  <button type="button" class="btn btn-secondary" @click="cancelAddAllocation">
+                    Cancel
+                  </button>
+                  <button type="button" class="btn btn-primary" @click="addAllocation" :disabled="calculating">
+                    <i class="ti ti-plus"></i> Add Allocation
+                  </button>
                 </div>
               </div>
 
-              <button v-if="!showAddAllocationForm" type="button" class="btn btn-outline-primary btn-sm mt-2"
-                @click="showAddAllocationForm = true">
+              <!-- Add Allocation Button -->
+              <button v-if="!showAddAllocationForm && editingIndex === null" type="button"
+                class="btn btn-outline-primary btn-sm mt-2" @click="showAddAllocationForm = true">
                 <i class="ti ti-plus"></i> Add Allocation
               </button>
+
+              <!-- Allocation Save Section -->
+              <div class="section-save-row mt-3" v-if="fundingAllocations.length > 0">
+                <div class="section-status">
+                  <span v-if="isAllocationsSaved" class="status-indicator status-saved">
+                    <i class="ti ti-circle-check"></i>
+                    Allocations saved successfully
+                  </span>
+                  <span v-else-if="totalFte === 100" class="status-indicator status-ready">
+                    <i class="ti ti-info-circle"></i>
+                    Ready to save (FTE: {{ totalFte }}%)
+                  </span>
+                  <span v-else class="status-indicator status-warning">
+                    <i class="ti ti-alert-triangle"></i>
+                    FTE must equal 100% (Current: {{ totalFte }}%)
+                  </span>
+                </div>
+                <button type="button" class="btn btn-section-save" @click="handleSaveAllocationsOnly"
+                  :disabled="isSubmittingAllocations || totalFte !== 100">
+                  <span v-if="isSubmittingAllocations">
+                    <i class="ti ti-loader spinner-icon"></i> Saving...
+                  </span>
+                  <span v-else-if="isAllocationsSaved">
+                    <i class="ti ti-check"></i> Saved
+                  </span>
+                  <span v-else>
+                    <i class="ti ti-device-floppy"></i> Save Allocations
+                  </span>
+                </button>
+              </div>
             </div>
 
             <!-- Modal Footer -->
-            <div class="modal-footer-new">
-              <button type="button" class="btn btn-secondary" @click="handleModalClose">
-                Cancel
-              </button>
-              <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-                <span v-if="isSubmitting">
-                  <i class="ti ti-loader spinner-icon"></i> Saving...
+            <div class="modal-footer-actions">
+              <div class="progress-summary">
+                <span v-if="isEmploymentSaved && (isAllocationsSaved || fundingAllocations.length === 0)"
+                  class="progress-complete">
+                  <i class="ti ti-circle-check"></i> All changes saved
                 </span>
-                <span v-else>
-                  <i class="ti ti-device-floppy"></i> Save Changes
+                <span v-else-if="isEmploymentSaved" class="progress-partial">
+                  <i class="ti ti-progress"></i> Employment saved. Save allocations to complete.
                 </span>
-              </button>
+                <span v-else class="progress-pending">
+                  <i class="ti ti-info-circle"></i> Make changes and save to update employment.
+                </span>
+              </div>
+
+              <div class="btn-row">
+                <button type="button" class="btn btn-cancel" @click="handleModalClose">
+                  <i class="ti ti-x"></i> {{ isEmploymentSaved ? 'Close' : 'Cancel' }}
+                </button>
+
+                <!-- Complete Button -->
+                <button v-if="isEmploymentSaved && (isAllocationsSaved || fundingAllocations.length === 0)"
+                  type="button" class="btn btn-success" @click="handleModalClose">
+                  <i class="ti ti-check"></i> Complete
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -338,660 +466,551 @@
 </template>
 
 <script>
-import { Modal } from 'bootstrap';
-import { nextTick } from 'vue';
+/**
+ * Employment Edit Modal Component (Refactored with Composables)
+ * 
+ * This modal handles editing existing employment records with funding allocations.
+ * It uses composables for state management, following the same pattern as the create modal.
+ * 
+ * Key differences from create modal:
+ * - Employee selection is READ-ONLY (displays existing employee)
+ * - Loads existing employment data on open
+ * - Uses UPDATE API instead of CREATE
+ * - Uses separate draft key to avoid conflicts
+ * 
+ * Composables Used:
+ * - useEmploymentForm: Form state, validation, date utilities (edit mode)
+ * - useDraftPersistence: Auto-save and restore draft functionality
+ * - useAllocationManager: Funding allocation CRUD operations
+ * - useModalLifecycle: Bootstrap Modal integration
+ */
+import { ref, computed, watch, shallowRef, markRaw, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { employmentService } from '@/services/employment.service';
-import { workLocationService } from '@/services/worklocation.service';
 import { useLookupStore } from '@/stores/lookupStore';
 import { useSharedDataStore } from '@/stores/sharedDataStore';
+import { PerformanceCleanup } from '@/utils/performance.js';
+
+// Import composables
+import { useEmploymentForm } from '@/composables/useEmploymentForm';
+import { useDraftPersistence } from '@/composables/useDraftPersistence';
+import { useAllocationManager } from '@/composables/useAllocationManager';
+import { useModalLifecycle } from '@/composables/useModalLifecycle';
 
 export default {
   name: 'EmploymentEditModal',
 
-  emits: ['employment-updated', 'modal-closed'],
+  emits: ['employment-updated', 'allocations-saved', 'modal-closed'],
 
-  data() {
-    return {
-      // Modal state
-      isModalVisible: false,
-      isLoadingData: false,
-      isSubmitting: false,
-      modalInstance: null,
+  setup(props, { emit }) {
+    // ============================================
+    // PERFORMANCE CLEANUP MANAGER
+    // ============================================
+    const cleanup = new PerformanceCleanup();
 
-      // Alert messages
-      alertMessage: '',
-      alertClass: '',
+    // ============================================
+    // DATA LOADING STATE
+    // ============================================
+    const dataLoaded = ref(false);
+    const isLoadingData = ref(false);
+    const dateFormat = "dd/MM/yyyy";
+    
+    // Employment data from parent (set via setEmploymentData)
+    const employmentData = ref(null);
 
-      // Employment data from parent
-      employmentData: null,
+    // ============================================
+    // DATA SOURCES (Lookup Data)
+    // ============================================
+    const departments = shallowRef([]);
+    const positions = shallowRef([]);
+    const workLocations = shallowRef([]);
+    const employmentTypes = shallowRef([]);
+    const sectionDepartments = shallowRef([]);
+    const grantOptions = shallowRef([]);
+    const grantPositions = shallowRef({});
+    const payMethods = markRaw([
+      { id: 1, value: 'Transferred to bank' },
+      { id: 2, value: 'Cash cheque' }
+    ]);
+    const positionsLoading = ref(false);
+    
+    // Add allocation form visibility
+    const showAddAllocationForm = ref(false);
 
-      // Form data
-      formData: {
-        id: null,
-        employee_id: '',
-        employment_type: '',
-        pay_method: '',
-        department_id: '',
-        position_id: '',
-        section_department: '',
-        site_id: '',
-        start_date: null,
-        end_date: null,
-        pass_probation_date: null,
-        pass_probation_salary: '',
-        probation_salary: '',
-        status: true,
-        health_welfare: false,
-        pvd: false,
-        saving_fund: false
+    // ============================================
+    // INITIALIZE COMPOSABLES (Edit Mode)
+    // ============================================
+
+    // 1. Employment Form Composable (Edit Mode)
+    const employmentForm = useEmploymentForm({
+      mode: 'edit',
+      onFormChange: () => draftPersistence.debouncedSaveState(),
+      onEmploymentUpdated: (data) => emit('employment-updated', data),
+      onError: (error) => console.error('Employment form error:', error)
+    });
+
+    // 2. Allocation Manager Composable
+    const allocationManager = useAllocationManager({
+      formData: employmentForm.formData,
+      onFormChange: () => draftPersistence.debouncedSaveState(),
+      onAllocationsSaved: (data) => emit('allocations-saved', data),
+      onError: (error) => console.error('Allocation error:', error)
+    });
+
+    // 3. Draft Persistence Composable (with unique key for edit mode)
+    const draftPersistence = useDraftPersistence({
+      formData: employmentForm.formData,
+      fundingAllocations: allocationManager.fundingAllocations,
+      currentAllocation: allocationManager.currentAllocation,
+      selectedEmployeeInfo: employmentForm.selectedEmployeeInfo,
+      safeConvertToDate: employmentForm.safeConvertToDate,
+      draftKey: 'employment-edit-modal-draft'  // Separate key for edit mode
+    });
+
+    // 4. Modal Lifecycle Composable
+    const modalLifecycle = useModalLifecycle({
+      modalId: 'employmentEditModal',
+      hasUnsavedChanges: () => draftPersistence.hasUnsavedChanges.value && draftPersistence.isDraftMode.value,
+      onDiscardChanges: () => {
+        draftPersistence.clearFormDraft();
+        resetForm();
       },
+      onAfterClose: () => emit('modal-closed'),
+      cleanup
+    });
 
-      // Validation
-      validationErrors: {},
+    // ============================================
+    // COMPUTED PROPERTIES
+    // ============================================
 
-      // Selected employee info
-      selectedEmployeeInfo: null,
-
-      // Dropdown data
-      departments: [],
-      positions: [],
-      positionsLoading: false,
-      workLocations: [],
-      grantOptions: [],
-      grantItems: [],
-      grantItemsLoading: false,
-
-      // Funding allocations
-      fundingAllocations: [],
-      showAddAllocationForm: false,
-      currentAllocation: {
-        grant_id: '',
-        grant_item_id: '',
-        fte: 100
-      },
-
-      // Static options
-      employmentTypes: [
-        { id: 1, value: 'Full-time' },
-        { id: 2, value: 'Part-time' },
-        { id: 3, value: 'Contract' },
-        { id: 4, value: 'Temporary' },
-        { id: 5, value: 'Local ID Staff' },
-        { id: 6, value: 'Local non ID Staff' },
-        { id: 7, value: 'Expats' }
-      ],
-      payMethods: [
-        { id: 1, value: 'Transferred to bank' },
-        { id: 2, value: 'Cash' },
-        { id: 3, value: 'Cheque' }
-      ],
-      sectionDepartments: [],
-
-      // Date format
-      dateFormat: 'dd/MM/yyyy'
-    };
-  },
-
-  computed: {
-    computedStartDate: {
-      get() {
-        return this.formData.start_date;
-      },
-      set(value) {
-        this.formData.start_date = this.safeConvertToDate(value);
+    const computedStartDate = computed({
+      get: () => employmentForm.formData.start_date,
+      set: (value) => {
+        employmentForm.formData.start_date = employmentForm.safeConvertToDate(value);
+        draftPersistence.debouncedSaveState();
       }
-    },
-    computedProbationPassDate: {
-      get() {
-        return this.formData.pass_probation_date;
-      },
-      set(value) {
-        this.formData.pass_probation_date = this.safeConvertToDate(value);
+    });
+
+    const computedEndDate = computed({
+      get: () => employmentForm.formData.end_date,
+      set: (value) => {
+        employmentForm.formData.end_date = employmentForm.safeConvertToDate(value);
+        draftPersistence.debouncedSaveState();
       }
-    },
-    totalFte() {
-      return this.fundingAllocations.reduce((sum, a) => sum + (a.fte || 0), 0);
-    },
-    totalAllocatedSalary() {
-      return this.fundingAllocations.reduce((sum, a) => {
-        const amount = a._original?.allocated_amount || a.allocated_amount || 0;
-        return sum + parseFloat(amount);
-      }, 0);
-    },
-    canAddCurrentAllocation() {
-      return this.currentAllocation.grant_id && this.currentAllocation.grant_item_id && this.currentAllocation.fte > 0;
-    }
-  },
+    });
 
-  methods: {
-    // Safe date conversion
-    safeConvertToDate(value) {
-      if (!value) return null;
-      if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
-      if (typeof value === 'string') {
-        const parsed = new Date(value);
-        return isNaN(parsed.getTime()) ? null : parsed;
+    const computedProbationPassDate = computed({
+      get: () => employmentForm.formData.pass_probation_date,
+      set: (value) => {
+        employmentForm.formData.pass_probation_date = employmentForm.safeConvertToDate(value);
+        draftPersistence.debouncedSaveState();
       }
-      return null;
-    },
+    });
 
-    // Format date for API
-    formatDateForAPI(date) {
-      if (!date) return null;
-      if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) return date;
-      if (date instanceof Date) return date.toISOString().split('T')[0];
-      return null;
-    },
+    // ============================================
+    // WATCHERS
+    // ============================================
 
-    // Format currency
-    formatCurrency(value) {
-      if (value === null || value === undefined || value === '') return '-';
-      return new Intl.NumberFormat('th-TH', {
-        style: 'currency',
-        currency: 'THB',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-      }).format(value);
-    },
+    // Watch employment type changes for benefit auto-selection
+    watch(() => employmentForm.formData.employment_type, (newVal, oldVal) => {
+      if (newVal !== oldVal && draftPersistence.isComponentReady.value) {
+        employmentForm.autoSelectBenefitsBasedOnType(newVal);
+        draftPersistence.debouncedSaveState();
+      }
+    });
 
-    // Clear validation errors
-    clearValidationErrors() {
-      this.validationErrors = {};
-      this.alertMessage = '';
-      this.alertClass = '';
-    },
+    // Watch salary changes
+    watch(() => employmentForm.formData.pass_probation_salary, () => {
+      if (draftPersistence.isComponentReady.value) {
+        draftPersistence.debouncedSaveState();
+      }
+    });
 
-    // Open modal - main entry point
-    async openModal() {
-      console.log('🔵 EmploymentEditModal.openModal() called');
-      this.clearValidationErrors();
-      this.isModalVisible = true;
-      this.isLoadingData = true;
+    watch(() => employmentForm.formData.probation_salary, () => {
+      if (draftPersistence.isComponentReady.value) {
+        draftPersistence.debouncedSaveState();
+      }
+    });
 
-      await nextTick();
+    // ============================================
+    // DATA LOADING METHODS
+    // ============================================
 
+    async function loadDropdownData() {
       try {
-        // Load dropdown data
-        await this.loadDropdownData();
+        console.log('📥 Loading edit modal dropdown data...');
+        const sharedStore = useSharedDataStore();
+        const lookupStore = useLookupStore();
 
-        // Populate form with employment data
-        if (this.employmentData) {
-          await this.populateFormData();
-        }
+        await Promise.all([
+          sharedStore.loadAllDropdownData({
+            includeDepartments: true,
+            includePositions: true,
+            includeWorkLocations: true,
+            includeGrantStructure: true,
+            force: false
+          }),
+          sharedStore.fetchGrantStructure(true)
+        ]);
 
-        // Show the Bootstrap modal
-        this.showBootstrapModal();
-      } catch (error) {
-        console.error('Error opening modal:', error);
-        this.alertMessage = 'Failed to load data. Please try again.';
-        this.alertClass = 'alert-danger';
-      } finally {
-        this.isLoadingData = false;
-      }
-    },
+        // Copy data from shared store
+        departments.value = sharedStore.getDepartments;
+        positions.value = sharedStore.getPositions;
+        workLocations.value = sharedStore.getWorkLocations;
+        grantOptions.value = sharedStore.getGrantOptions;
+        grantPositions.value = sharedStore.getGrantPositions;
 
-    // Show Bootstrap modal
-    showBootstrapModal() {
-      if (this.modalInstance) {
-        this.modalInstance.show();
-      } else {
-        const modalElement = document.getElementById('employmentEditModal');
-        if (modalElement) {
-          this.modalInstance = new Modal(modalElement, {
-            backdrop: 'static',
-            keyboard: false
-          });
-          this.modalInstance.show();
-        }
-      }
-    },
+        // Load lookups
+        const [types, sections] = await Promise.all([
+          lookupStore.fetchLookupsByType('employment_type'),
+          lookupStore.fetchLookupsByType('section_department')
+        ]);
 
-    // Load dropdown data
-    async loadDropdownData() {
-      const sharedStore = useSharedDataStore();
-      const lookupStore = useLookupStore();
+        employmentTypes.value = types || [];
+        sectionDepartments.value = sections || [];
 
-      try {
-        // Load departments
-        const depts = await sharedStore.fetchDepartments(true);
-        this.departments = Array.isArray(depts) ? depts : (depts?.data || []);
-
-        // Load work locations
-        const locations = await workLocationService.getAllWorkLocations();
-        this.workLocations = (locations.success || locations.status === 'success') ? (locations.data || []) : [];
-
-        // Load grants
-        const grants = await sharedStore.fetchGrants(true);
-        this.grantOptions = Array.isArray(grants) ? grants : (grants?.data || []);
-
-        // Load section departments from lookup
-        const sections = await lookupStore.fetchLookupsByType('section_department');
-        this.sectionDepartments = sections || [];
-
+        dataLoaded.value = true;
         console.log('✅ Dropdown data loaded');
       } catch (error) {
         console.error('Error loading dropdown data:', error);
       }
-    },
+    }
 
-    // Populate form with employment data
-    async populateFormData() {
-      const data = this.employmentData;
-      console.log('📥 Populating form with:', data);
+    async function loadEmploymentData(data) {
+      if (!data) return;
 
-      // Basic fields
-      this.formData.id = data.id;
-      this.formData.employee_id = data.employee_id;
-      this.formData.employment_type = data.employment_type || '';
-      this.formData.pay_method = data.pay_method || '';
-      this.formData.department_id = data.department_id || '';
-      this.formData.position_id = data.position_id || '';
-      this.formData.section_department = data.section_department || '';
-      this.formData.site_id = data.site_id || '';
-      this.formData.probation_salary = data.probation_salary || '';
-      this.formData.pass_probation_salary = data.pass_probation_salary || '';
-      this.formData.status = data.status === 1 || data.status === true || data.status === 'Active';
-      this.formData.health_welfare = data.health_welfare === 1 || data.health_welfare === true;
-      this.formData.saving_fund = data.saving_fund === 1 || data.saving_fund === true;
-      this.formData.pvd = data.pvd === 1 || data.pvd === true;
+      console.log('📥 Loading employment data for editing:', data.id);
 
-      // Convert dates
-      this.formData.start_date = data.start_date ? new Date(data.start_date) : null;
-      this.formData.end_date = data.end_date ? new Date(data.end_date) : null;
-      this.formData.pass_probation_date = data.pass_probation_date ? new Date(data.pass_probation_date) : null;
+      try {
+        // Use the composable's loadEmployment method
+        await employmentForm.loadEmployment(data);
 
-      // Set employee info
-      if (data.employee) {
-        this.selectedEmployeeInfo = {
-          name: `${data.employee.first_name_en || ''} ${data.employee.last_name_en || ''}`.trim(),
-          staff_id: data.employee.staff_id || 'N/A',
-          organization: data.employee.organization || 'N/A'
-        };
+        // Load positions for selected department
+        if (data.department_id) {
+          await loadPositionsForDepartment(data.department_id);
+        }
+
+        // Load existing allocations
+        if (data.id) {
+          await allocationManager.loadAllocations(data.id);
+        }
+
+        console.log('✅ Employment data loaded successfully');
+      } catch (error) {
+        console.error('Error loading employment data:', error);
+        employmentForm.alertMessage.value = 'Failed to load employment data';
+        employmentForm.alertClass.value = 'alert-danger';
       }
+    }
 
-      // Load positions for selected department
-      if (this.formData.department_id) {
-        await this.loadPositions(this.formData.department_id);
-      }
-
-      // Load funding allocations
-      if (data.id) {
-        await this.loadFundingAllocations(data.id);
-      }
-    },
-
-    // Load positions for department
-    async loadPositions(departmentId) {
+    async function loadPositionsForDepartment(departmentId) {
       if (!departmentId) {
-        this.positions = [];
+        positions.value = [];
         return;
       }
 
-      this.positionsLoading = true;
       try {
+        positionsLoading.value = true;
         const sharedStore = useSharedDataStore();
-        const positions = await sharedStore.fetchPositions(true, { department_id: departmentId });
-        this.positions = Array.isArray(positions) ? positions : (positions?.data || []);
+        const positionData = await sharedStore.fetchPositionsByDepartment(departmentId);
+        positions.value = Array.isArray(positionData) ? positionData : (positionData?.data || []);
       } catch (error) {
         console.error('Error loading positions:', error);
-        this.positions = [];
+        positions.value = [];
       } finally {
-        this.positionsLoading = false;
+        positionsLoading.value = false;
       }
-    },
+    }
 
-    // Department change handler
-    async onDepartmentChange() {
-      this.formData.position_id = '';
-      await this.loadPositions(this.formData.department_id);
-    },
+    // ============================================
+    // EVENT HANDLERS
+    // ============================================
 
-    // Load funding allocations
-    async loadFundingAllocations(employmentId) {
-      try {
-        const response = await employmentService.getFundingAllocations(employmentId);
-        if (response.success && response.data) {
-          const allocationsData = response.data.funding_allocations || response.data;
-          this.fundingAllocations = allocationsData.map(allocation => {
-            const grantItem = allocation.grant_item || {};
-            const grant = grantItem.grant || {};
-            return {
-              id: allocation.id,
-              grant_id: grant.id || '',
-              grant_item_id: allocation.grant_item_id || grantItem.id || '',
-              fte: parseFloat(allocation.fte),
-              allocated_amount: allocation.allocated_amount,
-              _original: {
-                grant_name: grant.name || 'Unknown',
-                grant_code: grant.code || '',
-                budget_line_code: grantItem.budgetline_code || '',
-                allocated_amount: allocation.allocated_amount
-              }
-            };
-          });
-          console.log('✅ Loaded', this.fundingAllocations.length, 'allocations');
-        }
-      } catch (error) {
-        console.error('Error loading allocations:', error);
-        this.fundingAllocations = [];
+    async function onDepartmentChange() {
+      const deptId = employmentForm.formData.department_id;
+      employmentForm.formData.position_id = '';
+      await loadPositionsForDepartment(deptId);
+      draftPersistence.debouncedSaveState();
+    }
+
+    function onStatusChange(checked) {
+      console.log('Status changed to:', checked ? 'Active' : 'Inactive');
+      draftPersistence.debouncedSaveState();
+    }
+
+    async function onGrantChange() {
+      const grantId = allocationManager.currentAllocation.grant_id;
+      allocationManager.currentAllocation.grant_item_id = '';
+      
+      if (grantId && grantPositions.value[grantId]) {
+        allocationManager.grantPositionOptions.value = grantPositions.value[grantId];
+      } else {
+        allocationManager.grantPositionOptions.value = [];
       }
-    },
+    }
 
-    // Grant change handler
-    async onGrantChange() {
-      this.currentAllocation.grant_item_id = '';
-      if (!this.currentAllocation.grant_id) {
-        this.grantItems = [];
+    function cancelAddAllocation() {
+      showAddAllocationForm.value = false;
+      allocationManager.resetCurrentAllocation();
+    }
+
+    // ============================================
+    // FORM SUBMISSION
+    // ============================================
+
+    async function handleUpdateEmployment() {
+      const result = await employmentForm.handleUpdateEmployment();
+      if (result) {
+        draftPersistence.markAsSaved();
+      }
+    }
+
+    async function handleSaveAllocationsOnly() {
+      // Use employment ID from loaded data
+      const empId = employmentForm.editEmploymentId.value || employmentForm.savedEmploymentId.value;
+      
+      if (!empId) {
+        allocationManager.alertMessage.value = 'Employment must be saved first';
+        allocationManager.alertClass.value = 'alert-danger';
         return;
       }
 
-      this.grantItemsLoading = true;
+      await allocationManager.handleSaveAllocationsOnly(
+        employmentForm.formData.employee_id,
+        empId,
+        employmentForm.formatDateForAPI(employmentForm.formData.start_date),
+        employmentForm.formatDateForAPI(employmentForm.formData.end_date)
+      );
+    }
+
+    function handleSubmit() {
+      // Form submit is handled by section buttons
+      // This prevents default form submission
+    }
+
+    // ============================================
+    // MODAL MANAGEMENT
+    // ============================================
+
+    function resetForm() {
+      employmentForm.resetForm();
+      allocationManager.clearAllocations();
+      showAddAllocationForm.value = false;
+    }
+
+    async function openModal() {
+      console.log('🔵 EmploymentEditModal.openModal() called');
+      isLoadingData.value = true;
+
+      await nextTick();
+
       try {
-        const sharedStore = useSharedDataStore();
-        const items = await sharedStore.fetchGrantItems(this.currentAllocation.grant_id, true);
-        this.grantItems = Array.isArray(items) ? items : (items?.data || []);
-      } catch (error) {
-        console.error('Error loading grant items:', error);
-        this.grantItems = [];
-      } finally {
-        this.grantItemsLoading = false;
-      }
-    },
-
-    // Add allocation
-    async addAllocation() {
-      if (!this.canAddCurrentAllocation) return;
-
-      // Find grant item details for display
-      const grantItem = this.grantItems.find(i => i.id === this.currentAllocation.grant_item_id);
-      const grant = this.grantOptions.find(g => g.id === this.currentAllocation.grant_id);
-
-      // Calculate allocated amount (simplified - actual calculation should use backend)
-      const baseSalary = this.formData.pass_probation_salary || this.formData.probation_salary || 0;
-      const allocatedAmount = (baseSalary * this.currentAllocation.fte) / 100;
-
-      this.fundingAllocations.push({
-        id: null, // New allocation
-        grant_id: this.currentAllocation.grant_id,
-        grant_item_id: this.currentAllocation.grant_item_id,
-        fte: this.currentAllocation.fte,
-        allocated_amount: allocatedAmount,
-        _original: {
-          grant_name: grant?.name || 'Unknown',
-          grant_code: grant?.code || '',
-          budget_line_code: grantItem?.budgetline_code || '',
-          allocated_amount: allocatedAmount
+        // Load dropdown data if not loaded
+        if (!dataLoaded.value) {
+          await loadDropdownData();
         }
-      });
 
-      // Reset form
-      this.currentAllocation = { grant_id: '', grant_item_id: '', fte: 100 };
-      this.showAddAllocationForm = false;
-    },
-
-    // Cancel add allocation
-    cancelAddAllocation() {
-      this.currentAllocation = { grant_id: '', grant_item_id: '', fte: 100 };
-      this.showAddAllocationForm = false;
-    },
-
-    // Remove allocation
-    removeAllocation(index) {
-      this.fundingAllocations.splice(index, 1);
-    },
-
-    // Validate form
-    validateForm() {
-      this.validationErrors = {};
-
-      if (!this.formData.employment_type) {
-        this.validationErrors.employment_type = 'Employment type is required';
-      }
-      if (!this.formData.department_id) {
-        this.validationErrors.department_id = 'Department is required';
-      }
-      if (!this.formData.position_id) {
-        this.validationErrors.position_id = 'Position is required';
-      }
-      if (!this.formData.site_id) {
-        this.validationErrors.site_id = 'Site is required';
-      }
-      if (!this.formData.start_date) {
-        this.validationErrors.start_date = 'Start date is required';
-      }
-      if (!this.formData.pass_probation_salary) {
-        this.validationErrors.pass_probation_salary = 'Pass probation salary is required';
-      }
-
-      return Object.keys(this.validationErrors).length === 0;
-    },
-
-    // Build payload for API
-    buildPayload() {
-      const payload = {
-        employee_id: this.formData.employee_id,
-        employment_type: this.formData.employment_type,
-        pay_method: this.formData.pay_method || null,
-        department_id: this.formData.department_id,
-        position_id: this.formData.position_id,
-        section_department: this.formData.section_department || null,
-        site_id: this.formData.site_id,
-        start_date: this.formatDateForAPI(this.formData.start_date),
-        end_date: this.formatDateForAPI(this.formData.end_date),
-        pass_probation_date: this.formatDateForAPI(this.formData.pass_probation_date),
-        probation_salary: this.formData.probation_salary || null,
-        pass_probation_salary: this.formData.pass_probation_salary,
-        status: this.formData.status ? 1 : 0,
-        health_welfare: this.formData.health_welfare ? 1 : 0,
-        saving_fund: this.formData.saving_fund ? 1 : 0,
-        pvd: this.formData.pvd ? 1 : 0
-      };
-
-      // Include allocations if any
-      if (this.fundingAllocations.length > 0) {
-        payload.allocations = this.fundingAllocations.map(a => ({
-          grant_item_id: a.grant_item_id,
-          fte: a.fte
-        }));
-      }
-
-      return payload;
-    },
-
-    // Handle form submit
-    async handleSubmit() {
-      if (!this.validateForm()) {
-        this.alertMessage = 'Please fix the errors above.';
-        this.alertClass = 'alert-danger';
-        return;
-      }
-
-      this.isSubmitting = true;
-      this.alertMessage = '';
-
-      try {
-        const payload = this.buildPayload();
-        console.log('📤 Submitting payload:', payload);
-
-        const response = await employmentService.updateEmployment(this.formData.id, payload);
-
-        if (response.success) {
-          this.alertMessage = 'Employment updated successfully!';
-          this.alertClass = 'alert-success';
-          this.$emit('employment-updated', response.data);
-
-          // Close modal after short delay
-          setTimeout(() => {
-            this.closeModal();
-          }, 1000);
-        } else {
-          throw new Error(response.message || 'Update failed');
+        // Load employment data
+        if (employmentData.value) {
+          await loadEmploymentData(employmentData.value);
         }
+
+        // Check for draft to restore
+        draftPersistence.loadFormDraft();
+        draftPersistence.initialize();
+
+        // Show the modal
+        modalLifecycle.show();
       } catch (error) {
-        console.error('Error updating employment:', error);
-        this.alertMessage = error.message || 'Failed to update employment. Please try again.';
-        this.alertClass = 'alert-danger';
+        console.error('Error opening modal:', error);
+        employmentForm.alertMessage.value = 'Failed to load data';
+        employmentForm.alertClass.value = 'alert-danger';
       } finally {
-        this.isSubmitting = false;
-      }
-    },
-
-    // Handle modal close
-    handleModalClose() {
-      this.closeModal();
-    },
-
-    // Close modal
-    closeModal() {
-      if (this.modalInstance) {
-        this.modalInstance.hide();
-      }
-      this.isModalVisible = false;
-      this.resetForm();
-      this.$emit('modal-closed');
-    },
-
-    // Reset form
-    resetForm() {
-      this.formData = {
-        id: null,
-        employee_id: '',
-        employment_type: '',
-        pay_method: '',
-        department_id: '',
-        position_id: '',
-        section_department: '',
-        site_id: '',
-        start_date: null,
-        end_date: null,
-        pass_probation_date: null,
-        pass_probation_salary: '',
-        probation_salary: '',
-        status: true,
-        health_welfare: false,
-        pvd: false,
-        saving_fund: false
-      };
-      this.fundingAllocations = [];
-      this.selectedEmployeeInfo = null;
-      this.validationErrors = {};
-      this.alertMessage = '';
-      this.alertClass = '';
-      this.showAddAllocationForm = false;
-    },
-
-    // Cleanup modal backdrops
-    cleanupModalBackdrops() {
-      const backdrops = document.querySelectorAll('.modal-backdrop');
-      backdrops.forEach(backdrop => backdrop.remove());
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    }
-  },
-
-  mounted() {
-    console.log('📦 EmploymentEditModal mounted');
-
-    // Setup modal hidden event
-    const modalElement = document.getElementById('employmentEditModal');
-    if (modalElement) {
-      modalElement.addEventListener('hidden.bs.modal', () => {
-        this.isModalVisible = false;
-        this.cleanupModalBackdrops();
-        this.$emit('modal-closed');
-      });
-    }
-  },
-
-  beforeUnmount() {
-    if (this.modalInstance) {
-      try {
-        this.modalInstance.dispose();
-      } catch (e) {
-        console.error('Error disposing modal:', e);
+        isLoadingData.value = false;
       }
     }
-    this.cleanupModalBackdrops();
+
+    function handleModalClose() {
+      modalLifecycle.close();
+    }
+
+    function setEmploymentData(data) {
+      console.log('📋 Setting employment data:', data);
+      employmentData.value = data;
+    }
+
+    // ============================================
+    // LIFECYCLE
+    // ============================================
+
+    onMounted(() => {
+      console.log('EmploymentEditModal mounted');
+    });
+
+    onBeforeUnmount(() => {
+      console.log('EmploymentEditModal unmounting');
+      draftPersistence.cleanup();
+      cleanup.cleanup();
+    });
+
+    // ============================================
+    // EXPOSE PUBLIC API
+    // ============================================
+
+    return {
+      // Loading state
+      isLoadingData,
+      dataLoaded,
+      dateFormat,
+
+      // Form data from composable
+      formData: employmentForm.formData,
+      selectedEmployeeInfo: employmentForm.selectedEmployeeInfo,
+      validationErrors: employmentForm.validationErrors,
+      alertMessage: employmentForm.alertMessage,
+      alertClass: employmentForm.alertClass,
+      isSubmittingEmployment: employmentForm.isSubmittingEmployment,
+      isEmploymentSaved: employmentForm.isEmploymentSaved,
+      employmentSaveMessage: employmentForm.employmentSaveMessage,
+
+      // Allocation state from composable
+      fundingAllocations: allocationManager.fundingAllocations,
+      currentAllocation: allocationManager.currentAllocation,
+      allocationErrors: allocationManager.allocationErrors,
+      editingIndex: allocationManager.editingIndex,
+      isSubmittingAllocations: allocationManager.isSubmittingAllocations,
+      isAllocationsSaved: allocationManager.isAllocationsSaved,
+      totalFte: allocationManager.totalFte,
+      totalAllocatedSalary: allocationManager.totalAllocatedSalary,
+      grantPositionOptions: allocationManager.grantPositionOptions,
+      calculating: allocationManager.calculating,
+      formattedAmount: allocationManager.formattedAmount,
+      salaryTypeLabel: allocationManager.salaryTypeLabel,
+
+      // Draft persistence
+      restoredDataNotification: draftPersistence.restoredDataNotification,
+      formatRestoredTime: draftPersistence.formatRestoredTime,
+      saveFormState: draftPersistence.debouncedSaveState,
+
+      // Dropdown data
+      departments,
+      positions,
+      positionsLoading,
+      workLocations,
+      employmentTypes,
+      sectionDepartments,
+      grantOptions,
+      payMethods,
+      showAddAllocationForm,
+
+      // Computed dates
+      computedStartDate,
+      computedEndDate,
+      computedProbationPassDate,
+
+      // Event handlers
+      onDepartmentChange,
+      onStatusChange,
+      onGrantChange,
+      cancelAddAllocation,
+
+      // Allocation methods
+      addAllocation: allocationManager.addAllocation,
+      editAllocation: allocationManager.editAllocation,
+      deleteAllocation: allocationManager.deleteAllocation,
+      formatCurrency: allocationManager.formatCurrency,
+
+      // Form submission
+      handleUpdateEmployment,
+      handleSaveAllocationsOnly,
+      handleSubmit,
+
+      // Modal management
+      openModal,
+      handleModalClose,
+      setEmploymentData,
+      resetForm
+    };
   }
 };
 </script>
 
 <style scoped>
-/* Modal Design Styles */
+/* Modal Design */
 .new-modal-design {
-  background: #fff;
+  border: none;
   border-radius: 12px;
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
 
 .modal-header-new {
-  padding: 24px 32px 0 32px;
-  border-bottom: none;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px 12px 0 0;
 }
 
 .modal-title-new {
   margin: 0;
-  font-size: 1.2em;
-  font-weight: 700;
-  color: #23325b;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
 }
 
 .btn-close-custom {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: #6c757d;
-  font-size: 1.25rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.15s;
+  transition: background 0.2s;
 }
 
 .btn-close-custom:hover {
-  background-color: #f8f9fa;
-  color: #000;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-close-custom i {
+  color: white;
+  font-size: 1.1rem;
 }
 
 .modal-body-new {
-  padding: 22px 32px 20px 32px;
+  padding: 24px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
-.modal-footer-new {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding-top: 20px;
-  border-top: 1px solid #e9ecef;
-  margin-top: 20px;
-}
-
-/* Form Styles */
+/* Form Layout */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .form-label {
   display: block;
-  margin-bottom: 8px;
   font-weight: 500;
-  color: #1d2636;
+  margin-bottom: 6px;
+  color: #495057;
 }
 
-.form-label.required:after {
-  content: " *";
-  color: #e53e3e;
+.form-label.required::after {
+  content: ' *';
+  color: #dc3545;
 }
 
 .date-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
-/* Employee Display */
+/* Employee Display Card */
 .employee-display-card {
   padding: 12px 16px;
   background: #f8f9fa;
@@ -999,53 +1018,79 @@ export default {
   border-radius: 6px;
 }
 
-/* Status Switch */
-.employment-status-container {
-  padding: 16px 18px;
-  background: linear-gradient(135deg, #f8f9fc 0%, #f0f2f5 100%);
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+.employee-info {
+  line-height: 1.6;
 }
 
-.status-switch-wrapper {
+/* Section Save Row */
+.section-save-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f8f9fc;
+  border-radius: 8px;
+  margin-top: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.section-status {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 10px;
+  gap: 8px;
 }
 
-.status-label {
-  font-weight: 600;
-  font-size: 0.95em;
-  padding: 4px 12px;
-  border-radius: 20px;
-}
-
-.status-label.status-active {
-  color: #52c41a;
-  background: rgba(82, 196, 26, 0.1);
-}
-
-.status-label.status-inactive {
-  color: #8c8c8c;
-  background: rgba(140, 140, 140, 0.1);
-}
-
-.status-hint {
+.status-indicator {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.85em;
+  font-size: 0.9em;
 }
 
-/* Benefits */
+.status-saved {
+  color: #28a745;
+}
+
+.status-ready {
+  color: #17a2b8;
+}
+
+.status-warning {
+  color: #ffc107;
+}
+
+.status-pending {
+  color: #6c757d;
+}
+
+.btn-section-save {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-section-save:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-section-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Benefits Container */
 .benefits-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  padding: 16px;
+  gap: 16px;
+  padding: 12px;
   background: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .benefit-item {
@@ -1122,6 +1167,56 @@ export default {
   margin-top: 12px;
 }
 
+/* No Allocations Message */
+.no-allocations-msg {
+  padding: 20px;
+  text-align: center;
+}
+
+/* Modal Footer */
+.modal-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  margin-top: 24px;
+}
+
+.progress-summary {
+  font-size: 0.9em;
+}
+
+.progress-complete {
+  color: #28a745;
+}
+
+.progress-partial {
+  color: #17a2b8;
+}
+
+.progress-pending {
+  color: #6c757d;
+}
+
+.btn-row {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-cancel {
+  padding: 10px 20px;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-cancel:hover {
+  background: #5a6268;
+}
+
 /* Loading State */
 .form-loading {
   opacity: 0.7;
@@ -1153,8 +1248,13 @@ export default {
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Date picker container */

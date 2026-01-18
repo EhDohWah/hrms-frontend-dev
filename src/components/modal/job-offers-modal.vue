@@ -1,6 +1,6 @@
 <template>
   <div class="modal fade" id="job-offers-modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="job-offers-modal-title">{{ editMode ? 'Edit' : 'Add' }} Job Offer</h5>
@@ -23,13 +23,17 @@
               {{ alertMessage }}
             </div>
 
-            <!-- Full Width Fields for offer date and salary details-->
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-3">
-                  <label class="form-label">Offer Date <span class="text-danger">*</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker"
+            <!-- Row 1: Offer Date -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="offerDate">
+                  Offer Date <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <div class="input-icon-end position-relative input-short-wrapper">
+                    <date-picker class="form-control datetimepicker input-short"
                       :class="{ 'is-invalid': validationErrors && validationErrors.date }" :editable="true"
                       :clearable="false" :input-format="displayFormat" v-model="formData.date"
                       @input="handleFormChange" />
@@ -37,25 +41,54 @@
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
                   </div>
-                  <div v-if="validationErrors && validationErrors.date" class="invalid-feedback d-block">
-                    {{ validationErrors.date[0] }}
-                  </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Select the date when the job offer was made" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors && validationErrors.date" class="invalid-feedback">
+                  {{ validationErrors.date[0] }}
                 </div>
               </div>
             </div>
 
-            <div class="row">
-              <!-- Left Column -->
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="candidateName" class="form-label">Candidate Name</label>
-                  <input type="text" class="form-control" id="candidateName" v-model="formData.candidate_name"
-                    @input="handleFormChange" required />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Acceptance Deadline <span class="text-danger"> *</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker"
+            <!-- Row 2: Candidate Name -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="candidateName">
+                  Candidate Name :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-medium" id="candidateName" v-model="formData.candidate_name"
+                  @input="handleFormChange" required />
+              </div>
+            </div>
+
+            <!-- Row 3: Position Name -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="positionName">
+                  Position Name :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-medium" id="positionName" v-model="formData.position_name"
+                  @input="handleFormChange" required />
+              </div>
+            </div>
+
+            <!-- Row 4: Acceptance Deadline -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="acceptanceDeadline">
+                  Acceptance Deadline <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <div class="input-icon-end position-relative input-short-wrapper">
+                    <date-picker class="form-control datetimepicker input-short"
                       :class="{ 'is-invalid': validationErrors && validationErrors.acceptance_deadline }"
                       placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="displayFormat"
                       v-model="formData.acceptance_deadline" @input="handleFormChange" />
@@ -63,70 +96,96 @@
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
                   </div>
-                  <div v-if="validationErrors && validationErrors.acceptance_deadline" class="invalid-feedback d-block">
-                    {{ validationErrors.acceptance_deadline[0] }}
-                  </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Select the deadline for candidate acceptance" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
                 </div>
-              </div>
-
-              <!-- Right Column -->
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="positionName" class="form-label">Position Name</label>
-                  <input type="text" class="form-control" id="positionName" v-model="formData.position_name"
-                    @input="handleFormChange" required />
-                </div>
-
-                <div class="mb-3">
-                  <label for="acceptanceStatus" class="form-label">Acceptance Status</label>
-                  <select class="form-select" id="acceptanceStatus" v-model="formData.acceptance_status"
-                    @change="handleFormChange" required>
-                    <option value="pending">Pending</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
+                <div v-if="validationErrors && validationErrors.acceptance_deadline" class="invalid-feedback">
+                  {{ validationErrors.acceptance_deadline[0] }}
                 </div>
               </div>
             </div>
 
-            <!-- Salary Fields -->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="probationSalary" class="form-label">Probation Salary (THB) <span
-                      class="text-danger">*</span></label>
-                  <input type="number" class="form-control" id="probationSalary" v-model="formData.probation_salary"
+            <!-- Row 5: Acceptance Status -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="acceptanceStatus">
+                  Acceptance Status :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-select input-short" id="acceptanceStatus" v-model="formData.acceptance_status"
+                  @change="handleFormChange" required>
+                  <option value="pending">Pending</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 6: Probation Salary -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="probationSalary">
+                  Probation Salary (THB) <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <input type="number" class="form-control input-medium" id="probationSalary" v-model="formData.probation_salary"
                     :class="{ 'is-invalid': validationErrors && validationErrors.probation_salary }"
                     @input="handleFormChange" step="0.01" min="0" required />
-                  <div v-if="validationErrors && validationErrors.probation_salary" class="invalid-feedback d-block">
-                    {{ validationErrors.probation_salary[0] }}
-                  </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Enter the salary during probation period in Thai Baht" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors && validationErrors.probation_salary" class="invalid-feedback">
+                  {{ validationErrors.probation_salary[0] }}
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="postProbationSalary" class="form-label">Post-Probation Salary (THB) <span
-                      class="text-danger">*</span></label>
-                  <input type="number" class="form-control" id="postProbationSalary"
+            </div>
+
+            <!-- Row 7: Post-Probation Salary -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="postProbationSalary">
+                  Post-Probation Salary (THB) <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <input type="number" class="form-control input-medium" id="postProbationSalary"
                     v-model="formData.post_probation_salary"
                     :class="{ 'is-invalid': validationErrors && validationErrors.post_probation_salary }"
                     @input="handleFormChange" step="0.01" min="0" required />
-                  <div v-if="validationErrors && validationErrors.post_probation_salary"
-                    class="invalid-feedback d-block">
-                    {{ validationErrors.post_probation_salary[0] }}
-                  </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Enter the salary after probation period in Thai Baht" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors && validationErrors.post_probation_salary" class="invalid-feedback">
+                  {{ validationErrors.post_probation_salary[0] }}
                 </div>
               </div>
             </div>
 
-            <!-- Notes Field -->
-            <div class="row">
-              <div class="col-12">
-
-                <div class="mb-3">
-                  <label for="note" class="form-label">Notes</label>
+            <!-- Row 8: Notes -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="note">
+                  Notes :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
                   <textarea class="form-control" id="note" v-model="formData.note" rows="3" @input="handleFormChange"
                     placeholder="Enter notes here" style="height: 100px" required></textarea>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Add any additional notes or comments about the job offer" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
                 </div>
               </div>
             </div>
@@ -147,6 +206,125 @@
 </template>
 
 <style scoped>
+.modal-dialog {
+  max-width: 1000px;
+}
+
+/* Horizontal form layout - labels on left, inputs on right */
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-label-col {
+  flex: 0 0 200px;
+  min-width: 200px;
+  padding-top: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
+  display: block;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+}
+
+/* Input width classes */
+.input-short {
+  width: 200px;
+  max-width: 200px;
+}
+
+.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+.input-short-wrapper {
+  width: 200px;
+  max-width: 200px;
+}
+
+.form-select.input-short {
+  width: 200px;
+  max-width: 200px;
+}
+
+.form-select.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+/* Responsive adjustments for input widths */
+@media (max-width: 768px) {
+  .input-short,
+  .input-medium,
+  .input-short-wrapper,
+  .form-select.input-short,
+  .form-select.input-medium {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.input-with-tooltip .input-short-wrapper {
+  margin: 0;
+}
+
+.input-with-tooltip textarea + .tooltip-icon {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* Responsive: stack vertically on small screens */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .form-input-col {
+    flex: 1;
+    min-width: 100%;
+  }
+}
+
 /* Enhanced error display styling */
 .alert {
   border-radius: 8px;
@@ -175,6 +353,8 @@
 .invalid-feedback {
   font-size: 0.875rem;
   margin-top: 0.25rem;
+  margin-left: 0;
+  display: block;
 }
 
 .is-invalid {
@@ -200,19 +380,120 @@
 .alert ul li:last-child {
   margin-bottom: 0;
 }
+
+/* Date picker styling */
+.input-icon-end {
+  position: relative;
+}
+
+.input-icon-addon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6B7280;
+  z-index: 2;
+}
+
+.datetimepicker {
+  padding-right: 35px !important;
+}
+
+:deep(.mx-datepicker) {
+  width: 100%;
+}
+
+:deep(.mx-input) {
+  width: 100% !important;
+  padding: 7px 35px 7px 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid #c9d2e2 !important;
+  font-size: 1em !important;
+  box-sizing: border-box !important;
+  background: #f7f8fa !important;
+  outline: none !important;
+  transition: border 0.2s !important;
+}
+
+:deep(.mx-input:focus) {
+  border: 1.5px solid #4a7fff !important;
+  background: #fff !important;
+}
+
+:deep(.mx-input.is-invalid) {
+  border-color: #dc2626 !important;
+  background: #fff5f5 !important;
+}
+
+:deep(.mx-icon-calendar) {
+  display: none;
+}
+
+.input-short-wrapper :deep(.mx-datepicker) {
+  width: 100%;
+}
+
+.input-short-wrapper :deep(.mx-input) {
+  width: 100% !important;
+}
+
+/* Bootstrap Tooltip styling enhancements */
+:deep(.tooltip) {
+  z-index: 9999 !important;
+}
+
+:deep(.tooltip-inner) {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  color: white !important;
+  border-radius: 4px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  max-width: 300px !important;
+  text-align: left !important;
+}
+
+:deep(.tooltip.bs-tooltip-top .tooltip-arrow::before) {
+  border-top-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-bottom .tooltip-arrow::before) {
+  border-bottom-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-start .tooltip-arrow::before) {
+  border-left-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+:deep(.tooltip.bs-tooltip-end .tooltip-arrow::before) {
+  border-right-color: rgba(0, 0, 0, 0.85) !important;
+}
+
+/* Modal content overflow fixes for tooltips */
+.modal-content {
+  overflow: visible !important;
+}
+
+.modal-body {
+  overflow: visible !important;
+}
 </style>
 
 <script>
-import { Modal } from 'bootstrap';
+import { Modal, Tooltip as BootstrapTooltip } from 'bootstrap';
 import { useJobOfferStore } from '@/stores/jobOfferStore';
 import { useFormPersistenceStore } from '@/stores/formPersistenceStore';
 import { message, Modal as AntModal } from 'ant-design-vue';
 import { ref, nextTick, createVNode } from 'vue';
-import { ExclamationCircleOutlined } from '@ant-design/icons-vue';
+import { ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons-vue';
 import moment from 'moment';
 
 export default {
   name: 'JobOffersModal',
+  components: {
+    InfoCircleOutlined,
+  },
   setup() {
     const editMode = ref(false);
     const jobOfferData = ref(null);
@@ -320,6 +601,9 @@ export default {
         attributeFilter: ['aria-hidden']
       });
     }
+
+    // Initialize tooltips on component mount
+    this.initializeTooltips();
   },
   beforeUnmount() {
     // Clean up event listeners
@@ -341,6 +625,26 @@ export default {
     }
   },
   methods: {
+    // Initialize Bootstrap tooltips
+    initializeTooltips() {
+      this.$nextTick(() => {
+        // Dispose of existing tooltips to prevent duplicates
+        const existingTooltips = document.querySelectorAll('#job-offers-modal [data-bs-toggle="tooltip"]');
+        existingTooltips.forEach(tooltipTriggerEl => {
+          const existingTooltip = BootstrapTooltip.getInstance(tooltipTriggerEl);
+          if (existingTooltip) {
+            existingTooltip.dispose();
+          }
+        });
+
+        // Initialize all tooltips within the modal
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('#job-offers-modal [data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new BootstrapTooltip(tooltipTriggerEl);
+        });
+      });
+    },
+
     async openModal() {
       // Set form key for persistence
       this.formKey = this.editMode ? `job_offer_edit_${this.jobOfferData?.id || 'new'}` : `job_offer_new_${Date.now()}`;
@@ -400,6 +704,10 @@ export default {
       // Show the modal using Bootstrap Modal instance
       if (this.modalInstance) {
         this.modalInstance.show();
+        // Initialize tooltips when modal is shown
+        this.$nextTick(() => {
+          this.initializeTooltips();
+        });
       } else {
         const modalElement = document.getElementById('job-offers-modal');
         if (modalElement) {
@@ -408,6 +716,10 @@ export default {
             keyboard: false
           });
           this.modalInstance.show();
+          // Initialize tooltips when modal is shown
+          this.$nextTick(() => {
+            this.initializeTooltips();
+          });
         } else {
           console.error('Modal element not found');
           message.error('Modal element not found');

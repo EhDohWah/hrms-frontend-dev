@@ -41,18 +41,24 @@
             </div>
 
             <!-- Row 1: Employee (full width) -->
-            <div class="form-group">
-              <label class="form-label required">Employee</label>
-              <EmployeeTreeSelect
-                v-model="formData.employee_id"
-                :tree-data="employeeTreeData"
-                :display-value="selectedEmployeeDisplay"
-                :has-error="!!validationErrors.employee_id"
-                :error-message="validationErrors.employee_id"
-                placeholder="Select employee"
-                search-placeholder="Search employees..."
-                @select="handleEmployeeSelect"
-              />
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label required">
+                  Employee :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <EmployeeTreeSelect
+                  v-model="formData.employee_id"
+                  :tree-data="employeeTreeData"
+                  :display-value="selectedEmployeeDisplay"
+                  :has-error="!!validationErrors.employee_id"
+                  :error-message="validationErrors.employee_id"
+                  placeholder="Select employee"
+                  search-placeholder="Search employees..."
+                  @select="handleEmployeeSelect"
+                />
+              </div>
             </div>
 
             <div v-if="selectedEmployeeInfo" class="employee-info-card mb-3" style="margin-top: 12px;">
@@ -75,11 +81,15 @@
               </div>
             </div>
 
-            <!-- Row 2: Employment Type + Pay Method (2 columns) -->
-            <div class="date-row">
-              <div class="form-group">
-                <label class="form-label required">Employment Type</label>
-                <select class="form-control" v-model="formData.employment_type"
+            <!-- Row 2: Employment Type -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label required">
+                  Employment Type :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-control input-medium" v-model="formData.employment_type"
                   :class="{ 'is-invalid': validationErrors.employment_type }" required @change="saveFormState"
                   :disabled="isLoadingData">
                   <option disabled value="">{{ isLoadingData ? 'Loading types...' : 'Select Type' }}</option>
@@ -91,10 +101,17 @@
                   {{ validationErrors.employment_type }}
                 </div>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label">Pay Method</label>
-                <select class="form-control" v-model="formData.pay_method"
+            <!-- Row 3: Pay Method -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Pay Method :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-control input-medium" v-model="formData.pay_method"
                   :class="{ 'is-invalid': validationErrors.pay_method }" @change="saveFormState">
                   <option disabled value="">Select Pay Method</option>
                   <option v-for="method in payMethods" :key="method.id" :value="method.value">
@@ -107,11 +124,15 @@
               </div>
             </div>
 
-            <!-- Row 3: Department + Position (separate) -->
-            <div class="date-row">
-              <div class="form-group">
-                <label class="form-label required">Department</label>
-                <select class="form-control" v-model="formData.department_id"
+            <!-- Row 4: Department -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label required">
+                  Department :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-control input-medium" v-model="formData.department_id"
                   :class="{ 'is-invalid': validationErrors.department_id }" required @change="onDepartmentChange">
                   <option disabled value="">{{ isLoadingData ? 'Loading departments...' : 'Select Department' }}
                   </option>
@@ -123,10 +144,17 @@
                   {{ validationErrors.department_id }}
                 </div>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label required">Position</label>
-                <select class="form-control" v-model="formData.position_id"
+            <!-- Row 5: Position -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label required">
+                  Position :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-control input-medium" v-model="formData.position_id"
                   :class="{ 'is-invalid': validationErrors.position_id }" required @change="saveFormState"
                   :disabled="!formData.department_id || positionsLoading">
                   <option disabled value="">{{ positionsLoading ? 'Loading positions...' : 'Select Position' }}</option>
@@ -140,11 +168,15 @@
               </div>
             </div>
 
-            <!-- Row 4: Site + Section Department -->
-            <div class="date-row">
-              <div class="form-group">
-                <label class="form-label required">Site</label>
-                <select class="form-control" v-model="formData.site_id"
+            <!-- Row 6: Site -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label required">
+                  Site :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-control input-medium" v-model="formData.site_id"
                   :class="{ 'is-invalid': validationErrors.site_id }" required @change="saveFormState">
                   <option disabled value="">Select Site</option>
                   <option v-for="location in workLocations" :key="location.id" :value="location.id">
@@ -155,10 +187,17 @@
                   {{ validationErrors.site_id }}
                 </div>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label">Section Department</label>
-                <select class="form-control" v-model="formData.section_department"
+            <!-- Row 7: Section Department -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Section Department :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-control input-medium" v-model="formData.section_department"
                   :class="{ 'is-invalid': validationErrors.section_department }" @change="saveFormState"
                   :disabled="isLoadingData">
                   <option disabled value="">{{ isLoadingData ? 'Loading sections...' : 'Select Section Department' }}
@@ -173,49 +212,73 @@
               </div>
             </div>
 
-            <!-- Row 5: Start Date + Pass Probation Date -->
-            <div class="date-row">
-              <div class="form-group">
-                <label class="form-label required">Start Date</label>
-                <div class="input-icon-end position-relative">
-                  <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker"
-                    placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
-                    v-model="computedStartDate" :class="{ 'is-invalid': validationErrors.start_date }"
-                    @update:model-value="handleStartDateChange" required />
-                  <span class="input-icon-addon">
-                    <i class="ti ti-calendar text-gray-7"></i>
+            <!-- Row 8: Start Date -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label required">
+                  Start Date :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <div class="input-icon-end position-relative input-short-wrapper">
+                    <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker input-short"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
+                      v-model="computedStartDate" :class="{ 'is-invalid': validationErrors.start_date }"
+                      @update:model-value="handleStartDateChange" required />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Select the employment start date" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
                   </span>
                 </div>
                 <div v-if="validationErrors.start_date" class="invalid-feedback">
                   {{ validationErrors.start_date }}
                 </div>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label">Pass Probation Date</label>
-                <div class="input-icon-end position-relative">
-                  <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker"
-                    placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
-                    v-model="computedProbationPassDate" :class="{ 'is-invalid': validationErrors.pass_probation_date }"
-                    @update:model-value="handleProbationDateChange" />
-                  <span class="input-icon-addon">
-                    <i class="ti ti-calendar text-gray-7"></i>
+            <!-- Row 9: Pass Probation Date -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Pass Probation Date :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <div class="input-icon-end position-relative input-short-wrapper">
+                    <date-picker v-if="isModalVisible && dataLoaded" class="form-control datetimepicker input-short"
+                      placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat"
+                      v-model="computedProbationPassDate" :class="{ 'is-invalid': validationErrors.pass_probation_date }"
+                      @update:model-value="handleProbationDateChange" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
+                    </span>
+                  </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Auto-calculated as start date + 3 months if not provided" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
                   </span>
                 </div>
                 <div v-if="validationErrors.pass_probation_date" class="invalid-feedback">
                   {{ validationErrors.pass_probation_date }}
                 </div>
-                <small class="text-muted" style="display: block; margin-top: 4px; font-size: 0.85em;">
-                  <i class="ti ti-info-circle"></i> Auto-calculated as start date + 3 months if not provided
-                </small>
               </div>
             </div>
 
-            <!-- Row 6: Probation Salary + Pass Probation Salary -->
-            <div class="date-row">
-              <div class="form-group">
-                <label class="form-label">Probation Salary</label>
-                <input type="number" class="form-control" v-model.number.lazy="formData.probation_salary"
+            <!-- Row 10: Probation Salary -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Probation Salary :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="number" class="form-control input-medium" v-model.number.lazy="formData.probation_salary"
                   :class="{ 'is-invalid': validationErrors.probation_salary }" @blur="debouncedSaveState"
                   placeholder="Salary during probation period">
                 <div v-if="validationErrors.probation_salary" class="invalid-feedback">
@@ -225,10 +288,17 @@
                   Optional - Leave empty if same as pass probation salary
                 </small>
               </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label required">Pass Probation Salary</label>
-                <input type="number" class="form-control" v-model.number.lazy="formData.pass_probation_salary"
+            <!-- Row 11: Pass Probation Salary -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label required">
+                  Pass Probation Salary :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="number" class="form-control input-medium" v-model.number.lazy="formData.pass_probation_salary"
                   :class="{ 'is-invalid': validationErrors.pass_probation_salary }" required @blur="debouncedSaveState"
                   placeholder="Regular salary after probation">
                 <div v-if="validationErrors.pass_probation_salary" class="invalid-feedback">
@@ -240,60 +310,72 @@
               </div>
             </div>
 
-            <!-- Row: Employment Status -->
-            <div class="form-group">
-              <label class="form-label">Employment Status</label>
-              <div class="employment-status-container">
-                <div class="status-switch-wrapper">
-                  <a-switch v-model:checked="formData.status" @change="onStatusChange" checked-children="Active"
-                    un-checked-children="Inactive" size="default" />
-                  <span class="status-label"
-                    :class="{ 'status-active': formData.status, 'status-inactive': !formData.status }">
-                    {{ formData.status ? 'Active' : 'Inactive' }}
-                  </span>
+            <!-- Row 12: Employment Status -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Employment Status :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="employment-status-container">
+                  <div class="status-switch-wrapper">
+                    <a-switch v-model:checked="formData.status" @change="onStatusChange" checked-children="Active"
+                      un-checked-children="Inactive" size="default" />
+                    <span class="status-label"
+                      :class="{ 'status-active': formData.status, 'status-inactive': !formData.status }">
+                      {{ formData.status ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                  <small class="text-muted status-hint">
+                    <i class="ti ti-info-circle"></i> Toggle to set employment as Active or Inactive
+                  </small>
                 </div>
-                <small class="text-muted status-hint">
-                  <i class="ti ti-info-circle"></i> Toggle to set employment as Active or Inactive
-                </small>
               </div>
             </div>
 
-            <!-- Benefits Section -->
-            <div class="form-group">
-              <label class="form-label">Benefits</label>
-              <div class="benefits-container">
-                <!-- Health & Welfare -->
-                <div class="benefit-item">
-                  <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.health_welfare" @change="saveFormState" />
-                    <span class="checkmark"></span>
-                    Health & Welfare
-                  </label>
-                  <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
-                    Percentage is managed globally in Benefit Settings
-                  </small>
-                </div>
-                <!-- Saving Fund -->
-                <div class="benefit-item">
-                  <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.saving_fund" @change="saveFormState" />
-                    <span class="checkmark"></span>
-                    Saving Fund
-                  </label>
-                  <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
-                    Percentage is managed globally in Benefit Settings
-                  </small>
-                </div>
-                <!-- PVD -->
-                <div class="benefit-item">
-                  <label class="checkbox-item">
-                    <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
-                    <span class="checkmark"></span>
-                    PVD
-                  </label>
-                  <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
-                    Percentage is managed globally in Benefit Settings
-                  </small>
+            <!-- Row 13: Benefits Section -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Benefits :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="benefits-container">
+                  <!-- Health & Welfare -->
+                  <div class="benefit-item">
+                    <label class="checkbox-item">
+                      <input type="checkbox" v-model="formData.health_welfare" @change="saveFormState" />
+                      <span class="checkmark"></span>
+                      Health & Welfare
+                    </label>
+                    <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                      Percentage is managed globally in Benefit Settings
+                    </small>
+                  </div>
+                  <!-- Saving Fund -->
+                  <div class="benefit-item">
+                    <label class="checkbox-item">
+                      <input type="checkbox" v-model="formData.saving_fund" @change="saveFormState" />
+                      <span class="checkmark"></span>
+                      Saving Fund
+                    </label>
+                    <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                      Percentage is managed globally in Benefit Settings
+                    </small>
+                  </div>
+                  <!-- PVD -->
+                  <div class="benefit-item">
+                    <label class="checkbox-item">
+                      <input type="checkbox" v-model="formData.pvd" @change="saveFormState" />
+                      <span class="checkmark"></span>
+                      PVD
+                    </label>
+                    <small class="text-muted" style="display: block; margin-left: 28px; margin-top: 4px; font-size: 0.85em;">
+                      Percentage is managed globally in Benefit Settings
+                    </small>
+                  </div>
                 </div>
               </div>
             </div>
@@ -706,12 +788,15 @@ import { useModalLifecycle } from '@/composables/useModalLifecycle';
 
 // Import child components
 import EmployeeTreeSelect from '@/components/shared/EmployeeTreeSelect.vue';
+import { InfoCircleOutlined } from '@ant-design/icons-vue';
+import { Tooltip } from 'bootstrap';
 
 export default {
   name: 'EmploymentModal',
   
   components: {
-    EmployeeTreeSelect
+    EmployeeTreeSelect,
+    InfoCircleOutlined
   },
   
   emits: ['employment-added', 'employment-saved', 'allocations-saved', 'modal-closed'],
@@ -1088,6 +1173,17 @@ export default {
       cleanup.addListener(document, 'click', employeeSelector.handleClickOutside);
       setupPerformanceMonitoring();
       draftPersistence.initialize();
+      
+      // Initialize tooltips
+      initializeTooltips();
+      
+      // Reinitialize tooltips when modal is shown
+      const modalElement = document.getElementById('employmentModal');
+      if (modalElement) {
+        modalElement.addEventListener('shown.bs.modal', () => {
+          initializeTooltips();
+        });
+      }
     });
     
     onBeforeUnmount(() => {
@@ -1111,6 +1207,19 @@ export default {
           cleanup.addObserver(observer);
         }
       }
+    }
+
+    // Initialize Bootstrap tooltips
+    function initializeTooltips() {
+      nextTick(() => {
+        const tooltipElements = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltipElements.forEach(element => {
+          // Check if tooltip is already initialized
+          if (!element._tooltip) {
+            new Tooltip(element);
+          }
+        });
+      });
     }
 
     // ============================================
@@ -1234,7 +1343,8 @@ export default {
       handleModalClose,
       handleSaveEmploymentOnly,
       handleSaveAllocationsOnly,
-      resetForm
+      resetForm,
+      initializeTooltips
     };
   }
 };
@@ -2669,6 +2779,125 @@ select {
   background-color: #d4edda;
   color: #155724;
   border: 1px solid #c3e6cb;
+}
+
+/* Horizontal Form Layout Styles */
+.modal-dialog {
+  max-width: 1200px;
+}
+
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-label-col {
+  flex: 0 0 180px;
+  min-width: 180px;
+  padding-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+}
+
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.input-short {
+  width: 200px;
+  max-width: 200px;
+}
+
+.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+.input-short-wrapper {
+  width: 200px;
+  max-width: 200px;
+  flex: 1;
+}
+
+.tooltip-icon {
+  pointer-events: auto;
+  z-index: 1;
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+}
+
+.form-select.input-short,
+.form-select.input-medium {
+  width: 200px;
+  max-width: 200px;
+}
+
+.form-select.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+/* Date picker styling */
+:deep(.datetimepicker) {
+  width: 100%;
+}
+
+:deep(.datetimepicker.input-short) {
+  width: 200px;
+  max-width: 200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .input-short,
+  .input-medium,
+  .input-short-wrapper,
+  .input-with-tooltip,
+  .form-select.input-short,
+  .form-select.input-medium {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 </style>
 

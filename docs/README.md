@@ -104,6 +104,7 @@ Grant management UI and reporting
 - Grant headcount reports
 - Grant allocation interfaces
 - Budget history tracking
+- Grant modal form improvements
 
 ### ⚡ `/optimization`
 Template optimization and cleanup documentation
@@ -233,6 +234,7 @@ General guides, architecture, and references
 - **Performance**: `/performance/GRANT_POSITION_LCP_OPTIMIZATION.md`
 - **Reports**: `/reports/TOTAL_GRANT_REPORT_DOCUMENTATION.md`
 - **Budget History**: `/grants/BUDGET_HISTORY_PRODUCTION_READY.md`
+- **Form Improvements**: `/grants/GRANT_MODAL_FORM_IMPROVEMENTS.md` | `/grants/GRANT_MODAL_IMPROVEMENTS_SUMMARY.md`
 
 ### Template Optimization
 - **Main Summary**: `/optimization/OPTIMIZATION_COMPLETE_SUMMARY.md`

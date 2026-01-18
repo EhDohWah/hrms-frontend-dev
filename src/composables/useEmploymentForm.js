@@ -670,21 +670,22 @@ export function useEmploymentForm(options = {}) {
       savedEmploymentId.value = data.id;
       
       // Populate form fields
+      // Convert string IDs to numbers if needed, but keep as string if that's what the form expects
       Object.assign(formData, {
         employment_id: data.id,
-        employee_id: data.employee_id,
+        employee_id: String(data.employee_id || ''),
         employment_type: data.employment_type || '',
         pay_method: data.pay_method || '',
-        department_id: data.department_id || '',
-        position_id: data.position_id || '',
+        department_id: String(data.department_id || ''),
+        position_id: String(data.position_id || ''),
         section_department: data.section_department || '',
-        site_id: data.site_id || '',
-        probation_salary: data.probation_salary || '',
-        pass_probation_salary: data.pass_probation_salary || '',
-        status: data.status === 1 || data.status === true || data.status === 'Active',
-        health_welfare: data.health_welfare === 1 || data.health_welfare === true,
-        saving_fund: data.saving_fund === 1 || data.saving_fund === true,
-        pvd: data.pvd === 1 || data.pvd === true,
+        site_id: String(data.site_id || ''),
+        probation_salary: data.probation_salary ? String(data.probation_salary) : '',
+        pass_probation_salary: data.pass_probation_salary ? String(data.pass_probation_salary) : '',
+        status: data.status === 1 || data.status === true || data.status === 'Active' || data.status === '1',
+        health_welfare: data.health_welfare === 1 || data.health_welfare === true || data.health_welfare === '1',
+        saving_fund: data.saving_fund === 1 || data.saving_fund === true || data.saving_fund === '1',
+        pvd: data.pvd === 1 || data.pvd === true || data.pvd === '1',
         start_date: data.start_date ? new Date(data.start_date) : null,
         end_date: data.end_date ? new Date(data.end_date) : null,
         pass_probation_date: data.pass_probation_date ? new Date(data.pass_probation_date) : null
@@ -699,10 +700,21 @@ export function useEmploymentForm(options = {}) {
           organization: data.employee.organization || 'N/A',
           status: data.employee.status || 'N/A'
         };
+      } else if (data.employee_id) {
+        // If employee object is not included, we need to fetch it
+        // For now, set basic info from employee_id
+        selectedEmployeeInfo.value = {
+          id: data.employee_id,
+          name: 'Loading...',
+          staff_id: 'N/A',
+          organization: 'N/A',
+          status: 'N/A'
+        };
+        console.warn('⚠️ Employee data not included in employment response. Employee ID:', data.employee_id);
       }
       
-      // Mark as already saved (for edit mode, employment exists)
-      isEmploymentSaved.value = true;
+      // Don't mark as saved when loading - only mark as saved after actual save/update operations
+      // isEmploymentSaved.value should remain false until user actually saves
       
       console.log('✅ Employment data loaded successfully');
       return true;

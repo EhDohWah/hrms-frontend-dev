@@ -1,7 +1,7 @@
 <template>
   <!-- Add Employee -->
   <div class="modal fade" id="add_employee">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
         <div class="modal-header"
           style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 15px 20px;">
@@ -51,301 +51,207 @@
             <div class="tab-pane fade show active" id="basic-info" role="tabpanel" aria-labelledby="info-tab"
               tabindex="0">
               <div class="modal-body pb-0">
-                <div class="row">
-                  <!-- <div class="col-md-12">
-                    <div
-                      class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-3 mb-4"
-                    >
-                      <div
-                        class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-dashed me-2 flex-shrink-0 text-dark frames"
-                      >
-                        <i class="ti ti-photo text-gray-2 fs-16"></i>
-                      </div>
-                      <div class="profile-upload">
-                        <div class="mb-2">
-                          <h6 class="mb-1">Upload Profile Image</h6>
-                          <p class="fs-12">Image should be below 4 mb</p>
-                        </div>
-                        <div class="profile-uploader d-flex align-items-center">
-                          <div class="drag-upload-btn btn btn-sm btn-primary me-2">
-                            Upload
-                            <input
-                              type="file"
-                              class="form-control image-sign"
-                              multiple=""
-                            />
-                          </div>
-                          <a href="javascript:void(0);" class="btn btn-light btn-sm"
-                            >Cancel</a
-                          >
-                        </div>
-                      </div>
-                    </div>
-                  </div> -->
-                  <div class="col-md-6">
-                    <div class="input-block mb-3">
-                      <label class="form-label" for="grant-organization">Organization</label>
-                      <select id="grant-organization" v-model="formData.organization" class="form-control" required>
-                        <option value="" disabled selected>Select a organization</option>
-                        <option v-for="organization in subsidiaries" :key="organization.id" :value="organization.value"
-                          :class="[
-                            organization.value === 'SMRU' ? 'text-primary' :
-                              organization.value === 'BHF' ? 'text-primary' :
-                                'text-secondary'
-                          ]">
-                          {{ organization.value }}
-                        </option>
-                      </select>
-
-                    </div>
+                <!-- Row 1: Organization -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="grant-organization">
+                      Organization :
+                    </label>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Staff ID <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" placeholder="Enter staff ID"
-                        v-model="formData.staff_id" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="input-block mb-3">
-                      <label class="form-label" for="initial-en">Initial (EN)</label>
-                      <select id="initial-en" v-model="formData.initial_en" class="form-control">
-                        <option value="" disabled selected>Select initial</option>
-                        <option v-for="initial in employeeInitialEN" :key="initial.id" :value="initial.value" :class="[
-                          'text-secondary'
-                        ]">
-                          {{ initial.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="input-block mb-3">
-                      <label class="form-label" for="initial-th">Initial (TH)</label>
-                      <select id="initial-th" v-model="formData.initial_th" class="form-control">
-                        <option value="" disabled selected>Select initial</option>
-                        <option v-for="initial in employeeInitialTH" :key="initial.id" :value="initial.value" :class="[
-                          'text-secondary'
-                        ]">
-                          {{ initial.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">First Name (EN) <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" maxlength="255" placeholder="Enter English first name"
-                        v-model="formData.first_name_en" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Last Name (EN)</label>
-                      <input type="text" class="form-control" maxlength="255" placeholder="Enter English last name"
-                        v-model="formData.last_name_en" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">First Name (TH)</label>
-                      <input type="text" class="form-control" maxlength="255" placeholder="Enter Thai first name"
-                        v-model="formData.first_name_th" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Last Name (TH)</label>
-                      <input type="text" class="form-control" maxlength="255" placeholder="Enter Thai last name"
-                        v-model="formData.last_name_th" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="input-block mb-3">
-                      <label class="form-label" for="gender">Gender <span class="text-danger"> *</span></label>
-                      <select id="gender" v-model="formData.gender" class="form-control" required>
-                        <option value="" disabled selected>Select gender</option>
-                        <option v-for="gender in genders" :key="gender.id" :value="gender.value" :class="[
-                          gender.value === 'Male' ? 'text-primary' :
-                            gender.value === 'Female' ? 'text-primary' :
+                  <div class="form-input-col">
+                    <select id="grant-organization" v-model="formData.organization" class="form-control input-short" required>
+                      <option value="" disabled selected>Select a organization</option>
+                      <option v-for="organization in subsidiaries" :key="organization.id" :value="organization.value"
+                        :class="[
+                          organization.value === 'SMRU' ? 'text-primary' :
+                            organization.value === 'BHF' ? 'text-primary' :
                               'text-secondary'
                         ]">
-                          {{ gender.value }}
-                        </option>
-                      </select>
-                    </div>
+                        {{ organization.value }}
+                      </option>
+                    </select>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Date of Birth <span class="text-danger"> *</span></label>
-                      <div class="input-icon-end position-relative">
-                        <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+                </div>
+
+                <!-- Row 2: Staff ID -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="staff-id">
+                      Staff ID <span class="text-danger">*</span> :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="staff-id" placeholder="Enter staff ID"
+                      v-model="formData.staff_id" />
+                  </div>
+                </div>
+
+                <!-- Row 3: Initial (EN) -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="initial-en">
+                      Initial (EN) :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <select id="initial-en" v-model="formData.initial_en" class="form-control input-short">
+                      <option value="" disabled selected>Select initial</option>
+                      <option v-for="initial in employeeInitialEN" :key="initial.id" :value="initial.value" :class="[
+                        'text-secondary'
+                      ]">
+                        {{ initial.value }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 4: Initial (TH) -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="initial-th">
+                      Initial (TH) :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <select id="initial-th" v-model="formData.initial_th" class="form-control input-short">
+                      <option value="" disabled selected>Select initial</option>
+                      <option v-for="initial in employeeInitialTH" :key="initial.id" :value="initial.value" :class="[
+                        'text-secondary'
+                      ]">
+                        {{ initial.value }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 5: First Name (EN) -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="first-name-en">
+                      First Name (EN) <span class="text-danger">*</span> :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="first-name-en" maxlength="255" placeholder="Enter English first name"
+                      v-model="formData.first_name_en" />
+                  </div>
+                </div>
+
+                <!-- Row 6: Last Name (EN) -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="last-name-en">
+                      Last Name (EN) :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="last-name-en" maxlength="255" placeholder="Enter English last name"
+                      v-model="formData.last_name_en" />
+                  </div>
+                </div>
+
+                <!-- Row 7: First Name (TH) -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="first-name-th">
+                      First Name (TH) :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="first-name-th" maxlength="255" placeholder="Enter Thai first name"
+                      v-model="formData.first_name_th" />
+                  </div>
+                </div>
+
+                <!-- Row 8: Last Name (TH) -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="last-name-th">
+                      Last Name (TH) :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="last-name-th" maxlength="255" placeholder="Enter Thai last name"
+                      v-model="formData.last_name_th" />
+                  </div>
+                </div>
+
+                <!-- Row 9: Gender -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="gender">
+                      Gender <span class="text-danger">*</span> :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <select id="gender" v-model="formData.gender" class="form-control input-short" required>
+                      <option value="" disabled selected>Select gender</option>
+                      <option v-for="gender in genders" :key="gender.id" :value="gender.value" :class="[
+                        gender.value === 'Male' ? 'text-primary' :
+                          gender.value === 'Female' ? 'text-primary' :
+                            'text-secondary'
+                      ]">
+                        {{ gender.value }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 10: Date of Birth -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="date-of-birth">
+                      Date of Birth <span class="text-danger">*</span> :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <div class="input-with-tooltip">
+                      <div class="input-icon-end position-relative input-short-wrapper">
+                        <date-picker class="form-control datetimepicker input-short" placeholder="dd/mm/yyyy" :editable="true"
                           :clearable="false" :input-format="dateFormat" v-model="formData.date_of_birth" />
                         <span class="input-icon-addon">
                           <i class="ti ti-calendar text-gray-7"></i>
                         </span>
                       </div>
+                      <span data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Select the employee's date of birth" class="tooltip-icon">
+                        <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                      </span>
                     </div>
                   </div>
+                </div>
 
+                <!-- Row 11: Age -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="age">
+                      Age <span class="text-danger">*</span> :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-short" id="age" v-model="calculatedAge" readonly />
+                  </div>
+                </div>
 
-
-                  <!-- <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Joining Date <span class="text-danger"> *</span></label>
-                      <div class="input-icon-end position-relative">
-                        <date-picker v-model="startdate" class="form-control datetimepicker" placeholder="dd/mm/yyyy"
-                          :editable="true" :clearable="false" :input-format="dateFormat" />
-                        <span class="input-icon-addon">
-                          <i class="ti ti-calendar text-gray-7"></i>
-                        </span>
-                      </div>
-                    </div>
-                  </div> -->
-                  <!-- <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Username <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" />
-                    </div>
+                <!-- Row 12: Status -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="employee_status">
+                      Status <span class="text-danger">*</span> :
+                    </label>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Email <span class="text-danger"> *</span></label>
-                      <input type="email" class="form-control" />
-                    </div>
+                  <div class="form-input-col">
+                    <select id="employee_status" v-model="formData.status" class="form-control input-short" required>
+                      <option value="" disabled selected>Select status</option>
+                      <option v-for="status in statuses" :key="status.id" :value="status.value" :class="[
+                        status.value === 'Active' ? 'text-primary' :
+                          status.value === 'Inactive' ? 'text-danger' :
+                            'text-secondary'
+                      ]">
+                        {{ status.value }}
+                      </option>
+                    </select>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Password <span class="text-danger"> *</span></label>
-                      <div class="pass-group">
-                        <input :type="showPassword ? 'text' : 'password'" class="pass-input form-control" />
-                        <span @click="toggleShow" class="ti toggle-password" :class="{
-                          'ti-eye': showPassword,
-                          'ti-eye-off': !showPassword,
-                        }"></span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Confirm Password <span class="text-danger"> *</span></label>
-                      <div class="pass-group">
-                        <input :type="showPassword1 ? 'text' : 'password'" class="pass-inputs form-control" />
-                        <span @click="toggleShow1" class="ti toggle-passwords" :class="{
-                          'ti-eye': showPassword1,
-                          'ti-eye-off': !showPassword1,
-                        }"></span>
-                      </div>
-                    </div>
-                  </div> -->
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Age <span class="text-danger"> *</span></label>
-                      <input type="text" class="form-control" v-model="calculatedAge" readonly />
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="input-block mb-3">
-                      <label class="form-label" for="employee_status">Status <span class="text-danger"> *</span></label>
-                      <select id="employee_status" v-model="formData.status" class="form-control" required>
-                        <option value="" disabled selected>Select status</option>
-                        <option v-for="status in statuses" :key="status.id" :value="status.value" :class="[
-                          status.value === 'Active' ? 'text-primary' :
-                            status.value === 'Inactive' ? 'text-danger' :
-                              'text-secondary'
-                        ]">
-                          {{ status.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <!-- <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Nationality <span class="text-danger"> *</span></label>
-                      <select class="form-select" v-model="formData.nationality">
-                        <option value="" disabled selected>Select Nationality</option>
-                        <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
-                          {{ nationality.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Religion <span class="text-danger"> *</span></label>
-                      <select class="form-select" v-model="formData.religion">
-                        <option value="" disabled selected>Select Religion</option>
-                        <option v-for="religion in religions" :key="religion.id" :value="religion.value" :class="[
-                          religion.value === 'Buddhism' ? 'text-primary' :
-                            religion.value === 'Christianity' ? 'text-primary' :
-                              'text-secondary'
-                        ]">
-                          {{ religion.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Marital Status <span class="text-danger"> *</span></label>
-                      <select class="form-select" v-model="formData.marital_status">
-                        <option value="" disabled selected>Select Marital Status</option>
-                        <option v-for="status in maritalStatuses" :key="status.id" :value="status.value" :class="[
-                          status.value === 'Single' ? 'text-primary' :
-                            status.value === 'Married' ? 'text-primary' :
-                              'text-secondary'
-                        ]">
-                          {{ status.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Phone <span class="text-danger"> *</span></label>
-                      <input type="tel" class="form-control" v-model="formData.mobile_phone"
-                        placeholder="Enter phone number" required />
-                    </div>
-                  </div>
-
-                  <div class="col-md-12">
-                    <div class="mb-3">
-                      <label class="form-label">Current Address <span class="text-danger"> *</span></label>
-                      <textarea class="form-control" v-model="formData.current_address"
-                        placeholder="Enter current address" rows="3" required></textarea>
-                    </div>
-                  </div>
-
-                  <div class="col-md-12">
-                    <div class="mb-3">
-                      <label class="form-label">Permanent Address <span class="text-danger"> *</span></label>
-                      <textarea class="form-control" v-model="formData.permanent_address"
-                        placeholder="Enter permanent address" rows="3" required></textarea>
-                    </div>
-                  </div> -->
-                  <!-- <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Department</label>
-                      <vue-select :options="DepartM" id="departm" placeholder="Select" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Position</label>
-                      <vue-select :options="Desig" id="desigOne" placeholder="Select" />
-                    </div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="mb-3">
-                      <label class="form-label">About <span class="text-danger"> *</span></label>
-                      <textarea class="form-control" rows="3"></textarea>
-                    </div>
-                  </div> -->
                 </div>
               </div>
               <div class="modal-footer"
@@ -365,190 +271,331 @@
             <!-- Personal & Finance -->
             <div class="tab-pane fade" id="personal-info" role="tabpanel" aria-labelledby="personal-tab" tabindex="0">
               <div class="modal-body pb-0">
-                <div class="row">
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Phone <span class="text-danger"> *</span></label>
-                      <input type="tel" class="form-control" v-model="personalForm.mobile_phone"
-                        placeholder="Enter phone number" />
-                    </div>
+                <!-- Row 1: Phone -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="phone">
+                      Phone <span class="text-danger">*</span> :
+                    </label>
                   </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Nationality</label>
-                      <select class="form-select" v-model="personalForm.nationality">
-                        <option value="" disabled selected>Select Nationality</option>
-                        <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
-                          {{ nationality.value }}
-                        </option>
-                      </select>
-                    </div>
+                  <div class="form-input-col">
+                    <input type="tel" class="form-control input-medium" id="phone" v-model="personalForm.mobile_phone"
+                      placeholder="Enter phone number" />
                   </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Religion</label>
-                      <select class="form-select" v-model="personalForm.religion">
-                        <option value="" disabled selected>Select Religion</option>
-                        <option v-for="religion in religions" :key="religion.id" :value="religion.value">
-                          {{ religion.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Marital Status</label>
-                      <select class="form-select" v-model="personalForm.marital_status">
-                        <option value="" disabled selected>Select Marital Status</option>
-                        <option v-for="status in maritalStatuses" :key="status.id" :value="status.value">
-                          {{ status.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-4" v-if="personalForm.marital_status === 'Married'">
-                    <div class="mb-3">
-                      <label class="form-label">Spouse Name</label>
-                      <input type="text" class="form-control" v-model="personalForm.spouse_name"
-                        placeholder="Enter spouse name" />
-                    </div>
-                  </div>
-                  <div class="col-md-4" v-if="personalForm.marital_status === 'Married'">
-                    <div class="mb-3">
-                      <label class="form-label">Spouse Mobile</label>
-                      <input type="tel" class="form-control" v-model="personalForm.spouse_mobile"
-                        placeholder="Enter spouse mobile" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Social Security Number</label>
-                      <input type="text" class="form-control" v-model="personalForm.social_security_number"
-                        placeholder="Enter SSN" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Tax Number</label>
-                      <input type="text" class="form-control" v-model="personalForm.tax_number"
-                        placeholder="Enter tax number" />
-                    </div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="mb-3">
-                      <label class="form-label">Current Address</label>
-                      <textarea class="form-control" v-model="personalForm.current_address"
-                        placeholder="Enter current address" rows="3"></textarea>
-                    </div>
-                  </div>
-                  <div class="col-md-12">
-                    <div class="mb-3">
-                      <label class="form-label">Permanent Address</label>
-                      <textarea class="form-control" v-model="personalForm.permanent_address"
-                        placeholder="Enter permanent address" rows="3"></textarea>
-                    </div>
-                  </div>
+                </div>
 
-                  <div class="col-md-12">
+                <!-- Row 2: Nationality -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="nationality">
+                      Nationality :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <select class="form-select input-medium" id="nationality" v-model="personalForm.nationality">
+                      <option value="" disabled selected>Select Nationality</option>
+                      <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
+                        {{ nationality.value }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 3: Religion -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="religion">
+                      Religion :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <select class="form-select input-medium" id="religion" v-model="personalForm.religion">
+                      <option value="" disabled selected>Select Religion</option>
+                      <option v-for="religion in religions" :key="religion.id" :value="religion.value">
+                        {{ religion.value }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 4: Marital Status -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="marital-status">
+                      Marital Status :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <select class="form-select input-medium" id="marital-status" v-model="personalForm.marital_status">
+                      <option value="" disabled selected>Select Marital Status</option>
+                      <option v-for="status in maritalStatuses" :key="status.id" :value="status.value">
+                        {{ status.value }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 5: Spouse Name (conditional) -->
+                <div class="form-row mb-3" v-if="personalForm.marital_status === 'Married'">
+                  <div class="form-label-col">
+                    <label class="form-label" for="spouse-name">
+                      Spouse Name :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="spouse-name" v-model="personalForm.spouse_name"
+                      placeholder="Enter spouse name" />
+                  </div>
+                </div>
+
+                <!-- Row 6: Spouse Mobile (conditional) -->
+                <div class="form-row mb-3" v-if="personalForm.marital_status === 'Married'">
+                  <div class="form-label-col">
+                    <label class="form-label" for="spouse-mobile">
+                      Spouse Mobile :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="tel" class="form-control input-medium" id="spouse-mobile" v-model="personalForm.spouse_mobile"
+                      placeholder="Enter spouse mobile" />
+                  </div>
+                </div>
+
+                <!-- Row 7: Social Security Number -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="ssn">
+                      Social Security Number :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="ssn" v-model="personalForm.social_security_number"
+                      placeholder="Enter SSN" />
+                  </div>
+                </div>
+
+                <!-- Row 8: Tax Number -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="tax-number">
+                      Tax Number :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="tax-number" v-model="personalForm.tax_number"
+                      placeholder="Enter tax number" />
+                  </div>
+                </div>
+
+                <!-- Row 9: Current Address -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="current-address">
+                      Current Address :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <textarea class="form-control" id="current-address" v-model="personalForm.current_address"
+                      placeholder="Enter current address" rows="3"></textarea>
+                  </div>
+                </div>
+
+                <!-- Row 10: Permanent Address -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="permanent-address">
+                      Permanent Address :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <textarea class="form-control" id="permanent-address" v-model="personalForm.permanent_address"
+                      placeholder="Enter permanent address" rows="3"></textarea>
+                  </div>
+                </div>
+
+                <!-- Section Header: Identification Information -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <hr class="my-3">
                     <h6 class="mb-3"><i class="ti ti-id"></i> Identification Information</h6>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">ID Type</label>
-                      <select class="form-select" v-model="personalForm.employee_identification.id_type">
-                        <option value="" disabled selected>Select ID Type</option>
-                        <option v-for="idType in idTypes" :key="idType.id" :value="idType.value">
-                          {{ idType.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">ID Number</label>
-                      <input type="text" class="form-control" v-model="personalForm.employee_identification.document_number"
-                        placeholder="Enter ID number" />
-                    </div>
-                  </div>
+                </div>
 
-                  <div class="col-md-12">
+                <!-- Row 11: ID Type -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="id-type">
+                      ID Type :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <select class="form-select input-medium" id="id-type" v-model="personalForm.employee_identification.id_type">
+                      <option value="" disabled selected>Select ID Type</option>
+                      <option v-for="idType in idTypes" :key="idType.id" :value="idType.value">
+                        {{ idType.value }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 12: ID Number -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="id-number">
+                      ID Number :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="id-number" v-model="personalForm.employee_identification.document_number"
+                      placeholder="Enter ID number" />
+                  </div>
+                </div>
+
+                <!-- Section Header: Bank Information -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <hr class="my-3">
                     <h6 class="mb-3"><i class="ti ti-credit-card"></i> Bank Information</h6>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Bank Name</label>
-                      <select class="form-select" v-model="bankForm.bank_name">
-                        <option value="" disabled selected>Select Bank</option>
-                        <option v-for="bank in bankNames" :key="bank.id" :value="bank.value">
-                          {{ bank.value }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Bank Branch</label>
-                      <input type="text" class="form-control" v-model="bankForm.bank_branch"
-                        placeholder="Enter bank branch" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Account Name</label>
-                      <input type="text" class="form-control" v-model="bankForm.bank_account_name"
-                        placeholder="Enter account holder name" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Account Number</label>
-                      <input type="text" class="form-control" v-model="bankForm.bank_account_number"
-                        placeholder="Enter account number" />
-                    </div>
-                  </div>
+                </div>
 
-                  <div class="col-md-12">
+                <!-- Row 13: Bank Name -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="bank-name">
+                      Bank Name :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <select class="form-select input-medium" id="bank-name" v-model="bankForm.bank_name">
+                      <option value="" disabled selected>Select Bank</option>
+                      <option v-for="bank in bankNames" :key="bank.id" :value="bank.value">
+                        {{ bank.value }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 14: Bank Branch -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="bank-branch">
+                      Bank Branch :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="bank-branch" v-model="bankForm.bank_branch"
+                      placeholder="Enter bank branch" />
+                  </div>
+                </div>
+
+                <!-- Row 15: Account Name -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="account-name">
+                      Account Name :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="account-name" v-model="bankForm.bank_account_name"
+                      placeholder="Enter account holder name" />
+                  </div>
+                </div>
+
+                <!-- Row 16: Account Number -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="account-number">
+                      Account Number :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="account-number" v-model="bankForm.bank_account_number"
+                      placeholder="Enter account number" />
+                  </div>
+                </div>
+
+                <!-- Section Header: Education Background -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <hr class="my-3">
                     <h6 class="mb-3"><i class="ti ti-school"></i> Education Background</h6>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">School/Institution Name</label>
-                      <input type="text" class="form-control" v-model="educationForm.school_name"
-                        placeholder="Enter school name" />
-                    </div>
+                </div>
+
+                <!-- Row 17: School/Institution Name -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="school-name">
+                      School/Institution Name :
+                    </label>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Degree/Qualification</label>
-                      <input type="text" class="form-control" v-model="educationForm.degree"
-                        placeholder="Enter degree" />
-                    </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control" id="school-name" v-model="educationForm.school_name"
+                      placeholder="Enter school name" />
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Start Date</label>
-                      <div class="input-icon-end position-relative">
-                        <date-picker v-model="educationForm.start_date" class="form-control datetimepicker"
+                </div>
+
+                <!-- Row 18: Degree/Qualification -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="degree">
+                      Degree/Qualification :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control" id="degree" v-model="educationForm.degree"
+                      placeholder="Enter degree" />
+                  </div>
+                </div>
+
+                <!-- Row 19: Start Date -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="education-start-date">
+                      Start Date :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <div class="input-with-tooltip">
+                      <div class="input-icon-end position-relative input-short-wrapper">
+                        <date-picker v-model="educationForm.start_date" class="form-control datetimepicker input-short"
                           placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                         <span class="input-icon-addon">
                           <i class="ti ti-calendar text-gray-7"></i>
                         </span>
                       </div>
+                      <span data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Select the start date of education" class="tooltip-icon">
+                        <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                      </span>
                     </div>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">End Date</label>
-                      <div class="input-icon-end position-relative">
-                        <date-picker v-model="educationForm.end_date" class="form-control datetimepicker"
+                </div>
+
+                <!-- Row 20: End Date -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="education-end-date">
+                      End Date :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <div class="input-with-tooltip">
+                      <div class="input-icon-end position-relative input-short-wrapper">
+                        <date-picker v-model="educationForm.end_date" class="form-control datetimepicker input-short"
                           placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                         <span class="input-icon-addon">
                           <i class="ti ti-calendar text-gray-7"></i>
                         </span>
                       </div>
+                      <span data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Select the end date of education" class="tooltip-icon">
+                        <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -571,66 +618,118 @@
             <div class="tab-pane fade" id="dependents-info" role="tabpanel" aria-labelledby="dependents-tab"
               tabindex="0">
               <div class="modal-body pb-0">
-                <div class="row">
-                  <div class="col-md-12">
+                <!-- Section Header: Family Information -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <h6 class="mb-3"><i class="ti ti-user"></i> Family Information</h6>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Father's Name</label>
-                      <input type="text" class="form-control" v-model="familyForm.father_name"
-                        placeholder="Enter father's name" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Father's Phone</label>
-                      <input type="tel" class="form-control" v-model="familyForm.father_phone"
-                        placeholder="Enter father's phone" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Mother's Name</label>
-                      <input type="text" class="form-control" v-model="familyForm.mother_name"
-                        placeholder="Enter mother's name" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Mother's Phone</label>
-                      <input type="tel" class="form-control" v-model="familyForm.mother_phone"
-                        placeholder="Enter mother's phone" />
-                    </div>
-                  </div>
+                </div>
 
-                  <div class="col-md-12">
+                <!-- Row 1: Father's Name -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="father-name">
+                      Father's Name :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="father-name" v-model="familyForm.father_name"
+                      placeholder="Enter father's name" />
+                  </div>
+                </div>
+
+                <!-- Row 2: Father's Phone -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="father-phone">
+                      Father's Phone :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="tel" class="form-control input-medium" id="father-phone" v-model="familyForm.father_phone"
+                      placeholder="Enter father's phone" />
+                  </div>
+                </div>
+
+                <!-- Row 3: Mother's Name -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="mother-name">
+                      Mother's Name :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="mother-name" v-model="familyForm.mother_name"
+                      placeholder="Enter mother's name" />
+                  </div>
+                </div>
+
+                <!-- Row 4: Mother's Phone -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="mother-phone">
+                      Mother's Phone :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="tel" class="form-control input-medium" id="mother-phone" v-model="familyForm.mother_phone"
+                      placeholder="Enter mother's phone" />
+                  </div>
+                </div>
+
+                <!-- Section Header: Emergency Contact -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <hr class="my-3">
                     <h6 class="mb-3"><i class="ti ti-phone"></i> Emergency Contact</h6>
                   </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Name</label>
-                      <input type="text" class="form-control" v-model="familyForm.emergency_contact_name"
-                        placeholder="Enter contact name" />
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Relationship</label>
-                      <input type="text" class="form-control" v-model="familyForm.emergency_contact_relationship"
-                        placeholder="Enter relationship" />
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Phone</label>
-                      <input type="tel" class="form-control" v-model="familyForm.emergency_contact_phone"
-                        placeholder="Enter contact phone" />
-                    </div>
-                  </div>
+                </div>
 
-                  <div class="col-md-12">
+                <!-- Row 5: Emergency Contact Name -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="emergency-name">
+                      Name :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="emergency-name" v-model="familyForm.emergency_contact_name"
+                      placeholder="Enter contact name" />
+                  </div>
+                </div>
+
+                <!-- Row 6: Emergency Contact Relationship -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="emergency-relationship">
+                      Relationship :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="emergency-relationship" v-model="familyForm.emergency_contact_relationship"
+                      placeholder="Enter relationship" />
+                  </div>
+                </div>
+
+                <!-- Row 7: Emergency Contact Phone -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="emergency-phone">
+                      Phone :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="tel" class="form-control input-medium" id="emergency-phone" v-model="familyForm.emergency_contact_phone"
+                      placeholder="Enter contact phone" />
+                  </div>
+                </div>
+
+                <!-- Section Header: Beneficiary Information -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <hr class="my-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                       <h6 class="mb-0"><i class="ti ti-heart"></i> Beneficiary Information</h6>
@@ -639,43 +738,77 @@
                       </button>
                     </div>
                   </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Beneficiary Name</label>
-                      <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_name"
-                        placeholder="Enter beneficiary name" />
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Relationship</label>
-                      <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_relationship"
-                        placeholder="Enter relationship" />
-                    </div>
-                  </div>
-                  <div class="col-md-4">
-                    <div class="mb-3">
-                      <label class="form-label">Phone</label>
-                      <input type="tel" class="form-control" v-model="beneficiaryForm.phone_number"
-                        placeholder="Enter phone number" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Email</label>
-                      <input type="email" class="form-control" v-model="beneficiaryForm.beneficiary_email"
-                        placeholder="Enter email (optional)" />
-                    </div>
-                  </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Address</label>
-                      <input type="text" class="form-control" v-model="beneficiaryForm.beneficiary_address"
-                        placeholder="Enter address (optional)" />
-                    </div>
-                  </div>
+                </div>
 
-                  <div class="col-md-12" v-if="beneficiariesEntries.length">
+                <!-- Row 8: Beneficiary Name -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="beneficiary-name">
+                      Beneficiary Name :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="beneficiary-name" v-model="beneficiaryForm.beneficiary_name"
+                      placeholder="Enter beneficiary name" />
+                  </div>
+                </div>
+
+                <!-- Row 9: Beneficiary Relationship -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="beneficiary-relationship">
+                      Relationship :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="beneficiary-relationship" v-model="beneficiaryForm.beneficiary_relationship"
+                      placeholder="Enter relationship" />
+                  </div>
+                </div>
+
+                <!-- Row 10: Beneficiary Phone -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="beneficiary-phone">
+                      Phone :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="tel" class="form-control input-medium" id="beneficiary-phone" v-model="beneficiaryForm.phone_number"
+                      placeholder="Enter phone number" />
+                  </div>
+                </div>
+
+                <!-- Row 11: Beneficiary Email -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="beneficiary-email">
+                      Email :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="email" class="form-control input-medium" id="beneficiary-email" v-model="beneficiaryForm.beneficiary_email"
+                      placeholder="Enter email (optional)" />
+                  </div>
+                </div>
+
+                <!-- Row 12: Beneficiary Address -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="beneficiary-address">
+                      Address :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="text" class="form-control" id="beneficiary-address" v-model="beneficiaryForm.beneficiary_address"
+                      placeholder="Enter address (optional)" />
+                  </div>
+                </div>
+
+                <!-- Beneficiaries Table -->
+                <div class="form-row mb-3" v-if="beneficiariesEntries.length">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <div class="table-responsive">
                       <table class="table">
                         <thead>
@@ -704,8 +837,12 @@
                       </table>
                     </div>
                   </div>
+                </div>
 
-                  <div class="col-md-12">
+                <!-- Section Header: Children Information -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <hr class="my-3">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                       <h6 class="mb-0"><i class="ti ti-users"></i> Children Information</h6>
@@ -714,26 +851,48 @@
                       </button>
                     </div>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Child Name</label>
-                      <input type="text" class="form-control" v-model="childForm.name" placeholder="Enter child name" />
-                    </div>
+                </div>
+
+                <!-- Row 13: Child Name -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="child-name">
+                      Child Name :
+                    </label>
                   </div>
-                  <div class="col-md-6">
-                    <div class="mb-3">
-                      <label class="form-label">Date of Birth</label>
-                      <div class="input-icon-end position-relative">
-                        <date-picker v-model="childForm.date_of_birth" class="form-control datetimepicker"
+                  <div class="form-input-col">
+                    <input type="text" class="form-control input-medium" id="child-name" v-model="childForm.name" placeholder="Enter child name" />
+                  </div>
+                </div>
+
+                <!-- Row 14: Child Date of Birth -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="child-dob">
+                      Date of Birth :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <div class="input-with-tooltip">
+                      <div class="input-icon-end position-relative input-short-wrapper">
+                        <date-picker v-model="childForm.date_of_birth" class="form-control datetimepicker input-short"
                           placeholder="dd/mm/yyyy" :editable="true" :clearable="false" :input-format="dateFormat" />
                         <span class="input-icon-addon">
                           <i class="ti ti-calendar text-gray-7"></i>
                         </span>
                       </div>
+                      <span data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Select the child's date of birth" class="tooltip-icon">
+                        <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                      </span>
                     </div>
                   </div>
+                </div>
 
-                  <div class="col-md-12" v-if="childrenEntries.length">
+                <!-- Children Table -->
+                <div class="form-row mb-3" v-if="childrenEntries.length">
+                  <div class="form-label-col"></div>
+                  <div class="form-input-col">
                     <div class="table-responsive">
                       <table class="table">
                         <thead>
@@ -808,7 +967,7 @@
 
   <!-- Edit Employee -->
   <div class="modal fade" id="edit_employee" role="dialog">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
         <div class="modal-header"
           style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 15px 20px;">
@@ -824,182 +983,292 @@
         </div>
         <form @submit.prevent="handleEditSubmit">
           <div class="modal-body pb-0">
-            <div class="row">
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="edit-organization">Organization</label>
-                  <select id="edit-organization" v-model="editFormData.organization" class="form-control" required>
-                    <option value="" disabled selected>Select a organization</option>
-                    <option v-for="organization in subsidiaries" :key="organization.id" :value="organization.value"
-                      :class="[
-                        organization.value === 'SMRU' ? 'text-primary' :
-                          organization.value === 'BHF' ? 'text-primary' :
-                            'text-secondary'
-                      ]">
-                      {{ organization.value }}
-                    </option>
-                  </select>
-                </div>
+            <!-- Row 1: Organization -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-organization">
+                  Organization :
+                </label>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Staff ID <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" placeholder="Enter staff ID"
-                    v-model="editFormData.staff_id" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Initial (EN)</label>
-                  <input type="text" class="form-control" placeholder="Enter English initial" maxlength="10"
-                    v-model="editFormData.initial_en" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Initial (TH)</label>
-                  <input type="text" class="form-control" placeholder="Enter Thai initial" maxlength="10"
-                    v-model="editFormData.initial_th" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">First Name (EN) <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" maxlength="255" placeholder="Enter English first name"
-                    v-model="editFormData.first_name_en" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Last Name (EN)</label>
-                  <input type="text" class="form-control" maxlength="255" placeholder="Enter English last name"
-                    v-model="editFormData.last_name_en" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">First Name (TH)</label>
-                  <input type="text" class="form-control" maxlength="255" placeholder="Enter Thai first name"
-                    v-model="editFormData.first_name_th" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Last Name (TH)</label>
-                  <input type="text" class="form-control" maxlength="255" placeholder="Enter Thai last name"
-                    v-model="editFormData.last_name_th" />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="edit-gender">Gender <span class="text-danger"> *</span></label>
-                  <select id="edit-gender" v-model="editFormData.gender" class="form-control" required>
-                    <option value="" disabled selected>Select gender</option>
-                    <option v-for="gender in genders" :key="gender.id" :value="gender.value" :class="[
-                      gender.value === 'Male' ? 'text-primary' :
-                        gender.value === 'Female' ? 'text-primary' :
+              <div class="form-input-col">
+                <select id="edit-organization" v-model="editFormData.organization" class="form-control input-short" required>
+                  <option value="" disabled selected>Select a organization</option>
+                  <option v-for="organization in subsidiaries" :key="organization.id" :value="organization.value"
+                    :class="[
+                      organization.value === 'SMRU' ? 'text-primary' :
+                        organization.value === 'BHF' ? 'text-primary' :
                           'text-secondary'
                     ]">
-                      {{ gender.value }}
-                    </option>
-                  </select>
-                </div>
+                    {{ organization.value }}
+                  </option>
+                </select>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Date of Birth <span class="text-danger"> *</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+            </div>
+
+            <!-- Row 2: Staff ID -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-staff-id">
+                  Staff ID <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-medium" id="edit-staff-id" placeholder="Enter staff ID"
+                  v-model="editFormData.staff_id" />
+              </div>
+            </div>
+
+            <!-- Row 3: Initial (EN) -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-initial-en">
+                  Initial (EN) :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-short" id="edit-initial-en" placeholder="Enter English initial" maxlength="10"
+                  v-model="editFormData.initial_en" />
+              </div>
+            </div>
+
+            <!-- Row 4: Initial (TH) -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-initial-th">
+                  Initial (TH) :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-short" id="edit-initial-th" placeholder="Enter Thai initial" maxlength="10"
+                  v-model="editFormData.initial_th" />
+              </div>
+            </div>
+
+            <!-- Row 5: First Name (EN) -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-first-name-en">
+                  First Name (EN) <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-medium" id="edit-first-name-en" maxlength="255" placeholder="Enter English first name"
+                  v-model="editFormData.first_name_en" />
+              </div>
+            </div>
+
+            <!-- Row 6: Last Name (EN) -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-last-name-en">
+                  Last Name (EN) :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-medium" id="edit-last-name-en" maxlength="255" placeholder="Enter English last name"
+                  v-model="editFormData.last_name_en" />
+              </div>
+            </div>
+
+            <!-- Row 7: First Name (TH) -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-first-name-th">
+                  First Name (TH) :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-medium" id="edit-first-name-th" maxlength="255" placeholder="Enter Thai first name"
+                  v-model="editFormData.first_name_th" />
+              </div>
+            </div>
+
+            <!-- Row 8: Last Name (TH) -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-last-name-th">
+                  Last Name (TH) :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-medium" id="edit-last-name-th" maxlength="255" placeholder="Enter Thai last name"
+                  v-model="editFormData.last_name_th" />
+              </div>
+            </div>
+
+            <!-- Row 9: Gender -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-gender">
+                  Gender <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select id="edit-gender" v-model="editFormData.gender" class="form-control input-short" required>
+                  <option value="" disabled selected>Select gender</option>
+                  <option v-for="gender in genders" :key="gender.id" :value="gender.value" :class="[
+                    gender.value === 'Male' ? 'text-primary' :
+                      gender.value === 'Female' ? 'text-primary' :
+                        'text-secondary'
+                  ]">
+                    {{ gender.value }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 10: Date of Birth -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-date-of-birth">
+                  Date of Birth <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <div class="input-icon-end position-relative input-short-wrapper">
+                    <date-picker class="form-control datetimepicker input-short" placeholder="dd/mm/yyyy" :editable="true"
                       :clearable="false" :input-format="dateFormat" v-model="editFormData.date_of_birth" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
                   </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Select the employee's date of birth" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Age <span class="text-danger"> *</span></label>
-                  <input type="text" class="form-control" v-model="editCalculatedAge" readonly />
-                </div>
+            </div>
+
+            <!-- Row 11: Age -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-age">
+                  Age <span class="text-danger">*</span> :
+                </label>
               </div>
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="edit-employee-status">Status <span class="text-danger">
-                      *</span></label>
-                  <select id="edit-employee-status" v-model="editFormData.status" class="form-control" required>
-                    <option value="" disabled selected>Select status</option>
-                    <option v-for="status in statuses" :key="status.id" :value="status.value" :class="[
-                      status.value === 'Active' ? 'text-primary' :
-                        status.value === 'Inactive' ? 'text-danger' :
-                          'text-secondary'
-                    ]">
-                      {{ status.value }}
-                    </option>
-                  </select>
-                </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-short" id="edit-age" v-model="editCalculatedAge" readonly />
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Nationality <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="editFormData.nationality">
-                    <option value="" disabled selected>Select Nationality</option>
-                    <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
-                      {{ nationality.value }}
-                    </option>
-                  </select>
-                </div>
+            </div>
+
+            <!-- Row 12: Status -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-employee-status">
+                  Status <span class="text-danger">*</span> :
+                </label>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Religion <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="editFormData.religion">
-                    <option value="" disabled selected>Select Religion</option>
-                    <option v-for="religion in religions" :key="religion.id" :value="religion.value" :class="[
-                      religion.value === 'Buddhism' ? 'text-primary' :
-                        religion.value === 'Christianity' ? 'text-primary' :
-                          'text-secondary'
-                    ]">
-                      {{ religion.value }}
-                    </option>
-                  </select>
-                </div>
+              <div class="form-input-col">
+                <select id="edit-employee-status" v-model="editFormData.status" class="form-control input-short" required>
+                  <option value="" disabled selected>Select status</option>
+                  <option v-for="status in statuses" :key="status.id" :value="status.value" :class="[
+                    status.value === 'Active' ? 'text-primary' :
+                      status.value === 'Inactive' ? 'text-danger' :
+                        'text-secondary'
+                  ]">
+                    {{ status.value }}
+                  </option>
+                </select>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Marital Status <span class="text-danger"> *</span></label>
-                  <select class="form-select" v-model="editFormData.marital_status">
-                    <option value="" disabled selected>Select Marital Status</option>
-                    <option v-for="status in maritalStatuses" :key="status.id" :value="status.value" :class="[
-                      status.value === 'Single' ? 'text-primary' :
-                        status.value === 'Married' ? 'text-primary' :
-                          'text-secondary'
-                    ]">
-                      {{ status.value }}
-                    </option>
-                  </select>
-                </div>
+            </div>
+
+            <!-- Row 13: Nationality -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-nationality">
+                  Nationality <span class="text-danger">*</span> :
+                </label>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label class="form-label">Phone <span class="text-danger"> *</span></label>
-                  <input type="tel" class="form-control" v-model="editFormData.mobile_phone"
-                    placeholder="Enter phone number" required />
-                </div>
+              <div class="form-input-col">
+                <select class="form-select input-medium" id="edit-nationality" v-model="editFormData.nationality">
+                  <option value="" disabled selected>Select Nationality</option>
+                  <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
+                    {{ nationality.value }}
+                  </option>
+                </select>
               </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Current Address <span class="text-danger"> *</span></label>
-                  <textarea class="form-control" v-model="editFormData.current_address"
-                    placeholder="Enter current address" rows="3" required></textarea>
-                </div>
+            </div>
+
+            <!-- Row 14: Religion -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-religion">
+                  Religion <span class="text-danger">*</span> :
+                </label>
               </div>
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Permanent Address <span class="text-danger"> *</span></label>
-                  <textarea class="form-control" v-model="editFormData.permanent_address"
-                    placeholder="Enter permanent address" rows="3" required></textarea>
-                </div>
+              <div class="form-input-col">
+                <select class="form-select input-medium" id="edit-religion" v-model="editFormData.religion">
+                  <option value="" disabled selected>Select Religion</option>
+                  <option v-for="religion in religions" :key="religion.id" :value="religion.value" :class="[
+                    religion.value === 'Buddhism' ? 'text-primary' :
+                      religion.value === 'Christianity' ? 'text-primary' :
+                        'text-secondary'
+                  ]">
+                    {{ religion.value }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 15: Marital Status -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-marital-status">
+                  Marital Status <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-select input-medium" id="edit-marital-status" v-model="editFormData.marital_status">
+                  <option value="" disabled selected>Select Marital Status</option>
+                  <option v-for="status in maritalStatuses" :key="status.id" :value="status.value" :class="[
+                    status.value === 'Single' ? 'text-primary' :
+                      status.value === 'Married' ? 'text-primary' :
+                        'text-secondary'
+                  ]">
+                    {{ status.value }}
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 16: Phone -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-phone">
+                  Phone <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="tel" class="form-control input-medium" id="edit-phone" v-model="editFormData.mobile_phone"
+                  placeholder="Enter phone number" required />
+              </div>
+            </div>
+
+            <!-- Row 17: Current Address -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-current-address">
+                  Current Address <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <textarea class="form-control" id="edit-current-address" v-model="editFormData.current_address"
+                  placeholder="Enter current address" rows="3" required></textarea>
+              </div>
+            </div>
+
+            <!-- Row 18: Permanent Address -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="edit-permanent-address">
+                  Permanent Address <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <textarea class="form-control" id="edit-permanent-address" v-model="editFormData.permanent_address"
+                  placeholder="Enter permanent address" rows="3" required></textarea>
               </div>
             </div>
           </div>
@@ -1068,7 +1337,7 @@
 </template>
 <script>
 import { ref } from "vue";
-import { Modal, Tab } from 'bootstrap';
+import { Modal, Tab, Tooltip } from 'bootstrap';
 import { useEmployeeStore } from "@/stores/employeeStore";
 import { useLookupStore } from "@/stores/lookupStore";
 import { message } from 'ant-design-vue';
@@ -1077,12 +1346,16 @@ import { employeeService } from "@/services/employee.service";
 import { employeeEducationService } from "@/services/employeeEducation.service";
 import { employeeChildrenService } from "@/services/employee-children.service";
 import employeeBeneficiaryService from "@/services/employeeBeneficiary.service";
+import { InfoCircleOutlined } from '@ant-design/icons-vue';
 
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 
 export default {
   emits: ['employeeAdded'],
+  components: {
+    InfoCircleOutlined,
+  },
   setup() {
     // Initialize stores
     const lookupStore = useLookupStore();
@@ -1224,6 +1497,8 @@ export default {
     if (modalElement) {
       this.modalInstance = new Modal(modalElement);
     }
+    // Initialize tooltips
+    this.initializeTooltips();
   },
   computed: {
     calculatedAge() {
@@ -1324,6 +1599,15 @@ export default {
     formatDateOnly(dateValue) {
       if (!dateValue) return null;
       return new Date(dateValue).toISOString().split('T')[0];
+    },
+
+    initializeTooltips() {
+      this.$nextTick(() => {
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltipTriggerList.forEach(tooltipTriggerEl => {
+          new Tooltip(tooltipTriggerEl);
+        });
+      });
     },
 
     activateTab(tabId) {
@@ -1827,3 +2111,122 @@ export default {
   },
 };
 </script>
+<style scoped>
+.modal-dialog {
+  max-width: 1200px;
+}
+
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-label-col {
+  flex: 0 0 180px;
+  min-width: 180px;
+  padding-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+}
+
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.input-short {
+  width: 200px;
+  max-width: 200px;
+}
+
+.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+.input-short-wrapper {
+  width: 200px;
+  max-width: 200px;
+  flex: 1;
+}
+
+.tooltip-icon {
+  pointer-events: auto;
+  z-index: 1;
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.form-control,
+.form-select {
+  width: 100%;
+}
+
+.form-select.input-short,
+.form-select.input-medium {
+  width: 200px;
+  max-width: 200px;
+}
+
+.form-select.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+/* Date picker styling */
+:deep(.datetimepicker) {
+  width: 100%;
+}
+
+:deep(.datetimepicker.input-short) {
+  width: 200px;
+  max-width: 200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .input-short,
+  .input-medium,
+  .input-short-wrapper,
+  .input-with-tooltip,
+  .form-select.input-short,
+  .form-select.input-medium {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+</style>

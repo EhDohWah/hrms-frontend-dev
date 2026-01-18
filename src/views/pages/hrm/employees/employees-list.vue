@@ -296,7 +296,7 @@
   </div>
 
   <!-- Add Employee Modal -->
-  <employee-list-modal @employee-added="fetchEmployees"></employee-list-modal>
+  <employee-list-modal ref="employeeListModal" @employee-added="fetchEmployees"></employee-list-modal>
 
   <!-- Employee Upload Modal -->
   <employee-upload-modal @refresh-employee-list="fetchEmployees"></employee-upload-modal>
@@ -978,19 +978,37 @@ export default {
     },
 
     async openAddEmployeeModal() {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:980',message:'openAddEmployeeModal called',data:{componentExists:!!this.$refs.employeeListModal},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
+      // #endregion
       try {
         this.openingAddEmployee = true;
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:985',message:'Starting element search',data:{initialCheck:!!document.getElementById('add_employee')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
+        // #endregion
         // Wait for modal DOM to be available in case of first-time load
         let attempts = 0;
         while (!document.getElementById('add_employee') && attempts < 40) {
           await new Promise(resolve => setTimeout(resolve, 25));
           attempts++;
+          // #region agent log
+          if (attempts % 10 === 0) fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:990',message:'Still waiting for element',data:{attempts,elementFound:!!document.getElementById('add_employee')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
+          // #endregion
         }
         const el = document.getElementById('add_employee');
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:993',message:'Element search completed',data:{elementFound:!!el,attempts,allModals:document.querySelectorAll('.modal').length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
+        // #endregion
         if (el) {
           const modal = new BootstrapModal(el);
           modal.show();
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:996',message:'Modal shown successfully',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+          // #endregion
         } else {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:999',message:'Element not found after wait',data:{attempts,allModals:document.querySelectorAll('.modal').length,modalIds:Array.from(document.querySelectorAll('.modal')).map(m=>m.id)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
+          // #endregion
           this.$message && this.$message.warning && this.$message.warning('Form is loading, please try again.');
         }
       } finally {

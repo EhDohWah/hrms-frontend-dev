@@ -1,6 +1,6 @@
 <template>
   <div class="modal fade" id="interviewModal" tabindex="-1" aria-labelledby="interviewModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="interviewModalLabel">{{ editMode ? 'Edit' : 'Add' }} Interview</h5>
@@ -20,160 +20,236 @@
               {{ alertMessage }}
             </div>
 
-            <!-- Row 1: Basic Information -->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="candidateName" class="form-label">Candidate Name</label>
-                  <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.candidate_name }"
-                    id="candidateName" v-model="formData.candidate_name" required @input="handleFormChange" />
-                  <div v-if="validationErrors.candidate_name" class="invalid-feedback">
-                    {{ validationErrors.candidate_name }}
-                  </div>
-                </div>
+            <!-- Row 1: Candidate Name -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="candidateName">
+                  Candidate Name :
+                </label>
               </div>
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="phone" class="form-label">Phone</label>
-                  <div style="display: flex; align-items: center;">
-                    <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.phone }" id="phone"
-                      v-model="formData.phone" required @input="handlePhoneInput" @blur="validatePhone"
-                      placeholder="Enter 10 digits (Thai) or 11 digits (Myanmar)" style="flex: 1;" />
-                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Thai numbers: 10 digits (e.g., 0812345678) | Myanmar numbers: 11 digits (e.g., 09123456789)"
-                      style="margin-left: 8px;">
-                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                    </span>
-                  </div>
-                  <div v-if="validationErrors.phone" class="invalid-feedback">
-                    {{ validationErrors.phone }}
-                  </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control input-medium" :class="{ 'is-invalid': validationErrors.candidate_name }"
+                  id="candidateName" v-model="formData.candidate_name" required @input="handleFormChange" />
+                <div v-if="validationErrors.candidate_name" class="invalid-feedback">
+                  {{ validationErrors.candidate_name }}
                 </div>
               </div>
             </div>
 
-            <!-- Row 2: Job Position (Full Width) -->
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-3">
-                  <label for="jobPosition" class="form-label">Job Position</label>
-                  <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.job_position }"
-                    id="jobPosition" v-model="formData.job_position" required @input="handleFormChange" />
-                  <div v-if="validationErrors.job_position" class="invalid-feedback">
-                    {{ validationErrors.job_position }}
-                  </div>
+            <!-- Row 2: Phone -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="phone">
+                  Phone :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <input type="text" class="form-control input-medium" :class="{ 'is-invalid': validationErrors.phone }" id="phone"
+                    v-model="formData.phone" required @input="handlePhoneInput" @blur="validatePhone"
+                    placeholder="Enter 10 digits (Thai) or 11 digits (Myanmar)" />
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Thai numbers: 10 digits (e.g., 0812345678) | Myanmar numbers: 11 digits (e.g., 09123456789)"
+                    class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors.phone" class="invalid-feedback">
+                  {{ validationErrors.phone }}
                 </div>
               </div>
             </div>
 
-            <!-- Row 3: Time Fields -->
-            <div class="row">
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label for="startTime" class="form-label">Start Time</label>
-                  <input type="time" class="form-control" id="startTime" v-model="formData.start_time" required
-                    @change="handleFormChange" />
+            <!-- Row 3: Job Position -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="jobPosition">
+                  Job Position :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control" :class="{ 'is-invalid': validationErrors.job_position }"
+                  id="jobPosition" v-model="formData.job_position" required @input="handleFormChange" />
+                <div v-if="validationErrors.job_position" class="invalid-feedback">
+                  {{ validationErrors.job_position }}
                 </div>
               </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label for="endTime" class="form-label">End Time</label>
-                  <input type="time" class="form-control" id="endTime" v-model="formData.end_time"
-                    @change="handleFormChange" />
-                </div>
+            </div>
+
+            <!-- Row 4: Start Time -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="startTime">
+                  Start Time :
+                </label>
               </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label class="form-label">Interview Date <span class="text-danger"> *</span></label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
+              <div class="form-input-col">
+                <input type="time" class="form-control input-short" id="startTime" v-model="formData.start_time" required
+                  @change="handleFormChange" />
+              </div>
+            </div>
+
+            <!-- Row 5: End Time -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="endTime">
+                  End Time :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <input type="time" class="form-control input-short" id="endTime" v-model="formData.end_time"
+                  @change="handleFormChange" />
+              </div>
+            </div>
+
+            <!-- Row 6: Interview Date -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="interviewDate">
+                  Interview Date <span class="text-danger">*</span> :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <div class="input-icon-end position-relative input-short-wrapper">
+                    <date-picker class="form-control datetimepicker input-short" placeholder="dd/mm/yyyy" :editable="true"
                       :clearable="false" :input-format="displayFormat" v-model="formData.interview_date"
                       @update:model-value="handleDateChange('interview_date', $event)" />
                     <span class="input-icon-addon">
                       <i class="ti ti-calendar text-gray-7"></i>
                     </span>
                   </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Select the date for the interview" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
                 </div>
               </div>
             </div>
 
-            <!-- Row 4: Status and Mode -->
-            <div class="row">
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label for="interviewMode" class="form-label">Interview Mode</label>
-                  <select class="form-select" id="interviewMode" v-model="formData.interview_mode" required
-                    @change="handleFormChange">
-                    <option value="In-person">In-person</option>
-                    <option value="Virtual">Virtual</option>
-                    <option value="Phone">Phone</option>
-                  </select>
-                </div>
+            <!-- Row 7: Interview Mode -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="interviewMode">
+                  Interview Mode :
+                </label>
               </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label for="interviewStatus" class="form-label">Interview Status</label>
-                  <select class="form-select" id="interviewStatus" v-model="formData.interview_status" required
-                    @change="handleFormChange">
-                    <option value="Scheduled">Scheduled</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
-                    <option value="In Progress">In Progress</option>
-                  </select>
-                </div>
+              <div class="form-input-col">
+                <select class="form-select input-short" id="interviewMode" v-model="formData.interview_mode" required
+                  @change="handleFormChange">
+                  <option value="In-person">In-person</option>
+                  <option value="Virtual">Virtual</option>
+                  <option value="Phone">Phone</option>
+                </select>
               </div>
-              <div class="col-md-4">
-                <div class="mb-3">
-                  <label for="score" class="form-label">Score</label>
-                  <div style="display: flex; align-items: center;">
-                    <input type="number" class="form-control" :class="{ 'is-invalid': validationErrors.score }"
-                      id="score" v-model="formData.score" min="0" max="100" step="0.01" @input="handleScoreInput"
-                      @blur="validateScore" placeholder="Enter score between 0-100" style="flex: 1;" />
-                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Enter a numeric score between 0 and 100 (decimals allowed)" style="margin-left: 8px;">
-                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                    </span>
-                  </div>
-                  <div v-if="validationErrors.score" class="invalid-feedback">
-                    {{ validationErrors.score }}
-                  </div>
+            </div>
+
+            <!-- Row 8: Interview Status -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="interviewStatus">
+                  Interview Status :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-select input-short" id="interviewStatus" v-model="formData.interview_status" required
+                  @change="handleFormChange">
+                  <option value="Scheduled">Scheduled</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                  <option value="In Progress">In Progress</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Row 9: Score -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="score">
+                  Score :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <input type="number" class="form-control input-short" :class="{ 'is-invalid': validationErrors.score }"
+                    id="score" v-model="formData.score" min="0" max="100" step="0.01" @input="handleScoreInput"
+                    @blur="validateScore" placeholder="Enter score between 0-100" />
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Enter a numeric score between 0 and 100 (decimals allowed)" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors.score" class="invalid-feedback">
+                  {{ validationErrors.score }}
                 </div>
               </div>
             </div>
 
-            <!-- Row 5: Hired Status -->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="mb-3">
-                  <label for="hiredStatus" class="form-label">Hired Status</label>
-                  <select class="form-select" id="hiredStatus" v-model="formData.hired_status"
-                    @change="handleFormChange">
-                    <option value="" disabled selected>Select Hired Status</option>
-                    <option value="Hired">Hired</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Pending">Pending</option>
-                  </select>
-                </div>
+            <!-- Row 10: Hired Status -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="hiredStatus">
+                  Hired Status :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <select class="form-select input-short" id="hiredStatus" v-model="formData.hired_status"
+                  @change="handleFormChange">
+                  <option value="" disabled selected>Select Hired Status</option>
+                  <option value="Hired">Hired</option>
+                  <option value="Rejected">Rejected</option>
+                  <option value="Pending">Pending</option>
+                </select>
               </div>
             </div>
 
-            <!-- Full Width Fields -->
-            <div class="row">
-              <div class="col-12">
-                <div class="mb-3">
-                  <label for="interviewerName" class="form-label">Interviewer Name / Position</label>
-                  <textarea class="form-control" id="interviewerName" v-model="formData.interviewer_name" required
-                    @input="handleFormChange" />
-                </div>
-                <div class="mb-3">
-                  <label for="feedback" class="form-label">Feedback</label>
+            <!-- Row 11: Interviewer Name -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="interviewerName">
+                  Interviewer Name / Position :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <textarea class="form-control" id="interviewerName" v-model="formData.interviewer_name" required
+                  @input="handleFormChange"></textarea>
+              </div>
+            </div>
+
+            <!-- Row 12: Feedback -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="feedback">
+                  Feedback :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
                   <textarea class="form-control" id="feedback" v-model="formData.feedback" rows="3"
                     @input="handleFormChange"></textarea>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Provide feedback about the interview" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
                 </div>
-                <div class="mb-3">
-                  <label for="referenceInfo" class="form-label">Reference Information</label>
+              </div>
+            </div>
+
+            <!-- Row 13: Reference Information -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="referenceInfo">
+                  Reference Information :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
                   <textarea class="form-control" id="referenceInfo" v-model="formData.reference_info" rows="3"
                     @input="handleFormChange"></textarea>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Provide reference information about the candidate" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
                 </div>
               </div>
             </div>
@@ -1043,8 +1119,142 @@ export default {
 </script>
 
 <style scoped>
+.modal-dialog {
+  max-width: 1000px;
+}
+
 .modal-content {
   padding: 20px;
+}
+
+/* Horizontal form layout - labels on left, inputs on right */
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-label-col {
+  flex: 0 0 180px;
+  min-width: 180px;
+  padding-top: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
+  display: block;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+}
+
+/* Input width classes */
+.input-short {
+  width: 200px;
+  max-width: 200px;
+}
+
+.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+.form-select.input-short {
+  width: 200px;
+  max-width: 200px;
+}
+
+.form-select.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+.input-short-wrapper {
+  width: 200px;
+  max-width: 200px;
+}
+
+/* Responsive adjustments for input widths */
+@media (max-width: 768px) {
+  .input-short,
+  .input-medium,
+  .input-short-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.input-with-tooltip .input-short-wrapper {
+  margin: 0;
+}
+
+.input-with-tooltip textarea + .tooltip-icon {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* Responsive: stack vertically on small screens */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .form-input-col {
+    flex: 1;
+    min-width: 100%;
+  }
+}
+
+/* Form validation styles */
+.form-control.is-invalid,
+.form-select.is-invalid {
+  border-color: #e53e3e;
+  background: #fff5f5;
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  font-size: 0.875em;
+  color: #e53e3e;
+  font-weight: 500;
+  margin-left: 0;
 }
 
 /* Alert notification styles */
@@ -1190,17 +1400,12 @@ export default {
   border-right-color: rgba(0, 0, 0, 0.85) !important;
 }
 
-/* Input field container styling */
-.input-with-tooltip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.input-short-wrapper :deep(.mx-datepicker) {
+  width: 100%;
 }
 
-/* Ensure tooltip icons don't interfere with input functionality */
-.tooltip-icon {
-  pointer-events: auto;
-  z-index: 1;
+.input-short-wrapper :deep(.mx-input) {
+  width: 100% !important;
 }
 
 /* Modal content overflow fixes for tooltips */

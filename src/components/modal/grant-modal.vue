@@ -40,113 +40,129 @@
               </div>
             </div>
 
-            <!-- Row 1: Organization + Grant Name -->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="grant-organization">Organization</label>
-                  <div style="display: flex; align-items: center;">
-                    <select id="grant-organization" v-model="formData.organization" class="form-control"
-                      :class="{ 'is-invalid': validationErrors.organization }" required @change="handleFormChange"
-                      style="flex: 1;">
-                      <option value="" disabled>Select a organization</option>
-                      <option v-for="organization in subsidiaries" :key="organization.id" :value="organization.value" :class="[
-                        organization.value === 'SMRU' ? 'text-primary' :
-                          organization.value === 'BHF' ? 'text-primary' :
-                            'text-secondary'
-                      ]">
-                        {{ organization.value }}
-                      </option>
-                    </select>
-                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Select the organization for this grant (SMRU or BHF)" style="margin-left: 8px;">
-                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                    </span>
-                  </div>
-                  <div v-if="validationErrors.organization" class="invalid-feedback">
-                    {{ validationErrors.organization }}
-                  </div>
-                </div>
+            <!-- Row 1: Organization -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="grant-organization">
+                  Organization :
+                </label>
               </div>
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="grant-name">Grant Name</label>
-                  <div style="display: flex; align-items: center;">
-                    <input type="text" id="grant-name" v-model="formData.name" class="form-control"
-                      :class="{ 'is-invalid': validationErrors.name }" placeholder="e.g., UNICEF-EP" required
-                      @input="handleFormChange" style="flex: 1;">
-                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Enter the full name of the grant project (e.g., UNICEF Emergency Preparedness)"
-                      style="margin-left: 8px;">
-                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                    </span>
-                  </div>
-                  <div v-if="validationErrors.name" class="invalid-feedback">
-                    {{ validationErrors.name }}
-                  </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <select id="grant-organization" v-model="formData.organization" class="form-control input-short"
+                    :class="{ 'is-invalid': validationErrors.organization }" required @change="handleFormChange">
+                    <option value="" disabled>Select a organization</option>
+                    <option v-for="organization in subsidiaries" :key="organization.id" :value="organization.value" :class="[
+                      organization.value === 'SMRU' ? 'text-primary' :
+                        organization.value === 'BHF' ? 'text-primary' :
+                          'text-secondary'
+                    ]">
+                      {{ organization.value }}
+                    </option>
+                  </select>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Select the organization for this grant (SMRU or BHF)" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors.organization" class="invalid-feedback">
+                  {{ validationErrors.organization }}
                 </div>
               </div>
             </div>
 
-            <!-- Row 2: Grant Code + End Date -->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="grant-code">Grant Code</label>
-                  <div style="display: flex; align-items: center;">
-                    <input type="text" id="grant-code" v-model="formData.code" class="form-control"
-                      :class="{ 'is-invalid': validationErrors.code }" placeholder="e.g., B-24004" required
-                      @input="handleFormChange" style="flex: 1;">
-                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Enter the unique grant code identifier (e.g., B-24004, A-23001)" style="margin-left: 8px;">
-                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                    </span>
-                  </div>
-                  <div v-if="validationErrors.code" class="invalid-feedback">
-                    {{ validationErrors.code }}
-                  </div>
-                </div>
+            <!-- Row 2: Grant Name -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="grant-name">
+                  Grant Name : 
+                </label>
               </div>
-              <div class="col-md-6">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="grant-end-date">End Date</label>
-                  <div style="display: flex; align-items: center;">
-                    <div class="input-icon-end position-relative" style="flex: 1;">
-                      <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                        :clearable="false" :input-format="dateFormat" v-model="formData.end_date"
-                        :class="{ 'is-invalid': validationErrors.end_date }"
-                        @update:model-value="handleDateChange('end_date', $event)" />
-                      <span class="input-icon-addon">
-                        <i class="ti ti-calendar text-gray-7"></i>
-                      </span>
-                    </div>
-                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Select the end date when this grant project will conclude" style="margin-left: 8px;">
-                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                    </span>
-                  </div>
-                  <div v-if="validationErrors.end_date" class="invalid-feedback">
-                    {{ validationErrors.end_date }}
-                  </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <input type="text" id="grant-name" v-model="formData.name" class="form-control input-medium"
+                    :class="{ 'is-invalid': validationErrors.name }" placeholder="e.g., UNICEF-EP" required
+                    @input="handleFormChange">
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Enter the full name of the grant project (e.g., UNICEF Emergency Preparedness)"
+                    class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors.name" class="invalid-feedback">
+                  {{ validationErrors.name }}
                 </div>
               </div>
             </div>
 
-            <!-- Row 3: Description (Full Width) -->
-            <div class="row">
-              <div class="col-md-12">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="grant-description">Description</label>
-                  <div style="display: flex; align-items: flex-start;">
-                    <textarea id="grant-description" v-model="formData.description" class="form-control" rows="3"
-                      @input="handleFormChange" placeholder="Enter grant description and objectives..."
-                      style="flex: 1;"></textarea>
-                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Provide a detailed description of the grant project, its objectives, and scope"
-                      style="margin-left: 8px; margin-top: 8px;">
-                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+            <!-- Row 3: Grant Code -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="grant-code">
+                  Grant Code :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <input type="text" id="grant-code" v-model="formData.code" class="form-control input-medium"
+                    :class="{ 'is-invalid': validationErrors.code }" placeholder="e.g., B-24004" required
+                    @input="handleFormChange">
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Enter the unique grant code identifier (e.g., B-24004, A-23001)" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors.code" class="invalid-feedback">
+                  {{ validationErrors.code }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 4: End Date -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="grant-end-date">
+                  End Date :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <div class="input-icon-end position-relative input-short-wrapper">
+                    <date-picker class="form-control datetimepicker input-short" placeholder="dd/mm/yyyy" :editable="true"
+                      :clearable="false" :input-format="dateFormat" v-model="formData.end_date"
+                      :class="{ 'is-invalid': validationErrors.end_date }"
+                      @update:model-value="handleDateChange('end_date', $event)" />
+                    <span class="input-icon-addon">
+                      <i class="ti ti-calendar text-gray-7"></i>
                     </span>
                   </div>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Select the end date when this grant project will conclude" class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
+                </div>
+                <div v-if="validationErrors.end_date" class="invalid-feedback">
+                  {{ validationErrors.end_date }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 5: Description -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label" for="grant-description">
+                  Description :
+                </label>
+              </div>
+              <div class="form-input-col">
+                <div class="input-with-tooltip">
+                  <textarea id="grant-description" v-model="formData.description" class="form-control" rows="3"
+                    @input="handleFormChange" placeholder="Enter grant description and objectives..."></textarea>
+                  <span data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Provide a detailed description of the grant project, its objectives, and scope"
+                    class="tooltip-icon">
+                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                  </span>
                 </div>
               </div>
             </div>
@@ -924,8 +940,107 @@ export default {
   position: relative;
 }
 
+/* Horizontal form layout - labels on left, inputs on right */
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-label-col {
+  flex: 0 0 140px;
+  min-width: 140px;
+  padding-top: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
 .form-label {
   font-weight: 500;
+  margin-bottom: 0;
+  display: block;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+}
+
+/* Input width classes */
+.input-short {
+  width: 200px;
+  max-width: 200px;
+}
+
+.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+.input-short-wrapper {
+  width: 200px;
+  max-width: 200px;
+}
+
+/* Responsive adjustments for input widths */
+@media (max-width: 768px) {
+  .input-short,
+  .input-medium,
+  .input-short-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.input-with-tooltip .input-short-wrapper {
+  margin: 0;
+}
+
+.input-with-tooltip textarea + .tooltip-icon {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+
+/* Responsive: stack vertically on small screens */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .form-input-col {
+    flex: 1;
+    min-width: 100%;
+  }
 }
 
 /* Form validation styles */
@@ -941,6 +1056,7 @@ export default {
   font-size: 0.875em;
   color: #e53e3e;
   font-weight: 500;
+  margin-left: 0;
 }
 
 /* Success and error message styles */
@@ -1042,6 +1158,14 @@ export default {
 
 :deep(.mx-datepicker) {
   width: 100%;
+}
+
+.input-short-wrapper :deep(.mx-datepicker) {
+  width: 100%;
+}
+
+.input-short-wrapper :deep(.mx-input) {
+  width: 100% !important;
 }
 
 :deep(.mx-input) {
@@ -1146,12 +1270,7 @@ export default {
   border-right-color: rgba(0, 0, 0, 0.85) !important;
 }
 
-/* Input field container styling */
-.input-with-tooltip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+/* Input field container styling - already defined above */
 
 /* Ensure tooltip icons don't interfere with input functionality */
 .tooltip-icon {

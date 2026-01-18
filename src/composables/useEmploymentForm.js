@@ -25,7 +25,14 @@ import { useSharedDataStore } from '@/stores/sharedDataStore';
  * });
  */
 export function useEmploymentForm(options = {}) {
-  const { onFormChange, onEmploymentSaved, onError } = options;
+  const { 
+    mode = 'create',           // 'create' or 'edit' mode
+    employmentId = null,       // Employment ID for edit mode
+    onFormChange, 
+    onEmploymentSaved,         // Callback for create mode
+    onEmploymentUpdated,       // Callback for edit mode
+    onError 
+  } = options;
 
   // ============================================
   // FORM STATE
@@ -100,6 +107,16 @@ export function useEmploymentForm(options = {}) {
    * Show reminder to add allocations
    */
   const showAllocationReminder = ref(false);
+
+  /**
+   * Current mode: 'create' or 'edit'
+   */
+  const currentMode = ref(mode);
+
+  /**
+   * Employment ID for edit mode (tracked separately from formData)
+   */
+  const editEmploymentId = ref(employmentId);
 
   // ============================================
   // COMPUTED PROPERTIES
@@ -609,6 +626,176 @@ export function useEmploymentForm(options = {}) {
   };
 
   // ============================================
+  // EDIT MODE: LOAD & UPDATE EMPLOYMENT
+  // ============================================
+
+  /**
+   * Load employment data for editing
+   * Fetches employment record and populates form fields
+   * 
+   * @param {number|Object} employmentIdOrData - Employment ID or full employment data object
+   * @returns {Promise<boolean>} Success status
+   * 
+   * @example
+   * // Load by ID (triggers API call)
+   * await loadEmployment(123);
+   * 
+   * // Load from existing data (no API call)
+   * await loadEmployment({ id: 123, employment_type: 'Full-time', ... });
+   */
+  const loadEmployment = async (employmentIdOrData) => {
+    try {
+      let data;
+      
+      // If passed an object with employment data, use it directly
+      if (typeof employmentIdOrData === 'object' && employmentIdOrData !== null) {
+        data = employmentIdOrData;
+        console.log('📥 Loading employment from provided data:', data.id);
+      } else {
+        // Otherwise fetch from API
+        const id = employmentIdOrData;
+        console.log('📥 Loading employment from API:', id);
+        
+        const response = await employmentService.getEmploymentById(id);
+        
+        if (!response.success) {
+          throw new Error(response.message || 'Failed to load employment');
+        }
+        
+        data = response.data;
+      }
+      
+      // Store employment ID for edit operations
+      editEmploymentId.value = data.id;
+      savedEmploymentId.value = data.id;
+      
+      // Populate form fields
+      Object.assign(formData, {
+        employment_id: data.id,
+        employee_id: data.employee_id,
+        employment_type: data.employment_type || '',
+        pay_method: data.pay_method || '',
+        department_id: data.department_id || '',
+        position_id: data.position_id || '',
+        section_department: data.section_department || '',
+        site_id: data.site_id || '',
+        probation_salary: data.probation_salary || '',
+        pass_probation_salary: data.pass_probation_salary || '',
+        status: data.status === 1 || data.status === true || data.status === 'Active',
+        health_welfare: data.health_welfare === 1 || data.health_welfare === true,
+        saving_fund: data.saving_fund === 1 || data.saving_fund === true,
+        pvd: data.pvd === 1 || data.pvd === true,
+        start_date: data.start_date ? new Date(data.start_date) : null,
+        end_date: data.end_date ? new Date(data.end_date) : null,
+        pass_probation_date: data.pass_probation_date ? new Date(data.pass_probation_date) : null
+      });
+      
+      // Set employee info for display
+      if (data.employee) {
+        selectedEmployeeInfo.value = {
+          id: data.employee.id,
+          name: `${data.employee.first_name_en || ''} ${data.employee.last_name_en || ''}`.trim() || 'Unknown',
+          staff_id: data.employee.staff_id || 'N/A',
+          organization: data.employee.organization || 'N/A',
+          status: data.employee.status || 'N/A'
+        };
+      }
+      
+      // Mark as already saved (for edit mode, employment exists)
+      isEmploymentSaved.value = true;
+      
+      console.log('✅ Employment data loaded successfully');
+      return true;
+      
+    } catch (error) {
+      console.error('Error loading employment:', error);
+      handleApiError(error);
+      return false;
+    }
+  };
+
+  /**
+   * Handle updating employment (edit mode - Step 1)
+   * Updates existing employment record
+   * 
+   * @returns {Promise<Object|null>} Updated employment data or null on failure
+   */
+  const handleUpdateEmployment = async () => {
+    try {
+      const empId = editEmploymentId.value || formData.employment_id;
+      
+      if (!empId) {
+        alertMessage.value = 'No employment ID found for update';
+        alertClass.value = 'alert-danger';
+        return null;
+      }
+      
+      console.log('Updating employment (edit mode)...', {
+        employmentId: empId,
+        formData: toRaw(formData)
+      });
+
+      if (!validateEmploymentOnly()) {
+        console.log('Employment validation failed');
+        alertMessage.value = 'Please fill in all required employment fields';
+        alertClass.value = 'alert-danger';
+        return null;
+      }
+
+      isSubmittingEmployment.value = true;
+      alertMessage.value = '';
+
+      const payload = buildEmploymentOnlyPayload();
+      console.log('Update payload:', payload);
+
+      const response = await employmentService.updateEmployment(empId, payload);
+      console.log('Update API Response:', response);
+
+      if (!response.success) {
+        throw new Error(response.message || 'Update failed');
+      }
+
+      // Update saved employment ID
+      savedEmploymentId.value = empId;
+      isEmploymentSaved.value = true;
+
+      // Show success message
+      employmentSaveMessage.value = response.message || 'Employment updated successfully';
+      alertMessage.value = employmentSaveMessage.value;
+      alertClass.value = 'alert-success';
+
+      // Callback for edit mode
+      onEmploymentUpdated?.({
+        success: true,
+        message: employmentSaveMessage.value,
+        employmentId: empId,
+        data: response.data
+      });
+
+      return response.data;
+
+    } catch (error) {
+      console.error('Error updating employment:', error);
+      handleApiError(error);
+      return null;
+    } finally {
+      isSubmittingEmployment.value = false;
+    }
+  };
+
+  /**
+   * Smart save handler - routes to create or update based on mode
+   * 
+   * @returns {Promise<Object|null>} Saved/updated data or null on failure
+   */
+  const handleSaveOrUpdateEmployment = async () => {
+    if (currentMode.value === 'edit' || editEmploymentId.value) {
+      return handleUpdateEmployment();
+    }
+    return handleSaveEmploymentOnly();
+  };
+
+  // ============================================
   // FORM RESET
   // ============================================
 
@@ -645,6 +832,10 @@ export function useEmploymentForm(options = {}) {
     savedEmploymentId.value = null;
     employmentSaveMessage.value = '';
     showAllocationReminder.value = false;
+    
+    // Reset edit mode state
+    editEmploymentId.value = null;
+    // Note: currentMode is not reset here - it's set by the modal initialization
 
     // Clear validation
     clearValidationErrors();
@@ -676,6 +867,10 @@ export function useEmploymentForm(options = {}) {
     savedEmploymentId,
     employmentSaveMessage,
     showAllocationReminder,
+    
+    // Edit mode state
+    currentMode,
+    editEmploymentId,
 
     // Computed
     isLocalIDStaff,
@@ -708,6 +903,11 @@ export function useEmploymentForm(options = {}) {
     // API handlers
     handleApiError,
     handleSaveEmploymentOnly,
+    
+    // Edit mode handlers
+    loadEmployment,
+    handleUpdateEmployment,
+    handleSaveOrUpdateEmployment,
 
     // Form management
     resetForm,

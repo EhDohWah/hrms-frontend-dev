@@ -101,15 +101,22 @@
                       :to="`/notifications/${notification.id}`"
                       class="notification-item-link border-bottom mb-3 pb-3 text-decoration-none"
                       :class="{ 'bg-light': !notification.read_at }"
+                      :style="getNotificationBorderStyle(notification)"
                       @click="handleNotificationClick(notification)">
                       <div class="d-flex">
                         <div class="avatar avatar-sm me-3 flex-shrink-0">
                           <div
-                            class="avatar-initial bg-primary rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="ti ti-bell text-white"></i>
+                            class="avatar-initial rounded-circle d-flex align-items-center justify-content-center"
+                            :style="{ backgroundColor: getNotificationColor(notification) }">
+                            <span class="text-white" style="font-size: 14px;">{{ getNotificationIcon(notification) }}</span>
                           </div>
                         </div>
                         <div class="flex-grow-1">
+                          <div class="d-flex align-items-center mb-1">
+                            <span class="badge me-2" :style="{ backgroundColor: getNotificationColor(notification), color: '#fff', fontSize: '10px' }">
+                              {{ getNotificationCategoryLabel(notification) }}
+                            </span>
+                          </div>
                           <p class="mb-1 fw-medium text-dark">{{ getNotificationMessage(notification) }}</p>
                           <small class="text-muted">{{ formatNotificationDate(notification) }}</small>
                           <span v-if="!notification.read_at" class="badge bg-primary ms-2"
@@ -248,10 +255,54 @@ export default {
     const user = JSON.parse(localStorage.getItem('user'));
     const userId = user ? user.id : null;
 
+<<<<<<< HEAD
     if (userId) {
       // Use the centralized subscribeToNotifications function
       // This handles the case where Echo might not be ready yet
       this.initNotificationSubscription(userId);
+=======
+    if (userId && getEcho()) {
+      getEcho().private(`App.Models.User.${userId}`)
+        .notification((notif) => {
+          console.log('[Echo] Notification received:', notif);
+
+          // Ensure the notification has the proper structure for Laravel notifications
+          const formattedNotif = {
+            id: notif.id || Date.now().toString(),
+            data: notif.data || { message: notif.message },
+            read_at: null,
+            created_at: new Date().toISOString(),
+            ...notif
+          };
+
+          // Add to store
+          this.notificationStore.addNotification(formattedNotif);
+
+          // Get category-specific configuration
+          const category = this.getNotificationCategory(formattedNotif);
+          const categoryConfig = this.getCategoryConfig()[category] || this.getCategoryConfig().general;
+
+          // Show toast notification
+          notification.open({
+            message: `${categoryConfig.icon} ${categoryConfig.label}`,
+            description: this.getNotificationMessage(formattedNotif),
+            placement: 'topRight',
+            duration: 5,
+            style: {
+              borderLeft: `4px solid ${categoryConfig.color}`,
+            },
+            onClick: () => {
+              console.log('Notification Clicked!');
+              // Navigate to notification detail
+              this.$router.push(`/notifications/${formattedNotif.id}`);
+              notification.destroy();
+            },
+          });
+
+          console.log('Notification Event Fired!');
+          eventBus.emit('notification-clicked', formattedNotif);
+        });
+>>>>>>> employment-ui-update
     }
   },
 
@@ -421,6 +472,108 @@ export default {
       return 'New notification received';
     },
 
+    /**
+     * Get notification category configuration
+     * Aligned with backend NotificationCategory enum
+     */
+    getCategoryConfig() {
+      return {
+        dashboard: { label: 'Dashboard', icon: '📊', color: '#1890ff' },
+        grants: { label: 'Grants', icon: '🎯', color: '#52c41a' },
+        recruitment: { label: 'Recruitment', icon: '👔', color: '#722ed1' },
+        employee: { label: 'Employee', icon: '👤', color: '#1890ff' },
+        holidays: { label: 'Holidays', icon: '🏖️', color: '#13c2c2' },
+        leaves: { label: 'Leaves', icon: '📅', color: '#1890ff' },
+        travel: { label: 'Travel', icon: '✈️', color: '#2f54eb' },
+        attendance: { label: 'Attendance', icon: '⏰', color: '#52c41a' },
+        training: { label: 'Training', icon: '📚', color: '#fa8c16' },
+        resignation: { label: 'Resignation', icon: '🚪', color: '#faad14' },
+        termination: { label: 'Termination', icon: '⛔', color: '#f5222d' },
+        payroll: { label: 'Payroll', icon: '💰', color: '#52c41a' },
+        lookups: { label: 'Lookups', icon: '📋', color: '#8c8c8c' },
+        organization: { label: 'Organization', icon: '🏢', color: '#1890ff' },
+        user_management: { label: 'User Management', icon: '👥', color: '#722ed1' },
+        reports: { label: 'Reports', icon: '📈', color: '#52c41a' },
+        file_uploads: { label: 'File Uploads', icon: '📁', color: '#52c41a' },
+        recycle_bin: { label: 'Recycle Bin', icon: '🗑️', color: '#8c8c8c' },
+        import: { label: 'Import', icon: '📊', color: '#52c41a' },
+        system: { label: 'System', icon: '⚠️', color: '#faad14' },
+        general: { label: 'Notification', icon: '🔔', color: '#8c8c8c' },
+      };
+    },
+
+    /**
+     * Get notification category from notification data
+     */
+    getNotificationCategory(notification) {
+      // Check data.category first (from backend)
+      if (notification.data?.category) {
+        return notification.data.category;
+      }
+      // Check top-level category
+      if (notification.category) {
+        return notification.category;
+      }
+      // Infer from type field
+      const type = notification.data?.type || notification.type || '';
+      if (type.includes('employee')) return 'employee';
+      if (type.includes('grant')) return 'grants';
+      if (type.includes('import')) return 'import';
+      if (type.includes('payroll')) return 'payroll';
+      if (type.includes('leave')) return 'leaves';
+      return 'general';
+    },
+
+    /**
+     * Get notification icon emoji
+     */
+    getNotificationIcon(notification) {
+      const category = this.getNotificationCategory(notification);
+      // First check if backend provided the icon
+      if (notification.data?.category_icon) {
+        return notification.data.category_icon;
+      }
+      const config = this.getCategoryConfig()[category] || this.getCategoryConfig().general;
+      return config.icon;
+    },
+
+    /**
+     * Get notification color
+     */
+    getNotificationColor(notification) {
+      const category = this.getNotificationCategory(notification);
+      // First check if backend provided the color
+      if (notification.data?.category_color) {
+        return notification.data.category_color;
+      }
+      const config = this.getCategoryConfig()[category] || this.getCategoryConfig().general;
+      return config.color;
+    },
+
+    /**
+     * Get notification category label
+     */
+    getNotificationCategoryLabel(notification) {
+      const category = this.getNotificationCategory(notification);
+      // First check if backend provided the label
+      if (notification.data?.category_label) {
+        return notification.data.category_label;
+      }
+      const config = this.getCategoryConfig()[category] || this.getCategoryConfig().general;
+      return config.label;
+    },
+
+    /**
+     * Get border style based on category
+     */
+    getNotificationBorderStyle(notification) {
+      const color = this.getNotificationColor(notification);
+      return {
+        borderLeft: `3px solid ${color}`,
+        paddingLeft: '8px',
+      };
+    },
+
     formatNotificationDate(notification) {
       const date = notification.created_at || notification.finished_at;
       if (!date) return 'Just now';
@@ -457,6 +610,34 @@ export default {
           // Remove focus to prevent stuck hover state
           notificationButton.blur();
         }
+      }
+    },
+
+    /**
+     * Play notification sound for high priority notifications
+     */
+    playNotificationSound() {
+      try {
+        // Use Web Audio API for better browser support
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          const audioCtx = new AudioContext();
+          const oscillator = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+
+          oscillator.frequency.value = 440; // A4 note
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+          oscillator.start(audioCtx.currentTime);
+          oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+      } catch (error) {
+        console.warn('[Notification] Sound play failed:', error);
       }
     },
 

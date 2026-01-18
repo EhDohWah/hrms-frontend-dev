@@ -243,6 +243,85 @@ export function useAllocationManager(options = {}) {
   };
 
   // ============================================
+  // LOAD EXISTING ALLOCATIONS (EDIT MODE)
+  // ============================================
+
+  /**
+   * Load existing allocations for an employment (used in edit mode)
+   * Fetches allocations from API and populates the fundingAllocations array
+   * 
+   * @param {number} employmentId - Employment ID to load allocations for
+   * @returns {Promise<boolean>} Success status
+   * 
+   * @example
+   * // Load allocations when opening edit modal
+   * await loadAllocations(employmentId);
+   */
+  const loadAllocations = async (employmentId) => {
+    if (!employmentId) {
+      console.warn('⚠️ loadAllocations called without employmentId');
+      return false;
+    }
+
+    try {
+      console.log('📥 Loading allocations for employment:', employmentId);
+      
+      const response = await employmentService.getFundingAllocations(employmentId);
+      
+      if (!response.success) {
+        console.warn('Failed to load allocations:', response.message);
+        return false;
+      }
+
+      const allocationsData = response.data || [];
+      console.log('📋 Loaded allocations:', allocationsData.length);
+
+      // Transform API response to match local allocation structure
+      fundingAllocations.value = allocationsData.map(alloc => ({
+        // Core fields
+        id: alloc.id,
+        allocation_type: alloc.allocation_type || 'grant',
+        grant_id: alloc.grant_id,
+        grant_item_id: alloc.grant_item_id,
+        fte: alloc.fte || 0,
+        allocated_amount: alloc.allocated_amount || 0,
+        
+        // Display names for the UI table
+        grant_name: alloc.grant?.project_name || alloc.grant_name || 'Unknown Grant',
+        budget_line_code: alloc.grant_item?.budget_line_code || alloc.budget_line_code || 'N/A',
+        position_name: alloc.grant_item?.position?.name || alloc.position_name || 'N/A',
+        
+        // Keep original data for reference
+        _original: alloc
+      }));
+
+      // Mark as having existing allocations
+      if (allocationsData.length > 0) {
+        isAllocationsSaved.value = true;
+      }
+
+      console.log('✅ Allocations loaded and mapped:', fundingAllocations.value);
+      return true;
+
+    } catch (error) {
+      console.error('Error loading allocations:', error);
+      onError?.({ message: error.message || 'Failed to load allocations' });
+      return false;
+    }
+  };
+
+  /**
+   * Clear all allocations from memory
+   * Used when resetting the form
+   */
+  const clearAllocations = () => {
+    fundingAllocations.value = [];
+    isAllocationsSaved.value = false;
+    clearAllocationErrors();
+    resetCurrentAllocation();
+  };
+
+  // ============================================
   // CRUD OPERATIONS
   // ============================================
 
@@ -882,6 +961,10 @@ export function useAllocationManager(options = {}) {
     deleteAllocation,
     resetCurrentAllocation,
     resetAllocations,
+    
+    // Edit mode operations
+    loadAllocations,
+    clearAllocations,
 
     // Grant change handlers
     onGrantChange,

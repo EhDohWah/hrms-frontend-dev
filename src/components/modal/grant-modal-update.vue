@@ -24,20 +24,18 @@
               {{ alertMessage }}
             </div>
 
+            <!-- Row 1: Organization + Grant Name -->
             <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-organization">Organization</label>
                   <input type="text" id="grant-organization" v-model="formData.organization" class="form-control"
-                    :class="{ 'is-invalid': validationErrors.organization }" placeholder="e.g., SMRU" required
-                    @input="handleFormChange">
+                    :class="{ 'is-invalid': validationErrors.organization }" placeholder="e.g., SMRU" disabled>
                   <div v-if="validationErrors.organization" class="invalid-feedback">
                     {{ validationErrors.organization }}
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label">Grant Name</label>
@@ -49,30 +47,20 @@
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Row 2: Grant Code + End Date -->
+            <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label">Grant Code</label>
                   <input type="text" v-model="formData.code" class="form-control"
-                    :class="{ 'is-invalid': validationErrors.code }" placeholder="e.g., B-24004" required
-                    @input="handleFormChange">
+                    :class="{ 'is-invalid': validationErrors.code }" placeholder="e.g., B-24004" disabled>
                   <div v-if="validationErrors.code" class="invalid-feedback">
                     {{ validationErrors.code }}
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-12">
-                <div class="input-block mb-3">
-                  <label class="form-label">Description</label>
-                  <textarea v-model="formData.description" class="form-control" rows="3"
-                    @input="handleFormChange"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label">End Date</label>
@@ -88,6 +76,17 @@
                   <div v-if="validationErrors.end_date" class="invalid-feedback">
                     {{ validationErrors.end_date }}
                   </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 3: Description (Full Width) -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="input-block mb-3">
+                  <label class="form-label">Description</label>
+                  <textarea v-model="formData.description" class="form-control" rows="3"
+                    placeholder="Enter grant description..." @input="handleFormChange"></textarea>
                 </div>
               </div>
             </div>

@@ -40,6 +40,7 @@
               </div>
             </div>
 
+            <!-- Row 1: Organization + Grant Name -->
             <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
@@ -58,7 +59,7 @@
                       </option>
                     </select>
                     <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Select the organization organization for this grant (SMRU or BHF)" style="margin-left: 8px;">
+                      title="Select the organization for this grant (SMRU or BHF)" style="margin-left: 8px;">
                       <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
                     </span>
                   </div>
@@ -67,8 +68,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-name">Grant Name</label>
@@ -87,6 +86,10 @@
                   </div>
                 </div>
               </div>
+            </div>
+
+            <!-- Row 2: Grant Code + End Date -->
+            <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-code">Grant Code</label>
@@ -104,27 +107,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div class="row">
-              <div class="col-md-12">
-                <div class="input-block mb-3">
-                  <label class="form-label" for="grant-description">Description</label>
-                  <div style="display: flex; align-items: flex-start;">
-                    <textarea id="grant-description" v-model="formData.description" class="form-control" rows="3"
-                      @input="handleFormChange" placeholder="Enter grant description and objectives..."
-                      style="flex: 1;"></textarea>
-                    <span data-bs-toggle="tooltip" data-bs-placement="top"
-                      title="Provide a detailed description of the grant project, its objectives, and scope"
-                      style="margin-left: 8px; margin-top: 8px;">
-                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="row">
               <div class="col-md-6">
                 <div class="input-block mb-3">
                   <label class="form-label" for="grant-end-date">End Date</label>
@@ -145,6 +127,25 @@
                   </div>
                   <div v-if="validationErrors.end_date" class="invalid-feedback">
                     {{ validationErrors.end_date }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 3: Description (Full Width) -->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="input-block mb-3">
+                  <label class="form-label" for="grant-description">Description</label>
+                  <div style="display: flex; align-items: flex-start;">
+                    <textarea id="grant-description" v-model="formData.description" class="form-control" rows="3"
+                      @input="handleFormChange" placeholder="Enter grant description and objectives..."
+                      style="flex: 1;"></textarea>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top"
+                      title="Provide a detailed description of the grant project, its objectives, and scope"
+                      style="margin-left: 8px; margin-top: 8px;">
+                      <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+                    </span>
                   </div>
                 </div>
               </div>

@@ -401,11 +401,16 @@ export const API_ENDPOINTS = {
         TRAVEL_EXPORT_CSV: '/reports/travel-report/export-csv',
     },
 
-    // Notification endpoints
+    // Notification endpoints (Enhanced with filtering and bulk operations)
     NOTIFICATION: {
         LIST: '/notifications',
         MARK_ALL_READ: '/notifications/mark-all-read',
-        MARK_READ: '/notifications/:id/mark-read'
+        MARK_READ: '/notifications/:id/mark-read',
+        UNREAD_COUNT: '/notifications/unread-count',
+        STATS: '/notifications/stats',
+        FILTER_OPTIONS: '/notifications/filter-options',
+        BULK_DELETE: '/notifications/bulk-delete',
+        CLEAR_READ: '/notifications/clear-read',
     },
 
     // Employee children endpoints

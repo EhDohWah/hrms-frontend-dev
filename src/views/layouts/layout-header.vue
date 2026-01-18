@@ -255,54 +255,10 @@ export default {
     const user = JSON.parse(localStorage.getItem('user'));
     const userId = user ? user.id : null;
 
-<<<<<<< HEAD
     if (userId) {
       // Use the centralized subscribeToNotifications function
       // This handles the case where Echo might not be ready yet
       this.initNotificationSubscription(userId);
-=======
-    if (userId && getEcho()) {
-      getEcho().private(`App.Models.User.${userId}`)
-        .notification((notif) => {
-          console.log('[Echo] Notification received:', notif);
-
-          // Ensure the notification has the proper structure for Laravel notifications
-          const formattedNotif = {
-            id: notif.id || Date.now().toString(),
-            data: notif.data || { message: notif.message },
-            read_at: null,
-            created_at: new Date().toISOString(),
-            ...notif
-          };
-
-          // Add to store
-          this.notificationStore.addNotification(formattedNotif);
-
-          // Get category-specific configuration
-          const category = this.getNotificationCategory(formattedNotif);
-          const categoryConfig = this.getCategoryConfig()[category] || this.getCategoryConfig().general;
-
-          // Show toast notification
-          notification.open({
-            message: `${categoryConfig.icon} ${categoryConfig.label}`,
-            description: this.getNotificationMessage(formattedNotif),
-            placement: 'topRight',
-            duration: 5,
-            style: {
-              borderLeft: `4px solid ${categoryConfig.color}`,
-            },
-            onClick: () => {
-              console.log('Notification Clicked!');
-              // Navigate to notification detail
-              this.$router.push(`/notifications/${formattedNotif.id}`);
-              notification.destroy();
-            },
-          });
-
-          console.log('Notification Event Fired!');
-          eventBus.emit('notification-clicked', formattedNotif);
-        });
->>>>>>> employment-ui-update
     }
   },
 

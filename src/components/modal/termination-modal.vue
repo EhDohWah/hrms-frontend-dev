@@ -1,9 +1,15 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Terminated: ["Select", "Anthony Lewis", "Brian Villalobos", "Doglas Martini"],
@@ -43,7 +49,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Terminated Employee </label>
-                  <vue-select
+                  <a-select
                     :options="Terminated"
                     id="villalobos"
                     placeholder="Select"
@@ -53,7 +59,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Termination Type</label>
-                  <vue-select
+                  <a-select
                     :options="Termination"
                     id="insubordination"
                     placeholder="Select"
@@ -141,7 +147,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Terminated Employee </label>
-                  <vue-select
+                  <a-select
                     :options="Terminated"
                     id="villalobosone"
                     placeholder="Anthony Lewis"
@@ -151,7 +157,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Termination Type</label>
-                  <vue-select
+                  <a-select
                     :options="Termination"
                     id="insubordination-one"
                     placeholder="Retirement"

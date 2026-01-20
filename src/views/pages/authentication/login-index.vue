@@ -89,18 +89,11 @@ export default {
 
           // Check for intended route (saved by authGuard when user tried to access protected route)
           const intendedRoute = localStorage.getItem('intendedRoute');
-          console.log('🔍 intendedRoute from localStorage:', intendedRoute);
           if (intendedRoute) {
-            // Clear the intended route from localStorage BEFORE navigating
-
-            console.log('✅ Redirecting to intended route:', intendedRoute);
-            // Use replace to avoid adding /login to history
             await router.replace(intendedRoute);
             localStorage.removeItem('intendedRoute');
           } else {
-            // No intended route, use role-based default dashboard
             const redirectPath = authStore.getRedirectPath();
-            console.log('✅ Redirecting to default dashboard:', redirectPath);
             await router.replace(redirectPath);
           }
 

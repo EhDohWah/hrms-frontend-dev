@@ -1,8 +1,14 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Jobcategory: ["Select", "IOS", "Web & Application", "Networking"],
@@ -141,7 +147,7 @@ export default {
                         <label class="form-label"
                           >Job Category <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Jobcategory"
                           id="ios"
                           placeholder="Select"
@@ -153,7 +159,7 @@ export default {
                         <label class="form-label"
                           >Job Type <span class="text-danger"> *</span></label
                         >
-                        <vue-select :options="Jobtype" id="iosOne" placeholder="Select" />
+                        <a-select :options="Jobtype" id="iosOne" placeholder="Select" />
                       </div>
                     </div>
                     <div class="col-md-6">
@@ -161,7 +167,7 @@ export default {
                         <label class="form-label"
                           >Job Level <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Joblevel"
                           id="junior"
                           placeholder="Select"
@@ -173,7 +179,7 @@ export default {
                         <label class="form-label"
                           >Experience <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Experience"
                           id="mid-level"
                           placeholder="Select"
@@ -185,7 +191,7 @@ export default {
                         <label class="form-label"
                           >Qualification <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Qualification"
                           id="master-degree"
                           placeholder="Select"
@@ -197,7 +203,7 @@ export default {
                         <label class="form-label"
                           >Gender <span class="text-danger"> *</span></label
                         >
-                        <vue-select :options="Gender" id="female" placeholder="Select" />
+                        <a-select :options="Gender" id="female" placeholder="Select" />
                       </div>
                     </div>
                     <div class="col-md-6">
@@ -205,7 +211,7 @@ export default {
                         <label class="form-label"
                           >Min. Sallary <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Minsalary"
                           id="female-min"
                           placeholder="Select"
@@ -217,7 +223,7 @@ export default {
                         <label class="form-label"
                           >Max. Sallary <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Maxsalary"
                           id="female-salary"
                           placeholder="Select"
@@ -290,7 +296,7 @@ export default {
                         <label class="form-label"
                           >City <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="City"
                           id="female-city"
                           placeholder="Select"
@@ -302,7 +308,7 @@ export default {
                         <label class="form-label"
                           >State <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="State"
                           id="female-state"
                           placeholder="Select"
@@ -314,7 +320,7 @@ export default {
                         <label class="form-label"
                           >Country <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Country"
                           id="female-country"
                           placeholder="Select"

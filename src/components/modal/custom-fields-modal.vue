@@ -20,7 +20,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Module</label>
-                  <vue-select :options="UsrMod" id="usrmod" placeholder="Select" />
+                  <a-select :options="UsrMod" id="usrmod" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -38,7 +38,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Input Type</label>
-                  <vue-select :options="InpSel" id="inpsel" placeholder="Select" />
+                  <a-select :options="InpSel" id="inpsel" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -68,7 +68,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Cussta" id="cussta" placeholder="Active" />
+                  <a-select :options="Cussta" id="cussta" placeholder="Active" />
                 </div>
               </div>
             </div>
@@ -114,7 +114,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Module</label>
-                  <vue-select :options="EditUsrMod" id="editusrmod" placeholder="User" />
+                  <a-select :options="EditUsrMod" id="editusrmod" placeholder="User" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -132,7 +132,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Input Type</label>
-                  <vue-select :options="EditInpSel" id="editinpsel" placeholder="Text" />
+                  <a-select :options="EditInpSel" id="editinpsel" placeholder="Text" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -162,7 +162,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="EditCussta"
                     id="editcussta"
                     placeholder="Active"
@@ -192,7 +192,13 @@
   <!-- /Edit New Fields -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       UsrMod: ["Select", "User"],

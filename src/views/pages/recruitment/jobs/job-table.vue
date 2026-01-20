@@ -1,4 +1,7 @@
 <script>
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getIconUrl } = useAssetUrl();
+
 const data = [
   {
     Job_ID: "Job-001",
@@ -209,7 +212,7 @@ export default {
         <div class="d-flex align-items-center file-name-icon">
           <a href="javascript:void(0);" class="avatar avatar-md bg-light rounded">
             <img
-              :src="require(`@/assets/img/icons/${record.Image}`)"
+              :src="getIconUrl(record.Image)"
               class="img-fluid rounded-circle"
               alt="img"
             />

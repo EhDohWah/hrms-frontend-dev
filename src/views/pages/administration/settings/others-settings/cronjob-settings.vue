@@ -223,7 +223,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Schedule</label>
-                  <vue-select :options="SchedCron" id="schedcron" placeholder="Select" />
+                  <a-select :options="SchedCron" id="schedcron" placeholder="Select" style="width: 100%" :show-search="true" :filter-option="filterOption" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -319,10 +319,13 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Schedule</label>
-                  <vue-select
+                  <a-select
                     :options="EditSchedCron"
                     id="editschedcron"
                     placeholder="5 Minutes"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
                   />
                 </div>
               </div>
@@ -392,7 +395,14 @@
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
+
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption } = useSelectMigration();
+    return { filterOption };
+  },
   data() {
     return {
       startdate: currentDate,

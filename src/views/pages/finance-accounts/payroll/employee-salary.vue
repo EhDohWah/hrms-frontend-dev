@@ -669,15 +669,7 @@ import { useLookupStore } from "@/stores/lookupStore";
 import { useSharedDataStore } from "@/stores/sharedDataStore";
 import { usePermissions } from '@/composables/usePermissions';
 import dayjs from 'dayjs';
-
-// Import Bootstrap or use global Bootstrap if available
-let bootstrap;
-try {
-  bootstrap = require('bootstrap');
-} catch (e) {
-  // Fallback to global Bootstrap
-  bootstrap = window.bootstrap || {};
-}
+import * as bootstrap from 'bootstrap';
 
 // Helper function to parse currency strings for sorting
 const parseCurrency = (value) => {
@@ -691,7 +683,7 @@ const formatCurrencyHelper = (value) => {
   return `฿${parseFloat(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
-import BulkPayrollModal from '@/components/modal/bulk-payroll-modal-simplified.vue';
+import BulkPayrollModal from '@/components/modal/bulk-payroll-modal-improved.vue';
 
 export default {
   name: 'EmployeeSalary',

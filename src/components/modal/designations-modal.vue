@@ -32,7 +32,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="DesignActive"
                     id="desginacti"
                     placeholder="Select"
@@ -86,7 +86,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="EditDesignActive"
                     id="editdesginacti"
                     placeholder="Active"
@@ -137,7 +137,13 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       DesignActive: ["Select", "Active", "Inactive"],

@@ -1,4 +1,7 @@
 <script>
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getUserAvatar } = useAssetUrl();
+
 const data = [
   {
     Emp_ID: "Emp-001",
@@ -236,7 +239,7 @@ export default {
             data-bs-toggle="modal"
             data-bs-target="#view_details"
             ><img
-              :src="require(`@/assets/img/users/${record.Image}`)"
+              :src="getUserAvatar(record.Image)"
               class="img-fluid rounded-circle"
               alt="img"
           /></a>

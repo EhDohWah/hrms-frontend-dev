@@ -343,7 +343,7 @@
                   ><i class="ti ti-circle-filled fs-5 me-1"></i>High</span
                 >
                 <div>
-                  <vue-select
+                  <a-select
                     :options="PublSel"
                     id="publsel"
                     placeholder="Mark as Private"
@@ -391,7 +391,7 @@
                   ><i class="ti ti-circle-filled fs-5 me-1"></i>Low</span
                 >
                 <div>
-                  <vue-select
+                  <a-select
                     :options="PublSelOne"
                     id="publselOne"
                     placeholder="Mark as Public"
@@ -439,7 +439,7 @@
                   ><i class="ti ti-circle-filled fs-5 me-1"></i>Medium</span
                 >
                 <div>
-                  <vue-select
+                  <a-select
                     :options="PublSelTwo"
                     id="publseltwo"
                     placeholder="Mark as Private"
@@ -487,7 +487,7 @@
                   ><i class="ti ti-circle-filled fs-5 me-1"></i>Low</span
                 >
                 <div>
-                  <vue-select
+                  <a-select
                     :options="PublSelThree"
                     id="publselthree"
                     placeholder="Mark as Private"
@@ -659,8 +659,14 @@
   <tickets-modal></tickets-modal>
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { totalChart, activeChart, inactiveChart, locationChart } from "./data";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       totalChart: totalChart,

@@ -77,7 +77,7 @@
                   ><i class="ti ti-circle-filled fs-5 me-1"></i>High</span
                 >
                 <div>
-                  <vue-select
+                  <a-select
                     :options="PublSel"
                     id="publsel"
                     placeholder="Mark as Private"
@@ -277,15 +277,15 @@
               <div class="border-bottom p-3">
                 <div class="mb-3">
                   <label class="form-label">Change Priority</label>
-                  <vue-select :options="MediumTick" id="mediumtick" placeholder="High" />
+                  <a-select :options="MediumTick" id="mediumtick" placeholder="High" />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Assign To</label>
-                  <vue-select :options="HerMan" id="herman" placeholder="Edgar Hansel" />
+                  <a-select :options="HerMan" id="herman" placeholder="Edgar Hansel" />
                 </div>
                 <div>
                   <label class="form-label">Ticket Status</label>
-                  <vue-select :options="HoldTick" id="holdtick" placeholder="Open" />
+                  <a-select :options="HoldTick" id="holdtick" placeholder="Open" />
                 </div>
               </div>
               <div class="d-flex align-items-center border-bottom p-3">
@@ -343,7 +343,13 @@
   <ticket-details-modal></ticket-details-modal>
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       MediumTick: ["High", "Medium", "Low"],

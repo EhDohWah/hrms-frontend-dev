@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-    BASE_URL: process.env.VUE_APP_API_BASE_URL || 'https://hrms-backend-api-v1-main-wrhlmg.laravel.cloud/api/v1',
+    BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://hrms-backend-api-v1-main-wrhlmg.laravel.cloud/api/v1',
     HEADERS: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',

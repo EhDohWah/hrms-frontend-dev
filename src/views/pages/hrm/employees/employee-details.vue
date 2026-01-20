@@ -46,7 +46,7 @@
           <div class="card card-bg-1">
             <div class="card-body p-0">
               <span class="avatar avatar-xl avatar-rounded border border-2 border-white m-auto d-flex mb-2">
-                <img :src="require('@/assets/img/users/user-13.jpg')" class="w-auto h-auto" alt="Employee Image" />
+                <img src="@/assets/img/users/user-13.jpg" class="w-auto h-auto" alt="Employee Image" />
               </span>
               <div class="text-center px-3 pb-3 border-bottom">
                 <div class="mb-3">

@@ -428,6 +428,7 @@ import { Modal, Table, Modal as AntModal } from 'ant-design-vue';
 import { useLeaveStore } from '@/stores/leaveStore';
 import { useToast } from '@/composables/useToast';
 import { usePermissions } from '@/composables/usePermissions';
+import { useAssetUrl } from '@/composables/useAssetUrl';
 
 // Utils
 import { dateUtils, statusUtils, filterUtils } from '@/utils/leave.utils';
@@ -655,19 +656,14 @@ export default {
       return statusUtils.getStatusConfig(status);
     };
 
-    const getEmployeeAvatar = (employee) => {
-      if (!employee) return require('@/assets/img/users/user-01.jpg');
+    const { getUserAvatar } = useAssetUrl();
 
-      try {
-        // Try to get the employee's avatar, fallback to default
-        return require(`@/assets/img/users/${employee.staffId || 'user-01'}.jpg`);
-      } catch {
-        return require('@/assets/img/users/user-01.jpg');
-      }
+    const getEmployeeAvatar = (employee) => {
+      return getUserAvatar(employee?.staffId);
     };
 
     const handleImageError = (event) => {
-      event.target.src = require('@/assets/img/users/user-01.jpg');
+      event.target.src = getUserAvatar('user-01.jpg');
     };
 
 

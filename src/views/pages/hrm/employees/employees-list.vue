@@ -358,9 +358,9 @@ export default {
   },
   data() {
     return {
-      title: 'Employees',
-      text: 'Employees',
-      text1: 'Employees List',
+      title: 'Employee',
+      text: 'Employee',
+      text1: 'Employee List',
       searchStaffId: '',
 
       // Data properties (no store dependencies)

@@ -69,6 +69,7 @@ let connectionListeners = [];
 let permissionChannelSubscription = null; // Track permission channel subscription
 let notificationChannelSubscription = null; // Track notification channel subscription
 let activeUserChannels = new Map(); // Track active channel subscriptions per user to prevent premature leave
+let permissionListenerInitialized = false; // Track if permission listener is already set up
 
 /**
  * Unbind all connection event listeners to prevent memory leaks
@@ -80,10 +81,9 @@ function unbindConnectionListeners() {
             try {
                 echoInstance.connector.pusher.connection.unbind(event, handler);
             } catch (error) {
-                console.warn(`[Echo] Failed to unbind ${event} listener:`, error);
+                // Silent fail
             }
         });
-        console.log(`[Echo] Unbound ${connectionListeners.length} connection listeners`);
     }
     connectionListeners = [];
 }
@@ -98,21 +98,18 @@ function incrementChannelSubscription(userId, type) {
         activeUserChannels.set(key, new Set());
     }
     activeUserChannels.get(key).add(type);
-    console.log(`[Echo] Channel tracking: user ${userId} now has [${[...activeUserChannels.get(key)].join(', ')}]`);
 }
 
 function decrementChannelSubscription(userId, type) {
     const key = `user_${userId}`;
     if (activeUserChannels.has(key)) {
         activeUserChannels.get(key).delete(type);
-        console.log(`[Echo] Channel tracking: user ${userId} now has [${[...activeUserChannels.get(key)].join(', ')}]`);
 
         // If no more subscriptions, leave the channel
         if (activeUserChannels.get(key).size === 0) {
             const channelName = `private-App.Models.User.${userId}`;
             if (echoInstance) {
                 echoInstance.leave(channelName);
-                console.log(`[Echo] Left channel ${channelName} - no more active subscriptions`);
             }
             activeUserChannels.delete(key);
         }
@@ -135,14 +132,14 @@ export function initEcho(token) {
     // Reverb Configuration
     const reverbConfig = {
         broadcaster: 'reverb',
-        key: process.env.VUE_APP_REVERB_APP_KEY || 'lwzlina3oymluc9m9nog',
-        wsHost: process.env.VUE_APP_REVERB_HOST || '127.0.0.1',
-        wsPort: process.env.VUE_APP_REVERB_PORT || 8081,
-        wssPort: process.env.VUE_APP_REVERB_PORT || 8081,
-        forceTLS: (process.env.VUE_APP_REVERB_SCHEME || 'http') === 'https',
+        key: import.meta.env.VITE_REVERB_APP_KEY || 'f1mmywqucqxx3bfqf3bf',
+        wsHost: import.meta.env.VITE_REVERB_HOST || '127.0.0.1',
+        wsPort: import.meta.env.VITE_REVERB_PORT || 8081,
+        wssPort: import.meta.env.VITE_REVERB_PORT || 8081,
+        forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'http') === 'https',
         enabledTransports: ['ws', 'wss'],
         disableStats: true,
-        authEndpoint: process.env.VUE_APP_BROADCASTING_AUTH_ENDPOINT || 'http://127.0.0.1:8000/broadcasting/auth',
+        authEndpoint: import.meta.env.VITE_BROADCASTING_AUTH_ENDPOINT || 'http://127.0.0.1:8000/api/broadcasting/auth',
         auth: {
             headers: { Authorization: `Bearer ${token}` },
         },
@@ -152,28 +149,23 @@ export function initEcho(token) {
 
     // Define connection event handlers - CRITICAL: Store references for cleanup
     const connectedHandler = () => {
-        console.log('[Echo] ✅ Connected to Laravel Reverb!');
-        console.log('[Echo] Configuration:', {
-            host: reverbConfig.wsHost,
-            port: reverbConfig.wsPort,
-            scheme: reverbConfig.forceTLS ? 'wss' : 'ws'
-        });
+        // Connected successfully
     };
 
     const connectingHandler = () => {
-        console.log('[Echo] 🔄 Connecting to Reverb...');
+        // Connecting...
     };
 
     const disconnectedHandler = () => {
-        console.log('[Echo] ⚠️ Disconnected from Reverb');
+        // Disconnected
     };
 
     const errorHandler = (err) => {
-        console.error('[Echo] ❌ Connection error:', err);
+        // Connection error
     };
 
     const unavailableHandler = () => {
-        console.error('[Echo] ❌ Reverb server unavailable');
+        // Server unavailable
     };
 
     // Bind connection event listeners
@@ -192,9 +184,8 @@ export function initEcho(token) {
         { event: 'unavailable', handler: unavailableHandler }
     ];
 
-    console.log(`[Echo] Bound ${connectionListeners.length} connection listeners`);
-
     window.Echo = echoInstance;
+    window.__ECHO_INITIALIZED = true;
 
     return echoInstance;
 }
@@ -207,6 +198,7 @@ export function disconnectEcho() {
         // Reset channel subscriptions to prevent stale references
         permissionChannelSubscription = null;
         notificationChannelSubscription = null;
+        permissionListenerInitialized = false;
 
         // Clear all channel tracking
         activeUserChannels.clear();
@@ -214,7 +206,7 @@ export function disconnectEcho() {
         echoInstance.disconnect();
         echoInstance = null;
         delete window.Echo;
-        console.log('[Echo] Disconnected and cleaned up all subscriptions');
+        delete window.__ECHO_INITIALIZED;
     }
 }
 
@@ -240,13 +232,16 @@ export function isEchoInitialized() {
  */
 export function subscribeToPermissionUpdates(userId, callback) {
     if (!echoInstance) {
-        console.warn('[Echo] Cannot subscribe to permission updates - Echo not initialized');
         return null;
     }
 
     if (!userId) {
-        console.warn('[Echo] Cannot subscribe to permission updates - no user ID provided');
         return null;
+    }
+
+    // Check if already subscribed to this user's permissions
+    if (permissionChannelSubscription && hasActiveSubscription(userId, 'permissions')) {
+        return permissionChannelSubscription;
     }
 
     // Unsubscribe from existing subscription if any
@@ -259,8 +254,6 @@ export function subscribeToPermissionUpdates(userId, callback) {
         permissionChannelSubscription = echoInstance
             .private(channelName)
             .listen('.user.permissions-updated', (event) => {
-                console.log('[Echo] 🔐 Permission update received:', event);
-
                 if (typeof callback === 'function') {
                     callback(event);
                 }
@@ -269,10 +262,8 @@ export function subscribeToPermissionUpdates(userId, callback) {
         // Track this subscription
         incrementChannelSubscription(userId, 'permissions');
 
-        console.log(`[Echo] 🔐 Subscribed to permission updates on channel: ${channelName}`);
         return permissionChannelSubscription;
     } catch (error) {
-        console.error('[Echo] Error subscribing to permission updates:', error);
         return null;
     }
 }
@@ -296,14 +287,13 @@ export function unsubscribeFromPermissionUpdates(userId) {
         if (permissionChannelSubscription) {
             permissionChannelSubscription.stopListening('.user.permissions-updated');
             permissionChannelSubscription = null;
+            permissionListenerInitialized = false;
         }
 
         // Update tracking
         decrementChannelSubscription(userId, 'permissions');
-
-        console.log(`[Echo] 🔐 Stopped listening to permission updates for user ${userId}`);
     } catch (error) {
-        console.warn('[Echo] Error unsubscribing from permission updates:', error);
+        // Silent fail
     }
 }
 
@@ -317,20 +307,29 @@ export function unsubscribeFromPermissionUpdates(userId) {
  */
 export function initPermissionUpdateListener(userId) {
     if (!userId) {
-        console.warn('[Echo] Cannot init permission listener - no user ID');
         return null;
+    }
+
+    // Prevent duplicate initialization
+    if (permissionListenerInitialized && permissionChannelSubscription) {
+        return Promise.resolve(permissionChannelSubscription);
     }
 
     // Dynamic import to avoid circular dependencies
     return import('@/stores/authStore').then(({ useAuthStore }) => {
         const authStore = useAuthStore();
 
-        return subscribeToPermissionUpdates(userId, (event) => {
+        const subscription = subscribeToPermissionUpdates(userId, (event) => {
             // Delegate to authStore's handler
             authStore.handlePermissionUpdateEvent(event);
         });
+
+        if (subscription) {
+            permissionListenerInitialized = true;
+        }
+
+        return subscription;
     }).catch((error) => {
-        console.error('[Echo] Error initializing permission listener:', error);
         return null;
     });
 }
@@ -350,12 +349,10 @@ export function initPermissionUpdateListener(userId) {
  */
 export function subscribeToNotifications(userId, callback) {
     if (!echoInstance) {
-        console.warn('[Echo] Cannot subscribe to notifications - Echo not initialized');
         return null;
     }
 
     if (!userId) {
-        console.warn('[Echo] Cannot subscribe to notifications - no user ID provided');
         return null;
     }
 
@@ -370,8 +367,6 @@ export function subscribeToNotifications(userId, callback) {
         notificationChannelSubscription = echoInstance
             .private(channelName)
             .notification((notification) => {
-                console.log('[Echo] 🔔 Notification received:', notification);
-
                 if (typeof callback === 'function') {
                     callback(notification);
                 }
@@ -380,10 +375,8 @@ export function subscribeToNotifications(userId, callback) {
         // Track this subscription
         incrementChannelSubscription(userId, 'notifications');
 
-        console.log(`[Echo] 🔔 Subscribed to notifications on channel: ${channelName}`);
         return notificationChannelSubscription;
     } catch (error) {
-        console.error('[Echo] Error subscribing to notifications:', error);
         return null;
     }
 }
@@ -410,17 +403,14 @@ export function unsubscribeFromNotifications(userId) {
                 notificationChannelSubscription.stopListening('.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated');
             } catch (e) {
                 // Fallback - some versions use different event names
-                console.log('[Echo] Could not stopListening, will be cleaned up on channel leave');
             }
             notificationChannelSubscription = null;
         }
 
         // Update tracking
         decrementChannelSubscription(userId, 'notifications');
-
-        console.log(`[Echo] 🔔 Stopped listening to notifications for user ${userId}`);
     } catch (error) {
-        console.warn('[Echo] Error unsubscribing from notifications:', error);
+        // Silent fail
     }
 }
 
@@ -437,7 +427,6 @@ export function unsubscribeFromNotifications(userId) {
  */
 export function initNotificationListener(userId, options = {}) {
     if (!userId) {
-        console.warn('[Echo] Cannot init notification listener - no user ID');
         return Promise.resolve(null);
     }
 
@@ -455,7 +444,6 @@ export function initNotificationListener(userId, options = {}) {
         // Optionally show toast notification
         if (showToast && notification.title) {
             // You can integrate with your toast/notification UI library here
-            console.log(`[Echo] 🔔 Toast: ${notification.title}`, notification.message || '');
         }
     });
 }
@@ -469,15 +457,13 @@ export function initNotificationListener(userId, options = {}) {
  */
 export function cleanupUserSubscriptions(userId) {
     if (!userId) {
-        console.warn('[Echo] Cannot cleanup subscriptions - no user ID');
         return;
     }
-
-    console.log(`[Echo] 🧹 Cleaning up all subscriptions for user ${userId}`);
 
     // Clear subscription references first
     permissionChannelSubscription = null;
     notificationChannelSubscription = null;
+    permissionListenerInitialized = false;
 
     // Clear tracking for this user
     const key = `user_${userId}`;
@@ -488,11 +474,8 @@ export function cleanupUserSubscriptions(userId) {
         const channelName = `private-App.Models.User.${userId}`;
         try {
             echoInstance.leave(channelName);
-            console.log(`[Echo] 🧹 Force left channel ${channelName}`);
         } catch (error) {
-            console.warn('[Echo] Error leaving channel during cleanup:', error);
+            // Silent fail
         }
     }
-
-    console.log(`[Echo] 🧹 Cleanup complete for user ${userId}`);
 }

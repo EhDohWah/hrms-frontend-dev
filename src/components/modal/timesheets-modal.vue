@@ -1,9 +1,15 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Project: [
@@ -49,7 +55,7 @@ export default {
                   <label class="form-label"
                     >Project <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="Project"
                     id="project-management"
                     placeholder="Select"
@@ -157,7 +163,7 @@ export default {
                   <label class="form-label"
                     >Project <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="Project"
                     id="project-management-one"
                     placeholder="Select"

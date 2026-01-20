@@ -234,7 +234,7 @@ export default {
 
     const profilePictureUrl = computed(() => {
       if (authStore.user && authStore.user.profile_picture) {
-        return `${process.env.VUE_APP_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
+        return `${import.meta.env.VITE_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
       }
       return null; // Fallback handled in template
     });

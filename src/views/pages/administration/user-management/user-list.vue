@@ -96,7 +96,7 @@
                   <div class="d-flex align-items-center file-name-icon">
                     <a href="javascript:void(0);" class="avatar avatar-md avatar-rounded">
                       <img
-                        :src="record.profile_picture ? record.profile_picture : require('@/assets/img/users/user-01.jpg')"
+                        :src="record.profile_picture || getUserAvatar('user-01.jpg')"
                         class="img-fluid"
                         alt="img"
                       />
@@ -197,6 +197,9 @@ import moment from "moment";
 import DateRangePicker from "daterangepicker";
 import { useAdminStore } from "@/stores/adminStore";
 import UserListModal from "@/components/modal/user-list-modal.vue";
+import { useAssetUrl } from "@/composables/useAssetUrl";
+
+const { getUserAvatar } = useAssetUrl();
 
 const rowSelection = {
   onChange: () => {},
@@ -336,6 +339,15 @@ export default {
     this.initDateRangePicker();
   },
   methods: {
+    /**
+     * Get user avatar URL with fallback
+     * @param {string} filename - Avatar filename
+     * @returns {string} Avatar URL
+     */
+    getUserAvatar(filename) {
+      const { getUserAvatar } = useAssetUrl();
+      return getUserAvatar(filename);
+    },
     async fetchUsers() {
       this.loading = true;
       try {

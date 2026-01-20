@@ -782,7 +782,7 @@
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Tag</label>
-                  <vue-select
+                  <a-select
                     :options="InternalSel"
                     id="internalsel"
                     placeholder="Internal"
@@ -792,7 +792,7 @@
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select
+                  <a-select
                     :options="MediumSelec"
                     id="mediumselec"
                     placeholder="Select"
@@ -812,13 +812,13 @@
               <div class="col-12">
                 <div class="mb-3">
                   <label class="form-label">Add Assignee</label>
-                  <vue-select :options="SophieCam" id="sophiecam" placeholder="Select" />
+                  <a-select :options="SophieCam" id="sophiecam" placeholder="Select" />
                 </div>
               </div>
               <div class="col-12">
                 <div class="mb-0">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Compend" id="compend" placeholder="Select" />
+                  <a-select :options="Compend" id="compend" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -1051,8 +1051,14 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       editor: ClassicEditor,

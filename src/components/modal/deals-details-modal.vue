@@ -134,7 +134,7 @@
                   <label class="form-label"
                     >Plan Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Enterpro" id="enterpro" placeholder="Select" />
+                  <a-select :options="Enterpro" id="enterpro" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -142,7 +142,7 @@
                   <label class="form-label"
                     >Plan Type <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="YearkyMin" id="yearkymin" placeholder="Select" />
+                  <a-select :options="YearkyMin" id="yearkymin" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -150,7 +150,7 @@
                   <label class="form-label"
                     >Currency <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="CurrUds" id="curruds" placeholder="Select" />
+                  <a-select :options="CurrUds" id="curruds" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -158,13 +158,13 @@
                   <label class="form-label"
                     >Language <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="ChineEng" id="chineeen" placeholder="Select" />
+                  <a-select :options="ChineEng" id="chineeen" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="ActDeta" id="actdeta" placeholder="Select" />
+                  <a-select :options="ActDeta" id="actdeta" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -316,7 +316,7 @@
                   <label class="form-label"
                     >Plan Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditEnterpro"
                     id="editenterpro"
                     placeholder="Advanced"
@@ -328,7 +328,7 @@
                   <label class="form-label"
                     >Plan Type <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditYearkyMin"
                     id="edityearkymin"
                     placeholder="Monthly"
@@ -340,7 +340,7 @@
                   <label class="form-label"
                     >Currency <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditCurrUds"
                     id="editcurruds"
                     placeholder="Dollar"
@@ -352,7 +352,7 @@
                   <label class="form-label"
                     >Language <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditChineEng"
                     id="editchineeen"
                     placeholder="English"
@@ -362,7 +362,7 @@
               <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="EditActDeta"
                     id="editactdeta"
                     placeholder="Active"
@@ -498,7 +498,7 @@
                   <label class="form-label"
                     >Status <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Noans" id="noans" placeholder="Select" />
+                  <a-select :options="Noans" id="noans" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -587,7 +587,7 @@
                       <label class="form-label"
                         >Choose Deal <span class="text-danger"> *</span></label
                       >
-                      <vue-select :options="ChoDeal" id="chodeal" placeholder="Collins" />
+                      <a-select :options="ChoDeal" id="chodeal" placeholder="Collins" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -595,7 +595,7 @@
                       <label class="form-label"
                         >Document Type <span class="text-danger"> *</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="ProposalCon"
                         id="proposalcom"
                         placeholder="Select"
@@ -607,7 +607,7 @@
                       <label class="form-label"
                         >Owner <span class="text-danger"> *</span></label
                       >
-                      <vue-select :options="JackSoD" id="jacksod" placeholder="Select" />
+                      <a-select :options="JackSoD" id="jacksod" placeholder="Select" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -623,7 +623,7 @@
                       <label class="form-label"
                         >Locale <span class="text-danger"> *</span></label
                       >
-                      <vue-select :options="EngSel" id="engskshfe" placeholder="Select" />
+                      <a-select :options="EngSel" id="engskshfe" placeholder="Select" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -946,7 +946,7 @@
                   <label class="form-label"
                     >Account Type <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Gamil" id="gamilsd" placeholder="Select" />
+                  <a-select :options="Gamil" id="gamilsd" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -1049,7 +1049,13 @@
   <!-- /Connect Account Success -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       showPassword: false,

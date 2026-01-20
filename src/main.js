@@ -25,7 +25,7 @@ import FlagIcon from 'vue-flag-icon';
 import { IconHome } from '@tabler/icons-vue';
 
 // Form components (used frequently)
-import VueSelect from 'vue3-select2-component'
+// NOTE: vue3-select2-component removed - using Ant Design Vue Select instead
 import DatePicker from 'vue3-datepicker'
 import VCalendar from 'v-calendar';
 import Vue3TagsInput from "vue3-tags-input";
@@ -38,7 +38,7 @@ import "vue3-circle-progress/dist/circle-progress.css";
 
 // Form wizard
 import VueFormWizard from "vue3-form-wizard";
-import "vue-form-wizard/dist/vue-form-wizard.min.css";
+import "@/assets/css/vue-form-wizard.css";
 
 // Other plugins
 import VueEasyLightbox from "vue-easy-lightbox";
@@ -130,7 +130,7 @@ registerLazyComponents(app);
 // ============================================================================
 
 // Form components
-app.component('vue-select', VueSelect);
+// NOTE: vue-select removed - using Ant Design Vue's a-select instead
 app.component('date-picker', DatePicker);
 app.component('vue3-tags-input', Vue3TagsInput);
 
@@ -200,7 +200,7 @@ async function initializeApp() {
     app.mount('#app');
   
   // Log memory usage in development
-  if (process.env.NODE_ENV === 'development' && performance.memory) {
+  if (import.meta.env.MODE === 'development' && performance.memory) {
     console.log('[App] Memory Usage:', {
       used: Math.round(performance.memory.usedJSHeapSize / 1024 / 1024) + ' MB',
       total: Math.round(performance.memory.totalJSHeapSize / 1024 / 1024) + ' MB',

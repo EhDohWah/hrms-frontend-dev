@@ -2,15 +2,15 @@
   <div class="modal fade" id="employmentModal" tabindex="-1" aria-labelledby="employmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
       <div class="modal-content new-modal-design">
-        <div class="modal-header-new">
-          <h2 class="modal-title-new" id="employmentModalLabel" v-once>
+        <div class="modal-header">
+          <h2 class="modal-title" id="employmentModalLabel" v-once>
             Add Employment
           </h2>
           <button type="button" class="btn-close-custom" @click="handleModalClose" aria-label="Close">
             <i class="ti ti-x"></i>
           </button>
         </div>
-        <div class="modal-body-new">
+        <div class="modal-body">
           <!-- Restored Data Notification -->
           <div v-if="restoredDataNotification.show" class="alert alert-info alert-dismissible fade show mb-3"
             role="alert">

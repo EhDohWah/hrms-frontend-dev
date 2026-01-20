@@ -36,7 +36,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="emailMod" id="emailmod" placeholder="Active" />
+                  <a-select :options="emailMod" id="emailmod" placeholder="Active" />
                 </div>
               </div>
             </div>
@@ -95,7 +95,7 @@
                 <div class="mb-3">
                   <label class="form-label">Status</label>
 
-                  <vue-select
+                  <a-select
                     :options="EditemailMod"
                     id="editemailmod"
                     placeholder="Active"
@@ -150,8 +150,14 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       editor: ClassicEditor,

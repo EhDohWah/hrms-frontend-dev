@@ -29,7 +29,7 @@
               id="collapse-header"
               @click="toggleHeader"
             >
-              <i class="ti ti-chevrons-up"></i>
+              <i :class="isHeaderCollapsed ? 'ti ti-chevrons-down' : 'ti ti-chevrons-up'"></i>
             </a>
           </div>
         </div>
@@ -167,6 +167,7 @@ export default {
       filteredInfo: null,
       sortedInfo: null,
       loading: false,
+      isHeaderCollapsed: false,
     };
   },
   computed: {
@@ -313,9 +314,11 @@ export default {
     },
     toggleHeader() {
       const collapseBtn = document.getElementById('collapse-header');
+      
       if (collapseBtn) {
         collapseBtn.classList.toggle('active');
-        document.querySelector('.page-header').classList.toggle('collapsed');
+        document.body.classList.toggle('header-collapse');
+        this.isHeaderCollapsed = !this.isHeaderCollapsed;
       }
     },
     handleChange(pagination, filters, sorter) {

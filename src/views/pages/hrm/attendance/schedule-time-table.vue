@@ -1,4 +1,7 @@
 <script>
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getUserAvatar } = useAssetUrl();
+
 const data = [
   {
     Image: "user-32.jpg",
@@ -92,7 +95,7 @@ export default {
         <div class="d-flex align-items-center file-name-icon">
           <a href="javascript:void(0);" class="avatar avatar-md border avatar-rounded">
             <img
-              :src="require(`@/assets/img/users/${record.Image}`)"
+              :src="getUserAvatar(record.Image)"
               class="img-fluid"
               alt="img"
             />

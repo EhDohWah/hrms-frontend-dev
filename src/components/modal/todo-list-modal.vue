@@ -26,13 +26,13 @@
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Tag</label>
-                  <vue-select :options="Remitag" id="remitag" placeholder="Select" />
+                  <a-select :options="Remitag" id="remitag" placeholder="Select" />
                 </div>
               </div>
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select :options="PrioSl" id="priosl" placeholder="Select" />
+                  <a-select :options="PrioSl" id="priosl" placeholder="Select" />
                 </div>
               </div>
               <div class="col-lg-12">
@@ -48,13 +48,13 @@
               <div class="col-12">
                 <div class="mb-3">
                   <label class="form-label">Add Assignee</label>
-                  <vue-select :options="AddAdif" id="addadif" placeholder="Select" />
+                  <a-select :options="AddAdif" id="addadif" placeholder="Select" />
                 </div>
               </div>
               <div class="col-12">
                 <div class="mb-0">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="CompleTodo"
                     id="completodo"
                     placeholder="Select"
@@ -106,13 +106,13 @@
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Tag</label>
-                  <vue-select :options="InterNal" id="internal" placeholder="Select" />
+                  <a-select :options="InterNal" id="internal" placeholder="Select" />
                 </div>
               </div>
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select :options="ProTodo" id="protodo" placeholder="Select" />
+                  <a-select :options="ProTodo" id="protodo" placeholder="Select" />
                 </div>
               </div>
               <div class="col-lg-12">
@@ -128,13 +128,13 @@
               <div class="col-12">
                 <div class="mb-3">
                   <label class="form-label">Add Assignee</label>
-                  <vue-select :options="Sophtodo" id="sophtodo" placeholder="Sophie" />
+                  <a-select :options="Sophtodo" id="sophtodo" placeholder="Sophie" />
                 </div>
               </div>
               <div class="col-12">
                 <div class="mb-0">
                   <label class="form-label">Status</label>
-                  <vue-select :options="HoldTodo" id="holdtodo" placeholder="Completed" />
+                  <a-select :options="HoldTodo" id="holdtodo" placeholder="Completed" />
                 </div>
               </div>
             </div>
@@ -279,8 +279,14 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       editor: ClassicEditor,

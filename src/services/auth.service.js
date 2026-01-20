@@ -120,7 +120,7 @@ class AuthService {
   }
 
   async initializeCSRF() {
-    const baseUrl = process.env.VUE_APP_API_BASE_URL || 'https://hrms-backend-api-v1-main-wrhlmg.laravel.cloud/api/v1';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://hrms-backend-api-v1-main-wrhlmg.laravel.cloud/api/v1';
     // Extract the domain part from the API URL
     const urlObj = new URL(baseUrl);
     const domain = `${urlObj.protocol}//${urlObj.hostname}${urlObj.port ? ':' + urlObj.port : ''}`;

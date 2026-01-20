@@ -263,6 +263,7 @@ import { employeeService } from '@/services/employee.service';
 import { useToast } from '@/composables/useToast';
 import { useLoading } from '@/composables/useLoading';
 import { usePermissions } from '@/composables/usePermissions';
+import defaultAvatar from '@/assets/img/profiles/avatar-default.jpg';
 
 export default {
     name: 'LeaveBalances',
@@ -301,7 +302,7 @@ export default {
             text1: "Leave Balances",
 
             // Default avatar
-            defaultAvatar: require('@/assets/img/profiles/avatar-default.jpg'),
+            defaultAvatar,
 
             // Data
             leaveBalances: [],

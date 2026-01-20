@@ -1,4 +1,7 @@
 <script>
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getReportImageUrl } = useAssetUrl();
+
 const data = [
   {
     Image: "user-01.jpg",
@@ -236,7 +239,7 @@ export default {
             data-bs-toggle="modal"
             data-bs-target="#view_details"
             ><img
-              :src="require(`@/assets/img/reports/${record.Image}`)"
+              :src="getReportImageUrl(record.Image)"
               class="img-fluid rounded-circle"
               alt="img"
           /></a>

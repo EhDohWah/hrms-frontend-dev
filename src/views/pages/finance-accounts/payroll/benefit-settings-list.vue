@@ -36,7 +36,7 @@
           <div class="head-icons ms-2">
             <a href="javascript:void(0);" data-bs-toggle="tooltip" data-bs-placement="top"
               data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
-              <i class="ti ti-chevrons-up"></i>
+              <i :class="isHeaderCollapsed ? 'ti ti-chevrons-down' : 'ti ti-chevrons-up'"></i>
             </a>
           </div>
         </div>
@@ -346,6 +346,9 @@ export default {
       loading: false,
       selectedRowKeys: [],
 
+      // Header collapse state
+      isHeaderCollapsed: false,
+
       // Statistics
       statistics: {
         totalSettings: 0,
@@ -437,9 +440,12 @@ export default {
   },
   methods: {
     toggleHeader() {
-      const pageWrapper = document.querySelector('.page-wrapper');
-      if (pageWrapper) {
-        pageWrapper.classList.toggle('collapsed');
+      const collapseBtn = document.getElementById('collapse-header');
+      
+      if (collapseBtn) {
+        collapseBtn.classList.toggle('active');
+        document.body.classList.toggle('header-collapse');
+        this.isHeaderCollapsed = !this.isHeaderCollapsed;
       }
     },
 

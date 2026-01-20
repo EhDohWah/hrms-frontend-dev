@@ -1,5 +1,11 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Status: ["Select", "Active", "Inactive"],
@@ -48,7 +54,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Status" id="id-discribe" placeholder="Active" />
+                  <a-select :options="Status" id="id-discribe" placeholder="Active" style="width: 100%" :show-search="true" :filter-option="filterOption" :get-popup-container="getModalPopupContainer" />
                 </div>
               </div>
             </div>
@@ -101,10 +107,14 @@ Git training covers managing code changes and collaboration using Git commands a
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="Status"
                     id="id-discribe-one"
                     placeholder="Active"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
+                    :get-popup-container="getModalPopupContainer"
                   />
                 </div>
               </div>

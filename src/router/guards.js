@@ -26,7 +26,9 @@ export const authGuard = (to, from, next) => {
         }
     }
 
-    // ----> Echo initialization logic here
+
+
+    // Initialize Echo once per session when user is authenticated
     if (isAuthenticated && token && !isEchoInitialized()) {
         initEcho(token);
 
@@ -56,8 +58,6 @@ export const authGuard = (to, from, next) => {
     if (isAuthenticated && publicPages.includes(to.path)) {
         // Check if there's an intended route - if so, let the login component handle the redirect
         const intendedRoute = localStorage.getItem('intendedRoute');
-
-        console.log('🔍 intendedRoute from localStorage:', intendedRoute);
 
         if (intendedRoute && intendedRoute !== '/login' && intendedRoute !== to.path) {
             // There's an intended route, allow navigation to continue
@@ -123,12 +123,10 @@ export const roleGuard = (allowedRoles, fallbackPermissions = null) => {
             
             const hasModulePermission = readPermissions.some(perm => permissions.includes(perm));
             if (hasModulePermission) {
-                console.log(`[RoleGuard] Dynamic role ${userRole} granted access to ${routePath} via permission`);
                 return next();
             }
         }
 
-        console.warn(`[RoleGuard] Access denied for role: ${userRole} to ${to.path}`);
         next('/unauthorized');
     };
 };
@@ -154,7 +152,6 @@ export const permissionGuard = (requiredPermission) => {
         if (hasPermission) {
             next();
         } else {
-            console.warn(`[PermissionGuard] Access denied - missing permission: ${requiredPermission}`);
             next('/unauthorized');
         }
     };

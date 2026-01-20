@@ -31,6 +31,8 @@
 </template>
 
 <script>
+import defaultAvatar from '@/assets/img/profiles/avatar-default.jpg';
+
 export default {
   name: 'WelcomeWidget',
   props: {
@@ -45,7 +47,7 @@ export default {
   },
   data() {
     return {
-      defaultAvatar: require('@/assets/img/profiles/avatar-default.jpg'),
+      defaultAvatar,
     };
   },
   computed: {

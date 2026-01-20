@@ -35,7 +35,7 @@
               class="col-lg-4 col-md-6 col-sm-12"
             >
               <img
-                :src="require(`@/assets/img/social/${image.thumb}`)"
+                :src="getSocialImageUrl(image.thumb)"
                 class="img-fluid rounded w-100"
                 alt="image"
                 @click="openLightbox(index)"
@@ -73,6 +73,8 @@
 <script>
 import { ref } from "vue";
 import VueEasyLightbox from "vue-easy-lightbox";
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getSocialImageUrl } = useAssetUrl();
 
 export default {
   components: {
@@ -103,7 +105,7 @@ export default {
   computed: {
     // Generate the full image URLs dynamically
     fullImages() {
-      return this.images.map((image) => require(`@/assets/img/social/${image.full}`));
+      return this.images.map((image) => getSocialImageUrl(image.full));
     },
   },
   methods: {

@@ -43,12 +43,13 @@
                             aria-labelledby="basic-tab" tabindex="0">
                             <div class="modal-body pb-0">
                                 <!-- Employee Information Section -->
-                                <div class="row">
-                                    <!-- Employee Selection -->
-                                    <div class="col-md-12">
-                                        <div class="mb-3">
-                                            <label class="form-label">Employee Name <span
-                                                    class="text-danger">*</span></label>
+                                <div class="form-row mb-3">
+                                    <div class="form-label-col">
+                                        <label class="form-label">Employee Name :</label>
+                                        <span class="text-danger ms-1">*</span>
+                                    </div>
+                                    <div class="form-input-col">
+                                        <div class="input-with-full-width">
                                             <div class="position-relative">
                                                 <input type="text" v-model="employeeSearchQuery"
                                                     @input="onEmployeeSearchInput" @focus="onEmployeeSearchFocus"
@@ -95,69 +96,77 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div v-if="validationErrors.employee_id" class="invalid-feedback">{{
-                                                validationErrors.employee_id }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Department and Position Row -->
-                                <div class="row">
-                                    <!-- Department Selection -->
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Department</label>
-                                            <select v-model="formData.department_id" class="form-select"
-                                                :class="{ 'is-invalid': validationErrors.department_id }"
-                                                @change="onDepartmentChange">
-                                                <option value="">Select Department</option>
-                                                <option v-for="department in departments" :key="department.id"
-                                                    :value="department.id">
-                                                    {{ department.name }}
-                                                </option>
-                                            </select>
-                                            <div v-if="validationErrors.department_id" class="invalid-feedback">
-                                                {{ validationErrors.department_id }}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Position Selection -->
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Position</label>
-                                            <select v-model="formData.position_id" class="form-select"
-                                                :class="{ 'is-invalid': validationErrors.position_id }"
-                                                :disabled="!formData.department_id">
-                                                <option value="">Select Position</option>
-                                                <option v-for="position in filteredPositions" :key="position.id"
-                                                    :value="position.id">
-                                                    {{ position.title }}
-                                                </option>
-                                            </select>
-                                            <div v-if="validationErrors.position_id" class="invalid-feedback">
-                                                {{ validationErrors.position_id }}
+                                            <div v-if="validationErrors.employee_id" class="invalid-feedback">
+                                                {{ validationErrors.employee_id }}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Travel Information Section -->
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label class="form-label">Destination</label>
-                                            <input type="text" class="form-control" placeholder="Enter destination"
-                                                v-model="formData.destination" maxlength="200"
-                                                :class="{ 'is-invalid': validationErrors.destination }">
-                                            <div v-if="validationErrors.destination" class="invalid-feedback">
-                                                {{ validationErrors.destination }}
-                                            </div>
+                                <!-- Department Selection -->
+                                <div class="form-row mb-3">
+                                    <div class="form-label-col">
+                                        <label class="form-label">Department :</label>
+                                    </div>
+                                    <div class="form-input-col">
+                                        <select v-model="formData.department_id" class="form-select input-medium"
+                                            :class="{ 'is-invalid': validationErrors.department_id }"
+                                            @change="onDepartmentChange">
+                                            <option value="">Select Department</option>
+                                            <option v-for="department in departments" :key="department.id"
+                                                :value="department.id">
+                                                {{ department.name }}
+                                            </option>
+                                        </select>
+                                        <div v-if="validationErrors.department_id" class="invalid-feedback">
+                                            {{ validationErrors.department_id }}
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label class="form-label">Start Date</label>
+                                </div>
+
+                                <!-- Position Selection -->
+                                <div class="form-row mb-3">
+                                    <div class="form-label-col">
+                                        <label class="form-label">Position :</label>
+                                    </div>
+                                    <div class="form-input-col">
+                                        <select v-model="formData.position_id" class="form-select input-medium"
+                                            :class="{ 'is-invalid': validationErrors.position_id }"
+                                            :disabled="!formData.department_id">
+                                            <option value="">Select Position</option>
+                                            <option v-for="position in filteredPositions" :key="position.id"
+                                                :value="position.id">
+                                                {{ position.title }}
+                                            </option>
+                                        </select>
+                                        <div v-if="validationErrors.position_id" class="invalid-feedback">
+                                            {{ validationErrors.position_id }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Destination -->
+                                <div class="form-row mb-3">
+                                    <div class="form-label-col">
+                                        <label class="form-label">Destination :</label>
+                                    </div>
+                                    <div class="form-input-col">
+                                        <input type="text" class="form-control input-medium" placeholder="Enter destination"
+                                            v-model="formData.destination" maxlength="200"
+                                            :class="{ 'is-invalid': validationErrors.destination }">
+                                        <div v-if="validationErrors.destination" class="invalid-feedback">
+                                            {{ validationErrors.destination }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Start Date -->
+                                <div class="form-row mb-3">
+                                    <div class="form-label-col">
+                                        <label class="form-label">Start Date :</label>
+                                    </div>
+                                    <div class="form-input-col">
+                                        <div class="input-short-wrapper">
                                             <div class="input-icon-end position-relative">
                                                 <date-picker class="form-control datetimepicker"
                                                     placeholder="dd/mm/yyyy" :editable="true" :clearable="false"
@@ -168,14 +177,20 @@
                                                     <i class="ti ti-calendar text-gray-7"></i>
                                                 </span>
                                             </div>
-                                            <div v-if="validationErrors.start_date" class="invalid-feedback">
-                                                {{ validationErrors.start_date }}
-                                            </div>
+                                        </div>
+                                        <div v-if="validationErrors.start_date" class="invalid-feedback">
+                                            {{ validationErrors.start_date }}
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
-                                            <label class="form-label">End Date</label>
+                                </div>
+
+                                <!-- End Date -->
+                                <div class="form-row mb-3">
+                                    <div class="form-label-col">
+                                        <label class="form-label">End Date :</label>
+                                    </div>
+                                    <div class="form-input-col">
+                                        <div class="input-short-wrapper">
                                             <div class="input-icon-end position-relative">
                                                 <date-picker class="form-control datetimepicker"
                                                     placeholder="dd/mm/yyyy" :editable="true" :clearable="false"
@@ -186,48 +201,50 @@
                                                     <i class="ti ti-calendar text-gray-7"></i>
                                                 </span>
                                             </div>
-                                            <div v-if="validationErrors.to_date" class="invalid-feedback">
-                                                {{ validationErrors.to_date }}
-                                            </div>
+                                        </div>
+                                        <div v-if="validationErrors.to_date" class="invalid-feedback">
+                                            {{ validationErrors.to_date }}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <div class="mb-3">
-                                            <label class="form-label">Purpose of Travel</label>
-                                            <textarea class="form-control" v-model="formData.purpose"
-                                                placeholder="Enter purpose of travel" rows="2"
-                                                :class="{ 'is-invalid': validationErrors.purpose }"></textarea>
-                                            <div v-if="validationErrors.purpose" class="invalid-feedback">
-                                                {{ validationErrors.purpose }}
-                                            </div>
+                                <!-- Purpose of Travel -->
+                                <div class="form-row mb-3">
+                                    <div class="form-label-col">
+                                        <label class="form-label">Purpose :</label>
+                                    </div>
+                                    <div class="form-input-col">
+                                        <textarea class="form-control" v-model="formData.purpose"
+                                            placeholder="Enter purpose of travel" rows="2"
+                                            :class="{ 'is-invalid': validationErrors.purpose }"></textarea>
+                                        <div v-if="validationErrors.purpose" class="invalid-feedback">
+                                            {{ validationErrors.purpose }}
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="mb-3">
-                                            <label class="form-label">Grant/Project Code</label>
-                                            <input type="text" class="form-control"
-                                                placeholder="Enter grant information" v-model="formData.grant"
-                                                maxlength="50" :class="{ 'is-invalid': validationErrors.grant }">
-                                            <div v-if="validationErrors.grant" class="invalid-feedback">
-                                                {{ validationErrors.grant }}
-                                            </div>
+                                </div>
+
+                                <!-- Grant/Project Code -->
+                                <div class="form-row mb-3">
+                                    <div class="form-label-col">
+                                        <label class="form-label">Grant Code :</label>
+                                    </div>
+                                    <div class="form-input-col">
+                                        <input type="text" class="form-control input-medium"
+                                            placeholder="Enter grant/project code" v-model="formData.grant"
+                                            maxlength="50" :class="{ 'is-invalid': validationErrors.grant }">
+                                        <div v-if="validationErrors.grant" class="invalid-feedback">
+                                            {{ validationErrors.grant }}
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="modal-footer"
-                                style="background-color: #f8f9fa; border-top: 1px solid #e9ecef; padding: 15px 20px;">
-                                <button type="button" class="btn btn-outline-light border me-2"
-                                    style="border-radius: 4px; padding: 8px 16px; font-weight: 500;"
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-cancel"
                                     data-bs-dismiss="modal">
                                     Cancel
                                 </button>
-                                <button type="button" class="btn btn-primary"
-                                    style="background-color: #0067A5; border-color: #0067A5; border-radius: 4px; padding: 8px 16px; font-weight: 500;"
+                                <button type="button" class="btn btn-save"
                                     @click="switchToDetailsTab">
                                     Next: Travel Details
                                 </button>
@@ -435,15 +452,12 @@
                                 </div>
                             </div>
 
-                            <div class="modal-footer"
-                                style="background-color: #f8f9fa; border-top: 1px solid #e9ecef; padding: 15px 20px;">
-                                <button type="button" class="btn btn-outline-light border me-2"
-                                    style="border-radius: 4px; padding: 8px 16px; font-weight: 500;"
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-cancel"
                                     data-bs-dismiss="modal">
                                     Cancel
                                 </button>
-                                <button type="submit" class="btn btn-primary"
-                                    style="background-color: #0067A5; border-color: #0067A5; border-radius: 4px; padding: 8px 16px; font-weight: 500;"
+                                <button type="submit" class="btn btn-save"
                                     :disabled="isSubmitting">
                                     <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"
                                         role="status" aria-hidden="true"></span>
@@ -1139,6 +1153,65 @@ export default {
 </script>
 
 <style scoped>
+/* ========================================
+   HORIZONTAL FORM LAYOUT (Grant Modal Style)
+   ======================================== */
+
+/* Form row container */
+.form-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+/* Label column - fixed width, right-aligned */
+.form-label-col {
+    flex: 0 0 180px;
+    min-width: 180px;
+    padding-top: 8px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+/* Input column - flexible width */
+.form-input-col {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Form labels - right-aligned with consistent styling */
+.form-row .form-label {
+    font-weight: 500;
+    margin-bottom: 0;
+    display: block;
+    text-align: right;
+    color: #262626;
+    font-size: 14px;
+}
+
+/* Input width classes */
+.input-short {
+    width: 200px;
+    max-width: 200px;
+}
+
+.input-medium {
+    width: 400px;
+    max-width: 400px;
+}
+
+.input-short-wrapper {
+    width: 200px;
+    max-width: 200px;
+    flex: 1;
+}
+
+.input-with-full-width {
+    width: 100%;
+}
+
 /* Custom button close styling */
 .custom-btn-close {
     background: none;
@@ -1170,21 +1243,26 @@ export default {
 
 .required::after {
     content: " *";
-    color: #dc3545;
+    color: #e53e3e;
 }
 
 .form-control,
 .form-select {
-    border: 1px solid #ced4da;
+    width: 100%;
+    padding: 7px 12px;
     border-radius: 6px;
-    padding: 0.625rem 0.75rem;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    border: 1px solid #c9d2e2;
+    font-size: 1em;
+    box-sizing: border-box;
+    background: #f7f8fa;
+    outline: none;
+    transition: border 0.2s;
 }
 
 .form-control:focus,
 .form-select:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    border: 1.5px solid #4a7fff;
+    background: #fff;
 }
 
 .form-select:disabled {
@@ -1193,15 +1271,17 @@ export default {
 }
 
 .is-invalid {
-    border-color: #dc3545;
+    border-color: #e53e3e;
+    background: #fff5f5;
 }
 
 .invalid-feedback {
     display: block;
     width: 100%;
-    margin-top: 0.25rem;
+    margin-top: 5px;
     font-size: 0.875em;
-    color: #dc3545;
+    color: #e53e3e;
+    font-weight: 500;
 }
 
 /* Option cards styling */
@@ -1242,7 +1322,7 @@ export default {
 }
 
 .text-danger {
-    color: #dc3545 !important;
+    color: #e53e3e !important;
     font-size: 0.875rem;
 }
 
@@ -1281,23 +1361,24 @@ export default {
 
 :deep(.mx-input) {
     width: 100% !important;
-    padding: 0.625rem 35px 0.625rem 0.75rem !important;
+    padding: 7px 35px 7px 12px !important;
     border-radius: 6px !important;
-    border: 1px solid #ced4da !important;
+    border: 1px solid #c9d2e2 !important;
     font-size: 1em !important;
     box-sizing: border-box !important;
-    background: #fff !important;
+    background: #f7f8fa !important;
     outline: none !important;
-    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+    transition: border 0.2s !important;
 }
 
 :deep(.mx-input:focus) {
-    border-color: #0d6efd !important;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+    border: 1.5px solid #4a7fff !important;
+    background: #fff !important;
 }
 
 :deep(.mx-input.is-invalid) {
-    border-color: #dc3545 !important;
+    border-color: #e53e3e !important;
+    background: #fff5f5 !important;
 }
 
 :deep(.mx-icon-calendar) {
@@ -1348,6 +1429,60 @@ export default {
     color: #0067A5;
 }
 
+/* ========================================
+   BUTTON STYLING (Employment Modal Style)
+   ======================================== */
+
+/* Base button styling */
+.btn {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    margin-right: 8px;
+}
+
+/* Cancel button */
+.btn-cancel {
+    background: #fff;
+    color: #2a3146;
+    border: 1.2px solid #bbc4d1;
+}
+
+.btn-cancel:hover {
+    background: #f4f7fa;
+}
+
+/* Save/Primary button */
+.btn-save {
+    background: linear-gradient(90deg, #3577ef 70%, #355bef 100%);
+    color: #fff;
+    border: none;
+}
+
+.btn-save:hover {
+    background: linear-gradient(90deg, #2566de 70%, #2449de 100%);
+}
+
+.btn-save:disabled {
+    background: #ccd4ea;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* Modal footer styling */
+.modal-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0;
+}
+
 /* Searchable dropdown styles */
 .dropdown-menu {
     border: 1px solid #dee2e6;
@@ -1383,13 +1518,7 @@ export default {
 
 /* Clear button hover effect */
 .btn:hover i {
-    color: #dc3545 !important;
-}
-
-/* Input focus enhancement */
-.form-control:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    color: #e53e3e !important;
 }
 
 /* Loading state */
@@ -1458,6 +1587,36 @@ export default {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    /* Horizontal form layout - Switch to vertical on mobile */
+    .form-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-label-col {
+        flex: 1;
+        min-width: 100%;
+        padding-top: 0;
+        justify-content: flex-start;
+    }
+
+    .form-row .form-label {
+        text-align: left;
+    }
+
+    .form-input-col {
+        flex: 1;
+        min-width: 100%;
+    }
+
+    /* All inputs full width on mobile */
+    .input-short,
+    .input-medium,
+    .input-short-wrapper {
+        width: 100%;
+        max-width: 100%;
+    }
+
     .option-card {
         padding: 1rem;
         margin-bottom: 1rem;

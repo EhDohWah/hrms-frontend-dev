@@ -20,13 +20,13 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Employee Name</label>
-                  <vue-select :options="EmploDash" id="emplodash" placeholder="Select" />
+                  <a-select :options="EmploDash" id="emplodash" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Leave Type</label>
-                  <vue-select :options="AnnualEmp" id="anniemp" placeholder="Select" />
+                  <a-select :options="AnnualEmp" id="anniemp" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -146,7 +146,7 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Project</label>
-                  <vue-select
+                  <a-select
                     :options="OffDash"
                     id="offdash"
                     placeholder="Office Management"
@@ -170,13 +170,13 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Tag</label>
-                  <vue-select :options="ProjecDash" id="prodasj" placeholder="Projects" />
+                  <a-select :options="ProjecDash" id="prodasj" placeholder="Projects" />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="InproDash"
                     id="inprodash"
                     placeholder="Inprogress"
@@ -186,7 +186,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select :options="MediDash" id="medidash" placeholder="Medium" />
+                  <a-select :options="MediDash" id="medidash" placeholder="Medium" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -313,6 +313,8 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import Vue3TagsInput from "vue3-tags-input";
 import { ref } from "vue";
@@ -320,6 +322,10 @@ const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 const currentDateTwo = ref(new Date());
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   components: {
     Vue3TagsInput,
   },

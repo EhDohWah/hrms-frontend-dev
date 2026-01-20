@@ -2,10 +2,12 @@
   "name": "hrms",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "serve": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-build-classic": "^42.0.0",
@@ -22,10 +24,11 @@
     "boxicons": "^2.1.4",
     "daterangepicker": "^3.1.0",
     "ionicons-npm": "^2.0.1",
+    "laravel-echo": "^2.1.5",
     "mitt": "^3.0.1",
     "pinia": "^3.0.1",
+    "pusher-js": "^8.4.0",
     "sass": "^1.79.5",
-    "sass-loader": "^16.0.2",
     "sweetalert2": "^11.10.1",
     "v-calendar": "^3.0.0-alpha.8",
     "vee-validate": "^4.13.2",
@@ -34,7 +37,6 @@
     "vue-easy-lightbox": "^1.19.0",
     "vue-feather": "^2.0.0",
     "vue-flag-icon": "^2.1.0",
-    "vue-form-wizard": "^0.8.4",
     "vue-router": "^4.4.5",
     "vue-simple-line": "^1.1.1",
     "vue-star-rating": "^2.1.0",
@@ -44,41 +46,13 @@
     "vue3-datepicker": "^0.4.0",
     "vue3-form-wizard": "^0.2.4",
     "vue3-perfect-scrollbar": "^1.6.1",
-    "vue3-select2-component": "^0.1.7",
     "vue3-tags-input": "^1.0.12",
     "yup": "^1.4.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.3",
-    "@babel/eslint-parser": "^7.23.3",
-    "@vue/cli-plugin-babel": "~5.0.0",
-    "@vue/cli-plugin-eslint": "~5.0.0",
-    "@vue/cli-service": "~5.0.0",
-    "@vue/compiler-sfc": "^3.1.0",
+    "@vitejs/plugin-vue": "^5.2.3",
     "eslint": "^8.54.0",
     "eslint-plugin-vue": "^9.18.1",
-    "laravel-echo": "^2.1.5",
-    "process": "^0.11.10",
-    "pusher-js": "^8.4.0"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {}
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie 11"
-  ]
+    "vite": "^6.3.4"
+  }
 }

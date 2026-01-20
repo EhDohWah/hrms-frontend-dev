@@ -1,9 +1,15 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       showPassword: false,
@@ -201,7 +207,7 @@ export default {
                   <label class="form-label"
                     >Plan Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Planname" id="basic" placeholder="Select" />
+                  <a-select :options="Planname" id="basic" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -209,7 +215,7 @@ export default {
                   <label class="form-label"
                     >Plan Type <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Plantype" id="yearly" placeholder="Select" />
+                  <a-select :options="Plantype" id="yearly" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -217,7 +223,7 @@ export default {
                   <label class="form-label"
                     >Currency <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Currency" id="euro" placeholder="Select" />
+                  <a-select :options="Currency" id="euro" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -225,13 +231,13 @@ export default {
                   <label class="form-label"
                     >Language <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Language" id="languagee" placeholder="Select" />
+                  <a-select :options="Language" id="languagee" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Status" id="statuss" placeholder="Select" />
+                  <a-select :options="Status" id="statuss" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -383,7 +389,7 @@ export default {
                   <label class="form-label"
                     >Plan Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Planname" id="basicc" placeholder="Select" />
+                  <a-select :options="Planname" id="basicc" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -391,7 +397,7 @@ export default {
                   <label class="form-label"
                     >Plan Type <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Plantype" id="yearlyy" placeholder="Select" />
+                  <a-select :options="Plantype" id="yearlyy" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -399,7 +405,7 @@ export default {
                   <label class="form-label"
                     >Currency <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Currency" id="euroo" placeholder="Select" />
+                  <a-select :options="Currency" id="euroo" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -407,13 +413,13 @@ export default {
                   <label class="form-label"
                     >Language <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Language" id="languagec" placeholder="Select" />
+                  <a-select :options="Language" id="languagec" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Status" id="languagec" placeholder="Select" />
+                  <a-select :options="Status" id="languagec" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -545,7 +551,7 @@ export default {
                   <label class="form-label"
                     >Status <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Statusone" id="unavailable" placeholder="Busy" />
+                  <a-select :options="Statusone" id="unavailable" placeholder="Busy" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -637,7 +643,7 @@ export default {
                       <label class="form-label"
                         >Choose Deal <span class="text-danger"> *</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="Choosedeal"
                         id="wisozk"
                         placeholder="Select"
@@ -649,7 +655,7 @@ export default {
                       <label class="form-label"
                         >Document Type <span class="text-danger"> *</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="Documenttype"
                         id="quote"
                         placeholder="Select"
@@ -661,7 +667,7 @@ export default {
                       <label class="form-label"
                         >Owner <span class="text-danger"> *</span></label
                       >
-                      <vue-select :options="Owner" id="jackson" placeholder="Select" />
+                      <a-select :options="Owner" id="jackson" placeholder="Select" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -677,7 +683,7 @@ export default {
                       <label class="form-label"
                         >Locale <span class="text-danger"> *</span></label
                       >
-                      <vue-select :options="Locale" id="ru" placeholder="Select" />
+                      <a-select :options="Locale" id="ru" placeholder="Select" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -1000,7 +1006,7 @@ export default {
                   <label class="form-label"
                     >Account Type <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Accounttype" id="imap" placeholder="Select" />
+                  <a-select :options="Accounttype" id="imap" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -1125,7 +1131,7 @@ export default {
                   <label class="form-label"
                     >Deal Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Dealname" id="addamsas" placeholder="Select" />
+                  <a-select :options="Dealname" id="addamsas" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1138,7 +1144,7 @@ export default {
                       ><i class="ti ti-plus text-primary me-1"></i>Add New</a
                     >
                   </div>
-                  <vue-select :options="Pipeline" id="callss" placeholder="Select" />
+                  <a-select :options="Pipeline" id="callss" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1146,7 +1152,7 @@ export default {
                   <label class="form-label"
                     >Status <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Lost" id="statuss" placeholder="Select" />
+                  <a-select :options="Lost" id="statuss" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -1154,7 +1160,7 @@ export default {
                   <label class="form-label"
                     >Deal Value <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Dealvalue" id="dealvaluee" placeholder="Select" />
+                  <a-select :options="Dealvalue" id="dealvaluee" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -1162,7 +1168,7 @@ export default {
                   <label class="form-label"
                     >Currency<span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="Currencyvalue"
                     id="currencyvaluee"
                     placeholder="Select"
@@ -1190,7 +1196,7 @@ export default {
                   <label class="form-label"
                     >Contact <span class="text-danger"> *</span></label
                   >\
-                  <vue-select
+                  <a-select
                     :options="Contact"
                     id="currencyvaluee"
                     placeholder="Select"
@@ -1202,7 +1208,7 @@ export default {
                   <label class="form-label"
                     >Project * <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Project" id="educational" placeholder="Select" />
+                  <a-select :options="Project" id="educational" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1250,7 +1256,7 @@ export default {
                   <label class="form-label"
                     >Assignee <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Assignee" id="aassignee" placeholder="Select" />
+                  <a-select :options="Assignee" id="aassignee" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1258,7 +1264,7 @@ export default {
                   <label class="form-label"
                     >Tags <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Tags" id="promotion" placeholder="Select" />
+                  <a-select :options="Tags" id="promotion" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1286,7 +1292,7 @@ export default {
                   <label class="form-label"
                     >Source <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Source" id="barrywexler" placeholder="Select" />
+                  <a-select :options="Source" id="barrywexler" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1294,7 +1300,7 @@ export default {
                   <label class="form-label"
                     >Priority <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Priority" id="highh" placeholder="Select" />
+                  <a-select :options="Priority" id="highh" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">

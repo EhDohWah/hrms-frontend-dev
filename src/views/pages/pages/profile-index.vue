@@ -268,7 +268,7 @@ export default {
           this.username = userData.name || "";
           this.email = userData.email || "";
           if (userData.profile_picture) {
-            this.profileImage = `${process.env.VUE_APP_PUBLIC_URL}/storage/${userData.profile_picture}`;
+            this.profileImage = `${import.meta.env.VITE_PUBLIC_URL}/storage/${userData.profile_picture}`;
           }
         }
       } catch (error) {

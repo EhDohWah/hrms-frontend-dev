@@ -1,5 +1,11 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Designation: ["Select", "Web Designer", "Web Developer", "IOS Developer"],
@@ -51,7 +57,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Designation</label>
-                  <vue-select
+                  <a-select
                     :options="Designation"
                     id="web-designer"
                     placeholder="Select"
@@ -66,7 +72,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Customer Experience</label>
-                  <vue-select
+                  <a-select
                     :options="Experience"
                     id="experience"
                     placeholder="Select"
@@ -76,7 +82,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Marketing</label>
-                  <vue-select
+                  <a-select
                     :options="Marketing"
                     id="web-marketing"
                     placeholder="Select"
@@ -86,7 +92,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Management</label>
-                  <vue-select
+                  <a-select
                     :options="Management"
                     id="web-management"
                     placeholder="Select"
@@ -96,7 +102,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Administration</label>
-                  <vue-select
+                  <a-select
                     :options="Administration"
                     id="web-administration"
                     placeholder="Select"
@@ -106,7 +112,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Presentation Skills</label>
-                  <vue-select
+                  <a-select
                     :options="Presentation"
                     id="web-presentation"
                     placeholder="Select"
@@ -116,13 +122,13 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Quality of Work</label>
-                  <vue-select :options="Quality" id="web-work" placeholder="Select" />
+                  <a-select :options="Quality" id="web-work" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Efficiency</label>
-                  <vue-select
+                  <a-select
                     :options="Efficiency"
                     id="web-efficiency"
                     placeholder="Select"
@@ -137,7 +143,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Integrity</label>
-                  <vue-select
+                  <a-select
                     :options="Integrity"
                     id="web-integrity"
                     placeholder="Select"
@@ -147,7 +153,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Professionalism</label>
-                  <vue-select
+                  <a-select
                     :options="Professionalism"
                     id="web-professionalism"
                     placeholder="Select"
@@ -157,7 +163,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Team Work</label>
-                  <vue-select
+                  <a-select
                     :options="Teamwork"
                     id="web-teamwork"
                     placeholder="Select"
@@ -167,7 +173,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Critical Thinking</label>
-                  <vue-select
+                  <a-select
                     :options="Critical"
                     id="web-critical"
                     placeholder="Select"
@@ -177,7 +183,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Conflict Management</label>
-                  <vue-select
+                  <a-select
                     :options="Conflict"
                     id="web-conflict"
                     placeholder="Select"
@@ -187,7 +193,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Attendance</label>
-                  <vue-select
+                  <a-select
                     :options="Attendance"
                     id="web-attendance"
                     placeholder="Select"
@@ -197,13 +203,13 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Ability To Meet Deadline</label>
-                  <vue-select :options="Ability" id="webability" placeholder="Select" />
+                  <a-select :options="Ability" id="webability" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Status" id="web-status" placeholder="Select" />
+                  <a-select :options="Status" id="web-status" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -241,7 +247,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Designation</label>
-                  <vue-select
+                  <a-select
                     :options="Designation"
                     id="web-designer-one"
                     placeholder="Web Designer"
@@ -256,7 +262,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Customer Experience</label>
-                  <vue-select
+                  <a-select
                     :options="Experience"
                     id="experience-one"
                     placeholder="Advanced"
@@ -266,7 +272,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Marketing</label>
-                  <vue-select
+                  <a-select
                     :options="Marketing"
                     id="web-marketing-one"
                     placeholder="Expert/Leader"
@@ -276,7 +282,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Management</label>
-                  <vue-select
+                  <a-select
                     :options="Management"
                     id="web-management-one"
                     placeholder="Intermediate"
@@ -286,7 +292,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Administration</label>
-                  <vue-select
+                  <a-select
                     :options="Administration"
                     id="web-administration-one"
                     placeholder="Advanced"
@@ -296,7 +302,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Presentation Skills</label>
-                  <vue-select
+                  <a-select
                     :options="Presentation"
                     id="web-presentation-one"
                     placeholder="None"
@@ -306,13 +312,13 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Quality of Work</label>
-                  <vue-select :options="Quality" id="web-work-one" placeholder="None" />
+                  <a-select :options="Quality" id="web-work-one" placeholder="None" />
                 </div>
               </div>
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Efficiency</label>
-                  <vue-select
+                  <a-select
                     :options="Efficiency"
                     id="web-efficiency-one"
                     placeholder="None"
@@ -327,7 +333,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Integrity</label>
-                  <vue-select
+                  <a-select
                     :options="Integrity"
                     id="web-integrity-one"
                     placeholder="None"
@@ -337,7 +343,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Professionalism</label>
-                  <vue-select
+                  <a-select
                     :options="Professionalism"
                     id="web-professionalism-one"
                     placeholder="Advanced"
@@ -347,7 +353,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Team Work</label>
-                  <vue-select
+                  <a-select
                     :options="Teamwork"
                     id="web-teamwork-one"
                     placeholder="None"
@@ -357,7 +363,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Critical Thinking</label>
-                  <vue-select
+                  <a-select
                     :options="Critical"
                     id="web-critical-one"
                     placeholder="Advanced"
@@ -367,7 +373,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Conflict Management</label>
-                  <vue-select
+                  <a-select
                     :options="Conflict"
                     id="web-conflict-one"
                     placeholder="Advanced"
@@ -377,7 +383,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Attendance</label>
-                  <vue-select
+                  <a-select
                     :options="Attendance"
                     id="web-attendance-one"
                     placeholder="Advanced"
@@ -387,7 +393,7 @@ export default {
               <div class="col-md-3">
                 <div class="mb-3">
                   <label class="form-label">Ability To Meet Deadline</label>
-                  <vue-select
+                  <a-select
                     :options="AbilityOne"
                     id="webabilityOne"
                     placeholder="Advanced"
@@ -397,7 +403,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="Status"
                     id="web-status-one"
                     placeholder="Active"

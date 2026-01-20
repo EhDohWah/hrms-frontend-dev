@@ -30,7 +30,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="StaSmsTem" id="stasmstem" placeholder="Active" />
+                  <a-select :options="StaSmsTem" id="stasmstem" placeholder="Active" style="width: 100%" :show-search="true" :filter-option="filterOption" :get-popup-container="getModalPopupContainer" />
                 </div>
               </div>
             </div>
@@ -82,10 +82,14 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="EditStaSmsTem"
                     id="editstasmstem"
                     placeholder="Active"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
+                    :get-popup-container="getModalPopupContainer"
                   />
                 </div>
               </div>
@@ -138,7 +142,13 @@
 </template>
 <script>
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       editor: ClassicEditor,

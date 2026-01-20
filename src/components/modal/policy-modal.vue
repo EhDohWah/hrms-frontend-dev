@@ -32,10 +32,14 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Department</label>
-                  <vue-select
+                  <a-select
                     :options="DevePolicy"
                     id="devepolicy"
                     placeholder="Select"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
+                    :get-popup-container="getModalPopupContainer"
                   />
                 </div>
               </div>
@@ -115,10 +119,14 @@ Guidelines regarding employee absences from work</textarea
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Department</label>
-                  <vue-select
+                  <a-select
                     :options="EditDevePolicy"
                     id="editdevepolicy"
                     placeholder="All Department"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
+                    :get-popup-container="getModalPopupContainer"
                   />
                 </div>
               </div>
@@ -193,7 +201,13 @@ Guidelines regarding employee absences from work</textarea
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       DevePolicy: ["Select", "All Department", "Finance", "Marketing", "Development"],

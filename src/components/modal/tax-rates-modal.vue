@@ -28,7 +28,7 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="StatSelA" id="stata" placeholder="Select" />
+                  <a-select :options="StatSelA" id="stata" placeholder="Select" style="width: 100%" :show-search="true" :filter-option="filterOption" :get-popup-container="getModalPopupContainer" />
                 </div>
               </div>
             </div>
@@ -82,10 +82,14 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="EditStatSelA"
                     id="seedittata"
                     placeholder="Active"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
+                    :get-popup-container="getModalPopupContainer"
                   />
                 </div>
               </div>
@@ -131,7 +135,13 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       StatSelA: ["Select", "Active", "Inactive"],

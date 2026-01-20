@@ -147,7 +147,7 @@
             <div class="dropdown profile-dropdown">
               <a href="javascript:void(0);" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
                 <span class="avatar avatar-sm online">
-                  <img :src="profilePictureUrl" alt="Img" class="img-fluid rounded-circle" />
+                  <img :src="profilePictureUrl || defaultAvatarUrl" alt="Profile" class="img-fluid rounded-circle" @error="handleImageError" />
                 </span>
               </a>
               <div class="dropdown-menu shadow-none">
@@ -155,7 +155,7 @@
                   <div class="card-header">
                     <div class="d-flex align-items-center">
                       <span class="avatar avatar-lg me-2 avatar-rounded">
-                        <img :src="profilePictureUrl" alt="img" />
+                        <img :src="profilePictureUrl || defaultAvatarUrl" alt="Profile" @error="handleImageError" />
                       </span>
                       <div>
                         <h5 class="mb-0">{{ username }}</h5>
@@ -234,9 +234,21 @@ export default {
 
     const profilePictureUrl = computed(() => {
       if (authStore.user && authStore.user.profile_picture) {
-        return `${import.meta.env.VITE_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
+        // Add cache-busting timestamp to force reload after update
+        const timestamp = authStore.user.profile_picture_updated_at || '';
+        const baseUrl = `${import.meta.env.VITE_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
+        return timestamp ? `${baseUrl}?t=${timestamp}` : baseUrl;
       }
       return null; // Fallback handled in template
+    });
+
+    // Default avatar URL for fallback
+    const defaultAvatarUrl = computed(() => {
+      // Generate initials-based placeholder or use default image
+      const name = authStore.user?.name || 'User';
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      // Return a data URI for a simple avatar with initials
+      return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect fill="%236366f1" width="40" height="40" rx="20"/><text x="50%" y="50%" dy=".35em" fill="white" font-family="Arial" font-size="16" text-anchor="middle">${initials}</text></svg>`)}`;
     });
 
     // Make sure the store has loaded the user data
@@ -244,7 +256,7 @@ export default {
       authStore.updateUserData();
     }
 
-    return { username, email, profilePictureUrl, authStore, notificationStore };
+    return { username, email, profilePictureUrl, defaultAvatarUrl, authStore, notificationStore };
   },
 
   created() {
@@ -345,6 +357,16 @@ export default {
   },
 
   methods: {
+    /**
+     * Handle image load error - fallback to default avatar
+     * This catches 404s and other loading failures
+     */
+    handleImageError(event) {
+      const name = this.authStore.user?.name || 'User';
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      event.target.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect fill="#6366f1" width="40" height="40" rx="20"/><text x="50%" y="50%" dy=".35em" fill="white" font-family="Arial" font-size="16" text-anchor="middle">${initials}</text></svg>`)}`;
+    },
+
     // Use store action for marking all as read
     async markAllAsRead() {
       try {

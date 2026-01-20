@@ -1,5 +1,5 @@
 import { authService } from '@/services/auth.service';
-import { initEcho, disconnectEcho, isEchoInitialized, initPermissionUpdateListener } from '@/plugins/echo';
+import { initEcho, disconnectEcho, isEchoInitialized, initPermissionUpdateListener, initProfileUpdateListener } from '@/plugins/echo';
 
 export const authGuard = (to, from, next) => {
     const isAuthenticated = authService.isAuthenticated();
@@ -32,10 +32,11 @@ export const authGuard = (to, from, next) => {
     if (isAuthenticated && token && !isEchoInitialized()) {
         initEcho(token);
 
-        // Initialize permission update listener for real-time permission sync
+        // Initialize real-time listeners for permission and profile sync
         const user = JSON.parse(localStorage.getItem('user'));
         if (user?.id) {
             initPermissionUpdateListener(user.id);
+            initProfileUpdateListener(user.id);
             // Note: Notification subscription is handled in layout-header.vue
             // to properly show toast notifications with retry logic
         }

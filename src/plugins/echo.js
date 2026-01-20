@@ -448,6 +448,123 @@ export function initNotificationListener(userId, options = {}) {
     });
 }
 
+// =========================================
+// PROFILE UPDATE CHANNEL SUBSCRIPTION
+// =========================================
+
+let profileChannelSubscription = null;
+let profileListenerInitialized = false;
+
+/**
+ * Subscribe to profile update events for a specific user.
+ * Called after Echo is initialized and user is authenticated.
+ *
+ * @param {number} userId - The user ID to subscribe to
+ * @param {Function} callback - Callback function when profile is updated
+ * @returns {Object|null} - The channel subscription or null if failed
+ */
+export function subscribeToProfileUpdates(userId, callback) {
+    if (!echoInstance) {
+        return null;
+    }
+
+    if (!userId) {
+        return null;
+    }
+
+    // Check if already subscribed to this user's profile updates
+    if (profileChannelSubscription && hasActiveSubscription(userId, 'profile')) {
+        return profileChannelSubscription;
+    }
+
+    // Unsubscribe from existing subscription if any
+    unsubscribeFromProfileUpdates(userId);
+
+    try {
+        const channelName = `App.Models.User.${userId}`;
+
+        // Subscribe to the user's private channel and listen for profile events
+        profileChannelSubscription = echoInstance
+            .private(channelName)
+            .listen('.user.profile-updated', (event) => {
+                if (typeof callback === 'function') {
+                    callback(event);
+                }
+            });
+
+        // Track this subscription
+        incrementChannelSubscription(userId, 'profile');
+
+        return profileChannelSubscription;
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Unsubscribe from profile update events.
+ * Called when user logs out or component is destroyed.
+ *
+ * @param {number} userId - The user ID to unsubscribe from
+ */
+export function unsubscribeFromProfileUpdates(userId) {
+    if (!echoInstance || !userId) {
+        return;
+    }
+
+    try {
+        if (profileChannelSubscription) {
+            profileChannelSubscription.stopListening('.user.profile-updated');
+            profileChannelSubscription = null;
+            profileListenerInitialized = false;
+        }
+
+        // Update tracking
+        decrementChannelSubscription(userId, 'profile');
+    } catch (error) {
+        // Silent fail
+    }
+}
+
+/**
+ * Initialize profile update listener with authStore.
+ * This is a convenience function that wires up the Echo subscription
+ * with the authStore's handleProfileUpdateEvent method.
+ *
+ * @param {number} userId - The user ID to subscribe to
+ * @returns {Promise<Object|null>} - The channel subscription or null if failed
+ */
+export function initProfileUpdateListener(userId) {
+    if (!userId) {
+        return Promise.resolve(null);
+    }
+
+    // Prevent duplicate initialization
+    if (profileListenerInitialized && profileChannelSubscription) {
+        return Promise.resolve(profileChannelSubscription);
+    }
+
+    // Dynamic import to avoid circular dependencies
+    return import('@/stores/authStore').then(({ useAuthStore }) => {
+        const authStore = useAuthStore();
+
+        const subscription = subscribeToProfileUpdates(userId, (event) => {
+            // Delegate to authStore's handler
+            if (authStore.handleProfileUpdateEvent) {
+                authStore.handleProfileUpdateEvent(event);
+            }
+        });
+
+        if (subscription) {
+            profileListenerInitialized = true;
+        }
+
+        return subscription;
+    }).catch(() => {
+        return null;
+    });
+}
+
 /**
  * Cleanup all user-specific subscriptions.
  * Should be called on logout to prevent memory leaks.
@@ -463,7 +580,9 @@ export function cleanupUserSubscriptions(userId) {
     // Clear subscription references first
     permissionChannelSubscription = null;
     notificationChannelSubscription = null;
+    profileChannelSubscription = null;
     permissionListenerInitialized = false;
+    profileListenerInitialized = false;
 
     // Clear tracking for this user
     const key = `user_${userId}`;

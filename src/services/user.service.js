@@ -87,6 +87,18 @@ class UserService {
       // Make the API request with FormData
       const response = await apiService.postFormData(API_ENDPOINTS.USER.UPDATE_PROFILE_PICTURE, formData);
 
+      // Update localStorage with new profile picture path
+      if (response && response.success && response.data?.profile_picture) {
+        const currentUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
+        const updatedUser = {
+          ...currentUser,
+          profile_picture: response.data.profile_picture,
+          // Add timestamp for cache busting
+          profile_picture_updated_at: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updatedUser));
+      }
+
       return response;
     } catch (error) {
       console.error('Error updating profile picture:', error);

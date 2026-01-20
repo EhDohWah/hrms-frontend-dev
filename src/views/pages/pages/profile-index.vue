@@ -55,12 +55,6 @@
             </div>
           </div>
 
-          <!-- Alert Component -->
-          <div v-if="alert.show" class="alert alert-dismissible fade show" :class="`alert-${alert.type}`" role="alert">
-            {{ alert.message }}
-            <button type="button" class="btn-close" @click="alert.show = false"></button>
-          </div>
-
           <div class="border-bottom mb-4 pb-3">
             <h4>Profile</h4>
           </div>
@@ -69,24 +63,93 @@
           <div class="border-bottom mb-4 pb-4">
             <h6 class="mb-3 text-primary">Profile Picture</h6>
             <div class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-4">
-              <div
-                class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-primary me-4 flex-shrink-0 text-dark frames">
-                <img v-if="profileImage" :src="profileImage" alt="Profile" class="img-fluid rounded-circle" />
-                <i v-else class="ti ti-photo text-gray-3 fs-16"></i>
+              <!-- Profile Picture Preview -->
+              <div class="position-relative me-4 flex-shrink-0">
+                <div
+                  class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-primary text-dark frames overflow-hidden"
+                  :class="{ 'border-success': uploadSuccess, 'border-danger': uploadError }">
+                  <img v-if="profileImage" :src="profileImage" alt="Profile" class="img-fluid rounded-circle"
+                       @error="handleImageError" />
+                  <i v-else class="ti ti-photo text-gray-3 fs-16"></i>
+                </div>
+                <!-- Edit overlay on hover -->
+                <div v-if="profileImage && !selectedFile"
+                     class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded-circle edit-overlay"
+                     @click="triggerFileInput">
+                  <i class="ti ti-pencil text-white fs-20"></i>
+                </div>
               </div>
-              <div class="profile-upload">
-                <div class="mb-3">
-                  <p class="fs-12 text-muted">
+
+              <div class="profile-upload flex-grow-1">
+                <!-- File Info Display -->
+                <div v-if="selectedFile" class="mb-3 p-3 bg-white rounded border">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                      <i class="ti ti-file-type-jpg text-primary fs-24 me-2"></i>
+                      <div>
+                        <p class="mb-0 fw-medium text-truncate" style="max-width: 200px;">{{ selectedFile.name }}</p>
+                        <small class="text-muted">{{ formatFileSize(selectedFile.size) }}</small>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" @click="clearSelectedFile"
+                            :disabled="isUploading">
+                      <i class="ti ti-x"></i>
+                    </button>
+                  </div>
+                  <!-- Upload Progress -->
+                  <div v-if="isUploading" class="mt-2">
+                    <div class="progress" style="height: 6px;">
+                      <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                           role="progressbar"
+                           :style="{ width: uploadProgress + '%' }"
+                           :aria-valuenow="uploadProgress"
+                           aria-valuemin="0"
+                           aria-valuemax="100">
+                      </div>
+                    </div>
+                    <small class="text-muted">Uploading... {{ uploadProgress }}%</small>
+                  </div>
+                </div>
+
+                <!-- Success/Error Messages -->
+                <div v-if="uploadSuccess" class="alert alert-success py-2 mb-3 d-flex align-items-center">
+                  <i class="ti ti-circle-check me-2"></i>
+                  <span>Profile picture updated successfully!</span>
+                </div>
+                <div v-if="uploadError" class="alert alert-danger py-2 mb-3 d-flex align-items-center">
+                  <i class="ti ti-alert-circle me-2"></i>
+                  <span>{{ uploadErrorMessage }}</span>
+                </div>
+
+                <!-- Guidelines -->
+                <div v-if="!selectedFile" class="mb-3">
+                  <p class="fs-12 text-muted mb-1">
                     Recommended image size is 40px x 40px
                   </p>
+                  <p class="fs-12 text-muted mb-0">
+                    <i class="ti ti-info-circle me-1"></i>
+                    Supported formats: JPG, PNG, GIF, WebP (Max: 2MB)
+                  </p>
                 </div>
-                <div class="profile-uploader d-flex align-items-center">
-                  <div class="drag-upload-btn btn btn-primary me-3">
-                    <i class="ti ti-upload me-1"></i> Upload
-                    <input type="file" class="form-control image-sign" @change="handleImageUpload" />
+
+                <!-- Action Buttons -->
+                <div class="profile-uploader d-flex align-items-center flex-wrap gap-2">
+                  <div class="drag-upload-btn btn me-2"
+                       :class="selectedFile ? 'btn-outline-primary' : 'btn-primary'">
+                    <i class="ti ti-upload me-1"></i> {{ selectedFile ? 'Change File' : 'Select Image' }}
+                    <input type="file"
+                           ref="fileInput"
+                           class="form-control image-sign"
+                           accept="image/jpeg,image/png,image/gif,image/webp"
+                           @change="handleImageUpload" />
                   </div>
-                  <button class="btn btn-primary" @click="saveProfilePicture" :disabled="isLoading">
-                    <i class="ti ti-device-floppy me-1"></i> Save Picture
+                  <button v-if="selectedFile"
+                          class="btn btn-primary"
+                          @click="saveProfilePicture"
+                          :disabled="isUploading || !selectedFile">
+                    <span v-if="isUploading" class="spinner-border spinner-border-sm me-1" role="status"></span>
+                    <i v-else class="ti ti-device-floppy me-1"></i>
+                    {{ isUploading ? 'Uploading...' : 'Save Picture' }}
                   </button>
                 </div>
               </div>
@@ -205,6 +268,8 @@
 <script>
 import { userService } from '@/services/user.service';
 import { useAuthStore } from '@/stores/authStore';
+import { message } from 'ant-design-vue';
+import { initProfileUpdateListener } from '@/plugins/echo';
 
 export default {
   data() {
@@ -223,15 +288,27 @@ export default {
       profileImage: null,
       selectedFile: null,
       isLoading: false,
-      alert: {
-        show: false,
-        type: 'success',
-        message: ''
-      }
+      // Enhanced upload state
+      isUploading: false,
+      uploadProgress: 0,
+      uploadSuccess: false,
+      uploadError: false,
+      uploadErrorMessage: '',
+      // Validation constants
+      maxFileSize: 2 * 1024 * 1024, // 2MB
+      allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
     };
   },
   mounted() {
     this.fetchUserDetails();
+    this.initProfileListener();
+
+    // Listen for profile updates from other tabs or WebSocket
+    window.addEventListener('profile-updated', this.handleProfileUpdate);
+  },
+  beforeUnmount() {
+    // Cleanup event listener
+    window.removeEventListener('profile-updated', this.handleProfileUpdate);
   },
   methods: {
     toggleHeader() {
@@ -247,17 +324,44 @@ export default {
     toggleShow2() {
       this.showPassword2 = !this.showPassword2;
     },
-    showAlert(type, message, duration = 5000) {
-      this.alert = {
-        show: true,
-        type: type,
-        message: message
-      };
+    /**
+     * Initialize profile update listener for real-time updates
+     */
+    initProfileListener() {
+      const authStore = useAuthStore();
+      if (authStore.user?.id) {
+        initProfileUpdateListener(authStore.user.id);
+      }
+    },
+    /**
+     * Handle profile update events from WebSocket or other tabs
+     */
+    handleProfileUpdate(event) {
+      const { updateType, data, message: eventMessage } = event.detail;
 
-      // Auto-hide alert after duration
-      setTimeout(() => {
-        this.alert.show = false;
-      }, duration);
+      // Update local form fields based on update type
+      switch (updateType) {
+        case 'name':
+          if (data?.name) {
+            this.username = data.name;
+          }
+          break;
+        case 'email':
+          if (data?.email) {
+            this.email = data.email;
+          }
+          break;
+        case 'profile_picture':
+          if (data?.profile_picture) {
+            this.profileImage = `${import.meta.env.VITE_PUBLIC_URL}/storage/${data.profile_picture}`;
+          }
+          break;
+      }
+
+      // Show notification if message provided
+      if (eventMessage) {
+        message.success(eventMessage);
+      }
     },
     async fetchUserDetails() {
       try {
@@ -272,29 +376,144 @@ export default {
           }
         }
       } catch (error) {
-        this.showAlert('danger', 'Failed to load user details');
+        message.error('Failed to load user details');
         console.error('Error fetching user details:', error);
       } finally {
         this.isLoading = false;
       }
     },
-    handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.selectedFile = file;
-        this.profileImage = URL.createObjectURL(file);
+    /**
+     * Validate selected file before upload
+     */
+    validateFile(file) {
+      // Check file type
+      if (!this.allowedFileTypes.includes(file.type)) {
+        return {
+          valid: false,
+          error: `Invalid file type. Allowed: JPG, PNG, GIF, WebP`
+        };
+      }
+      // Check file size
+      if (file.size > this.maxFileSize) {
+        return {
+          valid: false,
+          error: `File too large. Maximum size is ${this.formatFileSize(this.maxFileSize)}`
+        };
+      }
+      return { valid: true };
+    },
+
+    /**
+     * Format file size for display
+     */
+    formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    },
+
+    /**
+     * Trigger file input click programmatically
+     */
+    triggerFileInput() {
+      this.$refs.fileInput.click();
+    },
+
+    /**
+     * Clear selected file and reset state
+     */
+    clearSelectedFile() {
+      this.selectedFile = null;
+      this.uploadError = false;
+      this.uploadErrorMessage = '';
+      this.uploadSuccess = false;
+      // Reset file input
+      if (this.$refs.fileInput) {
+        this.$refs.fileInput.value = '';
+      }
+      // Restore original profile image from store
+      const authStore = useAuthStore();
+      if (authStore.user?.profile_picture) {
+        this.profileImage = `${import.meta.env.VITE_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
+      } else {
+        this.profileImage = null;
       }
     },
 
-    async saveProfilePicture() {
-      if (!this.selectedFile) {
-        this.showAlert('warning', 'Please select an image first');
+    /**
+     * Handle image error for broken images
+     */
+    handleImageError(event) {
+      const name = this.username || 'User';
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      event.target.src = `data:image/svg+xml,${encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
+          <rect fill="#6366f1" width="80" height="80" rx="40"/>
+          <text x="50%" y="50%" dy=".35em" fill="white" font-family="Arial" font-size="32" text-anchor="middle">
+            ${initials}
+          </text>
+        </svg>`
+      )}`;
+    },
+
+    /**
+     * Handle file selection with validation
+     */
+    handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      // Reset states
+      this.uploadError = false;
+      this.uploadErrorMessage = '';
+      this.uploadSuccess = false;
+
+      // Validate file
+      const validation = this.validateFile(file);
+      if (!validation.valid) {
+        this.uploadError = true;
+        this.uploadErrorMessage = validation.error;
+        message.warning(validation.error);
+        // Reset file input
+        event.target.value = '';
         return;
       }
 
+      this.selectedFile = file;
+      this.profileImage = URL.createObjectURL(file);
+    },
+
+    /**
+     * Save profile picture with progress tracking
+     */
+    async saveProfilePicture() {
+      if (!this.selectedFile) {
+        message.warning('Please select an image first');
+        return;
+      }
+
+      // Reset states
+      this.uploadError = false;
+      this.uploadErrorMessage = '';
+      this.uploadSuccess = false;
+      this.isUploading = true;
+      this.uploadProgress = 0;
+
       try {
-        this.isLoading = true;
+        // Simulate progress for better UX (since we can't track actual XHR progress easily)
+        const progressInterval = setInterval(() => {
+          if (this.uploadProgress < 90) {
+            this.uploadProgress += 10;
+          }
+        }, 100);
+
         const response = await userService.updateProfilePicture(this.selectedFile);
+
+        // Complete progress
+        clearInterval(progressInterval);
+        this.uploadProgress = 100;
 
         if (response && response.success) {
           // Refresh global state
@@ -304,22 +523,37 @@ export default {
             console.error('Failed to update user data in store');
             throw new Error('Failed to update user data');
           }
-          this.showAlert('success', 'Profile picture updated successfully');
+
+          // Show success state
+          this.uploadSuccess = true;
+          message.success('Profile picture updated successfully');
+
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            this.uploadSuccess = false;
+          }, 3000);
         } else {
           throw new Error(response.message || 'Failed to update profile picture');
         }
       } catch (error) {
-        this.showAlert('danger', error.message || 'Failed to update profile picture');
+        this.uploadError = true;
+        this.uploadErrorMessage = error.message || 'Failed to update profile picture';
+        message.error(this.uploadErrorMessage);
         console.error('Error updating profile picture:', error);
       } finally {
-        this.isLoading = false;
+        this.isUploading = false;
+        this.uploadProgress = 0;
         this.selectedFile = null;
+        // Reset file input
+        if (this.$refs.fileInput) {
+          this.$refs.fileInput.value = '';
+        }
       }
     },
 
     async saveUsername() {
       if (!this.username.trim()) {
-        this.showAlert('warning', 'Username cannot be empty');
+        message.warning('Username cannot be empty');
         return;
       }
 
@@ -331,12 +565,13 @@ export default {
           // Refresh global state
           const authStore = useAuthStore();
           await authStore.updateUserData();
-          this.showAlert('success', 'Username updated successfully');
+          // Note: Real-time notification will be received via WebSocket
+          message.success('Username updated successfully');
         } else {
           throw new Error(response.message || 'Failed to update username');
         }
       } catch (error) {
-        this.showAlert('danger', error.message || 'Failed to update username');
+        message.error(error.message || 'Failed to update username');
         console.error('Error updating username:', error);
       } finally {
         this.isLoading = false;
@@ -345,14 +580,14 @@ export default {
 
     async saveEmail() {
       if (!this.email.trim()) {
-        this.showAlert('warning', 'Email cannot be empty');
+        message.warning('Email cannot be empty');
         return;
       }
 
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.email)) {
-        this.showAlert('warning', 'Please enter a valid email address');
+        message.warning('Please enter a valid email address');
         return;
       }
 
@@ -364,12 +599,13 @@ export default {
           // Refresh global state
           const authStore = useAuthStore();
           await authStore.updateUserData();
-          this.showAlert('success', 'Email updated successfully');
+          // Note: Real-time notification will be received via WebSocket
+          message.success('Email updated successfully');
         } else {
           throw new Error(response.message || 'Failed to update email');
         }
       } catch (error) {
-        this.showAlert('danger', error.message || 'Failed to update email');
+        message.error(error.message || 'Failed to update email');
         console.error('Error updating email:', error);
       } finally {
         this.isLoading = false;
@@ -379,22 +615,22 @@ export default {
     async savePassword() {
       // Validate password fields
       if (!this.currentPassword) {
-        this.showAlert('warning', 'Current password is required');
+        message.warning('Current password is required');
         return;
       }
 
       if (!this.newPassword) {
-        this.showAlert('warning', 'New password is required');
+        message.warning('New password is required');
         return;
       }
 
       if (this.newPassword.length < 6) {
-        this.showAlert('warning', 'New password must be at least 6 characters');
+        message.warning('New password must be at least 6 characters');
         return;
       }
 
       if (this.newPassword !== this.confirmPassword) {
-        this.showAlert('warning', 'New password and confirmation do not match');
+        message.warning('New password and confirmation do not match');
         return;
       }
 
@@ -409,7 +645,8 @@ export default {
         const response = await userService.updatePassword(passwordData);
 
         if (response && response.success) {
-          this.showAlert('success', response.message || 'Password updated successfully');
+          // Note: Real-time notification will be received via WebSocket
+          message.success(response.message || 'Password updated successfully');
           // Clear password fields after successful update
           this.currentPassword = '';
           this.newPassword = '';
@@ -418,7 +655,7 @@ export default {
           throw new Error(response.error || 'Failed to update password');
         }
       } catch (error) {
-        this.showAlert('danger', error.message || 'Failed to update password');
+        message.error(error.message || 'Failed to update password');
         console.error('Error updating password:', error);
       } finally {
         this.isLoading = false;
@@ -431,5 +668,70 @@ export default {
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
+}
+
+/* Edit overlay for profile picture */
+.edit-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.position-relative:hover .edit-overlay {
+  opacity: 1;
+}
+
+/* Avatar size consistency */
+.avatar-xxl {
+  width: 80px;
+  height: 80px;
+}
+
+.avatar-xxl img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Progress bar animation */
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  0% {
+    background-position: 1rem 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* File input overlay styling */
+.drag-upload-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.drag-upload-btn input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Border color transitions */
+.border-success {
+  border-color: #198754 !important;
+  transition: border-color 0.3s ease;
+}
+
+.border-danger {
+  border-color: #dc3545 !important;
+  transition: border-color 0.3s ease;
 }
 </style>

@@ -26,6 +26,7 @@
     "ionicons-npm": "^2.0.1",
     "laravel-echo": "^2.1.5",
     "mitt": "^3.0.1",
+    "nprogress": "^0.2.0",
     "pinia": "^3.0.1",
     "pusher-js": "^8.4.0",
     "sass": "^1.79.5",

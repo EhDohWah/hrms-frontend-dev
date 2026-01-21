@@ -57,6 +57,7 @@ import '@/assets/css/font-display-override.css'
 import '@/assets/css/vue-form-wizard.css';
 import "boxicons/css/boxicons.min.css";
 import "v-calendar/dist/style.css";
+import '@/assets/css/nprogress-custom.css'; // Custom NProgress styling
 import '@/assets/scss/main.scss'
 
 // Lazy Components Plugin - reduces initial bundle size by ~60%
@@ -64,6 +65,9 @@ import { registerLazyComponents } from './plugins/lazy-components';
 
 // Permission Directive Plugin - for v-permission, v-can-edit, v-can-read directives
 import { PermissionPlugin } from './directives/permission';
+
+// NProgress Plugin - Route navigation progress bar
+import NProgressPlugin from './plugins/nprogress';
 
 // Event Bus
 import eventBus from './plugins/eventBus';
@@ -165,6 +169,10 @@ app.use(CKEditor)
 
 // Permission Directives (v-permission, v-can-edit, v-can-read)
 app.use(PermissionPlugin)
+
+// NProgress - Route navigation progress bar
+// Must be registered after router is created but before app.use(router)
+app.use(NProgressPlugin, { router })
 
 // Provide EventBus globally
 app.provide('eventBus', eventBus);

@@ -1,6 +1,6 @@
 # Profile Picture Handling - Frontend Guide
 
-> **Document Version:** 1.0
+> **Document Version:** 1.1
 > **Last Updated:** January 2026
 > **Category:** Frontend / User Management
 
@@ -20,8 +20,9 @@ This document describes how profile pictures are handled in the HRMS frontend ap
 6. [Real-time Updates](#real-time-updates)
 7. [Fallback Avatar System](#fallback-avatar-system)
 8. [Cache Busting](#cache-busting)
-9. [Common Issues & Solutions](#common-issues--solutions)
-10. [Best Practices](#best-practices)
+9. [Enhanced Upload UI/UX](#enhanced-upload-uiux)
+10. [Common Issues & Solutions](#common-issues--solutions)
+11. [Best Practices](#best-practices)
 
 ---
 
@@ -346,6 +347,347 @@ Browsers cache images aggressively. When a user uploads a new profile picture wi
 
 ---
 
+## Enhanced Upload UI/UX
+
+### Overview
+
+The profile picture upload interface in `profile-index.vue` has been enhanced with modern UX patterns including file validation, progress tracking, success/error states, and interactive edit controls.
+
+### Features
+
+#### 1. File Preview & Information
+
+When a user selects a file, they see:
+- **File name** with truncation for long names
+- **File size** in human-readable format (KB, MB)
+- **Preview image** of the selected file
+- **Clear button** to cancel selection
+
+```vue
+<!-- File Info Display -->
+<div v-if="selectedFile" class="mb-3 p-3 bg-white rounded border">
+  <div class="d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center">
+      <i class="ti ti-file-type-jpg text-primary fs-24 me-2"></i>
+      <div>
+        <p class="mb-0 fw-medium text-truncate" style="max-width: 200px;">{{ selectedFile.name }}</p>
+        <small class="text-muted">{{ formatFileSize(selectedFile.size) }}</small>
+      </div>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-danger" @click="clearSelectedFile">
+      <i class="ti ti-x"></i>
+    </button>
+  </div>
+</div>
+```
+
+#### 2. File Validation
+
+Files are validated before upload:
+- **Allowed types:** JPG, PNG, GIF, WebP
+- **Maximum size:** 2MB
+- **Immediate feedback** if validation fails
+
+```javascript
+validateFile(file) {
+  // Check file type
+  if (!this.allowedFileTypes.includes(file.type)) {
+    return {
+      valid: false,
+      error: `Invalid file type. Allowed: JPG, PNG, GIF, WebP`
+    };
+  }
+  // Check file size
+  if (file.size > this.maxFileSize) {
+    return {
+      valid: false,
+      error: `File too large. Maximum size is ${this.formatFileSize(this.maxFileSize)}`
+    };
+  }
+  return { valid: true };
+}
+```
+
+#### 3. Upload Progress Indicator
+
+Visual feedback during upload:
+- **Animated progress bar** with striped animation
+- **Percentage display** showing upload progress
+- **Disabled buttons** during upload to prevent duplicate submissions
+
+```vue
+<div v-if="isUploading" class="mt-2">
+  <div class="progress" style="height: 6px;">
+    <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+         role="progressbar"
+         :style="{ width: uploadProgress + '%' }">
+    </div>
+  </div>
+  <small class="text-muted">Uploading... {{ uploadProgress }}%</small>
+</div>
+```
+
+#### 4. Success & Error States
+
+Clear visual feedback after upload:
+
+**Success State:**
+```vue
+<div v-if="uploadSuccess" class="alert alert-success py-2 mb-3 d-flex align-items-center">
+  <i class="ti ti-circle-check me-2"></i>
+  <span>Profile picture updated successfully!</span>
+</div>
+```
+
+**Error State:**
+```vue
+<div v-if="uploadError" class="alert alert-danger py-2 mb-3 d-flex align-items-center">
+  <i class="ti ti-alert-circle me-2"></i>
+  <span>{{ uploadErrorMessage }}</span>
+</div>
+```
+
+**Border Color Feedback:**
+- Avatar border turns **green** on success
+- Avatar border turns **red** on error
+
+```vue
+<div class="avatar avatar-xxl rounded-circle border border-primary"
+     :class="{ 'border-success': uploadSuccess, 'border-danger': uploadError }">
+```
+
+#### 5. Edit Overlay
+
+Hover interaction for changing existing profile picture:
+- **Edit icon overlay** appears on hover
+- **Click to trigger** file input
+- **Smooth opacity transition**
+
+```vue
+<!-- Edit overlay on hover -->
+<div v-if="profileImage && !selectedFile"
+     class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded-circle edit-overlay"
+     @click="triggerFileInput">
+  <i class="ti ti-pencil text-white fs-20"></i>
+</div>
+```
+
+CSS:
+```css
+.edit-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.position-relative:hover .edit-overlay {
+  opacity: 1;
+}
+```
+
+#### 6. File Size Formatting
+
+Human-readable file size display:
+
+```javascript
+formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+```
+
+Examples:
+- `1024 bytes` → `1.00 KB`
+- `2097152 bytes` → `2.00 MB`
+
+### Data Properties
+
+```javascript
+data() {
+  return {
+    // Existing properties...
+    profileImage: null,
+    selectedFile: null,
+    isLoading: false,
+
+    // Enhanced upload state
+    isUploading: false,           // Tracks upload in progress
+    uploadProgress: 0,            // Progress percentage (0-100)
+    uploadSuccess: false,         // Success state flag
+    uploadError: false,           // Error state flag
+    uploadErrorMessage: '',       // Error message text
+
+    // Validation constants
+    maxFileSize: 2 * 1024 * 1024,  // 2MB
+    allowedFileTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+  };
+}
+```
+
+### Methods
+
+#### handleImageUpload(event)
+
+Handles file selection with validation:
+
+```javascript
+handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Reset states
+  this.uploadError = false;
+  this.uploadErrorMessage = '';
+  this.uploadSuccess = false;
+
+  // Validate file
+  const validation = this.validateFile(file);
+  if (!validation.valid) {
+    this.uploadError = true;
+    this.uploadErrorMessage = validation.error;
+    message.warning(validation.error);
+    event.target.value = '';
+    return;
+  }
+
+  this.selectedFile = file;
+  this.profileImage = URL.createObjectURL(file);
+}
+```
+
+#### saveProfilePicture()
+
+Uploads the file with progress tracking:
+
+```javascript
+async saveProfilePicture() {
+  if (!this.selectedFile) {
+    message.warning('Please select an image first');
+    return;
+  }
+
+  // Reset states
+  this.uploadError = false;
+  this.uploadErrorMessage = '';
+  this.uploadSuccess = false;
+  this.isUploading = true;
+  this.uploadProgress = 0;
+
+  try {
+    // Simulate progress (since we can't track actual XHR progress easily)
+    const progressInterval = setInterval(() => {
+      if (this.uploadProgress < 90) {
+        this.uploadProgress += 10;
+      }
+    }, 100);
+
+    const response = await userService.updateProfilePicture(this.selectedFile);
+
+    // Complete progress
+    clearInterval(progressInterval);
+    this.uploadProgress = 100;
+
+    if (response && response.success) {
+      // Refresh global state
+      const authStore = useAuthStore();
+      await authStore.updateUserData();
+
+      // Show success state
+      this.uploadSuccess = true;
+      message.success('Profile picture updated successfully');
+
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        this.uploadSuccess = false;
+      }, 3000);
+    } else {
+      throw new Error(response.message || 'Failed to update profile picture');
+    }
+  } catch (error) {
+    this.uploadError = true;
+    this.uploadErrorMessage = error.message || 'Failed to update profile picture';
+    message.error(this.uploadErrorMessage);
+  } finally {
+    this.isUploading = false;
+    this.uploadProgress = 0;
+    this.selectedFile = null;
+    if (this.$refs.fileInput) {
+      this.$refs.fileInput.value = '';
+    }
+  }
+}
+```
+
+#### clearSelectedFile()
+
+Resets file selection and restores original image:
+
+```javascript
+clearSelectedFile() {
+  this.selectedFile = null;
+  this.uploadError = false;
+  this.uploadErrorMessage = '';
+  this.uploadSuccess = false;
+
+  if (this.$refs.fileInput) {
+    this.$refs.fileInput.value = '';
+  }
+
+  // Restore original profile image from store
+  const authStore = useAuthStore();
+  if (authStore.user?.profile_picture) {
+    this.profileImage = `${import.meta.env.VITE_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
+  } else {
+    this.profileImage = null;
+  }
+}
+```
+
+#### triggerFileInput()
+
+Programmatically triggers file input when edit overlay is clicked:
+
+```javascript
+triggerFileInput() {
+  this.$refs.fileInput.click();
+}
+```
+
+### User Flow
+
+1. **Initial State:** User sees their current profile picture or placeholder
+2. **Hover:** Edit overlay appears with pencil icon
+3. **Click overlay or "Select Image":** File picker opens
+4. **Select file:**
+   - Validation runs immediately
+   - If invalid: Error message shown, selection rejected
+   - If valid: Preview shown with file info
+5. **Click "Save Picture":**
+   - Progress bar appears
+   - Upload executes
+   - Success/error feedback shown
+6. **Auto-update:** Profile picture updates in header and profile page via reactive state
+
+### Validation Rules
+
+| Rule | Value | Error Message |
+|------|-------|---------------|
+| File Type | JPG, PNG, GIF, WebP | "Invalid file type. Allowed: JPG, PNG, GIF, WebP" |
+| File Size | Max 2MB | "File too large. Maximum size is 2.00 MB" |
+
+### Browser Compatibility
+
+- **File API:** All modern browsers
+- **Object URLs:** IE 10+, All modern browsers
+- **Progress animation:** CSS3 animations (all modern browsers)
+- **Fallback:** SVG initials avatar for IE/Edge
+
+---
+
 ## Common Issues & Solutions
 
 ### Issue 1: Profile Picture Shows Placeholder/Initials
@@ -495,3 +837,4 @@ try {
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | Jan 2026 | HRMS Team | Initial documentation |
+| 1.1 | Jan 2026 | HRMS Team | Added enhanced upload UI/UX documentation with file validation, progress tracking, success/error states, and edit overlay features |

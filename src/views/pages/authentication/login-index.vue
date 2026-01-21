@@ -1,4 +1,4 @@
-<script>
+<script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useVuelidate } from '@vuelidate/core';
@@ -7,137 +7,117 @@ import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/authStore';
 import { initEcho } from '@/plugins/echo';
 
+const router = useRouter();
+const showPassword = ref(false);
+const isLoading = ref(false);
+const loginError = ref(null);
 
+const formData = reactive({
+  email: '',
+  password: '',
+  remember_me: false
+});
 
-export default {
-  name: 'LoginIndex',
-  setup() {
-    const router = useRouter();
-    const showPassword = ref(false);
-    const isLoading = ref(false);
-    const loginError = ref(null);
+const rules = {
+  email: {
+    required,
+    email,
+    $autoDirty: true
+  },
+  password: {
+    required,
+    minLength: minLength(6),
+    $autoDirty: true,
+  }
+};
 
-    const formData = reactive({
-      email: '',
-      password: '',
-      remember_me: false
-    });
+const v$ = useVuelidate(rules, formData);
 
-    const rules = {
-      email: {
-        required,
-        email,
-        $autoDirty: true
-      },
-      password: {
-        required,
-        minLength: minLength(6),
-        $autoDirty: true,
+// Check for existing token on mount
+onMounted(() => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    verifyToken(token);
+  }
+});
+
+const verifyToken = async (token) => {
+  try {
+    const response = await authService.verifyToken(token);
+    if (response.valid) {
+      // Token is valid, redirect to dashboard
+      const authStore = useAuthStore();
+      const redirectPath = authStore.getRedirectPath();
+      await router.replace(redirectPath);
+    } else {
+      // Token invalid, remove it
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+  } catch {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }
+};
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const handleLogin = async () => {
+  try {
+    loginError.value = null;
+    const result = await v$.value.$validate();
+    if (!result) return;
+
+    isLoading.value = true;
+    const authStore = useAuthStore();
+    const response = await authStore.login(formData);
+
+    if (response.success) {
+      // Disconnect and reinitialize Echo with new token
+      if (window.Echo) {
+        window.Echo.disconnect();
       }
-    };
 
-    const v$ = useVuelidate(rules, formData);
+      initEcho(localStorage.getItem('token'));
 
-    // Check for existing token on mount
-    onMounted(() => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        // Verify token validity
-        verifyToken(token);
+      // Check for intended route (saved by authGuard when user tried to access protected route)
+      const intendedRoute = localStorage.getItem('intendedRoute');
+      if (intendedRoute) {
+        await router.replace(intendedRoute);
+        localStorage.removeItem('intendedRoute');
+      } else {
+        const redirectPath = authStore.getRedirectPath();
+        await router.replace(redirectPath);
       }
-    });
 
-    const verifyToken = async (token) => {
-      try {
-        const response = await authService.verifyToken(token);
-        if (response.valid) {
-          redirectBasedOnRole(response.user);
-        } else {
-          // Token invalid, remove it
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-        }
-      } catch (err) {
-        console.error('Token verification failed:', err);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-    };
-
-    const togglePassword = () => {
-      showPassword.value = !showPassword.value;
-    };
-
-
-    const handleLogin = async () => {
-      try {
-        loginError.value = null;
-        const result = await v$.value.$validate();
-        if (!result) return;
-
-        isLoading.value = true;
-        const authStore = useAuthStore();
-        const response = await authStore.login(formData);
-
-        if (response.success) {
-          // Disconnect and reinitialize Echo with new token
-          if (window.Echo) {
-            window.Echo.disconnect();
-          }
-
-          initEcho(localStorage.getItem('token'));
-
-          // Check for intended route (saved by authGuard when user tried to access protected route)
-          const intendedRoute = localStorage.getItem('intendedRoute');
-          if (intendedRoute) {
-            await router.replace(intendedRoute);
-            localStorage.removeItem('intendedRoute');
-          } else {
-            const redirectPath = authStore.getRedirectPath();
-            await router.replace(redirectPath);
-          }
-
-        } else if (response.error && response.error.includes('Unauthenticated.')) {
-          loginError.value = 'Invalid email or password';
-        } else {
-          loginError.value = response.error;
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-
-        // Handle error based on type from backend or error object
-        if (error.response?.data?.error_type) {
-          // Use the specific error message from the backend
-          loginError.value = error.response.data.message;
-        } else if (error.type === 'AUTH_ERROR') {
-          loginError.value = 'Invalid email or password';
-        } else if (error.type === 'VALIDATION_ERROR' && error.errors) {
-          loginError.value = Object.values(error.errors).flat().join(', ');
-        } else if (error.type === 'NETWORK_ERROR' || error.message === 'Network Error: Server is not responding') {
-          loginError.value = 'Unable to connect to the server. Please check your connection.';
-        } else if (error.type === 'RATE_LIMIT_ERROR') {
-          loginError.value = 'Too many login attempts. Please try again later.';
-        } else if (error.response?.data?.message) {
-          loginError.value = error.response.data.message;
-        } else if (error.message) {
-          loginError.value = error.message;
-        } else {
-          loginError.value = 'An unexpected error occurred';
-        }
-      } finally {
-        isLoading.value = false;
-      }
-    };
-
-    return {
-      formData,
-      showPassword,
-      isLoading,
-      loginError,
-      v$,
-      handleLogin,
-      togglePassword
-    };
+    } else if (response.error && response.error.includes('Unauthenticated.')) {
+      loginError.value = 'Invalid email or password';
+    } else {
+      loginError.value = response.error;
+    }
+  } catch (error) {
+    // Handle error based on type from backend or error object
+    if (error.response?.data?.error_type) {
+      loginError.value = error.response.data.message;
+    } else if (error.type === 'AUTH_ERROR') {
+      loginError.value = 'Invalid email or password';
+    } else if (error.type === 'VALIDATION_ERROR' && error.errors) {
+      loginError.value = Object.values(error.errors).flat().join(', ');
+    } else if (error.type === 'NETWORK_ERROR' || error.message === 'Network Error: Server is not responding') {
+      loginError.value = 'Unable to connect to the server. Please check your connection.';
+    } else if (error.type === 'RATE_LIMIT_ERROR') {
+      loginError.value = 'Too many login attempts. Please try again later.';
+    } else if (error.response?.data?.message) {
+      loginError.value = error.response.data.message;
+    } else if (error.message) {
+      loginError.value = error.message;
+    } else {
+      loginError.value = 'An unexpected error occurred';
+    }
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>
@@ -150,9 +130,14 @@ export default {
         <div class="col-lg-5">
           <div
             class="login-background position-relative d-lg-flex align-items-center justify-content-center d-none flex-wrap vh-100">
-            <!-- Add picture for background -->
+            
+            <!-- Brand Title Section -->
+            <div class="login-brand-section">
+              <h1 class="login-brand-title">HR Management System</h1>
+              <div class="login-brand-divider"></div>
+              <p class="login-brand-subtitle">SMRU / BHF</p>
+            </div>
 
-            <!-- Overlay -->
           </div>
         </div>
 
@@ -187,7 +172,7 @@ export default {
                     <div class="mb-3">
                       <label class="form-label">Email Address</label>
                       <div class="input-group" :class="{ 'is-invalid': v$.email.$error }">
-                        <input type="email" v-model="formData.email" class="form-control"
+                        <input type="email" v-model="formData.email" class="form-control form-control-login"
                           :class="{ 'is-invalid': v$.email.$error }" />
                         <span class="input-group-text">
                           <i class="ti ti-mail"></i>
@@ -203,7 +188,7 @@ export default {
                       <label class="form-label">Password</label>
                       <div class="input-group" :class="{ 'is-invalid': v$.password.$error }">
                         <input :type="showPassword ? 'text' : 'password'" v-model="formData.password"
-                          class="form-control" :class="{ 'is-invalid': v$.password.$error }" />
+                          class="form-control form-control-login" :class="{ 'is-invalid': v$.password.$error }" />
                         <span class="input-group-text">
                           <i @click="togglePassword" class="ti" :class="{
                             'ti-eye': showPassword,
@@ -226,7 +211,7 @@ export default {
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                    <button type="submit" class="btn btn-primary btn-login w-100 mb-3" :disabled="isLoading">
                       <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
                       {{ isLoading ? 'Signing in...' : 'Sign In' }}
                     </button>
@@ -241,7 +226,7 @@ export default {
                   <img src="@/assets/img/bhf-logo.png" alt="BHF Logo" style="max-height: 50px;" />
                 </div>
                 <div class="text-center mt-2">
-                  <small class="text-muted">&copy; 2025 SMRU/BHF HR Management System</small>
+                  <small class="text-muted">&copy; 2026 SMRU/BHF HR Management System</small>
                 </div>
               </div>
             </div>

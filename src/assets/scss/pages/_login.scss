@@ -41,20 +41,88 @@
 }
 .login-background {
     position: relative;
+    background-color: $login-bg;
+    
     &::before {
         content: "";
-        background: linear-gradient(180deg, #FF7B3D 0%, #5C260C 100%);
+        background-color: $login-bg;
         width: 100%;
         height: 100%;
         position: absolute;
         left: 0;
         top: 0;
         bottom: 0;
-        backdrop-filter: blur( 6px );
         @include respond-below(lg) {
             display: none;
         }
-        
+    }
+}
+
+// Login Brand Section (Left Side Title)
+.login-brand-section {
+    position: relative;
+    z-index: 1;
+    padding: 2rem;
+    text-align: center;
+}
+
+.login-brand-title {
+    color: $white;
+    font-size: 2.5rem;
+    font-weight: $font-weight-light;
+    letter-spacing: 0.05em;
+    line-height: 1.2;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.login-brand-divider {
+    width: 60px;
+    height: 2px;
+    background-color: rgba($white, 0.4);
+    margin: 1.5rem auto;
+}
+
+.login-brand-subtitle {
+    color: rgba($white, 0.7);
+    font-size: 1rem;
+    font-weight: $font-weight-normal;
+    letter-spacing: 0.15em;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+// Login Form Enhancements
+.form-control-login {
+    border-right: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    
+    &:focus {
+        border-color: $primary;
+        box-shadow: 0 0 0 0.2rem rgba($primary, 0.15);
+    }
+    
+    &:focus + .input-group-text {
+        border-color: $primary;
+    }
+}
+
+.input-group:focus-within .input-group-text {
+    border-color: $primary;
+}
+
+.btn-login {
+    padding: 0.625rem 1.25rem;
+    font-weight: $font-weight-medium;
+    transition: all 0.2s ease;
+    
+    &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba($primary, 0.25);
+    }
+    
+    &:active:not(:disabled) {
+        transform: translateY(0);
     }
 }
 .hover-a {

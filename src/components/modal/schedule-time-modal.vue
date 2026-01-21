@@ -1,10 +1,16 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 const currentDateTwo = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       ClockSch: ["Select", "10'o clock Shift", "10:30 shift", "Daily Shift", "New Shift"],
@@ -61,7 +67,7 @@ export default {
                   <label class="col-form-label"
                     >Department <span class="text-danger">*</span></label
                   >
-                  <vue-select :options="ITechSel" id="itechsel" placeholder="Select" />
+                  <a-select :options="ITechSel" id="itechsel" placeholder="Select" />
                 </div>
               </div>
               <div class="col-sm-6">
@@ -69,7 +75,7 @@ export default {
                   <label class="col-form-label"
                     >Employee Name <span class="text-danger">*</span></label
                   >
-                  <vue-select :options="EmploSch" id="emplosch" placeholder="Select" />
+                  <a-select :options="EmploSch" id="emplosch" placeholder="Select" />
                 </div>
               </div>
               <div class="col-sm-6">
@@ -85,7 +91,7 @@ export default {
                   <label class="col-form-label"
                     >Shifts <span class="text-danger">*</span></label
                   >
-                  <vue-select :options="ClockSch" id="clockch" placeholder="Select" />
+                  <a-select :options="ClockSch" id="clockch" placeholder="Select" />
                 </div>
               </div>
               <div class="col-sm-4">

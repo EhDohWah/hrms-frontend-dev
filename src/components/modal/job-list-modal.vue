@@ -1,8 +1,14 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Jobcategory: ["Select", "IOS", "Web & Application", "Networking"],
@@ -141,7 +147,7 @@ export default {
                         <label class="form-label"
                           >Job Category <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Jobcategory"
                           id="ios-list"
                           placeholder="Select"
@@ -153,7 +159,7 @@ export default {
                         <label class="form-label"
                           >Job Type <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Jobtype"
                           id="ios-lists"
                           placeholder="Select"
@@ -165,7 +171,7 @@ export default {
                         <label class="form-label"
                           >Job Level <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Joblevel"
                           id="junior-list"
                           placeholder="Select"
@@ -177,7 +183,7 @@ export default {
                         <label class="form-label"
                           >Experience <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Experience"
                           id="mid-level-list"
                           placeholder="Select"
@@ -189,7 +195,7 @@ export default {
                         <label class="form-label"
                           >Qualification <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Qualification"
                           id="master-degree-list"
                           placeholder="Select"
@@ -201,7 +207,7 @@ export default {
                         <label class="form-label"
                           >Gender <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Gender"
                           id="female-list"
                           placeholder="Select"
@@ -213,7 +219,7 @@ export default {
                         <label class="form-label"
                           >Min. Sallary <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Minsalary"
                           id="female-min-list"
                           placeholder="Select"
@@ -225,7 +231,7 @@ export default {
                         <label class="form-label"
                           >Max. Sallary <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Maxsalary"
                           id="female-salary-list"
                           placeholder="Select"
@@ -298,7 +304,7 @@ export default {
                         <label class="form-label"
                           >City <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="City"
                           id="female-city-list"
                           placeholder="Select"
@@ -310,7 +316,7 @@ export default {
                         <label class="form-label"
                           >State <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="State"
                           id="female-state-list"
                           placeholder="Select"
@@ -322,7 +328,7 @@ export default {
                         <label class="form-label"
                           >Country <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Country"
                           id="female-country-list"
                           placeholder="Select"
@@ -519,7 +525,7 @@ export default {
                         <label class="form-label"
                           >Job Category <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Jobcategory"
                           id="ios-list-one"
                           placeholder="IOS"
@@ -531,7 +537,7 @@ export default {
                         <label class="form-label"
                           >Job Type <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Jobtype"
                           id="ios-lists-one"
                           placeholder="Select"
@@ -543,7 +549,7 @@ export default {
                         <label class="form-label"
                           >Job Level <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Joblevel"
                           id="junior-list-one"
                           placeholder="Team Lead"
@@ -555,7 +561,7 @@ export default {
                         <label class="form-label"
                           >Experience <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Experience"
                           id="mid-level-list-one"
                           placeholder="Entry Level"
@@ -567,7 +573,7 @@ export default {
                         <label class="form-label"
                           >Qualification <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Qualification"
                           id="master-degree-list-one"
                           placeholder="Bachelore Degree"
@@ -579,7 +585,7 @@ export default {
                         <label class="form-label"
                           >Gender <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Gender"
                           id="female-list-one"
                           placeholder="Female"
@@ -591,7 +597,7 @@ export default {
                         <label class="form-label"
                           >Min. Sallary <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Minsalary"
                           id="female-min-list-one"
                           placeholder="10k - 15k"
@@ -603,7 +609,7 @@ export default {
                         <label class="form-label"
                           >Max. Sallary <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Maxsalary"
                           id="female-salary-list-one"
                           placeholder="40k - 50k"
@@ -677,7 +683,7 @@ export default {
                         <label class="form-label"
                           >City <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="City"
                           id="female-city-list-one"
                           placeholder="Bristol"
@@ -689,7 +695,7 @@ export default {
                         <label class="form-label"
                           >State <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="State"
                           id="female-state-list-one"
                           placeholder="Lancaster"
@@ -701,7 +707,7 @@ export default {
                         <label class="form-label"
                           >Country <span class="text-danger"> *</span></label
                         >
-                        <vue-select
+                        <a-select
                           :options="Country"
                           id="female-country-list-one"
                           placeholder="UK"

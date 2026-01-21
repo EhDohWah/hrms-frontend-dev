@@ -26,7 +26,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Category Name</label>
-                  <vue-select
+                  <a-select
                     :options="Remun"
                     id="remuns"
                     placeholder="Monthly Remuneration"
@@ -156,7 +156,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Category Name</label>
-                  <vue-select
+                  <a-select
                     :options="EditRemun"
                     id="editremuns"
                     placeholder="Additional Remuneration"
@@ -290,7 +290,13 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Remun: ["Monthly Remuneration", "Additional Remuneration", "Monthly Remuneration"],

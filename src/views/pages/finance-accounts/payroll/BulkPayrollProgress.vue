@@ -430,11 +430,11 @@ export default {
         // Initialize Laravel Echo with Reverb (or Pusher)
         echo.value = new Echo({
           broadcaster: 'reverb',
-          key: process.env.VUE_APP_REVERB_APP_KEY || 'local',
-          wsHost: process.env.VUE_APP_REVERB_HOST || window.location.hostname,
-          wsPort: process.env.VUE_APP_REVERB_PORT || 8080,
-          wssPort: process.env.VUE_APP_REVERB_PORT || 8080,
-          forceTLS: (process.env.VUE_APP_REVERB_SCHEME || 'https') === 'https',
+          key: import.meta.env.VITE_REVERB_APP_KEY || 'local',
+          wsHost: import.meta.env.VITE_REVERB_HOST || window.location.hostname,
+          wsPort: import.meta.env.VITE_REVERB_PORT || 8080,
+          wssPort: import.meta.env.VITE_REVERB_PORT || 8080,
+          forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'https') === 'https',
           enabledTransports: ['ws', 'wss'],
           disableStats: true,
         });

@@ -1,5 +1,8 @@
 <script>
 import { VueDraggableNext } from "vue-draggable-next";
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getUserAvatar } = useAssetUrl();
+
 export default {
   components: {
     draggable: VueDraggableNext,
@@ -281,7 +284,7 @@ export default {
                     data-bs-target="#candidate_details"
                   >
                     <img
-                      :src="require(`@/assets/img/users/${Card.Image}`)"
+                      :src="getUserAvatar(Card.Image)"
                       class="img-fluid h-auto w-auto"
                       alt="img"
                     />

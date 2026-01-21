@@ -52,94 +52,119 @@
               </a>
             </div>
 
+            <!-- Notification Dropdown - Desktop Only -->
             <div class="me-1 notification_item">
-              <a href="javascript:void(0);" class="btn btn-menubar position-relative me-1" id="notification_popup"
-                data-bs-toggle="dropdown">
+              <a href="javascript:void(0);"
+                 class="btn btn-menubar notif-bell-btn"
+                 id="notification_popup"
+                 data-bs-toggle="dropdown"
+                 aria-label="Notifications">
                 <i class="ti ti-bell"></i>
-                <!-- Badge with count for unread notifications -->
-                <span v-if="unreadCount > 0"
-                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                  style="font-size: 10px; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;">
+                <span v-if="unreadCount > 0" class="notif-badge">
                   {{ unreadCount > 99 ? '99+' : unreadCount }}
                 </span>
               </a>
-              <div class="dropdown-menu dropdown-menu-end notification-dropdown p-4">
-                <div class="d-flex align-items-center justify-content-between border-bottom p-0 pb-3 mb-3">
-                  <h4 class="notification-title">Notifications ({{ unreadCount }})</h4>
-                  <div class="d-flex align-items-center">
-                    <a href="javascript:void(0);" class="text-primary fs-15 me-3 lh-1" @click="markAllAsRead"
-                      v-if="unreadCount > 0">Mark all as read</a>
-                    <div class="dropdown">
-                      <a href="javascript:void(0);" class="bg-white dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="ti ti-calendar-due me-1"></i>Today
-                      </a>
-                      <ul class="dropdown-menu mt-2 p-3">
-                        <li>
-                          <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                            This Week
-                          </a>
-                        </li>
-                        <li>
-                          <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                            Last Week
-                          </a>
-                        </li>
-                        <li>
-                          <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                            Last Month
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
+
+              <!-- Redesigned Notification Dropdown -->
+              <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+                <!-- Header -->
+                <div class="notif-header">
+                  <div class="notif-header-top">
+                    <h4 class="notif-title">Notifications</h4>
+                    <button
+                      v-if="unreadCount > 0"
+                      type="button"
+                      class="notif-mark-read"
+                      @click.stop="markAllAsRead"
+                      :disabled="isMarkingAllRead">
+                      {{ isMarkingAllRead ? 'Marking...' : 'Mark all as read' }}
+                    </button>
                   </div>
-                </div>
-                <div class="noti-content">
-                  <div v-if="notifications.length" class="d-flex flex-column">
-                    <router-link
-                      v-for="(notification, idx) in notifications"
-                      :key="idx"
-                      :to="`/notifications/${notification.id}`"
-                      class="notification-item-link border-bottom mb-3 pb-3 text-decoration-none"
-                      :class="{ 'bg-light': !notification.read_at }"
-                      :style="getNotificationBorderStyle(notification)"
-                      @click="handleNotificationClick(notification)">
-                      <div class="d-flex">
-                        <div class="avatar avatar-sm me-3 flex-shrink-0">
-                          <div
-                            class="avatar-initial rounded-circle d-flex align-items-center justify-content-center"
-                            :style="{ backgroundColor: getNotificationColor(notification) }">
-                            <span class="text-white" style="font-size: 14px;">{{ getNotificationIcon(notification) }}</span>
-                          </div>
-                        </div>
-                        <div class="flex-grow-1">
-                          <div class="d-flex align-items-center mb-1">
-                            <span class="badge me-2" :style="{ backgroundColor: getNotificationColor(notification), color: '#fff', fontSize: '10px' }">
-                              {{ getNotificationCategoryLabel(notification) }}
-                            </span>
-                          </div>
-                          <p class="mb-1 fw-medium text-dark">{{ getNotificationMessage(notification) }}</p>
-                          <small class="text-muted">{{ formatNotificationDate(notification) }}</small>
-                          <span v-if="!notification.read_at" class="badge bg-primary ms-2"
-                            style="font-size: 10px;">New</span>
-                        </div>
-                      </div>
-                    </router-link>
-                  </div>
-                  <div v-else class="text-center py-4">
-                    <div class="avatar avatar-lg mx-auto mb-3">
-                      <div
-                        class="avatar-initial bg-light rounded-circle d-flex align-items-center justify-content-center">
-                        <i class="ti ti-bell-off text-muted" style="font-size: 24px;"></i>
-                      </div>
-                    </div>
-                    <p class="text-muted mb-0">No notifications yet</p>
-                    <small class="text-muted">We'll notify you when something arrives!</small>
+
+                  <!-- Tabs -->
+                  <div class="notif-tabs">
+                    <button
+                      type="button"
+                      class="notif-tab"
+                      :class="{ active: activeNotifTab === 'all' }"
+                      @click.stop="activeNotifTab = 'all'">
+                      All
+                    </button>
+                    <button
+                      type="button"
+                      class="notif-tab"
+                      :class="{ active: activeNotifTab === 'unread' }"
+                      @click.stop="activeNotifTab = 'unread'">
+                      Unread
+                      <span v-if="unreadCount > 0" class="tab-count">{{ unreadCount }}</span>
+                    </button>
                   </div>
                 </div>
 
-                <div class="d-flex p-0" v-if="notifications.length">
-                  <a href="javascript:void(0);" class="btn btn-light w-100 me-2" @click="closeDropdown">Close</a>
-                  <router-link to="/notifications" class="btn btn-primary w-100" @click="closeDropdown">View All</router-link>
+                <!-- Content -->
+                <div class="notif-content">
+                  <!-- Notification List -->
+                  <ul v-if="filteredNotifications.length" class="notif-list">
+                    <li v-for="notification in filteredNotifications" :key="notification.id">
+                      <router-link
+                        :to="`/notifications/${notification.id}`"
+                        class="notif-item"
+                        :class="{ unread: !notification.read_at }"
+                        @click="handleNotificationClick(notification)">
+                        <div class="notif-item-inner">
+                          <!-- User Avatar -->
+                          <div class="notif-avatar">
+                            <img
+                              :src="getUserAvatar(notification)"
+                              :alt="getPerformedByName(notification)"
+                              class="avatar-img"
+                              @error="handleAvatarError($event, notification)" />
+                            <!-- Category Badge on Avatar -->
+                            <span
+                              class="category-badge"
+                              :class="getNotificationCategory(notification)">
+                              <i :class="getCategoryIcon(notification)"></i>
+                            </span>
+                          </div>
+
+                          <!-- Content -->
+                          <div class="notif-body">
+                            <p class="notif-text" v-html="formatNotificationText(notification)"></p>
+                            <span class="notif-time">
+                              <i class="ti ti-clock"></i>
+                              {{ formatNotificationDate(notification) }}
+                            </span>
+                          </div>
+
+                          <!-- Unread Dot -->
+                          <span v-if="!notification.read_at" class="notif-unread-dot"></span>
+                        </div>
+                      </router-link>
+                    </li>
+                  </ul>
+
+                  <!-- Empty State -->
+                  <div v-else class="notif-empty">
+                    <div class="notif-empty-icon">
+                      <i class="ti ti-bell-off"></i>
+                    </div>
+                    <h5 class="notif-empty-title">
+                      {{ activeNotifTab === 'unread' ? 'All caught up!' : 'No notifications yet' }}
+                    </h5>
+                    <p class="notif-empty-text">
+                      {{ activeNotifTab === 'unread' ? 'You have no unread notifications.' : "We'll notify you when something arrives!" }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Footer -->
+                <div v-if="notifications.length" class="notif-footer">
+                  <router-link
+                    to="/notifications"
+                    class="notif-view-all"
+                    @click="closeDropdown">
+                    View all notifications
+                  </router-link>
                 </div>
               </div>
             </div>
@@ -147,7 +172,7 @@
             <div class="dropdown profile-dropdown">
               <a href="javascript:void(0);" class="dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
                 <span class="avatar avatar-sm online">
-                  <img :src="profilePictureUrl" alt="Img" class="img-fluid rounded-circle" />
+                  <img :src="profilePictureUrl || defaultAvatarUrl" alt="Profile" class="img-fluid rounded-circle" @error="handleImageError" />
                 </span>
               </a>
               <div class="dropdown-menu shadow-none">
@@ -155,7 +180,7 @@
                   <div class="card-header">
                     <div class="d-flex align-items-center">
                       <span class="avatar avatar-lg me-2 avatar-rounded">
-                        <img :src="profilePictureUrl" alt="img" />
+                        <img :src="profilePictureUrl || defaultAvatarUrl" alt="Profile" @error="handleImageError" />
                       </span>
                       <div>
                         <h5 class="mb-0">{{ username }}</h5>
@@ -190,6 +215,12 @@
         <a href="javascript:void(0);" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"
           aria-expanded="false"><i class="fa fa-ellipsis-v"></i></a>
         <div class="dropdown-menu dropdown-menu-end">
+          <!-- Notifications Link with Badge (Mobile Only) -->
+          <router-link class="dropdown-item mobile-notif-link" to="/notifications">
+            <span><i class="ti ti-bell me-2"></i>Notifications</span>
+            <span v-if="unreadCount > 0" class="mobile-notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+          </router-link>
+          <div class="dropdown-divider"></div>
           <router-link class="dropdown-item" to="/pages/profile">My Profile</router-link>
           <router-link class="dropdown-item" to="/general-settings/profile-settings">Settings</router-link>
           <a class="dropdown-item" href="#" @click.prevent="handleLogout">Logout</a>
@@ -207,17 +238,19 @@ import sideBarData from "@/assets/json/sidebar-menuone.json";
 import { Modal, notification } from 'ant-design-vue'
 import { notification as antNotification } from 'ant-design-vue';
 import eventBus from '@/plugins/eventBus';
-import { disconnectEcho, getEcho, subscribeToNotifications, unsubscribeFromNotifications } from '@/plugins/echo';
+import { disconnectEcho, getEcho } from '@/plugins/echo';
 
 export default {
   data() {
     return {
-      notificationClass: "pe-1",
       sideBarData: sideBarData,
       openMenuItem: null,
       openSubmenuOneItem: null,
       route_array: [],
       notificationStore: null, // Pinia store instance
+      // Notification dropdown state
+      activeNotifTab: 'all', // 'all' or 'unread'
+      isMarkingAllRead: false,
     };
   },
   setup() {
@@ -234,9 +267,21 @@ export default {
 
     const profilePictureUrl = computed(() => {
       if (authStore.user && authStore.user.profile_picture) {
-        return `${process.env.VUE_APP_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
+        // Add cache-busting timestamp to force reload after update
+        const timestamp = authStore.user.profile_picture_updated_at || '';
+        const baseUrl = `${import.meta.env.VITE_PUBLIC_URL}/storage/${authStore.user.profile_picture}`;
+        return timestamp ? `${baseUrl}?t=${timestamp}` : baseUrl;
       }
       return null; // Fallback handled in template
+    });
+
+    // Default avatar URL for fallback
+    const defaultAvatarUrl = computed(() => {
+      // Generate initials-based placeholder or use default image
+      const name = authStore.user?.name || 'User';
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      // Return a data URI for a simple avatar with initials
+      return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect fill="%236366f1" width="40" height="40" rx="20"/><text x="50%" y="50%" dy=".35em" fill="white" font-family="Arial" font-size="16" text-anchor="middle">${initials}</text></svg>`)}`;
     });
 
     // Make sure the store has loaded the user data
@@ -244,7 +289,7 @@ export default {
       authStore.updateUserData();
     }
 
-    return { username, email, profilePictureUrl, authStore, notificationStore };
+    return { username, email, profilePictureUrl, defaultAvatarUrl, authStore, notificationStore };
   },
 
   created() {
@@ -255,36 +300,64 @@ export default {
     const user = JSON.parse(localStorage.getItem('user'));
     const userId = user ? user.id : null;
 
-    if (userId) {
-      // Use the centralized subscribeToNotifications function
-      // This handles the case where Echo might not be ready yet
-      this.initNotificationSubscription(userId);
+    if (userId && getEcho()) {
+      getEcho().private(`App.Models.User.${userId}`)
+        .notification((notif) => {
+          console.log('[Echo] Notification received:', notif);
+
+          // Ensure the notification has the proper structure for Laravel notifications
+          const formattedNotif = {
+            id: notif.id || Date.now().toString(),
+            data: notif.data || { message: notif.message },
+            read_at: null,
+            created_at: new Date().toISOString(),
+            ...notif
+          };
+
+          // Add to store
+          this.notificationStore.addNotification(formattedNotif);
+
+          // Get category-specific configuration
+          const category = this.getNotificationCategory(formattedNotif);
+          const categoryConfig = this.getCategoryConfig()[category] || this.getCategoryConfig().general;
+
+          // Show toast notification
+          notification.open({
+            message: `${categoryConfig.icon} ${categoryConfig.label}`,
+            description: this.getNotificationMessage(formattedNotif),
+            placement: 'topRight',
+            duration: 5,
+            style: {
+              borderLeft: `4px solid ${categoryConfig.color}`,
+            },
+            onClick: () => {
+              console.log('Notification Clicked!');
+              // Navigate to notification detail
+              this.$router.push(`/notifications/${formattedNotif.id}`);
+              notification.destroy();
+            },
+          });
+
+          console.log('Notification Event Fired!');
+          eventBus.emit('notification-clicked', formattedNotif);
+        });
     }
   },
 
   beforeUnmount() {
-    // Clear notification retry timeout if exists
-    if (this._notificationRetryTimeout) {
-      clearTimeout(this._notificationRetryTimeout);
-      this._notificationRetryTimeout = null;
-    }
-
-    // Clean up Echo listener using centralized cleanup
+    // Clean up Echo listener
     const user = JSON.parse(localStorage.getItem('user'));
     const userId = user ? user.id : null;
-    if (userId) {
-      unsubscribeFromNotifications(userId);
+    if (userId && window.Echo) {
+      window.Echo.leave(`private-App.Models.User.${userId}`);
     }
 
     // Clean up event listeners
     document.removeEventListener("mouseover", this.handleMouseover);
-    document.removeEventListener("click", this.handleOutsideClick);
   },
 
   mounted() {
     this.initMouseoverListener();
-    this.handleOutsideClick = this.handleOutsideClick.bind(this);
-    document.addEventListener('click', this.handleOutsideClick);
 
     // Check the persisted flag and show notification if it's true
     if (this.authStore.justLoggedIn) {
@@ -297,8 +370,8 @@ export default {
       this.authStore.justLoggedIn = false;
     }
 
-    // Initialize notification dropdown animation
-    this.initNotificationDropdown();
+    // NOTE: No custom animation JavaScript needed - using native Bootstrap
+    // dropdown with CSS transitions for better performance and consistency
   },
 
   computed: {
@@ -309,6 +382,13 @@ export default {
     unreadCount() {
       return this.notificationStore.unreadCount;
     },
+    // Filter notifications based on active tab
+    filteredNotifications() {
+      if (this.activeNotifTab === 'unread') {
+        return this.notifications.filter(n => !n.read_at);
+      }
+      return this.notifications;
+    },
     dashboardRoute() {
       return '/dashboard/';
     }
@@ -316,83 +396,20 @@ export default {
 
   methods: {
     /**
-     * Initialize notification subscription with retry logic
-     * Handles case where Echo might not be initialized yet
+     * Handle image load error - fallback to default avatar
+     * This catches 404s and other loading failures
      */
-    initNotificationSubscription(userId) {
-      const trySubscribe = () => {
-        if (getEcho()) {
-          subscribeToNotifications(userId, (notif) => {
-            console.log('[LayoutHeader] 🔔 Real-time notification received:', notif);
-
-            // Ensure the notification has the proper structure for Laravel notifications
-            const formattedNotif = {
-              id: notif.id || Date.now().toString(),
-              data: notif.data || { message: notif.message },
-              read_at: null,
-              created_at: new Date().toISOString(),
-              ...notif
-            };
-
-            // Add to store
-            this.notificationStore.addNotification(formattedNotif);
-
-            // Show toast notification
-            notification.open({
-              message: 'New Notification',
-              description: this.getNotificationMessage(formattedNotif),
-              placement: 'topRight',
-              onClick: () => {
-                console.log('Notification Clicked!');
-              },
-            });
-            console.log('Notification Event Fired!');
-            eventBus.emit('notification-clicked', formattedNotif);
-          });
-          return true;
-        }
-        return false;
-      };
-
-      // Try immediately
-      if (!trySubscribe()) {
-        // If Echo not ready, retry after a short delay (Echo might be initializing in guards.js)
-        console.log('[LayoutHeader] Echo not ready, will retry notification subscription...');
-        const retryTimeout = setTimeout(() => {
-          if (!trySubscribe()) {
-            console.warn('[LayoutHeader] Echo still not ready after retry, notifications may not work in real-time');
-          }
-        }, 1000);
-
-        // Store timeout for cleanup
-        this._notificationRetryTimeout = retryTimeout;
-      }
-    },
-
-    initMouseoverListener() {
-      this.handleMouseover = (e) => {
-        const target = e.target.closest('.submenu');
-        if (target) {
-          this.openSubmenuOneItem = target.querySelector('a')?.textContent.trim() || null;
-        }
-      };
-      document.addEventListener("mouseover", this.handleMouseover);
-    },
-
-    handleOutsideClick(event) {
-      const isClickInsideDropdown = event.target.closest('.nav-item.dropdown');
-      if (!isClickInsideDropdown) {
-        this.openMenuItem = null;
-        this.openSubmenuOneItem = null;
-      }
-    },
-
-    initNotificationDropdown() {
-      // Any additional notification dropdown initialization
+    handleImageError(event) {
+      const name = this.authStore.user?.name || 'User';
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      event.target.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><rect fill="#6366f1" width="40" height="40" rx="20"/><text x="50%" y="50%" dy=".35em" fill="white" font-family="Arial" font-size="16" text-anchor="middle">${initials}</text></svg>`)}`;
     },
 
     // Use store action for marking all as read
     async markAllAsRead() {
+      if (this.isMarkingAllRead) return;
+
+      this.isMarkingAllRead = true;
       try {
         await this.notificationStore.markAllNotificationsRead();
         notification.success({
@@ -407,6 +424,8 @@ export default {
           description: 'Failed to mark notifications as read',
           placement: 'topRight',
         });
+      } finally {
+        this.isMarkingAllRead = false;
       }
     },
 
@@ -520,14 +539,172 @@ export default {
     },
 
     /**
-     * Get border style based on category
+     * Get user avatar URL for notification
+     * Prioritizes: performed_by_avatar > UI Avatars API > system default
      */
-    getNotificationBorderStyle(notification) {
-      const color = this.getNotificationColor(notification);
-      return {
-        borderLeft: `3px solid ${color}`,
-        paddingLeft: '8px',
+    getUserAvatar(notification) {
+      // Try to get avatar from notification data (if backend provides it)
+      if (notification.data?.performed_by_avatar) {
+        return `${import.meta.env.VITE_PUBLIC_URL}/storage/${notification.data.performed_by_avatar}`;
+      }
+
+      // Generate avatar using UI Avatars API with user's name
+      const name = this.getPerformedByName(notification);
+      if (name && name !== 'System') {
+        const encodedName = encodeURIComponent(name);
+        return `https://ui-avatars.com/api/?name=${encodedName}&background=6366f1&color=fff&size=96&font-size=0.4&bold=true`;
+      }
+
+      // System avatar for automated notifications
+      return `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect fill="#6b7280" width="48" height="48" rx="24"/><path fill="white" d="M24 14c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 18c-4.42 0-8-1.79-8-4v-2c0-2.21 3.58-4 8-4s8 1.79 8 4v2c0 2.21-3.58 4-8 4z"/></svg>`)}`;
+    },
+
+    /**
+     * Extract who performed the action from notification
+     */
+    getPerformedByName(notification) {
+      // Try different possible fields
+      if (notification.data?.performed_by_name) {
+        return notification.data.performed_by_name;
+      }
+      if (notification.data?.user_name) {
+        return notification.data.user_name;
+      }
+      if (notification.data?.actor_name) {
+        return notification.data.actor_name;
+      }
+      // System notification
+      return 'System';
+    },
+
+    /**
+     * Format notification text with highlighted user and object names
+     * Returns HTML string for v-html binding
+     */
+    formatNotificationText(notification) {
+      const userName = this.getPerformedByName(notification);
+      const action = this.getActionVerb(notification);
+      const objectInfo = this.getObjectInfo(notification);
+
+      // Build formatted message
+      let text = '';
+
+      // Add user name (highlighted)
+      if (userName && userName !== 'System') {
+        text += `<span class="notif-user">${this.escapeHtml(userName)}</span> `;
+      }
+
+      // Add action verb
+      text += action;
+
+      // Add object info if available
+      if (objectInfo) {
+        text += ` <span class="notif-object">${this.escapeHtml(objectInfo)}</span>`;
+      }
+
+      return text || this.getNotificationMessage(notification);
+    },
+
+    /**
+     * Convert action type to human-readable verb
+     */
+    getActionVerb(notification) {
+      const action = notification.data?.action || '';
+      const type = notification.data?.type || '';
+
+      // Map common actions to verbs
+      const actionMap = {
+        created: 'created',
+        updated: 'updated',
+        deleted: 'deleted',
+        approved: 'approved',
+        rejected: 'rejected',
+        submitted: 'submitted',
+        assigned: 'assigned',
+        completed: 'completed',
+        cancelled: 'cancelled',
+        restored: 'restored',
       };
+
+      if (actionMap[action]) {
+        return actionMap[action];
+      }
+
+      // Try to infer from type
+      if (type.includes('created')) return 'created';
+      if (type.includes('updated')) return 'updated';
+      if (type.includes('deleted')) return 'deleted';
+
+      return 'made changes to';
+    },
+
+    /**
+     * Get object info (grant name, employee name, etc.)
+     */
+    getObjectInfo(notification) {
+      const data = notification.data || {};
+
+      // Grant notifications
+      if (data.grant_name) {
+        const code = data.grant_code ? ` (${data.grant_code})` : '';
+        return `grant ${data.grant_name}${code}`;
+      }
+
+      // Employee notifications
+      if (data.employee_name) {
+        return `employee ${data.employee_name}`;
+      }
+
+      // Leave notifications
+      if (data.leave_type) {
+        return `${data.leave_type} leave request`;
+      }
+
+      // Generic object
+      if (data.object_name) {
+        return data.object_name;
+      }
+
+      return '';
+    },
+
+    /**
+     * Escape HTML to prevent XSS
+     */
+    escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    },
+
+    /**
+     * Get Tabler icon class for category badge
+     */
+    getCategoryIcon(notification) {
+      const category = this.getNotificationCategory(notification);
+
+      const iconMap = {
+        grants: 'ti ti-target',
+        employee: 'ti ti-user',
+        payroll: 'ti ti-cash',
+        leaves: 'ti ti-calendar',
+        attendance: 'ti ti-clock',
+        recruitment: 'ti ti-briefcase',
+        training: 'ti ti-book',
+        system: 'ti ti-settings',
+        general: 'ti ti-bell',
+      };
+
+      return iconMap[category] || iconMap.general;
+    },
+
+    /**
+     * Handle avatar load error - fallback to generated avatar
+     */
+    handleAvatarError(event, notification) {
+      const name = this.getPerformedByName(notification);
+      const initials = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      event.target.src = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><rect fill="#6366f1" width="48" height="48" rx="24"/><text x="50%" y="50%" dy=".35em" fill="white" font-family="Arial" font-size="18" text-anchor="middle">${initials}</text></svg>`)}`;
     },
 
     formatNotificationDate(notification) {
@@ -597,28 +774,6 @@ export default {
       }
     },
 
-    handleClick(event) {
-      event.stopPropagation();
-
-      if (this.notificationClass === "pe-1 notification-item-show") {
-        // If the class is already present, remove it
-        this.notificationClass = "";
-        document.removeEventListener("click", this.handleOutsideClick);
-      } else {
-        // If the class is not present, add it
-        this.notificationClass = "pe-1 notification-item-show";
-        document.addEventListener("click", this.handleOutsideClick);
-      }
-    },
-    handleOutsideClick(event) {
-      // Check if the click was outside the notification item
-      const notificationItem = event.target.closest(".notification-item");
-      if (!notificationItem) {
-        this.notificationClass = "";
-        // Remove the event listener
-        document.removeEventListener("click", this.handleOutsideClick);
-      }
-    },
     toggleSidebar1() {
       const body = document.body;
       body.classList.toggle("slide-nav");
@@ -714,89 +869,6 @@ export default {
     },
     openSubmenuOne(subMenus) {
       this.openSubmenuOneItem = this.openSubmenuOneItem === subMenus ? null : subMenus;
-    },
-    initNotificationDropdown() {
-      this.$nextTick(() => {
-        const notificationButton = document.getElementById('notification_popup');
-        const notificationDropdown = notificationButton?.nextElementSibling;
-
-        if (notificationButton && notificationDropdown) {
-          let isClosing = false;
-
-          // Listen for Bootstrap dropdown show event (before shown)
-          notificationButton.addEventListener('show.bs.dropdown', () => {
-            isClosing = false;
-            // Ensure dropdown is visible for transition
-            notificationDropdown.style.display = 'block';
-            // Small delay to allow display to be set, then trigger animation
-            setTimeout(() => {
-              notificationDropdown.classList.add('show');
-            }, 10);
-          });
-
-          // Listen for Bootstrap dropdown shown event
-          notificationButton.addEventListener('shown.bs.dropdown', () => {
-            // Ensure show class is present for animation
-            notificationDropdown.classList.add('show');
-          });
-
-          // Listen for Bootstrap dropdown hide event to trigger exit animation
-          notificationButton.addEventListener('hide.bs.dropdown', (e) => {
-            // Prevent Bootstrap from immediately hiding (which cuts off the transition)
-            if (!isClosing) {
-              e.preventDefault();
-              isClosing = true;
-
-              // Remove .show class from button immediately to clear hover/active state
-              notificationButton.classList.remove('show');
-              notificationButton.setAttribute('aria-expanded', 'false');
-              
-              // Remove show class from dropdown to trigger exit animation
-              notificationDropdown.classList.remove('show');
-              
-              // Keep display: block during transition to allow animation
-              notificationDropdown.style.display = 'block';
-              
-              // Wait for CSS transition to complete (300ms matches CSS transition duration)
-              setTimeout(() => {
-                if (isClosing) {
-                  // Get the dropdown instance
-                  const dropdown = window.bootstrap?.Dropdown?.getInstance(notificationButton);
-                  if (dropdown) {
-                    // Complete the hide process
-                    notificationDropdown.style.display = '';
-                    notificationDropdown.classList.remove('show');
-                    // Update Bootstrap's internal state
-                    dropdown._isShown = false;
-                    // Remove aria attributes
-                    notificationButton.setAttribute('aria-expanded', 'false');
-                    // Remove .show class from button to clear hover/active state
-                    notificationButton.classList.remove('show');
-                    // Remove focus to clear any focus state
-                    notificationButton.blur();
-                    // Trigger the hidden event manually
-                    const hiddenEvent = new Event('hidden.bs.dropdown', { bubbles: true, cancelable: true });
-                    notificationButton.dispatchEvent(hiddenEvent);
-                  }
-                  isClosing = false;
-                }
-              }, 300); // Match the CSS transition duration (0.3s = 300ms)
-            }
-          });
-
-          // Clean up after hidden
-          notificationButton.addEventListener('hidden.bs.dropdown', () => {
-            // Ensure show class is removed and reset display
-            notificationDropdown.classList.remove('show');
-            notificationDropdown.style.display = '';
-            // Remove .show class from button to clear hover/active state
-            notificationButton.classList.remove('show');
-            // Remove focus to clear any focus state
-            notificationButton.blur();
-            isClosing = false;
-          });
-        }
-      });
     },
     async handleLogout() {
       try {

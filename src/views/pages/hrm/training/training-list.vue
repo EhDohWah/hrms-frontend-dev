@@ -36,7 +36,7 @@
                     <div class="head-icons ms-2">
                         <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
                             data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
-                            <i class="ti ti-chevrons-up"></i>
+                            <i :class="isHeaderCollapsed ? 'ti ti-chevrons-down' : 'ti ti-chevrons-up'"></i>
                         </a>
                     </div>
                 </div>
@@ -349,7 +349,8 @@ export default {
 
             // Table selection
             selectedRowKeys: [],
-
+            // Header collapse state
+            isHeaderCollapsed: false,
             // Ant Design table columns
             columns: [
                 {
@@ -671,11 +672,11 @@ export default {
 
         toggleHeader() {
             const collapseBtn = document.getElementById('collapse-header');
-            const pageWrapper = document.querySelector('.page-wrapper');
-
-            if (collapseBtn && pageWrapper) {
-                pageWrapper.classList.toggle('page-min-wrapper');
-                collapseBtn.classList.toggle('collapsed');
+            
+            if (collapseBtn) {
+                collapseBtn.classList.toggle('active');
+                document.body.classList.toggle('header-collapse');
+                this.isHeaderCollapsed = !this.isHeaderCollapsed;
             }
         },
 

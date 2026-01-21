@@ -131,10 +131,13 @@
                       </div>
                     </div>
                     <div class="col-xl-3 col-lg-12 col-md-3">
-                      <vue-select
+                      <a-select
                         :options="SmallSel"
                         id="smallsel"
                         placeholder="Select"
+                        style="width: 100%"
+                        :show-search="true"
+                        :filter-option="filterOption"
                       />
                     </div>
                   </div>
@@ -145,7 +148,7 @@
                       </div>
                     </div>
                     <div class="col-xl-3 col-lg-12 col-md-3">
-                      <vue-select :options="NunSel" id="nunsel" placeholder="Select" />
+                      <a-select :options="NunSel" id="nunsel" placeholder="Select" style="width: 100%" :show-search="true" :filter-option="filterOption" />
                     </div>
                   </div>
                 </div>
@@ -174,7 +177,13 @@
   <!-- /Page Wrapper -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption } = useSelectMigration();
+    return { filterOption };
+  },
   data() {
     return {
       title: "Settings",

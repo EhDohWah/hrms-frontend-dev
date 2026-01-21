@@ -1,8 +1,14 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Employee: ["Select", "Anthony Lewis", "Brian Villalobos", "Harvey Smith"],
@@ -41,7 +47,7 @@ export default {
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Employee</label>
-                  <vue-select :options="Employee" id="emp-lewis" placeholder="Select" />
+                  <a-select :options="Employee" id="emp-lewis" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -143,7 +149,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="Status"
                     id="inactive-status"
                     placeholder="Select"
@@ -185,7 +191,7 @@ export default {
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Employee</label>
-                  <vue-select :options="Employee" id="emp-smith" placeholder="Select" />
+                  <a-select :options="Employee" id="emp-smith" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -287,7 +293,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="Status"
                     id="inactive-status-one"
                     placeholder="Select"

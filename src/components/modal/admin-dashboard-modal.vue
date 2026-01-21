@@ -26,13 +26,13 @@
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Tag</label>
-                  <vue-select :options="Admtag" id="adtag" placeholder="Select" />
+                  <a-select :options="Admtag" id="adtag" placeholder="Select" />
                 </div>
               </div>
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select :options="ProAdmin" id="proadmin" placeholder="Select" />
+                  <a-select :options="ProAdmin" id="proadmin" placeholder="Select" />
                 </div>
               </div>
               <div class="col-lg-12">
@@ -48,13 +48,13 @@
               <div class="col-12">
                 <div class="mb-3">
                   <label class="form-label">Add Assignee</label>
-                  <vue-select :options="RufAdmin" id="rufadmin" placeholder="Select" />
+                  <a-select :options="RufAdmin" id="rufadmin" placeholder="Select" />
                 </div>
               </div>
               <div class="col-12">
                 <div class="mb-0">
                   <label class="form-label">Status</label>
-                  <vue-select :options="StatAdmin" id="statadmin" placeholder="Select" />
+                  <a-select :options="StatAdmin" id="statadmin" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -141,7 +141,7 @@
                   <div class="col-md-12">
                     <div class="mb-3">
                       <label class="form-label">Client</label>
-                      <vue-select :options="BrAdmin" id="bradmin" placeholder="Select" />
+                      <a-select :options="BrAdmin" id="bradmin" placeholder="Select" />
                     </div>
                   </div>
                   <div class="col-md-12">
@@ -185,7 +185,7 @@
                       <div class="col-md-6">
                         <div class="mb-3">
                           <label class="form-label">Priority</label>
-                          <vue-select
+                          <a-select
                             :options="ProAdminOne"
                             id="proadminone"
                             placeholder="Select"
@@ -300,13 +300,13 @@
                   <div class="col-md-12">
                     <div class="mb-3">
                       <label class="form-label">Status</label>
-                      <vue-select :options="StaisTag" id="statag" placeholder="Select" />
+                      <a-select :options="StaisTag" id="statag" placeholder="Select" />
                     </div>
                   </div>
                   <div class="col-md-12">
                     <div>
                       <label class="form-label">Tags</label>
-                      <vue-select :options="MeduTag" id="medutag" placeholder="Select" />
+                      <a-select :options="MeduTag" id="medutag" placeholder="Select" />
                     </div>
                   </div>
                 </div>
@@ -359,7 +359,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Employee Name</label>
-                  <vue-select
+                  <a-select
                     :options="SmithAdmin"
                     id="smithadmin"
                     placeholder="Select"
@@ -369,7 +369,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Leave Type</label>
-                  <vue-select
+                  <a-select
                     :options="LeaveAdmin"
                     id="leaveadmin"
                     placeholder="Select"
@@ -445,6 +445,8 @@
   <!-- /Add Leaves -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
@@ -454,6 +456,10 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 import Vue3TagsInput from "vue3-tags-input";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   components: {
     Vue3TagsInput,
   },

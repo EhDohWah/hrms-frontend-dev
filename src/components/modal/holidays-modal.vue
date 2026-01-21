@@ -1,11 +1,21 @@
 <script>
 import { ref } from "vue";
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 const currentDate = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
-      Status: ["Select", "Active", "Inactive"],
+      Status: [
+        { label: "Select", value: "" },
+        { label: "Active", value: "active" },
+        { label: "Inactive", value: "inactive" }
+      ],
       startdate: currentDate,
       dateFormat: "dd-MM-yyyy",
     };
@@ -70,7 +80,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Status" id="holidaystatus" placeholder="Select" />
+                  <a-select :options="Status" id="holidaystatus" placeholder="Select" style="width: 100%" :show-search="true" :filter-option="filterOption" :get-popup-container="getModalPopupContainer" />
                 </div>
               </div>
             </div>
@@ -140,10 +150,14 @@ First day of the new year</textarea
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="Status"
                     id="holidaystatusone"
                     placeholder="Active"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
+                    :get-popup-container="getModalPopupContainer"
                   />
                 </div>
               </div>

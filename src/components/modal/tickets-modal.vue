@@ -24,7 +24,7 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Event Category</label>
-                  <vue-select :options="Redist" id="redist" placeholder="Select" />
+                  <a-select :options="Redist" id="redist" placeholder="Select" />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Subject</label>
@@ -48,11 +48,11 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select :options="Medispr" id="medispr" placeholder="Select" />
+                  <a-select :options="Medispr" id="medispr" placeholder="Select" />
                 </div>
                 <div class="mb-0">
                   <label class="form-label">Status</label>
-                  <vue-select :options="CloseTic" id="closetic" placeholder="Select" />
+                  <a-select :options="CloseTic" id="closetic" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -102,8 +102,14 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import Vue3TagsInput from "vue3-tags-input";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   components: {
     Vue3TagsInput,
   },

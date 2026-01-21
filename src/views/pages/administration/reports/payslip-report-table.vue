@@ -1,4 +1,7 @@
 <script>
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getUserAvatar } = useAssetUrl();
+
 const data = [
  {
    "Image": "user-32.jpg",
@@ -152,7 +155,7 @@ export default {
             <template v-if="column.key === 'Name'">
                 <div class="d-flex align-items-center">
                     <a href="javascript:void(0);" class="avatar avatar-md" data-bs-toggle="modal" data-bs-target="#view_details">
-                        <img :src="require(`@/assets/img/users/${record.Image}`)" class="img-fluid rounded-circle" alt="img">
+                        <img :src="getUserAvatar(record.Image)" class="img-fluid rounded-circle" alt="img">
                     </a>
                     <div class="ms-2">
                         <p class="text-dark mb-0"><a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#view_details">Anthony Lewis</a></p>

@@ -1,8 +1,14 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Employee: ["Select", "Anthony Lewis", "Brian Villalobos", "Harvey Smith"],
@@ -43,7 +49,7 @@ export default {
                   <label class="form-label"
                     >Employee<span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Employee" id="empid" placeholder="Select" />
+                  <a-select :options="Employee" id="empid" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -93,7 +99,7 @@ export default {
                   <label class="form-label"
                     >Status<span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Status" id="statusid" placeholder="Select" />
+                  <a-select :options="Status" id="statusid" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -133,7 +139,7 @@ export default {
                   <label class="form-label"
                     >Employee * <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="Employee"
                     id="employeeid"
                     placeholder="Anthony Lewis"
@@ -188,7 +194,7 @@ export default {
                   <label class="form-label"
                     >Status<span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Status" id="acceptedid" placeholder="Accepted" />
+                  <a-select :options="Status" id="acceptedid" placeholder="Accepted" />
                 </div>
               </div>
             </div>
@@ -276,7 +282,7 @@ export default {
                   <label class="form-label"
                     >Select Status <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Status" id="selectid" placeholder="Select" />
+                  <a-select :options="Status" id="selectid" placeholder="Select" />
                 </div>
               </div>
             </div>

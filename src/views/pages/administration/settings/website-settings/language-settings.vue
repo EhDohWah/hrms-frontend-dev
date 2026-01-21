@@ -40,10 +40,13 @@
                     class="d-flex justify-content-sm-end align-items-center flex-wrap row-gap-2"
                   >
                     <div class="me-3">
-                      <vue-select
+                      <a-select
                         :options="WerSel"
                         id="wersel"
                         placeholder="Select Language"
+                        style="width: 100%"
+                        :show-search="true"
+                        :filter-option="filterOption"
                       />
                     </div>
                     <a href="javascript:void(0);" class="btn btn-primary">Add Language</a>
@@ -470,7 +473,13 @@
   <!-- /Page Wrapper -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption } = useSelectMigration();
+    return { filterOption };
+  },
   data() {
     return {
       title: "Settings",

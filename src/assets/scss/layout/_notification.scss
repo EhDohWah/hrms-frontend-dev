@@ -1,301 +1,604 @@
+/**
+ * Notification Dropdown - Professional Redesign
+ *
+ * A clean, Facebook-inspired notification system with user context,
+ * avatars, and professional styling. Uses native Bootstrap dropdown
+ * behavior with simple CSS transitions.
+ *
+ * @version 2.0.0
+ * @author HRMS Team
+ */
+
+// ============================================================================
+// COLOR PALETTE - Professional, neutral tones
+// ============================================================================
+
+$notif-text-primary: #111827;
+$notif-text-secondary: #1f2937;
+$notif-text-muted: #6b7280;
+$notif-text-light: #9ca3af;
+$notif-border: #e5e7eb;
+$notif-border-light: #f3f4f6;
+$notif-bg-default: #ffffff;
+$notif-bg-hover: #f9fafb;
+$notif-bg-unread: #f0f6ff;
+$notif-bg-unread-hover: #e6f0ff;
+$notif-accent-blue: #3b82f6;
+$notif-accent-blue-hover: #2563eb;
+$notif-accent-blue-light: #dbeafe;
+
+// Category badge colors (subtle, professional)
+$notif-category-grants: #10b981;
+$notif-category-employee: #6366f1;
+$notif-category-payroll: #f59e0b;
+$notif-category-leaves: #8b5cf6;
+$notif-category-system: #ef4444;
+$notif-category-default: #6b7280;
+
+// ============================================================================
+// NOTIFICATION DROPDOWN CONTAINER
+// ============================================================================
+
 .notification-dropdown {
-    max-width: 100%;
-    min-width: 450px !important;
-    transform-origin: top right;
-    
-    // Default hidden state - Bootstrap will toggle display
-    opacity: 0;
-    transform: translateY(-10px) scale(0.95);
-    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: none;
-    
-    // Visible state when Bootstrap adds 'show' class
-    &.show {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        pointer-events: auto;
-    }
-    
-    // Handle when Bootstrap sets display: block (before show class)
-    &[style*="display: block"]:not(.show) {
-        opacity: 0;
-        transform: translateY(-10px) scale(0.95);
-    }
-    
-    // Smooth animation when both display and show are present
-    &[style*="display: block"].show {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-    
-    .topnav-dropdown-header {
-        border-bottom: 1px solid $light-900
-    }
-    .dropdown {
-        .dropdown-toggle {
-            border: 0;
-            &.show {
-                color: $gray-900;
-            }
-        }
-    }
-}
-.topnav-dropdown-header {
-    padding: 24px;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    align-items: center;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    justify-content: space-between;
-    -webkit-justify-content: space-between;
-    .notification-title {
-        font-size: $font-size-16;
-        color: $black;
-        margin-bottom: 0;
-        font-weight: $font-weight-bold;
-    }
-}
-.notification-dropdown {
-    .noti-content {
-        height: 270px;
-        overflow-y: auto;
-        position: relative;
-    }
-}
-.activity {
-    width: 100%;
-    .activity-box {
-        position: relative;
-    }
-    .activity-list {
-        list-style: none;
-        padding: 0;
+  // Responsive widths
+  width: 420px;
+  max-width: calc(100vw - 20px);
+  min-width: 0 !important; // Override old 450px min-width
+  padding: 0 !important;
+  border: 1px solid $notif-border;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  background: $notif-bg-default;
+
+  // Simple CSS transition (no JavaScript needed)
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  // ============================================================================
+  // HEADER
+  // ============================================================================
+
+  .notif-header {
+    padding: 16px 20px 0;
+    background: $notif-bg-default;
+
+    .notif-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+
+      .notif-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: $notif-text-primary;
         margin: 0;
+        letter-spacing: -0.02em;
+      }
+
+      .notif-mark-read {
+        font-size: 13px;
+        font-weight: 500;
+        color: $notif-accent-blue;
+        background: none;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.15s ease;
+
+        &:hover {
+          background-color: $notif-accent-blue-light;
+          color: $notif-accent-blue-hover;
+        }
+
+        &:disabled {
+          color: $notif-text-muted;
+          cursor: not-allowed;
+
+          &:hover {
+            background-color: transparent;
+          }
+        }
+      }
+    }
+
+    // Tabs
+    .notif-tabs {
+      display: flex;
+      gap: 4px;
+      border-bottom: 1px solid $notif-border;
+      margin: 0 -20px;
+      padding: 0 20px;
+
+      .notif-tab {
         position: relative;
-        li {
-            background-color: $white;
-            position: relative;
-            border: 1px solid $gray-400;
-            margin:0  0 10px ;
-            padding:10px ;
-            font-size: $font-size-15;
-            border-radius: 6px;
-            display: flex;
-            align-items: start;
-            .activity-user {
-                margin-right: 10px;
-                > a {
-                    width: 50px;
-                    height: 50px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-            }
-            .activity-content {
-                background-color: $white;
-                position: relative;
-                flex: 1;
-            }
-            .time {
-                color: $gray-500;
-                display: block;
-                font-size: $font-size-12;
-                line-height: 1.35;
-            }
-            a.name {
-                color: $black;;
-            }
-            a {
-                font-weight: $font-weight-semibold;
-                font-size: $font-size-14;
-                &:hover {
-                    color: $primary;
-                }
-                img{
-                    width:50px;
-                    height:50px;
-                    border-radius: 5px;
-                }
-            }
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: $notif-text-muted;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: color 0.15s ease;
+
+        &:hover {
+          color: $notif-text-secondary;
         }
-    }
-}
-.notification_item {
-    position: relative;
-}
-#global-loader {
-	position: fixed;
-	top: 0;
-	left: 0;
-	z-index: 999999;
-	width: 100%;
-	height: 100%;
-	background: $white;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-.page-loader {
-    border: 2px solid;
-    border-color: transparent $primary;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: inline-block;
-    position: relative;
-    box-sizing: border-box;
-    animation: rotation 2s linear infinite;
-}
-.page-loader::after {
-    content: '';  
-    box-sizing: border-box;
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    border: 24px solid;
-    border-color: transparent rgba($primary, 0.35);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
-  
-  @keyframes rotation {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  } 
-.notification-status-dot {
-    width: 6px;
-    height: 6px;
-    background: $danger;
-    border-radius: 50%;
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    z-index: 1;
-    &:before {
-        content: "";
-        position: absolute;
-        width: 14px;
-        height: 14px;
-        -webkit-animation-delay: 0s;
-        animation-delay: 0s;
-        -webkit-animation: pulsate1 2s;
-        animation: pulsate1 2s;
-        -webkit-animation-direction: forwards;
-        animation-direction: forwards;
-        -webkit-animation-iteration-count: infinite;
-        animation-iteration-count: infinite;
-        -webkit-animation-timing-function: steps;
-        animation-timing-function: steps;
-        opacity: 1;
-        border-radius: 50%;
-        border: 5px solid $danger-100;
-        top: -4px;
-        left: -4px;
-        background: $danger-500;
-        z-index: -1;
-    }
-}
-  
-@-webkit-keyframes pulsate1 {
-    0% {
-      -webkit-transform: scale(0.6);
-      transform: scale(0.6);
-      opacity: 1;
-      box-shadow: inset 0px 0px 25px 3px rgba(255, 255, 255, 0.75), 0px 0px 25px 10px rgba(255, 255, 255, 0.75);
-    }
-    100% {
-      -webkit-transform: scale(1);
-      transform: scale(1);
-      opacity: 0;
-      box-shadow: none;
-  
-    }
-  }  
-  @keyframes pulsate1 {
-    0% {
-      -webkit-transform: scale(0.6);
-      transform: scale(0.6);
-      opacity: 1;
-      box-shadow: inset 0px 0px 25px 3px rgba(255, 255, 255, 0.75), 0px 0px 25px 10px rgba(255, 255, 255, 0.75);
-    }
-    100% {
-      -webkit-transform: scale(1, 1);
-      transform: scale(1);
-      opacity: 0;
-      box-shadow: none;
-  
+
+        &.active {
+          color: $notif-accent-blue;
+
+          &::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: $notif-accent-blue;
+            border-radius: 2px 2px 0 0;
+          }
+        }
+
+        .tab-count {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          height: 18px;
+          padding: 0 6px;
+          margin-left: 6px;
+          font-size: 11px;
+          font-weight: 600;
+          color: $notif-bg-default;
+          background: $notif-accent-blue;
+          border-radius: 9px;
+        }
+      }
     }
   }
-.chat-status-dot {
-    width: 6px;
-    height: 6px;
-    background: $skyblue;
-    border-radius: 50%;
-    position: absolute;
-    right: 5px;
-    top: 5px;
-    z-index: 1;
-    &:before {
-        content: "";
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        -webkit-animation-delay: 0s;
-        animation-delay: 0s;
-        -webkit-animation: pulsate1 2s;
-        animation: pulsate1 2s;
-        -webkit-animation-direction: forwards;
-        animation-direction: forwards;
-        -webkit-animation-iteration-count: infinite;
-        animation-iteration-count: infinite;
-        -webkit-animation-timing-function: steps;
-        animation-timing-function: steps;
-        opacity: 1;
-        border-radius: 50%;
-        border: 5px solid $skyblue;
-        top: -2px;
-        left: -2px;
-        background: $skyblue;
-        z-index: -1;
+
+  // ============================================================================
+  // NOTIFICATION LIST
+  // ============================================================================
+
+  .notif-content {
+    max-height: 400px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    // Custom scrollbar
+    &::-webkit-scrollbar {
+      width: 6px;
     }
-}
-.noti-delete {
-    display: none;
-    transition: 0.5s all;
-}
-.noti-hover {
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $notif-border;
+      border-radius: 3px;
+
+      &:hover {
+        background: $notif-text-muted;
+      }
+    }
+  }
+
+  .notif-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  // ============================================================================
+  // NOTIFICATION ITEM
+  // ============================================================================
+
+  .notif-item {
+    display: block;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid $notif-border-light;
+    transition: background-color 0.15s ease;
+    cursor: pointer;
+
     &:hover {
-        .noti-delete {            
-            display: block;
-        }
+      background-color: $notif-bg-hover;
+      text-decoration: none;
     }
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    // Unread state
+    &.unread {
+      background-color: $notif-bg-unread;
+
+      &:hover {
+        background-color: $notif-bg-unread-hover;
+      }
+    }
+
+    .notif-item-inner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    // Avatar section
+    .notif-avatar {
+      position: relative;
+      flex-shrink: 0;
+
+      .avatar-img {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid $notif-bg-default;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      // Category badge overlay on avatar
+      .category-badge {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid $notif-bg-default;
+        font-size: 10px;
+
+        i {
+          font-size: 10px;
+          color: $notif-bg-default;
+        }
+
+        // Category colors
+        &.grants { background-color: $notif-category-grants; }
+        &.employee { background-color: $notif-category-employee; }
+        &.payroll { background-color: $notif-category-payroll; }
+        &.leaves { background-color: $notif-category-leaves; }
+        &.system { background-color: $notif-category-system; }
+        &.default { background-color: $notif-category-default; }
+      }
+    }
+
+    // Content section
+    .notif-body {
+      flex: 1;
+      min-width: 0;
+
+      .notif-text {
+        font-size: 14px;
+        line-height: 1.4;
+        color: $notif-text-secondary;
+        margin: 0 0 4px 0;
+
+        // User name highlight
+        .notif-user {
+          font-weight: 600;
+          color: $notif-text-primary;
+        }
+
+        // Object highlight (grant name, etc.)
+        .notif-object {
+          font-weight: 500;
+          color: $notif-text-primary;
+        }
+      }
+
+      .notif-time {
+        font-size: 12px;
+        color: $notif-text-muted;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        i {
+          font-size: 12px;
+        }
+      }
+    }
+
+    // Unread indicator dot
+    .notif-unread-dot {
+      flex-shrink: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: $notif-accent-blue;
+      margin-top: 6px;
+    }
+  }
+
+  // ============================================================================
+  // EMPTY STATE
+  // ============================================================================
+
+  .notif-empty {
+    padding: 48px 20px;
+    text-align: center;
+
+    .notif-empty-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: $notif-border-light;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      i {
+        font-size: 28px;
+        color: $notif-text-muted;
+      }
+    }
+
+    .notif-empty-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: $notif-text-primary;
+      margin: 0 0 4px 0;
+    }
+
+    .notif-empty-text {
+      font-size: 13px;
+      color: $notif-text-muted;
+      margin: 0;
+    }
+  }
+
+  // ============================================================================
+  // FOOTER
+  // ============================================================================
+
+  .notif-footer {
+    padding: 12px 20px;
+    border-top: 1px solid $notif-border;
+    background: $notif-bg-hover;
+
+    .notif-view-all {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      color: $notif-accent-blue;
+      background: $notif-bg-default;
+      border: 1px solid $notif-border;
+      border-radius: 8px;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: $notif-accent-blue;
+        color: $notif-bg-default;
+        border-color: $notif-accent-blue;
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// NOTIFICATION BELL BUTTON
+// ============================================================================
+
+.notification_item {
+  position: relative;
+
+  // Hide on mobile (< 992px) - notifications accessible via mobile menu
+  @media (max-width: 991.98px) {
+    display: none !important;
+  }
+
+  .notif-bell-btn {
+    position: relative;
+
+    .notif-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 18px;
+      color: $notif-bg-default;
+      background: #ef4444;
+      border-radius: 9px;
+      text-align: center;
+    }
+  }
+}
+
+// ============================================================================
+// MOBILE MENU NOTIFICATION LINK
+// ============================================================================
+
+.mobile-notif-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .mobile-notif-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: $notif-bg-default;
+    background: #ef4444;
+    border-radius: 10px;
+  }
+}
+
+// ============================================================================
+// RESPONSIVE DESIGN
+// ============================================================================
+
+// Tablet
+@media (max-width: 767.98px) {
+  .notification-dropdown {
+    width: 340px;
+    max-width: calc(100vw - 20px);
+
+    // Ensure proper positioning on smaller screens
+    right: 10px !important;
+    left: auto !important;
+
+    .notif-header {
+      padding: 14px 16px 0;
+
+      .notif-header-top .notif-title {
+        font-size: 18px;
+      }
+
+      .notif-tabs {
+        margin: 0 -16px;
+        padding: 0 16px;
+
+        .notif-tab {
+          padding: 8px 12px;
+          font-size: 13px;
+        }
+      }
+    }
+
+    .notif-content {
+      max-height: 350px;
+    }
+
+    .notif-item {
+      padding: 10px 16px;
+
+      .notif-avatar .avatar-img {
+        width: 40px;
+        height: 40px;
+      }
+
+      .notif-body .notif-text {
+        font-size: 13px;
+      }
+    }
+
+    .notif-footer {
+      padding: 10px 16px;
+    }
+  }
+}
+
+// Mobile
+@media (max-width: 575.98px) {
+  .notification-dropdown {
+    width: calc(100vw - 20px);
+    max-width: 340px;
+    right: 10px !important;
+
+    .notif-content {
+      max-height: 300px;
+    }
+  }
+}
+
+// ============================================================================
+// ACCESSIBILITY
+// ============================================================================
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  .notification-dropdown {
+    transition: none;
+
+    .notif-item,
+    .notif-mark-read,
+    .notif-tab,
+    .notif-view-all {
+      transition: none;
+    }
+  }
+}
+
+// Focus states for keyboard navigation
+.notification-dropdown {
+  .notif-tab:focus-visible,
+  .notif-mark-read:focus-visible {
+    outline: 2px solid $notif-accent-blue;
+    outline-offset: 2px;
+  }
+
+  .notif-item:focus-visible {
+    outline: 2px solid $notif-accent-blue;
+    outline-offset: -2px;
+    background-color: $notif-bg-hover;
+  }
+
+  .notif-view-all:focus-visible {
+    outline: 2px solid $notif-accent-blue;
+    outline-offset: 2px;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .notification-dropdown {
+    border-width: 2px;
+
+    .notif-item {
+      border-bottom-width: 2px;
+
+      &.unread {
+        border-left: 3px solid $notif-accent-blue;
+      }
+    }
+  }
+}
+
+// ============================================================================
+// LEGACY CLASSES (keep for backwards compatibility during transition)
+// ============================================================================
+
+.notification-title {
+  font-size: 16px;
+  color: $notif-text-primary;
+  margin-bottom: 0;
+  font-weight: 700;
+}
+
+.noti-content {
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .notification-item-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+
+  &:hover {
     text-decoration: none;
-    color: inherit;
-    transition: all 0.2s ease;
-    display: block;
-    
-    &:hover {
-        background-color: #f8f9fa !important;
-        text-decoration: none;
-        transform: translateX(2px);
-    }
-    
-    .text-dark {
-        transition: color 0.2s ease;
-    }
-    
-    &:hover .text-dark {
-        color: var(--primary-color, #4a7fff) !important;
-    }
+  }
 }

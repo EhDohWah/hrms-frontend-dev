@@ -116,7 +116,7 @@
                       <label class="form-label"
                         >Company Name <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="InnvoationSele"
                         id="innovationsele"
                         placeholder="Select"
@@ -168,7 +168,7 @@
                       <label class="form-label"
                         >Owner <span class="text-danger">*</span></label
                       >
-                      <vue-select :options="Hendry" id="hendry" placeholder="Select" />
+                      <a-select :options="Hendry" id="hendry" placeholder="Select" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -201,7 +201,7 @@
                           ><i class="ti ti-plus text-primary me-1"></i>Add New</a
                         >
                       </div>
-                      <vue-select
+                      <a-select
                         :options="CollinsKon"
                         id="collinskon"
                         placeholder="Select"
@@ -213,7 +213,7 @@
                       <label class="form-label"
                         >Industry <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="BarryCuda"
                         id="barrycuda"
                         placeholder="Select"
@@ -225,7 +225,7 @@
                       <label class="form-label"
                         >Source <span class="text-danger">*</span>
                       </label>
-                      <vue-select
+                      <a-select
                         :options="PhoneCalls"
                         id="phonecalls"
                         placeholder="Select"
@@ -237,7 +237,7 @@
                       <label class="form-label"
                         >Currency <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="DolarSel"
                         id="dolarsel"
                         placeholder="Select"
@@ -249,7 +249,7 @@
                       <label class="form-label"
                         >Language <span class="text-danger">*</span></label
                       >
-                      <vue-select :options="Chinese" id="chinses" placeholder="Select" />
+                      <a-select :options="Chinese" id="chinses" placeholder="Select" />
                     </div>
                   </div>
                   <div class="col-md-12">
@@ -274,7 +274,7 @@
                           ><i class="ti ti-plus text-primary me-1"></i>Add New</a
                         >
                       </div>
-                      <vue-select
+                      <a-select
                         :options="SharonyR"
                         id="sharonyr"
                         placeholder="Darlee Robertson"
@@ -320,7 +320,7 @@
                       <label class="form-label"
                         >State <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="StateCand"
                         id="statecand"
                         placeholder="Select"
@@ -332,7 +332,7 @@
                       <label class="form-label"
                         >Country <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="Indonesia"
                         id="indonesia"
                         placeholder="Select"
@@ -590,7 +590,7 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="CrmStat" id="crmstat" placeholder="Select" />
+                  <a-select :options="CrmStat" id="crmstat" placeholder="Select" />
                 </div>
               </div>
               <div class="modal-footer">
@@ -735,7 +735,7 @@
                       <label class="form-label"
                         >Company Name <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="EditInnvoationSele"
                         id="editinnovationsele"
                         placeholder="Stellar Dynamics"
@@ -791,7 +791,7 @@
                       <label class="form-label"
                         >Owner <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="EditHendry"
                         id="edithendry"
                         placeholder="Guilory"
@@ -828,7 +828,7 @@
                           ><i class="ti ti-plus text-primary me-1"></i>Add New</a
                         >
                       </div>
-                      <vue-select
+                      <a-select
                         :options="EditCollinsKon"
                         id="editcollinskon"
                         placeholder="Collins"
@@ -840,7 +840,7 @@
                       <label class="form-label"
                         >Industry <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="EditCollinsKon"
                         id="editcollinskone"
                         placeholder="Barry Cuda"
@@ -852,7 +852,7 @@
                       <label class="form-label"
                         >Source <span class="text-danger">*</span>
                       </label>
-                      <vue-select
+                      <a-select
                         :options="EditPhoneCalls"
                         id="editphonecalls"
                         placeholder="Social Media"
@@ -864,7 +864,7 @@
                       <label class="form-label"
                         >Currency <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="EditDolarSel"
                         id="editdolarsel"
                         placeholder="Dollar"
@@ -876,7 +876,7 @@
                       <label class="form-label"
                         >Language <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="EditChinese"
                         id="editchinses"
                         placeholder="English"
@@ -907,7 +907,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                           ><i class="ti ti-plus text-primary me-1"></i>Add New</a
                         >
                       </div>
-                      <vue-select
+                      <a-select
                         :options="EditSharonyR"
                         id="editsharonyr"
                         placeholder="Sharon Roy"
@@ -953,7 +953,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                       <label class="form-label"
                         >State <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="EditStateCand"
                         id="editstatecand"
                         placeholder="Select"
@@ -965,7 +965,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                       <label class="form-label"
                         >Country <span class="text-danger">*</span></label
                       >
-                      <vue-select
+                      <a-select
                         :options="EditIndonesia"
                         id="editindonesia"
                         placeholder="Select"
@@ -1223,7 +1223,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="EditCrmStat"
                     id="editcrmstat"
                     placeholder="Select"
@@ -1274,7 +1274,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Deal Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="AdasmSel" id="adasmsel" placeholder="Select" />
+                  <a-select :options="AdasmSel" id="adasmsel" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1291,7 +1291,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                       ><i class="ti ti-plus text-primary me-1"></i>Add New</a
                     >
                   </div>
-                  <vue-select
+                  <a-select
                     :options="MarketSelec"
                     id="marketselec"
                     placeholder="Select"
@@ -1303,7 +1303,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Status <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="OpenSelec" id="openselec" plaecholder="Select" />
+                  <a-select :options="OpenSelec" id="openselec" plaecholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1311,7 +1311,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Deal Value <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="ValueSele" id="valuesele" placeholder="Select" />
+                  <a-select :options="ValueSele" id="valuesele" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1319,7 +1319,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Currency<span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="AmValsel" id="amvalsel" placeholder="Select" />
+                  <a-select :options="AmValsel" id="amvalsel" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1343,7 +1343,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Contact <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Lewisel" id="lewisel" placeholder="Select" />
+                  <a-select :options="Lewisel" id="lewisel" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -1351,7 +1351,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Project * <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="AppManage" id="appmanage" placeholder="Select" />
+                  <a-select :options="AppManage" id="appmanage" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1399,7 +1399,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Assignee <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="AssignActive"
                     id="assignactive"
                     placeholder="Select"
@@ -1447,7 +1447,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Source <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Tressa" id="tressase" placeholder="Select" />
+                  <a-select :options="Tressa" id="tressase" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -1455,7 +1455,7 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
                   <label class="form-label"
                     >Priority <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Priorty" id="priorty" placeholder="Select" />
+                  <a-select :options="Priorty" id="priorty" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -2227,12 +2227,18 @@ Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam nisi numquam vit
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import Vue3TagsInput from "vue3-tags-input";
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 const currentDateTwo = ref(new Date());
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   components: {
     Vue3TagsInput,
   },

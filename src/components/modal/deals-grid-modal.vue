@@ -22,7 +22,7 @@
                   <label class="form-label"
                     >Deal Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="Konospk" id="konosk" placeholder="Select" />
+                  <a-select :options="Konospk" id="konosk" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -39,7 +39,7 @@
                       ><i class="ti ti-plus text-primary me-1"></i>Add New</a
                     >
                   </div>
-                  <vue-select :options="Marketing" id="marketin" placeholder="Select" />
+                  <a-select :options="Marketing" id="marketin" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -47,7 +47,7 @@
                   <label class="form-label"
                     >Status <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="OpenWi" id="openwi" placeholder="Select" />
+                  <a-select :options="OpenWi" id="openwi" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -63,7 +63,7 @@
                   <label class="form-label"
                     >Currency<span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="USDEuro" placeholder="Select" />
+                  <a-select :options="USDEuro" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -103,7 +103,7 @@
                   <label class="form-label"
                     >Project <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="offApp" id="offapp" placeholder="Select" />
+                  <a-select :options="offApp" id="offapp" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -151,7 +151,7 @@
                   <label class="form-label"
                     >Assignee <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="AssiInactive"
                     id="inactAss"
                     placeholder="Select"
@@ -199,7 +199,7 @@
                   <label class="form-label"
                     >Source <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="MediaGoo" id="medigoo" placeholder="Select" />
+                  <a-select :options="MediaGoo" id="medigoo" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -207,7 +207,7 @@
                   <label class="form-label"
                     >Priority <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="HigloMed" id="highlomed" placeholder="Select" />
+                  <a-select :options="HigloMed" id="highlomed" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -255,7 +255,7 @@
                   <label class="form-label"
                     >Deal Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditKonospk"
                     id="editkonosk"
                     placeholder="Collins"
@@ -276,7 +276,7 @@
                       ><i class="ti ti-plus text-primary me-1"></i>Add New</a
                     >
                   </div>
-                  <vue-select
+                  <a-select
                     :options="EditMarketing"
                     id="editmarketin"
                     placeholder="Sales"
@@ -288,7 +288,7 @@
                   <label class="form-label"
                     >Status <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="EditOpenWi" id="editopenwi" placeholder="Open" />
+                  <a-select :options="EditOpenWi" id="editopenwi" placeholder="Open" />
                 </div>
               </div>
               <div class="col-md-4">
@@ -304,7 +304,7 @@
                   <label class="form-label"
                     >Currency<span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditUSDEuro"
                     id="editusdeuro"
                     placeholder="Dollar"
@@ -332,7 +332,7 @@
                   <label class="form-label"
                     >Contact <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditRoyLeis"
                     id="editroyleis"
                     placeholder="Darlee Robertson"
@@ -344,7 +344,7 @@
                   <label class="form-label"
                     >Project * <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditoffApp"
                     id="editoffapp"
                     placeholder="Select"
@@ -396,7 +396,7 @@
                   <label class="form-label"
                     >Assignee <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditAssiInactive"
                     id="editinactAss"
                     placeholder="Active"
@@ -444,7 +444,7 @@
                   <label class="form-label"
                     >Source <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditMediaGoo"
                     id="editmedigoo"
                     placeholder="Select"
@@ -456,7 +456,7 @@
                   <label class="form-label"
                     >Priority <span class="text-danger"> *</span></label
                   >
-                  <vue-select
+                  <a-select
                     :options="EditHigloMed"
                     id="edithighlomed"
                     placeholder="High"
@@ -756,6 +756,8 @@
   <!-- /Add New Stage -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
@@ -765,6 +767,10 @@ const currentDateFour = ref(new Date());
 const currentDateFive = ref(new Date());
 import Vue3TagsInput from "vue3-tags-input";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   components: {
     Vue3TagsInput,
   },

@@ -34,7 +34,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Blogtags" id="blogtags" placeholder="Select" />
+                  <a-select :options="Blogtags" id="blogtags" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -90,7 +90,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="EditBlogtags"
                     id="editblogtags"
                     placeholder="Active"
@@ -145,8 +145,14 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import Vue3TagsInput from "vue3-tags-input";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Blogtags: ["Active", "Inactive"],

@@ -1,8 +1,14 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       startdate: currentDate,
@@ -115,7 +121,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Status" id="emp-present" placeholder="Select" />
+                  <a-select :options="Status" id="emp-present" placeholder="Select" />
                 </div>
               </div>
             </div>

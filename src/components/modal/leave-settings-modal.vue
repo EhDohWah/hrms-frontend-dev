@@ -1,5 +1,11 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Leavetype: ["Select", "Medical Leave", "Casual Leave", "Annual Leave"],
@@ -32,7 +38,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Leave Type</label>
-                  <vue-select :options="Leavetype" id="leave-setting-type" placeholder="Select" />
+                  <a-select :options="Leavetype" id="leave-setting-type" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -220,7 +226,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployee" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployee" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -275,7 +281,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeeone" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeeone" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -328,7 +334,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeetwo" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeetwo" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -381,7 +387,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeethree" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeethree" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -513,7 +519,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeefour" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeefour" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -568,7 +574,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeefive" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeefive" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -621,7 +627,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeesix" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeesix" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -674,7 +680,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeseven" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeseven" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -806,7 +812,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeeight" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeeight" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -861,7 +867,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="addemployeenine" placeholder="Select" />
+                                <a-select :options="Addemp" id="addemployeenine" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -914,7 +920,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empeone" placeholder="Select" />
+                                <a-select :options="Addemp" id="empeone" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -967,7 +973,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empetwo" placeholder="Select" />
+                                <a-select :options="Addemp" id="empetwo" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1100,7 +1106,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empethree" placeholder="Select" />
+                                <a-select :options="Addemp" id="empethree" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1155,7 +1161,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empefour" placeholder="Select" />
+                                <a-select :options="Addemp" id="empefour" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1208,7 +1214,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empefive" placeholder="Select" />
+                                <a-select :options="Addemp" id="empefive" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1261,7 +1267,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empesix" placeholder="Select" />
+                                <a-select :options="Addemp" id="empesix" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1394,7 +1400,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empeseven" placeholder="Select" />
+                                <a-select :options="Addemp" id="empeseven" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1449,7 +1455,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empeeight" placeholder="Select" />
+                                <a-select :options="Addemp" id="empeeight" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1502,7 +1508,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empeten" placeholder="Select" />
+                                <a-select :options="Addemp" id="empeten" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1555,7 +1561,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empeonetwo" placeholder="Select" />
+                                <a-select :options="Addemp" id="empeonetwo" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1723,7 +1729,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="empeselect" placeholder="Select" />
+                                <a-select :options="Addemp" id="empeselect" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1778,7 +1784,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="sophie" placeholder="Select" />
+                                <a-select :options="Addemp" id="sophie" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1831,7 +1837,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="cameron" placeholder="Select" />
+                                <a-select :options="Addemp" id="cameron" placeholder="Select" />
                               </div>
                             </div>
                           </div>
@@ -1884,7 +1890,7 @@ export default {
                               </div>
                               <div class="col-me-12">
                                 <label class="form-label">Add Employee</label>
-                                <vue-select :options="Addemp" id="doris" placeholder="Select" />
+                                <a-select :options="Addemp" id="doris" placeholder="Select" />
                               </div>
                             </div>
                           </div>

@@ -1,4 +1,6 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 const data = [
  {
    "Indicator": "Customer Experience",
@@ -77,6 +79,10 @@ const columns = [
 
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
     data() {
         return {
             data,
@@ -97,7 +103,7 @@ export default {
                 {{record.Expected_Value}}
             </template>
             <template v-if="column.key === 'Set_Value'">
-                <vue-select 
+                <a-select 
                     :options="None"
                     placeholder="None"
                 />

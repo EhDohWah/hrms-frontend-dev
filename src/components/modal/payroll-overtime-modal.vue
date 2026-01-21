@@ -26,7 +26,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Rate Type</label>
-                  <vue-select :options="Typerat" id="typerat" placeholder="Select" />
+                  <a-select :options="Typerat" id="typerat" placeholder="Select" style="width: 100%" :show-search="true" :filter-option="filterOption" :get-popup-container="getModalPopupContainer" />
                 </div>
               </div>
               <div class="col-md-12">
@@ -80,10 +80,14 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Rate Type</label>
-                  <vue-select
+                  <a-select
                     :options="EditTyperat"
                     id="edittyperat"
                     placeholder="Select"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
+                    :get-popup-container="getModalPopupContainer"
                   />
                 </div>
               </div>
@@ -141,7 +145,13 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Typerat: ["Select", "Hourly 1.5", "Hourly 3", "Hourly 2"],

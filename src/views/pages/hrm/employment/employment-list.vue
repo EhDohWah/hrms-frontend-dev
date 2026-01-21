@@ -267,7 +267,7 @@ export default {
     return {
       // Static configuration marked as raw for performance
       title: markRaw('Employments'),
-      text: markRaw('HR Management'),
+      text: markRaw('Employee'),
       text1: markRaw('Employment List'),
       searchStaffId: '',
       notificationTitle: '',

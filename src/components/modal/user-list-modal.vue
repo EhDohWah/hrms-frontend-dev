@@ -80,14 +80,17 @@
               <div class="col-md-6">
                 <div class="mb-3">
                   <label class="form-label">Role</label>
-                  <vue-select
+                  <a-select
                     :options="roles"
-                    v-model="newUser.role"
+                    v-model:value="newUser.role"
                     id="roleseleuser"
                     placeholder="Select Role"
                     required
-                    :settings="{ dropdownParent: '#add_users .modal-content' }"
-                    @update:modelValue="updatePermissionsByRole('new')"
+                    style="width: 100%"
+                    :show-search="true"
+                    :filter-option="filterOption"
+                    :get-popup-container="getModalPopupContainer"
+                    @change="updatePermissionsByRole('new')"
                   />
                 </div>
               </div>
@@ -427,14 +430,17 @@
                     <div class="col-md-12">
                       <div class="mb-3">
                         <label class="form-label">Role <span class="text-danger">*</span></label>
-                        <vue-select
+                        <a-select
                           :options="roles"
-                          v-model="editUser.role"
+                          v-model:value="editUser.role"
                           id="roleedituser"
                           placeholder="Select Role"
                           required
-                          :settings="{ dropdownParent: '#edit_user .modal-content' }"
-                          @update:modelValue="updatePermissionsByRole('edit')"
+                          style="width: 100%"
+                          :show-search="true"
+                          :filter-option="filterOption"
+                          :get-popup-container="getModalPopupContainer"
+                          @change="updatePermissionsByRole('edit')"
                         />
                       </div>
                     </div>
@@ -907,9 +913,15 @@ const MENU_HIERARCHY = {
   }
 };
 
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
   name: 'UserListModal',
   emits: ['user-added', 'user-updated', 'user-deleted'],
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       adminStore: null,
@@ -1255,12 +1267,20 @@ export default {
         if (rolesData && Array.isArray(rolesData)) {
           // Extract unique role names from the API response (de-duplicate across guards)
           const uniqueRoles = [...new Set(rolesData.map(role => role.name))];
-          this.roles = uniqueRoles;
+          // Transform to object format for Ant Design Vue Select component
+          this.roles = uniqueRoles.map(role => ({
+            label: role.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+            value: role
+          }));
           console.log(`[UserListModal] Loaded ${this.roles.length} unique roles from API:`, this.roles);
         } else if (response.success && response.data) {
           // Alternative format: { success: true, data: [...] }
           const uniqueRoles = [...new Set(response.data.map(role => role.name))];
-          this.roles = uniqueRoles;
+          // Transform to object format for Ant Design Vue Select component
+          this.roles = uniqueRoles.map(role => ({
+            label: role.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+            value: role
+          }));
           console.log(`[UserListModal] Loaded ${this.roles.length} unique roles from API:`, this.roles);
         } else {
           console.warn('[UserListModal] No roles found in API response:', response);
@@ -1269,8 +1289,11 @@ export default {
       } catch (error) {
         console.error('[UserListModal] Error loading roles:', error);
         this.showAlert('Failed to load roles. Using fallback.', 'warning');
-        // Fallback to default roles
-        this.roles = ['admin', 'hr-manager'];
+        // Fallback to default roles in object format
+        this.roles = [
+          { label: 'Admin', value: 'admin' },
+          { label: 'HR Manager', value: 'hr-manager' }
+        ];
       } finally {
         this.loadingRoles = false;
       }

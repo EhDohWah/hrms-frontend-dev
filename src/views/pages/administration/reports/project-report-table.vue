@@ -1,4 +1,7 @@
 <script>
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getUserAvatar } = useAssetUrl();
+
 const data = [
   {
     Image: "user-32.jpg",
@@ -256,7 +259,7 @@ export default {
         <div class="d-flex align-items-center file-name-icon">
           <a href="javascript:void(0);" class="avatar avatar-md border avatar-rounded">
             <img
-              :src="require(`@/assets/img/users/${record.Image}`)"
+              :src="getUserAvatar(record.Image)"
               class="img-fluid"
               alt="img"
             />
@@ -270,21 +273,21 @@ export default {
         <div class="avatar-list-stacked avatar-group-sm">
           <span class="avatar border-0">
             <img
-              :src="require(`@/assets/img/users/${record.Img}`)"
+              :src="getUserAvatar(record.Img)"
               class="rounded-circle"
               alt="img"
             />
           </span>
           <span class="avatar border-0">
             <img
-              :src="require(`@/assets/img/users/${record.Img1}`)"
+              :src="getUserAvatar(record.Img1)"
               class="rounded-circle"
               alt="img"
             />
           </span>
           <span class="avatar border-0">
             <img
-              :src="require(`@/assets/img/users/${record.Img2}`)"
+              :src="getUserAvatar(record.Img2)"
               class="rounded-circle"
               alt="img"
             />

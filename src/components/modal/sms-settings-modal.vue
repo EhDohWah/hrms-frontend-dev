@@ -38,7 +38,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="StaSms" id="stasms" placeholder="Active" />
+                  <a-select :options="StaSms" id="stasms" placeholder="Active" style="width: 100%" :show-search="true" :filter-option="filterOption" :get-popup-container="getModalPopupContainer" />
                 </div>
               </div>
             </div>
@@ -98,7 +98,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="StaSmsOne" id="stasmsone" placeholder="Active" />
+                  <a-select :options="StaSmsOne" id="stasmsone" placeholder="Active" style="width: 100%" :show-search="true" :filter-option="filterOption" :get-popup-container="getModalPopupContainer" />
                 </div>
               </div>
             </div>
@@ -158,7 +158,7 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="StaSmsTwo" id="stasmstwo" placeholder="Active" />
+                  <a-select :options="StaSmsTwo" id="stasmstwo" placeholder="Active" style="width: 100%" :show-search="true" :filter-option="filterOption" :get-popup-container="getModalPopupContainer" />
                 </div>
               </div>
             </div>
@@ -180,7 +180,13 @@
   <!-- /Add Nexmo -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       StaSms: ["Active", "Inactive"],

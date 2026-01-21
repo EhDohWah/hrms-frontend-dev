@@ -46,10 +46,13 @@
                         </div>
                         <div class="col-lg-5">
                           <div class="mb-3">
-                            <vue-select
+                            <a-select
                               :options="OptSel"
                               id="otpsel"
                               placeholder="Select"
+                              style="width: 100%"
+                              :show-search="true"
+                              :filter-option="filterOption"
                             />
                           </div>
                         </div>
@@ -62,10 +65,13 @@
                         </div>
                         <div class="col-lg-5">
                           <div class="mb-3">
-                            <vue-select
+                            <a-select
                               :options="DightSele"
                               id="gightSele"
                               placeholder="Select"
+                              style="width: 100%"
+                              :show-search="true"
+                              :filter-option="filterOption"
                             />
                           </div>
                         </div>
@@ -78,10 +84,13 @@
                         </div>
                         <div class="col-lg-5">
                           <div class="mb-3">
-                            <vue-select
+                            <a-select
                               :options="ExpriTime"
                               id="expritime"
                               placeholder="Select"
+                              style="width: 100%"
+                              :show-search="true"
+                              :filter-option="filterOption"
                             />
                           </div>
                         </div>
@@ -114,7 +123,13 @@
   <!-- /Page Wrapper -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption } = useSelectMigration();
+    return { filterOption };
+  },
   data() {
     return {
       OptSel: ["Select", "SMS", "Email"],

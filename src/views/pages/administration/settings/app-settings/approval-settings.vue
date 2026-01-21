@@ -77,10 +77,13 @@
                               <label class="form-label mb-0">Expense Approvers</label>
                             </div>
                             <div class="flex-fill">
-                              <vue-select
+                              <a-select
                                 :options="LeadSele"
                                 id="leadsele"
                                 placeholder="Select"
+                                style="width: 100%"
+                                :show-search="true"
+                                :filter-option="filterOption"
                               />
                             </div>
                           </div>
@@ -130,10 +133,13 @@
                               <label class="form-label mb-0">Leave Approvers</label>
                             </div>
                             <div class="flex-fill">
-                              <vue-select
+                              <a-select
                                 :options="ManageLea"
                                 id="managle"
                                 placeholder="Select"
+                                style="width: 100%"
+                                :show-search="true"
+                                :filter-option="filterOption"
                               />
                             </div>
                           </div>
@@ -206,7 +212,13 @@
   <!-- /Page Wrapper -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption } = useSelectMigration();
+    return { filterOption };
+  },
   data() {
     return {
       LeadSele: ["Select", "CEO", "Manager", "Team Lead"],

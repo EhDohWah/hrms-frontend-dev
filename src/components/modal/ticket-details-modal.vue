@@ -24,7 +24,7 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Event Category</label>
-                  <vue-select :options="IssueInt" id="issueint" placeholder="Select" />
+                  <a-select :options="IssueInt" id="issueint" placeholder="Select" />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Subject</label>
@@ -32,7 +32,7 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Assign To</label>
-                  <vue-select :options="Assjame" id="assjame" placeholder="Select" />
+                  <a-select :options="Assjame" id="assjame" placeholder="Select" />
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Ticket Description</label>
@@ -40,11 +40,11 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select :options="PrioLow" id="priolow" placeholder="Select" />
+                  <a-select :options="PrioLow" id="priolow" placeholder="Select" />
                 </div>
                 <div class="mb-0">
                   <label class="form-label">Status</label>
-                  <vue-select :options="InProSelc" id="inproselc" placeholder="Select" />
+                  <a-select :options="InProSelc" id="inproselc" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -65,7 +65,13 @@
   <!-- /Add Ticket -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       InProSelc: ["Select", "Closed", "Reopened", "Inprogress"],

@@ -43,10 +43,13 @@
                           <label class="form-label mb-md-0">Language</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="SpaSel"
                             id="spasel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
 
                           <p
@@ -67,10 +70,13 @@
                           <label class="form-label mb-md-0">Timezone</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="TimeSel"
                             id="timesel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -81,10 +87,13 @@
                           <label class="form-label mb-md-0">Date Format</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="DateSel"
                             id="datesel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -95,10 +104,13 @@
                           <label class="form-label mb-md-0">Time Format</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="FormSel"
                             id="formsel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -109,10 +121,13 @@
                           <label class="form-label mb-md-0">Financial Year</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="FinaSel"
                             id="finasel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -123,10 +138,13 @@
                           <label class="form-label mb-md-0">Starting Month</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="StarSel"
                             id="starsel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -142,10 +160,13 @@
                           <label class="form-label mb-md-0">Currency</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="AmerSel"
                             id="amersel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -156,10 +177,13 @@
                           <label class="form-label mb-md-0">Currency Symbol</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="CurrSe"
                             id="currse"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -178,10 +202,13 @@
                           <label class="form-label mb-md-0">Decimal Seperator</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="DecSel"
                             id="decsel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -192,10 +219,13 @@
                           <label class="form-label mb-md-0">Thousand Seperator</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="ThouSel"
                             id="thousel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -211,10 +241,13 @@
                           <label class="form-label mb-md-0">Countries Restriction</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="CountSele"
                             id="countsele"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -230,10 +263,13 @@
                           <label class="form-label mb-md-0">Allowed Files</label>
                         </div>
                         <div class="col-md-7">
-                          <vue-select
+                          <a-select
                             :options="FilSel"
                             id="filesel"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -275,7 +311,13 @@
   <!-- /Page Wrapper -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption } = useSelectMigration();
+    return { filterOption };
+  },
   data() {
     return {
       TimeSel: ["Select", "(UTC +5:30)", "(UTC+11:00) INR"],

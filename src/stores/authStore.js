@@ -616,6 +616,109 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    // =========================================
+    // REAL-TIME PROFILE SYNCHRONIZATION
+    // =========================================
+
+    /**
+     * Handle WebSocket profile update event.
+     * Called from echo.js when 'user.profile-updated' event is received.
+     *
+     * @param {Object} data - Event payload from WebSocket
+     */
+    handleProfileUpdateEvent(data) {
+      console.log('[AuthStore] 👤 Profile update event received:', data);
+
+      // Verify this event is for the current user
+      if (data.user_id && data.user_id !== this.user?.id) {
+        console.warn('[AuthStore] Profile update event for different user, ignoring');
+        return;
+      }
+
+      // Update local state based on update type
+      if (data.data) {
+        switch (data.update_type) {
+          case 'name':
+            if (data.data.name) {
+              this.user = { ...this.user, name: data.data.name };
+              this.setStorageItem(STORAGE_KEYS.USER, this.user);
+            }
+            break;
+          case 'email':
+            if (data.data.email) {
+              this.user = { ...this.user, email: data.data.email };
+              this.setStorageItem(STORAGE_KEYS.USER, this.user);
+            }
+            break;
+          case 'profile_picture':
+            if (data.data.profile_picture) {
+              this.user = {
+                ...this.user,
+                profile_picture: data.data.profile_picture,
+                profile_picture_updated_at: Date.now() // Cache busting timestamp
+              };
+              this.setStorageItem(STORAGE_KEYS.USER, this.user);
+            }
+            break;
+          case 'password':
+            // Password update - no state change needed, just emit event
+            break;
+        }
+      }
+
+      // Emit profile update event for components to react
+      this.emitProfileUpdated(data.update_type, data.data, data.message);
+
+      // Broadcast to other tabs
+      this.broadcastProfileUpdate(data);
+    },
+
+    /**
+     * Emit profile update event for components to react.
+     * Components can listen to 'profile-updated' window event.
+     *
+     * @param {string} updateType - Type of update (name, email, profile_picture, password)
+     * @param {Object} data - Updated data
+     * @param {string} message - Optional message from backend
+     */
+    emitProfileUpdated(updateType, data, message = null) {
+      try {
+        const event = new CustomEvent('profile-updated', {
+          detail: {
+            updateType,
+            data,
+            user: this.user,
+            message,
+            timestamp: Date.now(),
+          },
+        });
+        window.dispatchEvent(event);
+        console.log('[AuthStore] Profile updated event emitted:', updateType);
+      } catch (error) {
+        console.error('[AuthStore] Error emitting profile-updated event:', error);
+      }
+    },
+
+    /**
+     * Broadcast profile update to other tabs.
+     *
+     * @param {Object} data - Profile update data
+     */
+    broadcastProfileUpdate(data) {
+      if (this.crossTabChannel) {
+        try {
+          this.crossTabChannel.postMessage({
+            type: 'PROFILE_UPDATE',
+            updateType: data.update_type,
+            data: data.data,
+            userId: this.user?.id,
+          });
+        } catch (error) {
+          console.error('[AuthStore] Error broadcasting profile update:', error);
+        }
+      }
+    },
+
     /**
      * Initialize cross-tab synchronization using BroadcastChannel API.
      * Allows permission updates to sync across browser tabs.
@@ -656,6 +759,37 @@ export const useAuthStore = defineStore('auth', {
 
               // Reinitialize menu service
               this.initializeMenuService();
+            }
+          } else if (type === 'PROFILE_UPDATE') {
+            // Another tab updated profile, sync across tabs
+            const { updateType, data } = event.data;
+            console.log('[AuthStore] Received cross-tab profile update:', updateType);
+
+            // Update local state based on update type
+            if (data) {
+              switch (updateType) {
+                case 'name':
+                  if (data.name) {
+                    this.user = { ...this.user, name: data.name };
+                  }
+                  break;
+                case 'email':
+                  if (data.email) {
+                    this.user = { ...this.user, email: data.email };
+                  }
+                  break;
+                case 'profile_picture':
+                  if (data.profile_picture) {
+                    this.user = {
+                      ...this.user,
+                      profile_picture: data.profile_picture,
+                      profile_picture_updated_at: Date.now() // Cache busting timestamp
+                    };
+                  }
+                  break;
+              }
+              this.setStorageItem(STORAGE_KEYS.USER, this.user);
+              this.emitProfileUpdated(updateType, data);
             }
           } else if (type === 'LOGOUT') {
             // Another tab logged out, sync logout across tabs

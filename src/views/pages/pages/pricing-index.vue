@@ -369,7 +369,7 @@
                   <label class="form-label"
                     >Plan Name <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="BasSele" id="bassele" placeholder="Select" />
+                  <a-select :options="BasSele" id="bassele" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -377,7 +377,7 @@
                   <label class="form-label"
                     >Plan Type <span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="YeaPric" id="yeapric" placeholder="Select" />
+                  <a-select :options="YeaPric" id="yeapric" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -385,7 +385,7 @@
                   <label class="form-label"
                     >Plan Position<span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="PlanPri" id="planpri" placeholder="Select" />
+                  <a-select :options="PlanPri" id="planpri" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -393,7 +393,7 @@
                   <label class="form-label"
                     >Plan Currency<span class="text-danger"> *</span></label
                   >
-                  <vue-select :options="CurrPri" id="currpri" placeholder="Select" />
+                  <a-select :options="CurrPri" id="currpri" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-6">
@@ -407,7 +407,7 @@
                       free</span
                     >
                   </div>
-                  <vue-select :options="PercPri" id="percpri" placeholder="Select" />
+                  <a-select :options="PercPri" id="percpri" placeholder="Select" />
                 </div>
               </div>
               <div class="col-md-3">
@@ -416,7 +416,7 @@
                     >Discount Type<span class="text-danger"> *</span></label
                   >
                   <div class="pass-group">
-                    <vue-select :options="PeFexSel" id="pefexsel" placeholder="Select" />
+                    <a-select :options="PeFexSel" id="pefexsel" placeholder="Select" />
                   </div>
                 </div>
               </div>
@@ -637,7 +637,7 @@
                     <label class="form-label"
                       >Status<span class="text-danger"> *</span></label
                     >
-                    <vue-select :opitons="SelePri" id="selepri" placeholder="Select" />
+                    <a-select :opitons="SelePri" id="selepri" placeholder="Select" />
                   </div>
                 </div>
               </div>
@@ -662,6 +662,8 @@
   <!-- /Add Plan -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import "daterangepicker/daterangepicker.css";
 import "daterangepicker/daterangepicker.js";
 import { ref } from "vue";

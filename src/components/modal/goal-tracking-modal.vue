@@ -1,9 +1,15 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Goaltype: ["Select", "Development Goals", "Project Goals"],
@@ -43,7 +49,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Goal Type</label>
-                  <vue-select
+                  <a-select
                     :options="Goaltype"
                     id="type-project"
                     placeholder="Select"
@@ -107,7 +113,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="Status" id="type-active" placeholder="Select" />
+                  <a-select :options="Status" id="type-active" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -145,7 +151,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Goal Type</label>
-                  <vue-select
+                  <a-select
                     :options="Goaltype"
                     id="type-project-one"
                     placeholder="Development Goals"
@@ -215,7 +221,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="Status"
                     id="type-active-one"
                     placeholder="Active"

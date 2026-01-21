@@ -62,10 +62,13 @@
                         </div>
                         <div class="col-lg-3">
                           <div class="mb-3">
-                            <vue-select
+                            <a-select
                               :options="LeftSele"
                               id="leftsel"
                               placeholder="Select"
+                              style="width: 100%"
+                              :show-search="true"
+                              :filter-option="filterOption"
                             />
                           </div>
                         </div>
@@ -151,7 +154,13 @@
 </template>
 <script>
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption } = useSelectMigration();
+    return { filterOption };
+  },
   data() {
     return {
       editor: ClassicEditor,

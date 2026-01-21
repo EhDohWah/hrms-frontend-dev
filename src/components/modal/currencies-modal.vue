@@ -66,7 +66,7 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select :options="CurrenSta" id="currensta" placeholder="Select" />
+                  <a-select :options="CurrenSta" id="currensta" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -151,7 +151,7 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="EditCurrenSta"
                     id="editcurrensta"
                     placeholder="Active"
@@ -200,7 +200,13 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       CurrenSta: ["Select", "Active", "Inactive"],

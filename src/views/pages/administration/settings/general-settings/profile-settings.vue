@@ -134,10 +134,13 @@
                         </div>
                         <div class="col-md-8">
                           <div>
-                            <vue-select
+                            <a-select
                               :options="IndUk"
                               id="induk"
                               placeholder="Select"
+                              style="width: 100%"
+                              :show-search="true"
+                              :filter-option="filterOption"
                             />
                           </div>
                         </div>
@@ -150,10 +153,13 @@
                         </div>
                         <div class="col-md-8">
                           <div>
-                            <vue-select
+                            <a-select
                               :options="UkSek"
                               id="ujsek"
                               placeholder="Select"
+                              style="width: 100%"
+                              :show-search="true"
+                              :filter-option="filterOption"
                             />
                           </div>
                         </div>
@@ -165,10 +171,13 @@
                           <label class="form-label mb-md-0">City</label>
                         </div>
                         <div class="col-md-8">
-                          <vue-select
+                          <a-select
                             :options="Cityselc"
                             id="cityselc"
                             placeholder="Select"
+                            style="width: 100%"
+                            :show-search="true"
+                            :filter-option="filterOption"
                           />
                         </div>
                       </div>
@@ -210,7 +219,13 @@
   <!-- /Page Wrapper -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 export default {
+  setup() {
+    const { filterOption } = useSelectMigration();
+    return { filterOption };
+  },
   data() {
     return {
       UkSek: ["Select", "California", "New York", "Texas", "Florida"],

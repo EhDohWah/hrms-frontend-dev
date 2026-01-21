@@ -47,6 +47,13 @@ UI/UX improvements and styling guides
 - Hybrid Bootstrap/AntDesign implementation
 - Component-specific styling
 
+### 🔄 `/migration`
+Vite migration documentation and guides
+- Vite migration analysis report
+- Quick fix guide for completing migration
+- Environment variable conversion
+- require() to ES import conversion
+
 ### ⚡ `/performance`
 Performance optimization and best practices
 - Dropdown optimization

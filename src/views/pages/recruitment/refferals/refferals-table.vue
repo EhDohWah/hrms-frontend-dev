@@ -1,4 +1,7 @@
 <script>
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getUserAvatar, getIconUrl } = useAssetUrl();
+
 const data = [
  {
    "Refferals_Image" : "user-32.jpg",
@@ -219,7 +222,7 @@ export default {
             <template v-if="column.key === 'Referrer_Name'">
                 <div class="d-flex align-items-center file-name-icon">
                     <a href="javascript:void(0);" class="avatar avatar-md ">
-                        <img :src="require(`@/assets/img/users/${record.Refferals_Image}`)" class="img-fluid rounded-circle" alt="img">
+                        <img :src="getUserAvatar(record.Refferals_Image)" class="img-fluid rounded-circle" alt="img">
                     </a>
                     <div class="ms-2">
                         <h6 class="fw-medium"><a href="javascript:void(0);">{{record.Referrer_Name}}</a></h6>
@@ -230,7 +233,7 @@ export default {
             <template v-if="column.key === 'Job_Reffered'">
                 <div class="d-flex align-items-center file-name-icon">
                     <a href="javascript:void(0);" class="avatar avatar-md bg-light rounded">
-                        <img :src="require(`@/assets/img/icons/${record.Job_Image}`)" class="img-fluid rounded-circle" alt="img">
+                        <img :src="getIconUrl(record.Job_Image)" class="img-fluid rounded-circle" alt="img">
                     </a>
                     <div class="ms-2">
                         <h6 class="fw-medium"><a href="javascript:void(0);">{{record.Job_Reffered}}</a></h6>
@@ -241,7 +244,7 @@ export default {
             <template v-if="column.key === 'Referee_Name'">
                 <div class="d-flex align-items-center file-name-icon">
                     <a href="javascript:void(0);" class="avatar avatar-md ">
-                        <img :src="require(`@/assets/img/users/${record.Refferee_Image}`)" class="img-fluid rounded-circle" alt="img">
+                        <img :src="getUserAvatar(record.Refferee_Image)" class="img-fluid rounded-circle" alt="img">
                     </a>
                     <div class="ms-2">
                         <h6 class="fw-medium"><a href="javascript:void(0);">{{record.Referee_Name}}</a></h6>

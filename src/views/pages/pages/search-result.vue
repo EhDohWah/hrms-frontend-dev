@@ -83,7 +83,7 @@
             >
               <a @click.prevent="openLightbox(index)" class="gallery-item">
                 <img
-                  :src="require(`@/assets/img/media/${image}`)"
+                  :src="getMediaImageUrl(image)"
                   class="rounded"
                   alt="img"
                 />
@@ -117,6 +117,8 @@
 
 <script>
 import { ref, computed } from "vue";
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getMediaImageUrl } = useAssetUrl();
 import VueEasyLightbox from "vue-easy-lightbox"; // Ensure you import the lightbox component
 
 export default {
@@ -191,7 +193,7 @@ export default {
     };
 
     const imageUrls = computed(() => {
-      return images.map((image) => require(`@/assets/img/media/${image}`));
+      return images.map((image) => getMediaImageUrl(image));
     });
 
     return {

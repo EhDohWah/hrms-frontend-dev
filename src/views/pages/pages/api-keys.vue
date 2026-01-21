@@ -124,7 +124,7 @@
                       class="avatar avatar-md border avatar-rounded"
                     >
                       <img
-                        :src="require(`@/assets/img/users/${record.Image}`)"
+                        :src="getUserAvatar(record.Image)"
                         class="img-fluid"
                         alt="img"
                       />
@@ -205,6 +205,9 @@ import { ref } from "vue";
 import { onMounted } from "vue";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
+import { useAssetUrl } from '@/composables/useAssetUrl';
+const { getUserAvatar } = useAssetUrl();
+
 const columns = [
   {
     sorter: false,

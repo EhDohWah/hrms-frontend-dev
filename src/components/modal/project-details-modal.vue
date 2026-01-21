@@ -69,7 +69,7 @@
                   <div class="col-md-12">
                     <div class="mb-3">
                       <label class="form-label">Client</label>
-                      <vue-select
+                      <a-select
                         :options="AnthonLewis"
                         id="anthonlewis"
                         placeholder="Select"
@@ -117,7 +117,7 @@
                       <div class="col-md-6">
                         <div class="mb-3">
                           <label class="form-label">Priority</label>
-                          <vue-select
+                          <a-select
                             :options="PriorLow"
                             id="lowpro"
                             placeholder="Select"
@@ -231,7 +231,7 @@
                   <div class="col-md-12">
                     <div class="mb-3">
                       <label class="form-label">Status</label>
-                      <vue-select
+                      <a-select
                         :options="InactDet"
                         id="inactdet"
                         placeholder="Select"
@@ -241,7 +241,7 @@
                   <div class="col-md-12">
                     <div>
                       <label class="form-label">Tags</label>
-                      <vue-select :options="TagsDet" id="tagsdet" placeholder="Select" />
+                      <a-select :options="TagsDet" id="tagsdet" placeholder="Select" />
                     </div>
                   </div>
                 </div>
@@ -347,7 +347,7 @@
                   <div class="col-md-12">
                     <div class="mb-3">
                       <label class="form-label">Client</label>
-                      <vue-select
+                      <a-select
                         :options="Lewsisa"
                         id="lewsisa"
                         placeholder="Anthony Lewis"
@@ -395,7 +395,7 @@
                       <div class="col-md-6">
                         <div class="mb-3">
                           <label class="form-label">Priority</label>
-                          <vue-select
+                          <a-select
                             :options="HighProp"
                             id="highprop"
                             placeholder="Select"
@@ -509,7 +509,7 @@
                   <div class="col-md-12">
                     <div class="mb-3">
                       <label class="form-label">Status</label>
-                      <vue-select
+                      <a-select
                         :options="StaDetail"
                         id="stadetail"
                         placeholder="Active"
@@ -519,7 +519,7 @@
                   <div class="col-md-12">
                     <div>
                       <label class="form-label">Tags</label>
-                      <vue-select
+                      <a-select
                         :options="HighTagMed"
                         id="hightagmed"
                         placeholder="High"
@@ -616,13 +616,13 @@
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Tag</label>
-                  <vue-select :options="InterSel" id="intersel" placeholder="Select" />
+                  <a-select :options="InterSel" id="intersel" placeholder="Select" />
                 </div>
               </div>
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select :options="Mediumpro" id="medipro" placeholder="Select" />
+                  <a-select :options="Mediumpro" id="medipro" placeholder="Select" />
                 </div>
               </div>
               <div class="col-lg-12">
@@ -638,13 +638,13 @@
               <div class="col-12">
                 <div class="mb-3">
                   <label class="form-label">Add Assignee</label>
-                  <vue-select :options="Dorisel" id="dorisel" placeholder="Select" />
+                  <a-select :options="Dorisel" id="dorisel" placeholder="Select" />
                 </div>
               </div>
               <div class="col-12">
                 <div class="mb-0">
                   <label class="form-label">Status</label>
-                  <vue-select
+                  <a-select
                     :options="CompletedSel"
                     id="complesel"
                     placeholder="Select"
@@ -788,13 +788,13 @@
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Tag</label>
-                  <vue-select :options="ProjSel" id="projsel" placeholder="Select" />
+                  <a-select :options="ProjSel" id="projsel" placeholder="Select" />
                 </div>
               </div>
               <div class="col-6">
                 <div class="mb-3">
                   <label class="form-label">Priority</label>
-                  <vue-select :options="SelecPros" id="selecpros" placeholder="Select" />
+                  <a-select :options="SelecPros" id="selecpros" placeholder="Select" />
                 </div>
               </div>
               <div class="col-lg-12">
@@ -810,7 +810,7 @@
               <div class="col-12">
                 <div class="mb-3">
                   <label class="form-label">Add Assignee</label>
-                  <vue-select
+                  <a-select
                     :options="AssignSele"
                     id="assignsele"
                     placeholder="Select"
@@ -820,7 +820,7 @@
               <div class="col-12">
                 <div class="mb-0">
                   <label class="form-label">Status</label>
-                  <vue-select :options="OnholdSel" id="onholdsel" placeholder="Select" />
+                  <a-select :options="OnholdSel" id="onholdsel" placeholder="Select" />
                 </div>
               </div>
             </div>
@@ -867,6 +867,8 @@
   <!-- /Delete Modal -->
 </template>
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
@@ -875,6 +877,10 @@ const currentDateThree = ref(new Date());
 import Vue3TagsInput from "vue3-tags-input";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   components: {
     Vue3TagsInput,
   },

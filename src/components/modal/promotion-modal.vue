@@ -1,8 +1,14 @@
 <script>
+import { useSelectMigration } from '@/composables/useSelectMigration';
+
 import { ref } from "vue";
 const currentDate = ref(new Date());
 
 export default {
+  setup() {
+    const { filterOption, getModalPopupContainer } = useSelectMigration();
+    return { filterOption, getModalPopupContainer };
+  },
   data() {
     return {
       Promotionfor: ["Select", "Anthony Lewis", "Brian Villalobos", "Doglas Martini"],
@@ -42,7 +48,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Promotion For</label>
-                  <vue-select
+                  <a-select
                     :options="Promotionfor"
                     id="promotionfor"
                     placeholder="Select"
@@ -52,7 +58,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Promotion From</label>
-                  <vue-select
+                  <a-select
                     :options="PromotiontoOne"
                     id="promotiontoone"
                     placeholder="Select"
@@ -62,7 +68,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Promotion To</label>
-                  <vue-select
+                  <a-select
                     :options="Promotionto"
                     id="promotionto"
                     placeholder="Select"
@@ -126,7 +132,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Promotion For</label>
-                  <vue-select
+                  <a-select
                     :options="Promotionfor"
                     id="promotionfor-one"
                     placeholder="Anthony Lewis"
@@ -142,7 +148,7 @@ export default {
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Promotion To</label>
-                  <vue-select
+                  <a-select
                     :options="Promotionto"
                     id="promotionto-one"
                     placeholder="Sr Accountant"

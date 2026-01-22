@@ -434,6 +434,7 @@ export default {
         }
       ]);
     },
+    
     tableData() {
       // Optimized table data computation with caching
       const cacheKey = `${this.employments.length}-${this.currentPage}-${this.pageSize}`;

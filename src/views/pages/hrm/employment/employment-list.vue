@@ -939,13 +939,8 @@ export default {
 
           const modalRef = this.$refs.employmentEditModal;
           if (modalRef && typeof modalRef.openModal === 'function') {
-            // Set the employment data to the edit modal using the exposed method
-            if (typeof modalRef.setEmploymentData === 'function') {
-              modalRef.setEmploymentData(response.data);
-            } else {
-              // Fallback: try direct assignment if method doesn't exist
-              modalRef.employmentData = response.data;
-            }
+            // Set the employment data to the edit modal
+            modalRef.employmentData = response.data;
             
             // Wait for next tick to ensure component is fully rendered
             await this.$nextTick();

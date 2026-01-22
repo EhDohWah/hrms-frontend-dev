@@ -132,14 +132,14 @@ export function initEcho(token) {
     // Reverb Configuration
     const reverbConfig = {
         broadcaster: 'reverb',
-        key: import.meta.env.VITE_REVERB_APP_KEY || 'f1mmywqucqxx3bfqf3bf',
+        key: import.meta.env.VITE_REVERB_APP_KEY || 'qr5fnpjwyv6ckd89vk3d',
         wsHost: import.meta.env.VITE_REVERB_HOST || '127.0.0.1',
         wsPort: import.meta.env.VITE_REVERB_PORT || 8081,
         wssPort: import.meta.env.VITE_REVERB_PORT || 8081,
         forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'http') === 'https',
         enabledTransports: ['ws', 'wss'],
         disableStats: true,
-        authEndpoint: import.meta.env.VITE_BROADCASTING_AUTH_ENDPOINT || 'http://127.0.0.1:8000/api/broadcasting/auth',
+        authEndpoint: import.meta.env.VITE_BROADCASTING_AUTH_ENDPOINT || 'http://127.0.0.1:8000/broadcasting/auth',
         auth: {
             headers: { Authorization: `Bearer ${token}` },
         },

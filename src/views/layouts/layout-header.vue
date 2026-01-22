@@ -582,9 +582,28 @@ export default {
      * Returns HTML string for v-html binding
      */
     formatNotificationText(notification) {
+      const type = notification.data?.type || notification.type || '';
+
+      // For import/system notifications that have their own message, use it directly
+      const directMessageTypes = [
+        'import_completed',
+        'import_failed',
+        'system_notification',
+        'announcement'
+      ];
+
+      if (directMessageTypes.includes(type)) {
+        return this.escapeHtml(this.getNotificationMessage(notification));
+      }
+
       const userName = this.getPerformedByName(notification);
       const action = this.getActionVerb(notification);
       const objectInfo = this.getObjectInfo(notification);
+
+      // If no meaningful action info, fallback to message
+      if (action === 'made changes to' && !objectInfo) {
+        return this.escapeHtml(this.getNotificationMessage(notification));
+      }
 
       // Build formatted message
       let text = '';

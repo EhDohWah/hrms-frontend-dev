@@ -1,0 +1,343 @@
+// ============================================
+// ANT DESIGN MISCELLANEOUS OVERRIDES
+// ============================================
+// Extracted from _vue.scss for styles that don't fit other categories
+// Includes: carousels, scroll areas, v-calendar, layout overrides
+
+// ==================
+// VUE3 COMPONENTS
+// ==================
+.vue3-circular-progressbar {
+  height: 100%;
+  width: 100%;
+  color: $success;
+}
+
+// ==================
+// OWL CAROUSEL
+// ==================
+.owl-carousel.files-carousel .carousel .files-wrap {
+  width: 100%;
+  margin: 0 8px;
+}
+
+.owl-carousel.folders-carousel .carousel .folder-wrap {
+  width: 100%;
+  margin: 0 8px;
+}
+
+.owl-carousel.video-section .carousel .video-wrap {
+  width: 100%;
+  margin: 0 8px;
+}
+
+.video-section video {
+  width: 100%;
+}
+
+// Carousel navigation buttons
+.owl-carousel.video-section .carousel .carousel__next,
+.owl-carousel.video-section .carousel .carousel__prev {
+  border: 1px solid $light-900;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  background: $white;
+  color: $gray-600;
+  font-size: $font-size-14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: -27px;
+}
+
+.owl-carousel.video-section .carousel .carousel__next {
+  margin-right: 85%;
+}
+
+.owl-carousel.video-section .carousel .carousel__prev {
+  margin-left: 76px;
+}
+
+// ==================
+// STICKY SIDEBAR
+// ==================
+.stickysidebar {
+  position: sticky;
+  top: 0;
+}
+
+// ==================
+// NOTES SLIDER
+// ==================
+.notes-slider.owl-carousel .carousel__prev {
+  background-color: transparent;
+  width: 24px;
+  height: auto;
+  margin-top: -164px;
+  left: 145px;
+}
+
+.notes-slider.owl-carousel .carousel__next {
+  background-color: transparent;
+  width: 24px;
+  height: auto;
+  margin-top: -164px;
+  left: 165px;
+}
+
+.notes-page-wrapper .notes-slider.owl-carousel .carousel .carousel__next,
+.notes-page-wrapper .notes-slider.owl-carousel .carousel .carousel__prev {
+  border: 1px solid $light-900;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  background: $white;
+  color: $gray-600;
+  font-size: $font-size-14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notes-page-wrapper .notes-slider.owl-carousel .carousel .carousel__next {
+  margin-left: 21px;
+}
+
+.notes-page-wrapper .content .section-notes-slider .notes-card {
+  padding: 24px;
+  border-radius: 8px;
+  background: rgba($warning, 0.03);
+}
+
+.notes-page-wrapper .notes-slider.owl-carousel .carousel .card.rounded-3 {
+  margin: 0 12px;
+}
+
+.notes-page-wrapper .owl-carousel.folders-carousel .carousel .carousel__next,
+.notes-page-wrapper .owl-carousel.folders-carousel .carousel .carousel__prev {
+  border: 1px solid $light-900;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  background: $white;
+  color: $gray-600;
+  font-size: $font-size-14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: -27px;
+}
+
+.notes-page-wrapper .owl-carousel.folders-carousel .carousel .carousel__next {
+  margin-right: 85%;
+}
+
+.notes-page-wrapper .owl-carousel.folders-carousel .carousel .carousel__prev {
+  margin-left: 76px;
+}
+
+.notes-page-wrapper .owl-carousel.folders-carousel .carousel .p-3.border {
+  width: 100%;
+  margin: 0 8px;
+}
+
+// ==================
+// SCROLL AREAS
+// ==================
+.scroll-area {
+  position: relative;
+  margin: auto;
+  width: 100%;
+  height: calc(100vh - 30px);
+  background-color: transparent;
+}
+
+.scroll-area-one {
+  position: relative;
+  margin: auto;
+  width: 100%;
+  height: calc(100vh - 0px);
+  background-color: transparent;
+}
+
+.scroll-area-two {
+  position: relative;
+  margin: auto;
+  width: 100%;
+  height: calc(100vh - 140px);
+  background-color: transparent;
+}
+
+.ps.scroll-area {
+  @include respond-below(sm) {
+    width: 100%;
+  }
+}
+
+// ==================
+// APEX CHARTS
+// ==================
+.apexcharts-legend.apx-legend-position-bottom.apexcharts-align-center,
+.apexcharts-legend.apx-legend-position-top.apexcharts-align-center {
+  display: none;
+}
+
+// ==================
+// CK EDITOR
+// ==================
+.ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline.ck-blurred {
+  height: 300px;
+}
+
+// ==================
+// V3TI INPUT TAGS
+// ==================
+.v3ti .v3ti-tag {
+  background: $light-900;
+  border-radius: $border-radius;
+  padding: 0 5px;
+  font-size: $font-size-14;
+  color: $gray-700;
+  display: inline-flex;
+  align-items: center;
+}
+
+.v3ti .v3ti-tag .v3ti-remove-tag {
+  color: $title-color;
+}
+
+.v3ti.input-tags.form-control {
+  padding: 2px;
+  border-color: $gray-200;
+  color: $gray-900;
+  background-color: $white;
+  font-size: $font-size-14;
+  font-weight: $font-weight-normal;
+  line-height: 1.6;
+  border-radius: $border-radius;
+  height: $input-height;
+  transition: all 0.5s;
+}
+
+// ==================
+// LAYOUT BOX MODE
+// ==================
+.layout-box-mode .owl-carousel.link-slider .carousel ol li {
+  width: 45%;
+}
+
+// ==================
+// SERVICE WIDGET
+// ==================
+.service-widget.service-fav {
+  margin-right: 0;
+}
+
+// ==================
+// FILES CAROUSEL
+// ==================
+.files-carousel .carousel ol li .card.shadow-none {
+  width: 100%;
+  margin: 0 12px;
+}
+
+// ==================
+// MEDIA IMAGES SLIDER
+// ==================
+.media-images-slider .carousel ol li .gallery-item {
+  position: relative;
+  margin: 0 12px;
+
+  .hover-links {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: 0.5s all;
+    opacity: 0;
+  }
+
+  &:hover {
+    .hover-links {
+      top: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 1;
+    }
+
+    &::before {
+      content: "";
+      width: 100%;
+      height: 100%;
+      border-radius: $border-radius;
+      background: $gray-900;
+      opacity: 0.8;
+      position: absolute;
+      transition: 0.5s all;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+    }
+  }
+}
+
+// ==================
+// V-CALENDAR / DATE PICKER
+// ==================
+.datepic .vc-container {
+  border: none;
+}
+
+.datepic .vc-container .vc-pane-container .vc-pane-layout .vc-pane .vc-weeks .vc-day .vc-highlights .vc-day-layer .vc-highlight {
+  background-color: $primary;
+  text-shadow: unset;
+  color: $white;
+  border-radius: $border-radius;
+}
+
+.vc-container.vc-monthly {
+  min-width: 100%;
+}
+
+.datepic .vc-pane-container .vc-header .vc-arrow.vc-prev,
+.datepic .vc-pane-container .vc-header .vc-arrow.vc-next {
+  border-radius: 50%;
+  background-color: $white;
+  border: 1px solid rgba($dark, 0.2);
+}
+
+.datepic .vc-pane-container .vc-weeks {
+  margin-top: 20px;
+}
+
+// ==================
+// HORIZONTAL SIDEMENU LAYOUT
+// ==================
+[data-layout=horizontal-sidemenu] .header .header-left .dark-logo {
+  display: block;
+}
+
+[data-layout=horizontal-sidemenu] .header .header-left .logo {
+  display: none;
+}
+
+[data-layout=horizontal-box] .header .header-left .dark-logo {
+  display: none;
+}
+
+[data-layout=horizontal-overlay] .page-breadcrumb h2 {
+  color: $title-color;
+}
+
+// ==================
+// MINI SIDEBAR
+// ==================
+.mini-sidebar.layout-box-mode .main-wrapper .sidebar .sidebar-inner .sidebar-menu {
+  margin-top: 0;
+}
+
+.data-layout-transparent .sidebar .sidebar-inner .sidebar-menu {
+  margin-top: 20px;
+  padding: 0 16px;
+}

@@ -103,7 +103,13 @@ const MODULE_NAME_MAP = {
   'resignation': 'employee_resignation',
   'employee_resignation': 'employee_resignation',
   'employee-resignation': 'employee_resignation',
-  
+
+  // Employee Funding Allocation variations
+  'employee-funding-allocation': 'employee_funding_allocations',
+  'employee_funding_allocation': 'employee_funding_allocations',
+  'funding-allocation': 'employee_funding_allocations',
+  'funding_allocation': 'employee_funding_allocations',
+
   // Termination variations
   'termination': 'terminations',
   

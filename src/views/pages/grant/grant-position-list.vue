@@ -95,8 +95,8 @@
     <!-- Grant Position Modal -->
     <grant-position-modal ref="grantPositionModal" @childSubmit="handleGrantPositionSubmit" />
 
-    <!-- Notification Toast -->
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <!-- Notification Toast - z-index 2000 to appear above modals -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
       <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header" :class="notificationClass">
           <strong class="me-auto">{{ notificationTitle }}</strong>

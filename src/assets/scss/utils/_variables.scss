@@ -367,3 +367,69 @@ $h3-font-size: 20px;
 $h4-font-size: 18px;
 $h5-font-size: 16px;
 $h6-font-size: 14px;
+
+// ============================================
+// TABLE DESIGN TOKENS
+// ============================================
+$table-header-bg: #fafafa !default;
+$table-header-color: rgba(0, 0, 0, 0.85) !default;
+$table-cell-padding: 12px 16px !default;
+$table-cell-color: rgba(0, 0, 0, 0.65) !default;
+$table-hover-bg: #fafafa !default;
+$table-border-color: #f0f0f0 !default;
+
+// Selection and interaction states
+// IMPORTANT: Use OPAQUE colors for fixed columns (not rgba transparency!)
+$table-selection-bg: #f0f7ff !default;         // Opaque light blue for selected rows
+$table-selection-hover-bg: #e6f4ff !default;   // Opaque slightly darker for hover
+$table-row-hover-bg: #fafafa !default;         // Opaque gray for hover
+
+// Checkbox styling
+$checkbox-border-radius: 2px !default;
+$checkbox-size: 16px !default;
+
+// ============================================
+// PAGINATION DESIGN TOKENS
+// ============================================
+$pagination-active-bg: $primary !default;
+$pagination-active-color: $white !default;
+$pagination-active-border: $primary !default;
+$pagination-item-size: 32px !default;
+$pagination-border-radius: 50% !default;
+
+// ============================================
+// FORM CONTROL DESIGN TOKENS
+// ============================================
+$input-padding: 0.5rem 0.75rem !default;
+$input-font-size: $font-size-14 !default;
+$input-border-radius: 5px !default;
+$input-height: 38px !default;
+$input-border-color: $gray-200 !default;
+
+// ============================================
+// DARK MODE DESIGN TOKENS
+// ============================================
+$dark-bg: #171724 !default;
+$dark-bg-elevated: #1e1e2d !default;
+$dark-bg-sidebar: #131022 !default;
+$dark-text: #ffffff !default;
+$dark-text-muted: #a0a0a0 !default;
+$dark-border: #2d2d3f !default;
+$dark-border-light: #393947 !default;
+
+// ============================================
+// Z-INDEX SCALE
+// ============================================
+// Bootstrap-compatible z-index hierarchy
+// IMPORTANT: Maintain this order to prevent stacking conflicts
+$z-dropdown: 1000 !default;
+$z-sticky: 1020 !default;
+$z-fixed: 1030 !default;
+$z-header: 1030 !default;           // Header fixed position
+$z-sidebar-overlay: 1034 !default;  // Below sidebar, above content
+$z-sidebar: 1035 !default;          // Sidebar (must be below modal backdrop)
+$z-modal-backdrop: 1040 !default;
+$z-modal: 1050 !default;
+$z-popover: 1060 !default;
+$z-tooltip: 1070 !default;
+$z-toast: 2000 !default;            // Toast notifications above everything

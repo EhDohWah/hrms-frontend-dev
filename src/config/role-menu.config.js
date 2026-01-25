@@ -25,11 +25,14 @@ export const ROLE_MENU_ACCESS = {
             'Lookups',
             'Organization Structure',
             'File Uploads',
+            'Recycle Bin',
         ],
         allowedSubMenus: {
             'User Management': ['Users', 'Roles'],
             'Lookups': ['Lookup List'],
             'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments'],
+            'File Uploads': ['File Uploads List'],
+            'Recycle Bin': ['Recycle Bin List'],
         },
         permissions: [
             'admin.*',
@@ -100,7 +103,8 @@ export const ROLE_MENU_ACCESS = {
             'Grants': ['Grants List', 'Grant Position'],
             'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments'],
             'Recycle Bin': ['Recycle Bin List'],
-            'Lookups': ['Lookup List']
+            'Lookups': ['Lookup List'],
+            'File Uploads': ['File Uploads List']
         },
         permissions: [
             'admin.*',
@@ -159,7 +163,8 @@ export const ROLE_MENU_ACCESS = {
             'Payroll': ['Employee Salary', 'Payslip', 'Payroll Items', 'Tax Settings', 'Benefit Settings'],
             'Training': ['Training List', 'Employee Training'],
             'Reports': ['Report List'],
-            'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments']
+            'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments'],
+            'File Uploads': ['File Uploads List']
         },
         permissions: [
             'admin.*',

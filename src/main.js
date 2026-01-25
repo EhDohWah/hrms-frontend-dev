@@ -57,7 +57,8 @@ import '@/assets/css/font-display-override.css'
 import '@/assets/css/vue-form-wizard.css';
 import "boxicons/css/boxicons.min.css";
 import "v-calendar/dist/style.css";
-import '@/assets/css/nprogress-custom.css'; // Custom NProgress styling
+import 'nprogress/nprogress.css'; // Base NProgress styles
+import '@/assets/css/nprogress-custom.css'; // Custom NProgress styling (overrides base)
 import '@/assets/scss/main.scss'
 
 // Lazy Components Plugin - reduces initial bundle size by ~60%
@@ -66,8 +67,8 @@ import { registerLazyComponents } from './plugins/lazy-components';
 // Permission Directive Plugin - for v-permission, v-can-edit, v-can-read directives
 import { PermissionPlugin } from './directives/permission';
 
-// NProgress Plugin - Route navigation progress bar
-import NProgressPlugin from './plugins/nprogress';
+// NProgress Composable - Route navigation progress bar (Vue 3 recommended approach)
+import { useNProgress, setupRouterNProgress } from './composables/useNProgress';
 
 // Event Bus
 import eventBus from './plugins/eventBus';
@@ -170,9 +171,16 @@ app.use(CKEditor)
 // Permission Directives (v-permission, v-can-edit, v-can-read)
 app.use(PermissionPlugin)
 
-// NProgress - Route navigation progress bar
-// Must be registered after router is created but before app.use(router)
-app.use(NProgressPlugin, { router })
+// NProgress - Route navigation progress bar (Vue 3 composable approach)
+// Setup router integration for automatic progress on navigation
+setupRouterNProgress(router, {
+  skipRoutes: ['/login', '/logout', '/forgot-password', '/reset-password'],
+});
+
+// Provide NProgress composable globally for component usage
+const nprogress = useNProgress();
+app.provide('nprogress', nprogress);
+app.config.globalProperties.$nprogress = nprogress;
 
 // Provide EventBus globally
 app.provide('eventBus', eventBus);

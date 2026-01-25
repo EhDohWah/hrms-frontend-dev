@@ -115,14 +115,28 @@
     padding: 0.625rem 1.25rem;
     font-weight: $font-weight-medium;
     transition: all 0.2s ease;
-    
+
     &:hover:not(:disabled) {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba($primary, 0.25);
     }
-    
+
     &:active:not(:disabled) {
         transform: translateY(0);
+    }
+}
+
+// Auth page links - underline on hover for better UX
+.login-background ~ .col-lg-7,
+.col-lg-7:has(form) {
+    a.text-primary {
+        text-decoration: none;
+        transition: text-decoration 0.2s ease, color 0.2s ease;
+
+        &:hover {
+            text-decoration: underline;
+            color: darken($primary, 10%);
+        }
     }
 }
 .hover-a {

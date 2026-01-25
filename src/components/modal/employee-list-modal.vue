@@ -430,10 +430,10 @@
                     </label>
                   </div>
                   <div class="form-input-col">
-                    <select class="form-select input-medium" id="id-type" v-model="personalForm.employee_identification.id_type">
-                      <option value="" disabled selected>Select ID Type</option>
-                      <option v-for="idType in idTypes" :key="idType.id" :value="idType.value">
-                        {{ idType.value }}
+                    <select class="form-select input-medium" id="id-type" v-model="personalForm.identification_type">
+                      <option value="">Select ID Type</option>
+                      <option v-for="idType in identificationTypeOptions" :key="idType.value" :value="idType.value">
+                        {{ idType.label }}
                       </option>
                     </select>
                   </div>
@@ -447,7 +447,7 @@
                     </label>
                   </div>
                   <div class="form-input-col">
-                    <input type="text" class="form-control input-medium" id="id-number" v-model="personalForm.employee_identification.document_number"
+                    <input type="text" class="form-control input-medium" id="id-number" v-model="personalForm.identification_number"
                       placeholder="Enter ID number" />
                   </div>
                 </div>
@@ -1405,15 +1405,24 @@ export default {
         religion: '',
         marital_status: '',
         spouse_name: '',
-        spouse_mobile: '',
+        spouse_phone_number: '',
         languages: [],
         current_address: '',
         permanent_address: '',
-        employee_identification: {
-          id_type: '',
-          document_number: ''
-        },
+        // Direct columns instead of nested relationship
+        identification_type: '',
+        identification_number: '',
       },
+      // Identification type options matching database schema
+      identificationTypeOptions: [
+        { value: '10YearsID', label: '10 Years ID' },
+        { value: 'BurmeseID', label: 'Burmese ID' },
+        { value: 'CI', label: 'CI' },
+        { value: 'Borderpass', label: 'Borderpass' },
+        { value: 'ThaiID', label: 'Thai ID' },
+        { value: 'Passport', label: 'Passport' },
+        { value: 'Other', label: 'Other' },
+      ],
       bankForm: {
         bank_name: '',
         bank_branch: '',
@@ -1771,14 +1780,13 @@ export default {
         religion: this.personalForm.religion,
         marital_status: this.personalForm.marital_status,
         spouse_name: this.personalForm.spouse_name,
-        spouse_mobile: this.personalForm.spouse_mobile,
+        spouse_phone_number: this.personalForm.spouse_phone_number,
         languages: this.personalForm.languages?.filter(Boolean) || [],
         current_address: this.personalForm.current_address,
         permanent_address: this.personalForm.permanent_address,
-        employee_identification: {
-          id_type: this.personalForm.employee_identification.id_type,
-          document_number: this.personalForm.employee_identification.document_number,
-        },
+        // Direct columns instead of nested relationship
+        identification_type: this.personalForm.identification_type || null,
+        identification_number: this.personalForm.identification_number || null,
       };
     },
 
@@ -2048,14 +2056,13 @@ export default {
         religion: '',
         marital_status: '',
         spouse_name: '',
-        spouse_mobile: '',
+        spouse_phone_number: '',
         languages: [],
         current_address: '',
         permanent_address: '',
-        employee_identification: {
-          id_type: '',
-          document_number: ''
-        },
+        // Direct columns instead of nested relationship
+        identification_type: '',
+        identification_number: '',
       };
       this.bankForm = {
         bank_name: '',

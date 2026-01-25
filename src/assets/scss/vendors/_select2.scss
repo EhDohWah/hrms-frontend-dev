@@ -1,6 +1,6 @@
 .select2-container {
     min-width: 100% !important;
-    z-index: 99;
+    z-index: $z-dropdown;
     .select2-selection--single {
         height: 38px;
     }
@@ -72,7 +72,7 @@
     }
 }
 span.select2-container.select2-container--default.select2-container--open {
-    z-index: 9999;
+    z-index: $z-popover;
     box-shadow: $box-shadow-sm;
 }
 .select2-container--classic .select2-selection--single,
@@ -109,7 +109,7 @@ span.select2-container.select2-container--default.select2-container--open {
 }
 .select2-container--open {
     .ti-filter {
-        z-index: 9999 !important;
+        z-index: $z-popover !important;
     }
 }
 .select2-results__option {

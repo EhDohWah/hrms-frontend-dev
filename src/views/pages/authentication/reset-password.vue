@@ -106,11 +106,14 @@ export default {
         });
         
         message.value = response.message || 'Your password has been reset successfully! Redirecting to login...';
-        
+
         // Clear form fields for security
         formData.password = '';
         formData.password_confirmation = '';
-        
+
+        // Reset validation state to prevent error messages from showing after clearing fields
+        v$.value.$reset();
+
         setTimeout(() => {
           router.push('/login');
         }, 3000);
@@ -333,5 +336,15 @@ export default {
 
 .invalid-feedback {
   display: block;
+}
+
+/* Auth links - underline on hover for better UX */
+.text-primary {
+  text-decoration: none;
+  transition: text-decoration 0.2s ease;
+}
+
+.text-primary:hover {
+  text-decoration: underline;
 }
 </style>

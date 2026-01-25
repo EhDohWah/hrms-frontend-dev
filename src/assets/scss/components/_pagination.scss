@@ -7,15 +7,15 @@
         background-color: $light;
     }
     &:hover {
-        color: $primary;
+        color: $pagination-active-bg;
         background-color: $light;
         border-color: $border-color;
     }
 }
 .page-item.active .page-link {
-    color: $white;
-    background-color: $primary;
-    border-color: $primary;
+    color: $pagination-active-color;
+    background-color: $pagination-active-bg;
+    border-color: $pagination-active-border;
 }
 .disabled>.page-link, .page-link.disabled {
     color: $text-color;

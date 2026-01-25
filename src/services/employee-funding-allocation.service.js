@@ -39,5 +39,10 @@ export const employeeFundingAllocationService = {
     // Get grant structure for UI dropdowns
     getGrantStructure() {
         return apiService.get(API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.GRANT_STRUCTURE);
+    },
+
+    // Batch update allocations (updates, creates, deletes in one atomic operation)
+    batchUpdate(data) {
+        return apiService.put(API_ENDPOINTS.EMPLOYEE_FUNDING_ALLOCATION.BATCH_UPDATE, data);
     }
 };

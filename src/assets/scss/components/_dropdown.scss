@@ -373,18 +373,18 @@
 }
 .dropdown-menu {
     &.notes-menu {
-        z-index: 99999;
+        z-index: $z-popover;  // Fixed: was 99999, now uses variable (1060)
         a {
             &.dropdown-item {
                 color: $gray-900;
                 font-size: $font-size-14;
                 font-weight: $font-weight-normal;
                 display: flex;
-                align-items: center; 
-                padding: 8px 15px;                             
+                align-items: center;
+                padding: 8px 15px;
             }
-            
-        }   
+
+        }
         span {
             margin-right: 8px;
         }
@@ -393,5 +393,5 @@
             height: 14px;
             color: $text-color;
         }
-    } 
+    }
 }

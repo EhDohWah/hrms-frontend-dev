@@ -1,0 +1,225 @@
+// ============================================
+// ANT DESIGN DARK MODE OVERRIDES
+// ============================================
+// Consolidates .dark class and [data-theme="dark"] attribute
+// Uses dark mode design tokens from utils/_variables.scss
+
+// Single selector covers both dark mode approaches
+[data-theme="dark"],
+.dark {
+
+  // ==================
+  // TABLES
+  // ==================
+  .ant-table {
+    background-color: $dark-bg;
+    border-color: $dark-bg;
+  }
+
+  .ant-table-wrapper .ant-table {
+    background: $dark-bg;
+  }
+
+  .ant-table .ant-table-content .ant-table-thead th {
+    background: $dark-bg-sidebar;
+    color: $dark-text;
+    border-color: $dark-border;
+  }
+
+  .ant-table-thead .ant-table-cell {
+    background: $dark-bg;
+  }
+
+  .ant-table-wrapper .ant-table-tbody > tr > td {
+    color: $dark-text;
+  }
+
+  .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover {
+    background-color: $dark-bg;
+  }
+
+  .ant-table-wrapper .ant-table-tbody > tr > td.ant-table-cell-row-hover {
+    background-color: $dark-bg;
+    color: $dark-text;
+  }
+
+  .ant-table-tbody > tr > td {
+    color: $dark-text;
+  }
+
+  .ant-table-tbody > tr > td:hover {
+    color: $dark-text;
+  }
+
+  .ant-table-cell {
+    background: $dark-bg;
+    color: $dark-text;
+  }
+
+  .ant-table-cell.ant-table-cell-row-hover {
+    background-color: $dark-bg;
+    color: $dark-text-muted;
+    border-color: $dark-border-light;
+  }
+
+  .ant-table-cell.ant-table-column-sort {
+    background: $dark-bg;
+  }
+
+  .ant-table-cell.ant-table-column-has-sorters {
+    background: $dark-bg;
+    color: $dark-text;
+  }
+
+  .ant-table-cell.ant-table-column-has-sorters.ant-table-column-sort {
+    background: $dark-bg;
+  }
+
+  .ant-table-cell.ant-table-selection-column {
+    background: $dark-bg;
+  }
+
+  // Selection row - MUST use opaque colors for fixed columns
+  // Fixed: was rgba transparency (0.04), now uses opaque dark blue
+  .ant-table-tbody > tr.ant-table-row-selected > td {
+    background-color: #1a2332;  // Opaque dark blue for selection
+  }
+
+  .ant-table-tbody > tr.ant-table-row-selected:hover > td {
+    background-color: #1f2940;  // Opaque slightly lighter for hover
+  }
+
+  // Fixed columns in dark mode - MUST be opaque
+  .ant-table-tbody > tr > td.ant-table-cell-fix-left,
+  .ant-table-tbody > tr > td.ant-table-cell-fix-right {
+    background-color: $dark-bg !important;
+  }
+
+  .ant-table-tbody > tr:hover > td.ant-table-cell-fix-left,
+  .ant-table-tbody > tr:hover > td.ant-table-cell-fix-right {
+    background-color: $dark-bg !important;
+  }
+
+  .ant-table-tbody > tr.ant-table-row-selected > td.ant-table-cell-fix-left,
+  .ant-table-tbody > tr.ant-table-row-selected > td.ant-table-cell-fix-right {
+    background-color: #1a2332 !important;
+  }
+
+  .ant-table-tbody > tr.ant-table-row-selected:hover > td.ant-table-cell-fix-left,
+  .ant-table-tbody > tr.ant-table-row-selected:hover > td.ant-table-cell-fix-right {
+    background-color: #1f2940 !important;
+  }
+
+  // Table container border
+  .ant-table-container {
+    border-color: $dark-border;
+  }
+
+  // Table avatar in dark mode
+  .ant-table-row .ant-table-cell .table-avatar a {
+    color: $dark-text;
+  }
+
+  .ant-table-row .ant-table-cell .table-avatar a span {
+    color: $gray-600;
+  }
+
+  // Column sorters
+  .ant-table-column-sorter.ant-table-column-sorter-full {
+    color: $dark-text;
+  }
+
+  .ant-table-column-sorters {
+    color: $dark-text-muted;
+  }
+
+  .anticon.anticon-caret-up.ant-table-column-sorter-up {
+    color: $dark-text-muted;
+  }
+
+  .anticon.anticon-caret-down.ant-table-column-sorter-down {
+    color: $dark-text-muted;
+  }
+
+  // Column title
+  .ant-table-wrapper .ant-table-column-title {
+    color: $dark-text;
+  }
+
+  // ==================
+  // CALENDAR / DATE PICKER
+  // ==================
+  .vc-pane-container {
+    background: $dark-bg;
+  }
+
+  // ==================
+  // V3 DATE PICKER
+  // ==================
+  .v3dp__popout[data-v-65eb861b] {
+    z-index: $z-popover;  // Fixed: was 999, now uses variable (1060)
+  }
+}
+
+// Sidebar dark mode (separate from theme dark mode)
+[data-sidebar="dark"] {
+  .sidebar {
+    background-color: $dark-bg;
+  }
+
+  .header .page-title-box h3 {
+    color: $dark-text-muted;
+  }
+
+  .header #toggle_btn .bar-icon span {
+    background-color: $dark-text-muted;
+  }
+
+  .header .top-nav-search form .form-control {
+    border: 1px solid $dark-text-muted;
+    color: $dark-text-muted;
+  }
+
+  // Table styles for sidebar dark mode
+  .ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover {
+    background-color: $dark-bg;
+  }
+
+  .ant-table-row .ant-table-cell .table-avatar a {
+    color: $gray-500;
+  }
+
+  .ant-table-tbody > tr > td {
+    color: $dark-text;
+  }
+
+  .ant-table-tbody > tr > td:hover {
+    color: $dark-text;
+  }
+
+  :where(.css-dev-only-do-not-override-1hsjdkk).ant-table-wrapper .ant-table-tbody > tr.ant-table-row:hover > td,
+  :where(.css-dev-only-do-not-override-1hsjdkk).ant-table-wrapper .ant-table-tbody > tr > td.ant-table-cell-row-hover {
+    background-color: $dark-bg;
+  }
+
+  .ant-table-cell.ant-table-column-sort {
+    background: $dark-bg;
+  }
+
+  .ant-table-column-sorters {
+    color: $dark-text-muted;
+  }
+
+  .anticon.anticon-caret-up.ant-table-column-sorter-up {
+    color: $dark-text-muted;
+  }
+
+  .anticon.anticon-caret-down.ant-table-column-sorter-down {
+    color: $dark-text-muted;
+  }
+}
+
+// Dark mode class (additional standalone selector for backwards compatibility)
+.darkmode .vc-pane-container {
+  background: $dark-bg;
+}

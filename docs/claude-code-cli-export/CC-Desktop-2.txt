@@ -1,0 +1,37 @@
+
+ ▐▛███▜▌   Claude Code v2.1.19
+▝▜█████▛▘  Opus 4.5 · Claude Max
+  ▘▘ ▝▝    D:\HR_management_system\3. Implementation\hrms-frontend-dev
+══════════════════ Conversation compacted · ctrl+o for history ═════════════════
+
+❯ /compact 
+  ⎿  Compacted (ctrl+o to see full summary)
+  ⎿  Referenced file src\components\modal\travel-request-modal.vue
+  ⎿  Referenced file src\components\modal\grant-modal.vue
+  ⎿  Referenced file src\components\modal\employment-modal.vue
+  ⎿  Read src\main.js (229 lines)
+  ⎿  Read src\plugins\nprogress.js.deprecated (408 lines)
+ ▐▛███▜▌   Claude Code v2.1.19
+▝▜█████▛▘  Opus 4.5 · Claude Max
+  ▘▘ ▝▝    D:\HR_management_system\3. Implementation\hrms-frontend-dev
+══════════════════ Conversation compacted · ctrl+o for history ═════════════════
+
+❯ /compact 
+  ⎿  Compacted (ctrl+o to see full summary)
+  ⎿  Referenced file src\components\modal\travel-request-modal.vue
+  ⎿  Referenced file src\components\modal\grant-modal.vue
+  ⎿  Referenced file src\components\modal\employment-modal.vue
+  ⎿  Read src\main.js (229 lines)
+  ⎿  Read src\plugins\nprogress.js.deprecated (408 lines)
+ ▐▛███▜▌   Claude Code v2.1.19
+▝▜█████▛▘  Opus 4.5 · Claude Max
+  ▘▘ ▝▝    D:\HR_management_system\3. Implementation\hrms-frontend-dev
+══════════════════ Conversation compacted · ctrl+o for history ═════════════════
+
+❯ /compact 
+  ⎿  Compacted (ctrl+o to see full summary)
+  ⎿  Referenced file src\components\modal\travel-request-modal.vue
+  ⎿  Referenced file src\components\modal\grant-modal.vue
+  ⎿  Referenced file src\components\modal\employment-modal.vue
+  ⎿  Read src\main.js (229 lines)
+  ⎿  Read src\plugins\nprogress.js.deprecated (408 lines)

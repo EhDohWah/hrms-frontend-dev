@@ -305,11 +305,9 @@
                     <div class="d-flex align-items-center justify-content-between mb-2">
                       <span class="d-inline-flex align-items-center">
                         <i class="ti ti-e-passport me-2"></i>
-                        ID type
+                        ID Type
                       </span>
-                      <p class="text-dark mb-0">{{ employee.employee_identification ?
-                        employee.employee_identification.id_type :
-                        'N/A' }}</p>
+                      <p class="text-dark mb-0">{{ formatIdentificationType(employee.identification_type) || 'N/A' }}</p>
                     </div>
 
                     <div class="d-flex align-items-center justify-content-between mb-2">
@@ -317,8 +315,7 @@
                         <i class="ti ti-id-badge me-2"></i>
                         ID Number
                       </span>
-                      <p class="text-dark mb-0">{{ employee.employee_identification ?
-                        employee.employee_identification.document_number : 'N/A' }}</p>
+                      <p class="text-dark mb-0">{{ employee.identification_number || 'N/A' }}</p>
                     </div>
 
                     <!-- <template
@@ -1828,15 +1825,14 @@ export default {
         tax_number: employee.tax_number,
         religion: employee.religion,
         marital_status: employee.marital_status,
+        spouse_name: employee.spouse_name || '',
+        spouse_phone_number: employee.spouse_phone_number || '',
         languages: employee.employee_languages ? employee.employee_languages.map(lang => lang.language) : [],
         current_address: employee.current_address,
         permanent_address: employee.permanent_address,
-        employee_identification: employee.employee_identification
-          ? {
-            id_type: employee.employee_identification.id_type,
-            document_number: employee.employee_identification.document_number,
-          }
-          : { id_type: '', document_number: '' },
+        // Direct columns instead of nested relationship
+        identification_type: employee.identification_type || '',
+        identification_number: employee.identification_number || '',
       };
     },
 
@@ -1886,6 +1882,28 @@ export default {
       if (!date) return '';
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       return new Date(date).toLocaleDateString('th-TH', options);
+    },
+
+    // Convert database identification type values to user-friendly display names
+    formatIdentificationType(type) {
+      if (!type) return null;
+      const typeMapping = {
+        '10YearsID': '10 Years ID',
+        'BurmeseID': 'Burmese ID',
+        'ThaiID': 'Thai ID',
+        'CI': 'CI',
+        'Borderpass': 'Borderpass',
+        'Passport': 'Passport',
+        'Other': 'Other',
+      };
+      return typeMapping[type] || type;
+    },
+
+    // Format military status boolean to Yes/No display
+    formatMilitaryStatus(status) {
+      if (status === true) return 'Yes';
+      if (status === false) return 'No';
+      return 'N/A';
     },
 
     calculateAge(dateOfBirth) {

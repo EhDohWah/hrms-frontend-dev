@@ -127,11 +127,6 @@
             "active_link": "/leave/admin/leaves-admin"
           },
           {
-            "menuValue": "Leave (Employee)",
-            "route": "/leave/employee/leaves-employee",
-            "active_link": "/leave/employee/leaves-employee"
-          },
-          {
             "menuValue": "Leave Settings",
             "route": "/leave/admin/leave-settings",
             "active_link": "/leave/admin/leave-settings"
@@ -281,7 +276,7 @@
       },
       {
         "menuValue": "Lookups",
-        "route": "/lookups/lookup-list",
+        "route": "/lookups",
         "active_link": "lookups",
         "hasSubRoute": true,
         "showSubRoute": false,
@@ -289,8 +284,8 @@
         "subMenus": [
           {
             "menuValue": "Lookup List",
-            "route": "/lookups/lookup-list",
-            "active_link": "/lookups/lookup-list"
+            "route": "/lookups",
+            "active_link": "/lookups"
           }
         ]
       },
@@ -344,7 +339,7 @@
       },
       {
         "menuValue": "Recycle Bin",
-        "route": "/recycle-bin",
+        "route": "/recycle-bin/list",
         "active_link": "/recycle-bin",
         "hasSubRoute": true,
         "showSubRoute": false,
@@ -352,8 +347,8 @@
         "subMenus": [
           {
             "menuValue": "Recycle Bin List",
-            "route": "/recycle-bin/recycle-bin-list",
-            "active_link": "/recycle-bin/recycle-bin-list"
+            "route": "/recycle-bin/list",
+            "active_link": "/recycle-bin/list"
           }
         ]
       }

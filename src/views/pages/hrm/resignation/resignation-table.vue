@@ -1,132 +1,174 @@
-<script>
+<script setup>
+import { ref, onMounted, computed } from 'vue';
 import { useAssetUrl } from '@/composables/useAssetUrl';
+import { resignationService } from '@/services/resignation.service';
+import { message } from 'ant-design-vue';
+import { FilePdfOutlined, DownloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+
 const { getUserAvatar } = useAssetUrl();
 
-const data = [
-  {
-    Image: "user-32.jpg",
-    Resigning_Employee: "Anthony Lewis",
-    Department: "Finance",
-    Reason: "Career Change",
-    Notice_Date: "14 Jan 2024",
-    Resignation_Date: "14 Mar 2024",
-  },
-  {
-    Image: "user-09.jpg",
-    Resigning_Employee: "Brian Villalobos",
-    Department: "Application Development",
-    Reason: "Entrepreneurial Pursuits",
-    Notice_Date: "21 Jan 2024",
-    Resignation_Date: "21 Mar 2024",
-  },
-  {
-    Image: "user-01.jpg",
-    Resigning_Employee: "Harvey Smith",
-    Department: "Web Development",
-    Reason: "Relocation",
-    Notice_Date: "18 Feb 2024",
-    Resignation_Date: "18 Apr 2024",
-  },
-  {
-    Image: "user-33.jpg",
-    Resigning_Employee: "Stephan Peralt",
-    Department: "UI / UX",
-    Reason: "Health Reasons",
-    Notice_Date: "14 Mar 2024",
-    Resignation_Date: "14 May 2024",
-  },
-  {
-    Image: "user-34.jpg",
-    Resigning_Employee: "Doglas Martini",
-    Department: "Marketing",
-    Reason: "Personal Development",
-    Notice_Date: "10 Apr 2024",
-    Resignation_Date: "10 Jun 2024",
-  },
-];
+// State
+const data = ref([]);
+const loading = ref(false);
+const downloadingId = ref(null);
 
+// Table columns
 const columns = [
   {
-    sorter: false,
+    title: 'Employee',
+    dataIndex: 'employeeName',
+    key: 'employeeName',
+    sorter: (a, b) => a.employeeName.localeCompare(b.employeeName),
   },
   {
-    title: "Resigning Employee",
-    dataIndex: "Resigning_Employee",
-    key: "Resigning_Employee",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Resigning_Employee.toLowerCase();
-        b = b.Resigning_Employee.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
+    title: 'Staff ID',
+    dataIndex: 'staffId',
+    key: 'staffId',
+    sorter: (a, b) => a.staffId.localeCompare(b.staffId),
   },
   {
-    title: "Department",
-    dataIndex: "Department",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Department.toLowerCase();
-        b = b.Department.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
+    title: 'Department',
+    dataIndex: 'department',
+    key: 'department',
+    sorter: (a, b) => (a.department || '').localeCompare(b.department || ''),
   },
   {
-    title: "Reason",
-    dataIndex: "Reason",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Reason.toLowerCase();
-        b = b.Reason.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
+    title: 'Reason',
+    dataIndex: 'reason',
+    key: 'reason',
+    sorter: (a, b) => (a.reason || '').localeCompare(b.reason || ''),
   },
   {
-    title: "Notice Date",
-    dataIndex: "Notice_Date",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Notice_Date.toLowerCase();
-        b = b.Notice_Date.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
+    title: 'Submission Date',
+    dataIndex: 'submissionDate',
+    key: 'submissionDate',
+    sorter: (a, b) => new Date(a.submissionDate) - new Date(b.submissionDate),
   },
   {
-    title: "Resignation Date",
-    dataIndex: "Resignation_Date",
-    sorter: {
-      compare: (a, b) => {
-        a = a.Resignation_Date.toLowerCase();
-        b = b.Resignation_Date.toLowerCase();
-        return a > b ? -1 : b > a ? 1 : 0;
-      },
-    },
+    title: 'Last Working Date',
+    dataIndex: 'lastWorkingDate',
+    key: 'lastWorkingDate',
+    sorter: (a, b) => new Date(a.lastWorkingDate) - new Date(b.lastWorkingDate),
   },
   {
-    title: "",
-    key: "action",
-    sorter: true,
+    title: 'Status',
+    dataIndex: 'status',
+    key: 'status',
+    sorter: (a, b) => (a.status || '').localeCompare(b.status || ''),
+  },
+  {
+    title: 'Recommendation Letter',
+    key: 'recommendationLetter',
+    align: 'center',
+    width: 180,
+  },
+  {
+    title: 'Actions',
+    key: 'action',
+    align: 'center',
+    width: 100,
   },
 ];
 
-const rowSelection = {
-  onChange: () => {},
-  onSelect: () => {},
-  onSelectAll: () => {},
+const rowSelection = ref({
+  selectedRowKeys: [],
+  onChange: (selectedRowKeys) => {
+    rowSelection.value.selectedRowKeys = selectedRowKeys;
+  },
+});
+
+// Status tag color mapping
+const getStatusColor = (status) => {
+  const colors = {
+    'Pending': 'warning',
+    'Acknowledged': 'success',
+    'Rejected': 'error',
+  };
+  return colors[status] || 'default';
 };
 
-export default {
-  data() {
-    return {
-      data,
-      columns,
-      rowSelection,
-    };
-  },
+// Check if resignation is acknowledged (can download recommendation letter)
+const canDownloadLetter = (record) => {
+  return record.status === 'Acknowledged';
 };
+
+// Format date for display
+const formatDate = (dateString) => {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+// Fetch resignations from API
+const fetchResignations = async () => {
+  loading.value = true;
+  try {
+    const response = await resignationService.getResignations();
+    if (response.success && response.data) {
+      data.value = response.data.map(item => ({
+        id: item.id,
+        key: item.id,
+        employeeId: item.employeeId,
+        employeeName: item.employee?.name || '-',
+        staffId: item.employee?.staffId || '-',
+        department: item.department?.name || '-',
+        position: item.position?.title || '-',
+        reason: item.reason || '-',
+        submissionDate: formatDate(item.resignationDate),
+        lastWorkingDate: formatDate(item.lastWorkingDate),
+        status: item.acknowledgementStatus || 'Pending',
+        image: null, // Employee image not included in resignation response
+      }));
+    }
+  } catch (error) {
+    console.error('Error fetching resignations:', error);
+    message.error('Failed to load resignations');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Download recommendation letter
+const downloadRecommendationLetter = async (record) => {
+  if (!canDownloadLetter(record)) {
+    message.warning('Recommendation letter is only available for acknowledged resignations');
+    return;
+  }
+
+  downloadingId.value = record.id;
+  try {
+    await resignationService.downloadRecommendationLetter(record.id, record.employeeName);
+    message.success('Recommendation letter downloaded successfully');
+  } catch (error) {
+    console.error('Error downloading recommendation letter:', error);
+    message.error(error.message || 'Failed to download recommendation letter');
+  } finally {
+    downloadingId.value = null;
+  }
+};
+
+// Edit resignation (emit event or open modal)
+const editResignation = (record) => {
+  // This will be connected to the edit modal
+  console.log('Edit resignation:', record);
+};
+
+// Delete resignation
+const deleteResignation = async (record) => {
+  try {
+    await resignationService.deleteResignation(record.id);
+    message.success('Resignation deleted successfully');
+    fetchResignations();
+  } catch (error) {
+    console.error('Error deleting resignation:', error);
+    message.error('Failed to delete resignation');
+  }
+};
+
+// Lifecycle
+onMounted(() => {
+  fetchResignations();
+});
 </script>
 
 <template>
@@ -134,40 +176,86 @@ export default {
     class="table datatable thead-light"
     :columns="columns"
     :data-source="data"
+    :loading="loading"
     :row-selection="rowSelection"
+    :pagination="{ pageSize: 10, showSizeChanger: true, showTotal: (total) => `Total ${total} records` }"
+    row-key="id"
   >
     <template #bodyCell="{ column, record }">
-      <template v-if="column.key === 'Resigning_Employee'">
+      <!-- Employee Column with Avatar -->
+      <template v-if="column.key === 'employeeName'">
         <div class="d-flex align-items-center">
-          <router-link to="/sales/invoice-details" class="avatar avatar-md me-2">
+          <span class="avatar avatar-md me-2">
             <img
-              :src="getUserAvatar(record.Image)"
+              :src="getUserAvatar(record.image)"
               class="rounded-circle"
               alt="user"
             />
-          </router-link>
-          <h6 class="fw-medium">
-            <router-link to="/sales/invoice-details">{{
-              record.Resigning_Employee
-            }}</router-link>
-          </h6>
+          </span>
+          <div>
+            <h6 class="fw-medium mb-0">{{ record.employeeName }}</h6>
+            <small class="text-muted">{{ record.position }}</small>
+          </div>
         </div>
       </template>
-      <template v-if="column.key === 'action'">
+
+      <!-- Status Column -->
+      <template v-else-if="column.key === 'status'">
+        <a-tag :color="getStatusColor(record.status)">
+          {{ record.status }}
+        </a-tag>
+      </template>
+
+      <!-- Recommendation Letter Column -->
+      <template v-else-if="column.key === 'recommendationLetter'">
+        <a-button
+          v-if="canDownloadLetter(record)"
+          type="primary"
+          size="small"
+          :loading="downloadingId === record.id"
+          @click="downloadRecommendationLetter(record)"
+        >
+          <template #icon>
+            <FilePdfOutlined />
+          </template>
+          Download PDF
+        </a-button>
+        <a-tooltip v-else title="Only available for acknowledged resignations">
+          <a-button type="default" size="small" disabled>
+            <template #icon>
+              <FilePdfOutlined />
+            </template>
+            Not Available
+          </a-button>
+        </a-tooltip>
+      </template>
+
+      <!-- Action Column -->
+      <template v-else-if="column.key === 'action'">
         <div class="action-icon d-inline-flex">
-          <a
-            href="javascript:void(0);"
-            class="me-2"
-            data-bs-toggle="modal"
-            data-bs-target="#edit_resignation"
-            ><i class="ti ti-edit"></i
-          ></a>
-          <a
-            href="javascript:void(0);"
-            data-bs-toggle="modal"
-            data-bs-target="#delete_modal"
-            ><i class="ti ti-trash"></i
-          ></a>
+          <a-tooltip title="Edit">
+            <a
+              href="javascript:void(0);"
+              class="me-2"
+              data-bs-toggle="modal"
+              data-bs-target="#edit_resignation"
+              @click="editResignation(record)"
+            >
+              <EditOutlined />
+            </a>
+          </a-tooltip>
+          <a-popconfirm
+            title="Are you sure you want to delete this resignation?"
+            ok-text="Yes"
+            cancel-text="No"
+            @confirm="deleteResignation(record)"
+          >
+            <a-tooltip title="Delete">
+              <a href="javascript:void(0);">
+                <DeleteOutlined />
+              </a>
+            </a-tooltip>
+          </a-popconfirm>
         </div>
       </template>
     </template>

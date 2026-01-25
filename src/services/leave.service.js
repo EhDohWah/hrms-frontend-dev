@@ -322,7 +322,7 @@ class LeaveService extends BaseService {
   async bulkUpdateLeaveRequests(ids, data) {
     try {
       const backendData = dataMapper.camelToSnake(data);
-      return await apiService.put('/leaves/requests/bulk-update', {
+      return await apiService.put('/leave-requests/bulk-update', {
         ids,
         ...backendData
       });
@@ -370,6 +370,43 @@ class LeaveService extends BaseService {
       console.error('Error fetching employee leave balances:', error);
       throw error;
     }
+  }
+
+  /**
+   * Check if a leave request overlaps with existing approved/pending requests
+   * @param {Object} data - { employee_id, start_date, end_date, exclude_request_id? }
+   * @returns {Promise<Object>} - { has_overlap: boolean, overlapping_requests: [] }
+   */
+  async checkLeaveOverlap(data) {
+    return this.handleApiResponse(async () => {
+      const backendData = dataMapper.camelToSnake(data);
+      const response = await apiService.post(API_ENDPOINTS.LEAVE.REQUESTS.CHECK_OVERLAP, backendData);
+
+      if (response.success && response.data) {
+        return {
+          ...response,
+          data: {
+            hasOverlap: response.data.has_overlap,
+            overlappingRequests: response.data.overlapping_requests || []
+          }
+        };
+      }
+
+      return response;
+    }, 'check leave overlap');
+  }
+
+  /**
+   * Calculate working days for a date range (excluding weekends and holidays)
+   * @param {Object} data - { start_date, end_date }
+   * @returns {Promise<Object>} - { working_days: number }
+   */
+  async calculateDays(data) {
+    return this.handleApiResponse(async () => {
+      const backendData = dataMapper.camelToSnake(data);
+      const response = await apiService.post(API_ENDPOINTS.LEAVE.REQUESTS.CALCULATE_DAYS, backendData);
+      return response;
+    }, 'calculate working days');
   }
 }
 

@@ -37,11 +37,6 @@
               <i class="ti ti-exchange me-2"></i>Action Change
             </button>
           </div>
-          <div v-if="canEdit" class="mb-2 me-2">
-            <button class="btn btn-outline-secondary d-flex align-items-center" @click="openFundingChangeModal">
-              <i class="ti ti-currency-dollar me-2"></i>Funding Change
-            </button>
-          </div>
           <div class="head-icons ms-2">
             <a href="javascript:void(0);" class="" id="collapse-header" @click="toggleHeader">
               <i class="ti ti-chevrons-up"></i>
@@ -74,10 +69,29 @@
             <p class="mt-2">Loading employments...</p>
           </div>
           <div v-else class="resize-observer-fix">
-            <!-- VIRTUALIZED TABLE FOR PERFORMANCE -->
-            <a-table :columns="columns" :data-source="tableData" :pagination="false"
-              :scroll="{ x: 'max-content', y: 600 }" row-key="id" @change="handleTableChange" :virtual="true"
-              :scrollToFirstRowOnChange="false">
+            <!-- TABLE WITH EXPANDABLE ROWS FOR FUNDING ALLOCATIONS -->
+            <!-- Note: Virtual scrolling disabled to support expandable rows -->
+            <a-table
+              :columns="columns"
+              :data-source="tableData"
+              :pagination="false"
+              :scroll="{ x: 'max-content', y: 600 }"
+              row-key="id"
+              @change="handleTableChange"
+              :scrollToFirstRowOnChange="false"
+              v-model:expandedRowKeys="expandedRowKeys"
+              @expand="handleRowExpand"
+            >
+              <!-- Expandable row for funding allocations -->
+              <template #expandedRowRender="{ record }">
+                <EmployeeFundingAllocationPanel
+                  :employment-id="record.id"
+                  :employee-id="record.employee?.id || record.employee_id"
+                  :readonly="!canEditAllocations"
+                  @allocation-changed="onAllocationChanged"
+                />
+              </template>
+
               <!-- Custom cell rendering with v-memo for performance -->
               <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === 'actions'">
@@ -181,8 +195,8 @@
   <employment-edit-modal v-if="isEditModalMounted" ref="employmentEditModal" @employment-updated="onEmploymentUpdated"
     @modal-closed="handleEditModalClosed" />
 
-  <!-- Notification Toast -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <!-- Notification Toast - z-index 2000 to appear above modals -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
     <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header" :class="notificationClass">
         <strong class="me-auto">{{ notificationTitle }}</strong>
@@ -196,7 +210,7 @@
 </template>
 
 <script>
-import { defineAsyncComponent, shallowRef, markRaw, ref } from 'vue';
+import { defineAsyncComponent, shallowRef, markRaw, ref, computed } from 'vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 // Lazy load Add modal (doesn't need direct method access during load)
 const EmploymentModal = defineAsyncComponent({
@@ -214,6 +228,8 @@ const EmploymentModal = defineAsyncComponent({
 // FIXED: Use regular import for Edit modal - defineAsyncComponent wraps component
 // and prevents direct method access via refs (Vue 3 limitation)
 import EmploymentEditModal from '@/components/modal/employment-edit-modal.vue';
+// Funding allocation panel for expandable rows
+import EmployeeFundingAllocationPanel from '@/components/panel/EmployeeFundingAllocationPanel.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
@@ -229,6 +245,7 @@ export default {
     indexBreadcrumb,
     EmploymentModal,
     EmploymentEditModal,
+    EmployeeFundingAllocationPanel,
     LayoutHeader,
     LayoutSidebar,
     LayoutFooter,
@@ -240,15 +257,23 @@ export default {
     const currentPage = ref(1);
     const pageSize = ref(10);
     const total = ref(0);
-    
+
+    // Expandable rows state - only one row expanded at a time
+    const expandedRowKeys = ref([]);
+
     // Initialize permission checks for employment module
-    const { 
-      canRead, 
-      canEdit, 
-      isReadOnly, 
-      accessLevelText, 
-      accessLevelBadgeClass 
+    const {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     } = usePermissions('employment');
+
+    // Initialize permission checks for employee-funding-allocation module
+    // Falls back to employment edit permission if allocation-specific permission not granted
+    const { canEdit: canEditAllocationsSpecific } = usePermissions('employee-funding-allocation');
+    const canEditAllocations = computed(() => canEditAllocationsSpecific.value || canEdit.value);
 
     return {
       filteredInfo,
@@ -256,11 +281,13 @@ export default {
       currentPage,
       pageSize,
       total,
+      expandedRowKeys,
       canRead,
       canEdit,
       isReadOnly,
       accessLevelText,
-      accessLevelBadgeClass
+      accessLevelBadgeClass,
+      canEditAllocations
     };
   },
   data() {
@@ -308,18 +335,19 @@ export default {
       const sorted = this.sortedInfo || {};
 
       // Return cached columns configuration to prevent recreation
+      // Column widths optimized for readability without header text wrapping
       return markRaw([
         {
-          title: 'Organization',
+          title: 'Org',
           dataIndex: 'organization',
           key: 'organization',
-          width: 150,
+          width: 90,
           filters: [
             { text: 'SMRU', value: 'SMRU' },
             { text: 'BHF', value: 'BHF' },
           ],
           filteredValue: filtered.organization || null,
-          sorter: true, // Enable server-side sorting
+          sorter: true,
           sortOrder: sorted.columnKey === 'organization' && sorted.order,
           filterSearch: true
         },
@@ -327,23 +355,24 @@ export default {
           title: 'Staff ID',
           dataIndex: 'staff_id',
           key: 'staff_id',
-          width: 150,
-          sorter: true, // Enable server-side sorting
+          width: 100,
+          sorter: true,
           sortOrder: sorted.columnKey === 'staff_id' && sorted.order
         },
         {
-          title: 'Employee Name',
+          title: 'Employee',
           dataIndex: 'employee_name',
           key: 'employee_name',
-          width: 200,
-          sorter: true, // Enable server-side sorting
+          width: 160,
+          ellipsis: true,
+          sorter: true,
           sortOrder: sorted.columnKey === 'employee_name' && sorted.order
         },
         {
-          title: 'Employment Type',
+          title: 'Type',
           dataIndex: 'employment_type',
           key: 'employment_type',
-          width: 150,
+          width: 100,
           filters: [
             { text: 'Full-Time', value: 'Full-Time' },
             { text: 'Part-Time', value: 'Part-Time' },
@@ -352,7 +381,7 @@ export default {
             { text: 'Internship', value: 'Internship' },
           ],
           filteredValue: filtered.employment_type || null,
-          sorter: true, // Enable server-side sorting
+          sorter: true,
           sortOrder: sorted.columnKey === 'employment_type' && sorted.order,
           filterSearch: true
         },
@@ -360,69 +389,74 @@ export default {
           title: 'Department',
           dataIndex: 'department',
           key: 'department',
-          width: 150,
-          sorter: true, // Enable server-side sorting
+          width: 130,
+          ellipsis: true,
+          sorter: true,
           sortOrder: sorted.columnKey === 'department' && sorted.order
         },
         {
           title: 'Position',
           dataIndex: 'position',
           key: 'position',
-          width: 150,
-          sorter: true, // Enable server-side sorting
+          width: 130,
+          ellipsis: true,
+          sorter: true,
           sortOrder: sorted.columnKey === 'position' && sorted.order
         },
         {
           title: 'Site',
           dataIndex: 'work_location',
           key: 'work_location',
-          width: 150,
-          sorter: true, // Enable server-side sorting
+          width: 100,
+          ellipsis: true,
+          sorter: true,
           sortOrder: sorted.columnKey === 'work_location' && sorted.order
         },
         {
           title: 'Start Date',
           dataIndex: 'start_date',
           key: 'start_date',
-          width: 120,
-          sorter: true, // Enable server-side sorting
+          width: 110,
+          sorter: true,
           sortOrder: sorted.columnKey === 'start_date' && sorted.order
         },
         {
-          title: 'Probation Pass Date',
+          title: 'Pass Prob. Date',
           dataIndex: 'pass_probation_date',
           key: 'pass_probation_date',
-          width: 150,
-          sorter: true, // Enable server-side sorting
+          width: 130,
+          sorter: true,
           sortOrder: sorted.columnKey === 'pass_probation_date' && sorted.order
         },
         {
-          title: 'Pass.Probation Salary',
+          title: 'Salary',
           dataIndex: 'pass_probation_salary',
           key: 'pass_probation_salary',
-          width: 200,
-          sorter: true, // Enable server-side sorting
+          width: 120,
+          align: 'right',
+          sorter: true,
           sortOrder: sorted.columnKey === 'pass_probation_salary' && sorted.order
         },
         {
-          title: 'Probation Salary',
+          title: 'Prob. Salary',
           dataIndex: 'probation_salary',
           key: 'probation_salary',
-          width: 200,
-          sorter: true, // Enable server-side sorting
+          width: 120,
+          align: 'right',
+          sorter: true,
           sortOrder: sorted.columnKey === 'probation_salary' && sorted.order
         },
         {
           title: 'Status',
           dataIndex: 'status',
           key: 'status',
-          width: 100,
+          width: 90,
           filters: [
             { text: 'Active', value: true },
             { text: 'Inactive', value: false },
           ],
           filteredValue: filtered.status || null,
-          sorter: true, // Enable server-side sorting
+          sorter: true,
           sortOrder: sorted.columnKey === 'status' && sorted.order
         },
         {
@@ -430,11 +464,10 @@ export default {
           dataIndex: 'actions',
           key: 'actions',
           fixed: 'right',
-          width: 120
+          width: 100
         }
       ]);
     },
-    
     tableData() {
       // Optimized table data computation with caching
       const cacheKey = `${this.employments.length}-${this.currentPage}-${this.pageSize}`;
@@ -451,13 +484,15 @@ export default {
         return Object.freeze({
           ...emp,
           key: emp.id,
+          employee_id: emp.employee_id || emp.employee?.id, // Ensure employee_id is available for allocation panel
           organization: emp.employee?.organization || 'N/A',
           staff_id: emp.employee?.staff_id || 'N/A',
-          employee_name: emp.employee ? `${emp.employee.first_name_en} ${emp.employee.last_name_en}` : 'N/A',
+          employee_name: emp.employee ? `${emp.employee.first_name_en || ''} ${emp.employee.last_name_en || ''}`.trim() : 'N/A',
           employment_type: emp.employment_type,
-          department: emp.department?.name || emp.department_position?.department || 'N/A',
-          position: emp.position?.title || emp.department_position?.position || 'N/A',
-          work_location: emp.work_location?.name || 'N/A',
+          department: emp.department?.name || 'N/A',
+          position: emp.position?.title || 'N/A',
+          // Use site field from backend (work_location is alias for backward compatibility)
+          work_location: emp.site?.name || emp.work_location?.name || 'N/A',
           start_date: emp.start_date,
           pass_probation_salary: emp.pass_probation_salary,
           probation_salary: emp.probation_salary,
@@ -678,14 +713,18 @@ export default {
             // Map employment data structure consistently
             id: emp.id,
             employee: emp.employee,
+            employee_id: emp.employee_id,
             employment_type: emp.employment_type,
-            work_location: emp.work_location,
+            // Map site to work_location for backward compatibility
+            site: emp.site,
+            work_location: emp.site,
             start_date: emp.start_date,
             pass_probation_salary: emp.pass_probation_salary,
             pass_probation_date: emp.pass_probation_date,
             probation_salary: emp.probation_salary,
-            fte: emp.fte,
-            department_position: emp.department_position,
+            department: emp.department,
+            position: emp.position,
+            status: emp.status,
             pay_method: emp.pay_method,
             health_welfare: emp.health_welfare,
             pvd: emp.pvd,
@@ -757,14 +796,19 @@ export default {
             // Map employment data structure
             id: emp.id,
             employee: Object.freeze(emp.employee || {}),
+            employee_id: emp.employee_id,
             employment_type: emp.employment_type,
-            work_location: Object.freeze(emp.work_location || {}),
+            // Map site to work_location for backward compatibility
+            site: Object.freeze(emp.site || {}),
+            work_location: Object.freeze(emp.site || {}),
             start_date: emp.start_date,
             pass_probation_date: emp.pass_probation_date,
             pass_probation_salary: emp.pass_probation_salary,
             probation_salary: emp.probation_salary,
-            department_position: Object.freeze(emp.department_position || {}),
-            active: emp.active,
+            // Map separate department and position objects
+            department: Object.freeze(emp.department || {}),
+            position: Object.freeze(emp.position || {}),
+            status: emp.status,
             // Keep original object for editing
             ...emp
           }));
@@ -861,6 +905,25 @@ export default {
     formatDate(dateString) {
       if (!dateString) return '';
       return moment(dateString).format('YYYY-MM-DD');
+    },
+
+    // Handle row expand/collapse - only one row expanded at a time
+    handleRowExpand(expanded, record) {
+      if (expanded) {
+        // Collapse any previously expanded row, expand new one
+        this.expandedRowKeys = [record.id];
+      } else {
+        // Collapse the current row
+        this.expandedRowKeys = [];
+      }
+    },
+
+    // Handle allocation changes from the panel
+    onAllocationChanged() {
+      // Optionally refresh the employment list or show notification
+      console.log('Allocation changed, data may need refresh');
+      // Note: We don't need to refresh the full list since allocations
+      // are loaded separately in the expanded panel
     },
 
     // FIXED: True lazy loading - mount modal component only when needed
@@ -1097,13 +1160,6 @@ export default {
       console.log('Opening Action Change modal');
       // TODO: Implement action change modal functionality
       this.$message.info('Action Change functionality will be implemented soon');
-    },
-
-    // Funding Change Modal Handler
-    openFundingChangeModal() {
-      console.log('Opening Funding Change modal');
-      // TODO: Implement funding change modal functionality
-      this.$message.info('Funding Change functionality will be implemented soon');
     }
   }
 };

@@ -1,0 +1,76 @@
+// ============================================
+// ANT DESIGN SELECT OVERRIDES
+// ============================================
+// Extracted from _vue.scss for better maintainability
+// Uses design tokens from utils/_variables.scss
+
+// Select component - match Bootstrap form-control styling
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  width: 100%;
+  padding: $input-padding;
+  font-size: $input-font-size;
+  font-weight: $font-weight-normal;
+  line-height: 1.5;
+  color: $gray-900;
+  background-color: $white;
+  background-clip: padding-box;
+  border: 1px solid $input-border-color;
+  appearance: none;
+  border-radius: $input-border-radius;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+// Hover state
+.ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+  border-color: $input-border-color;
+}
+
+// Focused state
+.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  border-color: $primary;
+  box-shadow: 0 0 0 0.2rem rgba($primary, 0.25);
+}
+
+// Date picker styling
+.ant-picker-suffix {
+  display: none;
+}
+
+.ant-picker:hover,
+.ant-picker-focused {
+  border-color: $input-border-color;
+}
+
+// Year picker specific styles
+.yearpicker .ant-picker-input .ant-picker-suffix .anticon.anticon-calendar {
+  display: none;
+}
+
+.yearpicker .ant-picker-input input {
+  padding: 0 8px;
+}
+
+// Date picker dropdown z-index
+.ant-picker-dropdown.css-dev-only-do-not-override-16pw25h.ant-picker-dropdown-placement-topLeft {
+  z-index: $z-modal;
+}
+
+// Class datepick input
+.class-datepick input {
+  border: none;
+}
+
+// Select2 container width fix
+.select2.select2-container {
+  width: 100%;
+}
+
+.select2.select2-container.select2-container-default.select2-container--focus {
+  width: 100%;
+}
+
+// Tree select dropdown z-index
+body > .ant-select-dropdown,
+body > .ant-tree-select-dropdown {
+  z-index: $z-popover;
+}

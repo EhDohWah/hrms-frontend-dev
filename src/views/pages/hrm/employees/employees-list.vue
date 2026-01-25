@@ -33,19 +33,6 @@
               </template>
             </button>
           </div>
-          <!-- Upload Button - Only visible if user can edit -->
-          <div v-if="canEdit" class="mb-2 me-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="openEmployeeUploadModal"
-              :disabled="openingUploadModal">
-              <template v-if="openingUploadModal">
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Loading form...
-              </template>
-              <template v-else>
-                <i class="ti ti-upload me-2"></i>Upload Employee Excel File
-              </template>
-            </button>
-          </div>
           <!-- Delete Selected Button - Only visible if user can edit -->
           <div v-if="canEdit" class="mb-2 me-2">
             <button class="btn btn-danger d-flex align-items-center" @click="confirmDeleteSelectedEmployees"
@@ -297,15 +284,11 @@
 
   <!-- Add Employee Modal -->
   <employee-list-modal ref="employeeListModal" @employee-added="fetchEmployees"></employee-list-modal>
-
-  <!-- Employee Upload Modal -->
-  <employee-upload-modal @refresh-employee-list="fetchEmployees"></employee-upload-modal>
 </template>
 
 <script>
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import EmployeeListModal from '@/components/modal/employee-list-modal.vue';
-import EmployeeUploadModal from '@/components/modal/employee-upload-modal.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
@@ -321,7 +304,6 @@ export default {
   components: {
     indexBreadcrumb,
     EmployeeListModal,
-    EmployeeUploadModal,
     LayoutHeader,
     LayoutSidebar,
     LayoutFooter,
@@ -386,70 +368,68 @@ export default {
 
       // UI loading states for opening modals
       openingAddEmployee: false,
-      openingUploadModal: false,
     };
   },
   computed: {
     columns() {
       const sorted = this.sortedInfo || {};
-
+      // Column widths optimized for readability without header text wrapping
       return [
         {
-          title: 'Organization',
+          title: 'Org',
           dataIndex: 'organization',
           key: 'organization',
-          width: 150,
+          width: 80,
           fixed: 'left',
-          sorter: true, // Enable server-side sorting
+          sorter: true,
           sortOrder: sorted.columnKey === 'organization' && sorted.order,
         },
         {
           title: 'Staff ID',
           dataIndex: 'staff_id',
           key: 'staff_id',
-          width: 120,
-          sorter: true, // Enable server-side sorting
+          width: 100,
+          sorter: true,
           sortOrder: sorted.columnKey === 'staff_id' && sorted.order
         },
         {
-          title: 'Initials',
+          title: 'Init.',
           dataIndex: 'initials',
           key: 'initials',
-          width: 150,
-          // No filtering - backend doesn't support filter_initials
-          sorter: false, // Backend doesn't support sorting by initials
+          width: 70,
+          sorter: false,
         },
         {
           title: 'First Name',
           dataIndex: 'first_name_en',
           key: 'first_name_en',
-          width: 150,
-          // No filtering - backend doesn't support filter_first_name_en
-          sorter: true, // Backend supports sorting by first_name_en
+          width: 130,
+          ellipsis: true,
+          sorter: true,
           sortOrder: sorted.columnKey === 'first_name_en' && sorted.order,
         },
         {
           title: 'Last Name',
           dataIndex: 'last_name_en',
           key: 'last_name_en',
-          width: 150,
-          // No filtering - backend doesn't support filter_last_name_en
-          sorter: true, // Backend supports sorting by last_name_en
+          width: 130,
+          ellipsis: true,
+          sorter: true,
           sortOrder: sorted.columnKey === 'last_name_en' && sorted.order,
         },
         {
           title: 'Gender',
           dataIndex: 'gender',
           key: 'gender',
-          width: 120,
+          width: 85,
           sorter: true,
           sortOrder: sorted.columnKey === 'gender' && sorted.order,
         },
         {
-          title: 'Date of Birth',
+          title: 'DOB',
           dataIndex: 'date_of_birth',
           key: 'date_of_birth',
-          width: 120,
+          width: 110,
           sorter: true,
           sortOrder: sorted.columnKey === 'date_of_birth' && sorted.order,
         },
@@ -457,16 +437,17 @@ export default {
           title: 'Age',
           dataIndex: 'age',
           key: 'age',
-          width: 100,
-          // No client-side filtering - backend expects single integer filter_age
-          sorter: true, // Backend supports sorting by age
+          width: 65,
+          align: 'center',
+          sorter: true,
           sortOrder: sorted.columnKey === 'age' && sorted.order,
         },
         {
           title: 'Status',
           dataIndex: 'status',
           key: 'status',
-          width: 150,
+          width: 120,
+          ellipsis: true,
           sorter: true,
           sortOrder: sorted.columnKey === 'status' && sorted.order,
         },
@@ -474,32 +455,33 @@ export default {
           title: 'ID Type',
           dataIndex: 'id_type',
           key: 'id_type',
-          width: 200,
-          sorter: true, // Backend supports sorting by id_type
+          width: 140,
+          ellipsis: true,
+          sorter: true,
           sortOrder: sorted.columnKey === 'id_type' && sorted.order,
         },
         {
           title: 'ID Number',
           dataIndex: 'id_number',
           key: 'id_number',
-          width: 150,
-          // No filtering or sorting - backend doesn't support these
+          width: 140,
+          ellipsis: true,
           sorter: false,
         },
         {
-          title: 'Social Security Number',
+          title: 'SSN',
           dataIndex: 'social_security_number',
           key: 'social_security_number',
-          width: 180,
-          // No filtering or sorting - backend doesn't support these
+          width: 130,
+          ellipsis: true,
           sorter: false,
         },
         {
-          title: 'Tax Number',
+          title: 'Tax No.',
           dataIndex: 'tax_number',
           key: 'tax_number',
-          width: 200,
-          // No filtering or sorting - backend doesn't support these
+          width: 130,
+          ellipsis: true,
           sorter: false,
         },
         {
@@ -507,27 +489,14 @@ export default {
           dataIndex: 'mobile_phone',
           key: 'mobile_phone',
           width: 120,
-          // No filtering or sorting - backend doesn't support these
+          ellipsis: true,
           sorter: false,
         },
-        // {
-        //   title: 'Active',
-        //   dataIndex: 'active',
-        //   key: 'active',
-        //   width: 100,
-        //   filters: [
-        //     { text: 'Active', value: true },
-        //     { text: 'Inactive', value: false },
-        //   ],
-        //   filteredValue: filtered.active || null,
-        //   // No sorting - backend doesn't support sorting by active
-        //   sorter: false,
-        // },
         {
           title: 'Actions',
           key: 'action',
           fixed: 'right',
-          width: 100,
+          width: 90,
           sorter: false,
         },
       ];
@@ -873,10 +842,8 @@ export default {
         date_of_birth: emp.date_of_birth ? moment(emp.date_of_birth).format("DD MMM YYYY") : 'N/A',
         age: emp.date_of_birth ? moment().diff(moment(emp.date_of_birth), 'years') : 'N/A',
         status: emp.status || 'N/A',
-        id_type: emp.id_type || 'N/A',
-        id_number: emp.employee_identification && emp.employee_identification.document_number
-          ? emp.employee_identification.document_number
-          : 'N/A',
+        id_type: emp.identification_type || 'N/A',
+        id_number: emp.identification_number || 'N/A',
         social_security_number: emp.social_security_number || 'N/A',
         tax_number: emp.tax_number || 'N/A',
         mobile_phone: emp.mobile_phone || 'N/A',
@@ -1016,26 +983,6 @@ export default {
       }
     },
 
-    async openEmployeeUploadModal() {
-      try {
-        this.openingUploadModal = true;
-        let attempts = 0;
-        while (!document.getElementById('employeeUploadModal') && attempts < 40) {
-          await new Promise(resolve => setTimeout(resolve, 25));
-          attempts++;
-        }
-        const el = document.getElementById('employeeUploadModal');
-        if (el) {
-          const modal = new BootstrapModal(el);
-          modal.show();
-        } else {
-          this.$message && this.$message.warning && this.$message.warning('Form is loading, please try again.');
-        }
-      } finally {
-        this.openingUploadModal = false;
-      }
-    },
-
     // Get unique values for filter dropdowns
     getUniqueValues(field) {
       if (!this.employees || this.employees.length === 0) return [];
@@ -1048,65 +995,61 @@ export default {
 </script>
 
 <style scoped>
+/* ===========================================
+   EMPLOYEE LIST PAGE - SCOPED STYLES
+   =========================================== */
+
+/* Highlight for search results */
 .highlight {
   background-color: rgb(255, 192, 105);
-  padding: 0px;
+  padding: 0;
 }
 
+/* Table operations */
 .table-operations {
   margin-bottom: 16px;
 }
 
-.table-operations>button {
+.table-operations > button {
   margin-right: 8px;
 }
 
+/* Filter select styling */
 :deep(.ant-select-selector) {
   display: flex;
   align-items: center;
-  justify-content: center;
   font-size: 14px;
   min-width: 80px;
 }
 
-/* Primary color styling for search input button */
+/* Primary search button */
 .search-input-primary :deep(.ant-input-search-button) {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
-  color: white !important;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
 }
 
-.search-input-primary :deep(.ant-input-search-button:hover) {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
-}
-
+.search-input-primary :deep(.ant-input-search-button:hover),
 .search-input-primary :deep(.ant-input-search-button:focus) {
-  background-color: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  opacity: 0.9;
 }
 
-/* Pagination wrapper styling */
+/* ===========================================
+   PAGINATION WRAPPER
+   =========================================== */
 .pagination-wrapper {
-  margin-top: 20px;
-  padding: 20px 16px;
-  border-top: 1px solid #e8e8e8;
-  position: relative;
-  z-index: 100;
+  margin-top: 16px;
+  padding: 16px;
+  border-top: 1px solid #f0f0f0;
 }
 
-.pagination-info {
-  color: #666;
-  font-size: 14px;
-}
-
-/* Ensure pagination is not overlapping */
 .resize-observer-fix {
   position: relative;
   min-height: 100px;
 }
 
-/* Ant Design pagination customization */
 :deep(.ant-pagination) {
   margin: 0;
   display: flex;
@@ -1116,65 +1059,34 @@ export default {
 
 :deep(.ant-pagination-total-text) {
   margin-right: 16px;
-  color: #666;
+  color: rgba(0, 0, 0, 0.45);
   font-size: 14px;
 }
 
-:deep(.ant-pagination-options) {
-  margin-left: 16px;
-}
-
-:deep(.ant-pagination-options-size-changer) {
-  margin-right: 8px;
-}
-
-:deep(.ant-pagination-options-quick-jumper) {
-  margin-left: 8px;
-}
-
-/* Fix dropdown placement - force dropdown to appear above */
-:deep(.ant-pagination-options-size-changer .ant-select) {
-  z-index: 1000;
-}
-
-:deep(.ant-pagination-options-size-changer .ant-select-dropdown) {
-  z-index: 1050 !important;
-  top: auto !important;
-  bottom: calc(100% + 4px) !important;
-}
-
-/* Force dropdown to appear above the trigger */
-:deep(.ant-select-dropdown) {
-  z-index: 1050 !important;
-}
-
-/* Ensure pagination dropdowns appear above */
-.pagination-wrapper {
-  position: relative;
-  z-index: 100;
-}
-
-/* Override Ant Design dropdown placement */
-:deep(.ant-pagination .ant-select-dropdown) {
-  position: absolute !important;
-  bottom: calc(100% + 4px) !important;
-  top: auto !important;
-  margin-bottom: 0 !important;
-  margin-top: 0 !important;
-}
-
-/* Container overflow fixes - only apply to table cards, not statistics */
+/* ===========================================
+   CARD CONTAINERS
+   =========================================== */
 .card:not(.statistics-card) {
-  overflow: visible !important;
+  overflow: visible;
   margin-bottom: 20px;
 }
 
 .card:not(.statistics-card) .card-body {
-  overflow: visible !important;
+  overflow: visible;
   padding-bottom: 0;
 }
 
-/* Statistics cards styling */
+/* ===========================================
+   STATISTICS CARDS
+   =========================================== */
+.statistics-row {
+  margin-bottom: 1rem;
+}
+
+.statistics-row .col-lg-3 {
+  margin-bottom: 0.5rem;
+}
+
 .statistics-card {
   margin-bottom: 0.75rem;
 }
@@ -1187,16 +1099,6 @@ export default {
   min-height: auto;
 }
 
-/* Ensure statistics row has proper spacing */
-.statistics-row {
-  margin-bottom: 1rem;
-}
-
-.statistics-row .col-lg-3 {
-  margin-bottom: 0.5rem;
-}
-
-/* Make statistics cards more compact */
 .statistics-card .avatar {
   width: 2.5rem;
   height: 2.5rem;
@@ -1211,8 +1113,8 @@ export default {
 }
 
 .statistics-card .fs-12 {
-  font-size: 0.75rem !important;
-  margin-bottom: 0.25rem !important;
+  font-size: 0.75rem;
+  margin-bottom: 0.25rem;
 }
 
 .statistics-card .badge {
@@ -1220,131 +1122,99 @@ export default {
   padding: 0.25rem 0.5rem;
 }
 
-/* Enhanced scrollbar styling - Match Ant Design Vue docs */
-:deep(.ant-table-body)::-webkit-scrollbar {
-  width: 16px !important;
-  height: 16px !important;
+/* ===========================================
+   ANT DESIGN TABLE - FIXED COLUMN FIXES
+   Critical: Fixed columns MUST have OPAQUE backgrounds
+   to prevent content from showing through when scrolling
+   =========================================== */
+
+/* Table container */
+:deep(.ant-table-container) {
+  border: 1px solid #f0f0f0;
+  border-radius: 2px;
 }
 
-:deep(.ant-table-body)::-webkit-scrollbar-track {
-  background: #f1f1f1 !important;
-  border-radius: 8px !important;
-}
+/* ===========================================
+   FIXED COLUMNS - MUST BE OPAQUE
+   This is the key fix for the transparency issue
+   =========================================== */
 
-:deep(.ant-table-body)::-webkit-scrollbar-thumb {
-  background: #888 !important;
-  border-radius: 8px !important;
-  border: 2px solid #f1f1f1 !important;
-}
-
-:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
-  background: #555 !important;
-}
-
-/* Ensure table container allows scrollbar display */
-/* :deep(.ant-table-container) {
-  border: 1px solid #e0e0e0;
-  border-radius: 0;
-} */
-
-/* Fix for bleeding edges and selection column */
-/* :deep(.ant-table) {
-  border-radius: 0;
-  overflow: hidden;
-} */
-
-/* Fix for fixed columns - comprehensive solution */
-:deep(.ant-table-fixed-left),
-:deep(.ant-table-fixed-right) {
-  background-color: #ffffff !important;
-}
-
-:deep(.ant-table-fixed-left .ant-table-thead > tr > th),
-:deep(.ant-table-fixed-right .ant-table-thead > tr > th) {
-  background-color: #fafafa !important;
-  color: #595959 !important;
-  font-weight: 600 !important;
-  border-bottom: 1px solid #e0e0e0 !important;
-}
-
-:deep(.ant-table-fixed-left .ant-table-tbody > tr > td),
-:deep(.ant-table-fixed-right .ant-table-tbody > tr > td) {
-  background-color: #ffffff !important;
-}
-
-/* Fix for main table headers to match fixed headers */
-:deep(.ant-table-thead > tr > th) {
-  background-color: #fafafa !important;
-  color: #595959 !important;
-  font-weight: 600 !important;
-  border-bottom: 1px solid #e0e0e0 !important;
-}
-
-/* Ensure all table cells have consistent background */
-:deep(.ant-table-tbody > tr > td) {
-  background-color: #ffffff !important;
-}
-
-/* Fix for table rows hover state - all tables */
-:deep(.ant-table-tbody > tr:hover > td),
-:deep(.ant-table-fixed-left .ant-table-tbody > tr:hover > td),
-:deep(.ant-table-fixed-right .ant-table-tbody > tr:hover > td) {
-  background-color: #fafafa !important;
-}
-
-/* Fix for selection column */
-:deep(.ant-table-selection-column) {
-  background-color: #ffffff !important;
-  z-index: 3 !important;
-  min-width: 60px !important;
-  width: 60px !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-
-/* Fix for selection column header */
+/* Fixed column headers - opaque background */
+:deep(.ant-table-thead > tr > th.ant-table-cell-fix-left),
+:deep(.ant-table-thead > tr > th.ant-table-cell-fix-right),
 :deep(.ant-table-thead .ant-table-selection-column) {
   background-color: #fafafa !important;
 }
 
-/* Fix for fixed table selection columns */
-:deep(.ant-table-fixed-left .ant-table-selection-column) {
+/* Fixed column body cells - opaque white background */
+:deep(.ant-table-tbody > tr > td.ant-table-cell-fix-left),
+:deep(.ant-table-tbody > tr > td.ant-table-cell-fix-right),
+:deep(.ant-table-tbody > tr > td.ant-table-selection-column) {
   background-color: #ffffff !important;
 }
 
-:deep(.ant-table-fixed-left .ant-table-thead .ant-table-selection-column) {
+/* ===========================================
+   ROW HOVER - Fixed columns must stay opaque
+   =========================================== */
+:deep(.ant-table-tbody > tr:hover > td.ant-table-cell-fix-left),
+:deep(.ant-table-tbody > tr:hover > td.ant-table-cell-fix-right),
+:deep(.ant-table-tbody > tr:hover > td.ant-table-selection-column) {
   background-color: #fafafa !important;
 }
 
-/* Fix for selected rows - ensure all selected cells have same background */
-:deep(.ant-table-row-selected > td),
-:deep(.ant-table-row-selected > td.ant-table-cell-fix-left),
-:deep(.ant-table-row-selected > td.ant-table-cell-fix-right),
-:deep(.ant-table-row-selected > td.ant-table-selection-column) {
-  background-color: #e6f7ff !important;
-  z-index: 3 !important;
+/* Non-fixed columns can use any hover color */
+:deep(.ant-table-tbody > tr:hover > td:not(.ant-table-cell-fix-left):not(.ant-table-cell-fix-right):not(.ant-table-selection-column)) {
+  background-color: #fafafa;
 }
 
-/* Fix for table container and layout */
-:deep(.ant-table-container) {
-  border: 1px solid #e0e0e0;
-  border-radius: 0;
+/* ===========================================
+   ROW SELECTION - Fixed columns MUST be opaque
+   Use solid colors, NOT rgba transparency!
+   =========================================== */
+
+/* Selected row - fixed columns (OPAQUE light blue) */
+:deep(.ant-table-tbody > tr.ant-table-row-selected > td.ant-table-cell-fix-left),
+:deep(.ant-table-tbody > tr.ant-table-row-selected > td.ant-table-cell-fix-right),
+:deep(.ant-table-tbody > tr.ant-table-row-selected > td.ant-table-selection-column) {
+  background-color: #f0f7ff !important;
 }
 
-/* Ensure proper table layout for fixed columns */
-:deep(.ant-table-layout-fixed table) {
-  table-layout: auto !important;
+/* Selected row - non-fixed columns (can be subtle) */
+:deep(.ant-table-tbody > tr.ant-table-row-selected > td:not(.ant-table-cell-fix-left):not(.ant-table-cell-fix-right):not(.ant-table-selection-column)) {
+  background-color: #f0f7ff;
 }
 
-/* Fix for table wrapper */
-:deep(.ant-table-wrapper) {
-  background-color: #ffffff;
+/* Selected row hover - fixed columns (OPAQUE) */
+:deep(.ant-table-tbody > tr.ant-table-row-selected:hover > td.ant-table-cell-fix-left),
+:deep(.ant-table-tbody > tr.ant-table-row-selected:hover > td.ant-table-cell-fix-right),
+:deep(.ant-table-tbody > tr.ant-table-row-selected:hover > td.ant-table-selection-column) {
+  background-color: #e6f4ff !important;
 }
 
+/* Selected row hover - non-fixed columns */
+:deep(.ant-table-tbody > tr.ant-table-row-selected:hover > td:not(.ant-table-cell-fix-left):not(.ant-table-cell-fix-right):not(.ant-table-selection-column)) {
+  background-color: #e6f4ff;
+}
 
+/* ===========================================
+   SCROLLBAR STYLING
+   =========================================== */
+:deep(.ant-table-body)::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-/* Fix for table cell padding */
-/* :deep(.ant-table-cell) {
-  padding: 8px 8px !important;
-} */
+:deep(.ant-table-body)::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+:deep(.ant-table-body)::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
 </style>

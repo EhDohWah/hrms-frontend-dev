@@ -25,11 +25,6 @@
               <i class="ti ti-circle-plus me-2"></i>Add Grant
             </button>
           </div>
-          <div v-if="canEditGrants" class="mb-2 me-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="openGrantUploadModal">
-              <i class="ti ti-upload me-2"></i>Upload Grant Excel File
-            </button>
-          </div>
           <!-- Delete Selected Button - Only visible if user can edit -->
           <div v-if="canEditGrants" class="mb-2">
             <button class="btn btn-danger d-flex align-items-center" @click="confirmDeleteSelectedGrants"
@@ -221,10 +216,16 @@
                       <template v-else-if="column.dataIndex === 'actions'">
                         <div class="editable-row-operations">
                           <span v-if="editableData[itemRecord.id]" class="d-flex align-items-center gap-3">
-                            <a-typography-link @click="save(itemRecord.id)">Save</a-typography-link>
+                            <a-typography-link @click="save(itemRecord.id)" :disabled="savingItemId === itemRecord.id">
+                              <span v-if="savingItemId === itemRecord.id" class="d-inline-flex align-items-center">
+                                <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                Saving...
+                              </span>
+                              <span v-else>Save</span>
+                            </a-typography-link>
                             <a-popconfirm title="Sure to cancel?" @confirm="cancel(itemRecord.id)"
-                              :destroyTooltipOnHide="true">
-                              <a>Cancel</a>
+                              :destroyTooltipOnHide="true" :disabled="savingItemId === itemRecord.id">
+                              <a :class="{ 'text-muted': savingItemId === itemRecord.id }">Cancel</a>
                             </a-popconfirm>
                           </span>
                           <span v-else-if="canEditGrants">
@@ -312,11 +313,9 @@
   <!-- Grant Modal Update -->
   <grant-modal-update ref="grantModalUpdate" @update-grant="handleUpdateGrant" />
 
-  <!-- Grant Upload Modal -->
-  <grant-upload-modal ref="grantUploadModal" @refresh-grant-list="fetchGrants" />
 
-  <!-- Notification Toast -->
-  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+  <!-- Notification Toast - z-index 2000 to appear above modals -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
     <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header" :class="notificationClass">
         <strong class="me-auto">{{ notificationTitle }}</strong>
@@ -335,12 +334,10 @@ import { InfoCircleOutlined } from '@ant-design/icons-vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import GrantModal from '@/components/modal/grant-modal.vue';
 import GrantModalUpdate from '@/components/modal/grant-modal-update.vue';
-import GrantUploadModal from '@/components/modal/grant-upload-modal.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
 import { grantService } from '@/services/grant.service';
-import { uploadGrantService } from '@/services/upload-grant.service';
 import moment from 'moment';
 import DateRangePicker from 'daterangepicker';
 import { cloneDeep } from 'lodash-es';
@@ -353,7 +350,6 @@ export default {
     indexBreadcrumb,
     GrantModal,
     GrantModalUpdate,
-    GrantUploadModal,
     LayoutHeader,
     LayoutSidebar,
     LayoutFooter,
@@ -389,7 +385,6 @@ export default {
       notificationClass: '',
       grantModalInstance: null,
       grantModalUpdateInstance: null,
-      grantUploadModalInstance: null,
       // Data properties from setup()
       dateRangeInput: null,
       filteredInfo: {},
@@ -398,6 +393,7 @@ export default {
       loading: false,
       searchLoading: false,
       editableData: {},
+      savingItemId: null, // Track which grant item is being saved
       grantService,
       selectedRowKeys: [],
 
@@ -659,11 +655,9 @@ export default {
     // Initialize modal instances once
     const grantModalEl = document.getElementById('grant_modal');
     const grantModalUpdateEl = document.getElementById('grant_modal_update');
-    const grantUploadModalEl = document.getElementById('grantUploadModal');
 
     this.grantModalInstance = BootstrapModal.getInstance(grantModalEl) || new BootstrapModal(grantModalEl);
     this.grantModalUpdateInstance = BootstrapModal.getInstance(grantModalUpdateEl) || new BootstrapModal(grantModalUpdateEl);
-    this.grantUploadModalInstance = BootstrapModal.getInstance(grantUploadModalEl) || new BootstrapModal(grantUploadModalEl);
 
     this.fetchGrants();
 
@@ -840,6 +834,7 @@ export default {
     // Save changes
     async save(id) {
       if (!this.editableData[id]) return;
+      if (this.savingItemId) return; // Prevent double-click
 
       const itemData = { ...this.editableData[id] };
 
@@ -856,6 +851,9 @@ export default {
         this.$message.error('Please fill in all fields');
         return;
       }
+
+      // Set loading state
+      this.savingItemId = id;
 
       try {
         let updatedItem;
@@ -905,6 +903,9 @@ export default {
         // Display specific error message if available
         const errorMessage = error.error || error.message || 'Failed to save grant item';
         this.$message.error(errorMessage);
+      } finally {
+        // Clear loading state
+        this.savingItemId = null;
       }
     },
 
@@ -1222,11 +1223,6 @@ export default {
       this.grantModalInstance.show();
     },
 
-    openGrantUploadModal() {
-      this.$refs.grantUploadModal.resetForm();
-      this.grantUploadModalInstance.show();
-    },
-
     openEditGrantModal(grant) {
       const grantData = {
         id: grant.id,
@@ -1332,21 +1328,6 @@ export default {
       } catch (error) {
         this.$message.error('Failed to delete grants');
         console.error("Error deleting grants:", error);
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async handleGrantUploadSubmit(file) {
-      this.loading = true;
-      try {
-        await uploadGrantService.uploadGrantData(file);
-        this.showNotification('Success', 'Grant file uploaded successfully', 'bg-success text-white');
-        // Refresh the grants list
-        this.fetchGrants();
-      } catch (error) {
-        console.error('Error uploading grant file:', error);
-        this.showNotification('Error', 'Failed to upload grant file', 'bg-danger text-white');
       } finally {
         this.loading = false;
       }

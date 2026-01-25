@@ -1,5 +1,5 @@
 import { apiService } from './api.service';
-import { API_ENDPOINTS } from '@/config/api.config';
+import { API_CONFIG, API_ENDPOINTS } from '@/config/api.config';
 import { dataMapper, filterUtils } from '@/utils/resignation.utils';
 
 /**
@@ -281,7 +281,7 @@ class ResignationService {
     async getDepartments() {
         try {
             // This would use the existing lookup endpoint for departments
-            const endpoint = `${API_ENDPOINTS.LOOKUP.BY_TYPE}/department`;
+            const endpoint = API_ENDPOINTS.LOOKUP.BY_TYPE.replace(':type', 'department');
             const response = await apiService.get(endpoint);
 
             if (response.success && response.data) {
@@ -350,6 +350,57 @@ class ResignationService {
             return validationUtils.validateResignation(data);
         } catch (error) {
             console.error('Error validating resignation:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Download recommendation letter PDF for a resigned employee
+     * @param {number} id - Resignation ID
+     * @param {string} employeeName - Employee name for the filename
+     * @returns {Promise<void>} Downloads the PDF file
+     */
+    async downloadRecommendationLetter(id, employeeName = 'employee') {
+        try {
+            const endpoint = API_ENDPOINTS.RESIGNATION.RECOMMENDATION_LETTER.replace(':id', id);
+            const token = localStorage.getItem('auth_token');
+
+            const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/pdf'
+                }
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to download recommendation letter');
+            }
+
+            // Get the blob from response
+            const blob = await response.blob();
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Clean filename
+            const cleanName = employeeName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+            link.download = `Recommendation_Letter_${cleanName}.pdf`;
+
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Cleanup
+            window.URL.revokeObjectURL(url);
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error downloading recommendation letter:', error);
             throw error;
         }
     }

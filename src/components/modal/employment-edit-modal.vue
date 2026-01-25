@@ -244,219 +244,30 @@
               </div>
             </div>
 
-            <!-- Employment Save Section -->
-            <div class="section-save-row">
-              <div class="section-status">
-                <span v-if="isEmploymentSaved" class="status-indicator status-saved">
-                  <i class="ti ti-circle-check"></i>
-                  {{ employmentSaveMessage || 'Employment updated successfully' }}
-                </span>
-                <span v-else class="status-indicator status-pending">
-                  <i class="ti ti-info-circle"></i>
-                  Update employment details
-                </span>
-              </div>
-              <button type="button" class="btn btn-section-save" @click="handleUpdateEmployment"
-                :disabled="isSubmittingEmployment">
-                <span v-if="isSubmittingEmployment">
-                  <i class="ti ti-loader spinner-icon"></i> Saving...
-                </span>
-                <span v-else-if="isEmploymentSaved">
-                  <i class="ti ti-check"></i> Saved
-                </span>
-                <span v-else>
-                  <i class="ti ti-device-floppy"></i> Save Employment
-                </span>
-              </button>
-            </div>
-
-            <!-- Funding Allocations Section -->
-            <div class="form-section funding-allocation-section">
-              <div class="section-header-with-status">
-                <label class="section-title">Funding Allocations</label>
-                <span v-if="fundingAllocations.length > 0" class="badge badge-info">
-                  {{ fundingAllocations.length }} allocation(s) | FTE: {{ totalFte }}%
-                </span>
-              </div>
-
-              <!-- Existing Allocations Table -->
-              <div v-if="fundingAllocations.length > 0" class="allocations-table-wrapper">
-                <table class="allocations-table">
-                  <thead>
-                    <tr>
-                      <th>Grant</th>
-                      <th>Budget Line</th>
-                      <th>Position</th>
-                      <th>FTE (%)</th>
-                      <th>Allocated Amount</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(allocation, index) in fundingAllocations" :key="allocation.id || index">
-                      <td>{{ allocation.grant_name || 'N/A' }}</td>
-                      <td>{{ allocation.budget_line_code || 'N/A' }}</td>
-                      <td>{{ allocation.position_name || 'N/A' }}</td>
-                      <td>{{ allocation.fte }}%</td>
-                      <td>{{ formatCurrency(allocation.allocated_amount) }}</td>
-                      <td>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-1"
-                          @click="editAllocation(index)" :disabled="editingIndex !== null">
-                          <i class="ti ti-edit"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger"
-                          @click="deleteAllocation(index)">
-                          <i class="ti ti-trash"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr class="total-row">
-                      <td colspan="3"><strong>Total</strong></td>
-                      <td><strong :class="{ 'text-danger': totalFte !== 100, 'text-success': totalFte === 100 }">
-                          {{ totalFte }}%
-                        </strong></td>
-                      <td colspan="2"><strong>{{ formatCurrency(totalAllocatedSalary) }}</strong></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-
-              <!-- No Allocations Message -->
-              <div v-else class="no-allocations-msg">
-                <p class="text-muted text-center">No funding allocations. Click "Add Allocation" to add one.</p>
-              </div>
-
-              <!-- Add New Allocation Form -->
-              <div v-if="showAddAllocationForm" class="add-allocation-form">
-                <h6 class="mb-3">Add New Allocation</h6>
-                <div class="date-row">
-                  <div class="form-group">
-                    <small class="text-muted">Grant</small>
-                    <select v-model="currentAllocation.grant_id" @change="onGrantChange" class="form-control"
-                      :class="{ 'is-invalid': allocationErrors.grant_id }">
-                      <option value="">Select grant</option>
-                      <option v-for="grant in grantOptions" :key="grant.id" :value="grant.id">
-                        {{ grant.project_name || grant.name }} ({{ grant.grant_code || grant.code }})
-                      </option>
-                    </select>
-                    <div v-if="allocationErrors.grant_id" class="invalid-feedback">
-                      {{ allocationErrors.grant_id }}
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <small class="text-muted">Grant Position (Budget Line)</small>
-                    <select v-model="currentAllocation.grant_item_id" class="form-control"
-                      :class="{ 'is-invalid': allocationErrors.grant_item_id }"
-                      :disabled="!currentAllocation.grant_id || grantPositionOptions.length === 0">
-                      <option value="">{{ grantPositionOptions.length === 0 ? 'Select grant first' : 'Select position'
-                        }}</option>
-                      <option v-for="item in grantPositionOptions" :key="item.id" :value="item.id">
-                        {{ item.budget_line_code }} - {{ item.position?.name || 'N/A' }}
-                      </option>
-                    </select>
-                    <div v-if="allocationErrors.grant_item_id" class="invalid-feedback">
-                      {{ allocationErrors.grant_item_id }}
-                    </div>
-                  </div>
-                </div>
-                <div class="date-row">
-                  <div class="form-group">
-                    <small class="text-muted">FTE (%)</small>
-                    <input type="number" class="form-control" v-model.number="currentAllocation.fte"
-                      :class="{ 'is-invalid': allocationErrors.fte }" min="1" max="100" placeholder="e.g., 100">
-                    <div v-if="allocationErrors.fte" class="invalid-feedback">
-                      {{ allocationErrors.fte }}
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <small class="text-muted">Preview Amount</small>
-                    <div class="form-control-plaintext">
-                      <span v-if="calculating" class="text-muted">
-                        <i class="ti ti-loader spinner-icon"></i> Calculating...
-                      </span>
-                      <span v-else-if="formattedAmount">
-                        {{ formattedAmount }}
-                        <small class="text-muted">({{ salaryTypeLabel }})</small>
-                      </span>
-                      <span v-else class="text-muted">Enter FTE to calculate</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="d-flex justify-content-end gap-2 mt-3">
-                  <button type="button" class="btn btn-secondary" @click="cancelAddAllocation">
-                    Cancel
-                  </button>
-                  <button type="button" class="btn btn-primary" @click="addAllocation" :disabled="calculating">
-                    <i class="ti ti-plus"></i> Add Allocation
-                  </button>
-                </div>
-              </div>
-
-              <!-- Add Allocation Button -->
-              <button v-if="!showAddAllocationForm && editingIndex === null" type="button"
-                class="btn btn-outline-primary btn-sm mt-2" @click="showAddAllocationForm = true">
-                <i class="ti ti-plus"></i> Add Allocation
-              </button>
-
-              <!-- Allocation Save Section -->
-              <div class="section-save-row mt-3" v-if="fundingAllocations.length > 0">
-                <div class="section-status">
-                  <span v-if="isAllocationsSaved" class="status-indicator status-saved">
-                    <i class="ti ti-circle-check"></i>
-                    Allocations saved successfully
-                  </span>
-                  <span v-else-if="totalFte === 100" class="status-indicator status-ready">
-                    <i class="ti ti-info-circle"></i>
-                    Ready to save (FTE: {{ totalFte }}%)
-                  </span>
-                  <span v-else class="status-indicator status-warning">
-                    <i class="ti ti-alert-triangle"></i>
-                    FTE must equal 100% (Current: {{ totalFte }}%)
-                  </span>
-                </div>
-                <button type="button" class="btn btn-section-save" @click="handleSaveAllocationsOnly"
-                  :disabled="isSubmittingAllocations || totalFte !== 100">
-                  <span v-if="isSubmittingAllocations">
-                    <i class="ti ti-loader spinner-icon"></i> Saving...
-                  </span>
-                  <span v-else-if="isAllocationsSaved">
-                    <i class="ti ti-check"></i> Saved
-                  </span>
-                  <span v-else>
-                    <i class="ti ti-device-floppy"></i> Save Allocations
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Modal Footer -->
+            <!-- Modal Footer Actions -->
             <div class="modal-footer-actions">
-              <div class="progress-summary">
-                <span v-if="isEmploymentSaved && (isAllocationsSaved || fundingAllocations.length === 0)"
-                  class="progress-complete">
-                  <i class="ti ti-circle-check"></i> All changes saved
-                </span>
-                <span v-else-if="isEmploymentSaved" class="progress-partial">
-                  <i class="ti ti-progress"></i> Employment saved. Save allocations to complete.
-                </span>
-                <span v-else class="progress-pending">
-                  <i class="ti ti-info-circle"></i> Make changes and save to update employment.
-                </span>
-              </div>
-
               <div class="btn-row">
                 <button type="button" class="btn btn-cancel" @click="handleModalClose">
-                  <i class="ti ti-x"></i> {{ isEmploymentSaved ? 'Close' : 'Cancel' }}
+                  <i class="ti ti-x"></i> Cancel
                 </button>
 
-                <!-- Complete Button -->
-                <button v-if="isEmploymentSaved && (isAllocationsSaved || fundingAllocations.length === 0)"
-                  type="button" class="btn btn-success" @click="handleModalClose">
-                  <i class="ti ti-check"></i> Complete
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  @click="handleSaveAndClose"
+                  :disabled="isSubmittingEmployment || isLoadingData">
+                  <span v-if="isSubmittingEmployment">
+                    <i class="ti ti-loader spinner-icon"></i> Saving...
+                  </span>
+                  <span v-else>
+                    <i class="ti ti-device-floppy"></i> Save Changes
+                  </span>
                 </button>
               </div>
+              <p class="text-muted mt-2" style="font-size: 0.85em;">
+                <i class="ti ti-info-circle"></i>
+                After saving, expand the employment row to manage funding allocations.
+              </p>
             </div>
           </form>
         </div>
@@ -467,21 +278,21 @@
 
 <script>
 /**
- * Employment Edit Modal Component (Refactored with Composables)
- * 
- * This modal handles editing existing employment records with funding allocations.
- * It uses composables for state management, following the same pattern as the create modal.
- * 
+ * Employment Edit Modal Component (Simplified)
+ *
+ * This modal handles editing existing employment records.
+ * Funding allocations are now managed separately via expandable rows
+ * in the employment list using EmployeeFundingAllocationPanel.
+ *
  * Key differences from create modal:
  * - Employee selection is READ-ONLY (displays existing employee)
  * - Loads existing employment data on open
  * - Uses UPDATE API instead of CREATE
  * - Uses separate draft key to avoid conflicts
- * 
+ *
  * Composables Used:
  * - useEmploymentForm: Form state, validation, date utilities (edit mode)
  * - useDraftPersistence: Auto-save and restore draft functionality
- * - useAllocationManager: Funding allocation CRUD operations
  * - useModalLifecycle: Bootstrap Modal integration
  */
 import { ref, computed, watch, shallowRef, markRaw, onMounted, onBeforeUnmount, nextTick } from 'vue';
@@ -493,13 +304,12 @@ import { PerformanceCleanup } from '@/utils/performance.js';
 // Import composables
 import { useEmploymentForm } from '@/composables/useEmploymentForm';
 import { useDraftPersistence } from '@/composables/useDraftPersistence';
-import { useAllocationManager } from '@/composables/useAllocationManager';
 import { useModalLifecycle } from '@/composables/useModalLifecycle';
 
 export default {
   name: 'EmploymentEditModal',
 
-  emits: ['employment-updated', 'allocations-saved', 'modal-closed'],
+  emits: ['employment-updated', 'modal-closed'],
 
   setup(props, { emit }) {
     // ============================================
@@ -525,16 +335,11 @@ export default {
     const workLocations = shallowRef([]);
     const employmentTypes = shallowRef([]);
     const sectionDepartments = shallowRef([]);
-    const grantOptions = shallowRef([]);
-    const grantPositions = shallowRef({});
     const payMethods = markRaw([
       { id: 1, value: 'Transferred to bank' },
       { id: 2, value: 'Cash cheque' }
     ]);
     const positionsLoading = ref(false);
-    
-    // Add allocation form visibility
-    const showAddAllocationForm = ref(false);
 
     // ============================================
     // INITIALIZE COMPOSABLES (Edit Mode)
@@ -548,25 +353,17 @@ export default {
       onError: (error) => console.error('Employment form error:', error)
     });
 
-    // 2. Allocation Manager Composable
-    const allocationManager = useAllocationManager({
-      formData: employmentForm.formData,
-      onFormChange: () => draftPersistence.debouncedSaveState(),
-      onAllocationsSaved: (data) => emit('allocations-saved', data),
-      onError: (error) => console.error('Allocation error:', error)
-    });
-
-    // 3. Draft Persistence Composable (with unique key for edit mode)
+    // 2. Draft Persistence Composable (with unique key for edit mode)
     const draftPersistence = useDraftPersistence({
       formData: employmentForm.formData,
-      fundingAllocations: allocationManager.fundingAllocations,
-      currentAllocation: allocationManager.currentAllocation,
+      fundingAllocations: ref([]), // No longer managing allocations in this modal
+      currentAllocation: ref({}),
       selectedEmployeeInfo: employmentForm.selectedEmployeeInfo,
       safeConvertToDate: employmentForm.safeConvertToDate,
       draftKey: 'employment-edit-modal-draft'  // Separate key for edit mode
     });
 
-    // 4. Modal Lifecycle Composable
+    // 3. Modal Lifecycle Composable
     const modalLifecycle = useModalLifecycle({
       modalId: 'employmentEditModal',
       hasUnsavedChanges: () => draftPersistence.hasUnsavedChanges.value && draftPersistence.isDraftMode.value,
@@ -648,16 +445,13 @@ export default {
             includeWorkLocations: true,
             includeGrantStructure: true,
             force: false
-          }),
-          sharedStore.fetchGrantStructure(true)
+          })
         ]);
 
         // Copy data from shared store
         departments.value = sharedStore.getDepartments;
         positions.value = sharedStore.getPositions;
         workLocations.value = sharedStore.getWorkLocations;
-        grantOptions.value = sharedStore.getGrantOptions;
-        grantPositions.value = sharedStore.getGrantPositions;
 
         // Load lookups
         const [types, sections] = await Promise.all([
@@ -687,11 +481,6 @@ export default {
         // Load positions for selected department
         if (data.department_id) {
           await loadPositionsForDepartment(data.department_id);
-        }
-
-        // Load existing allocations
-        if (data.id) {
-          await allocationManager.loadAllocations(data.id);
         }
 
         console.log('✅ Employment data loaded successfully');
@@ -737,49 +526,22 @@ export default {
       draftPersistence.debouncedSaveState();
     }
 
-    async function onGrantChange() {
-      const grantId = allocationManager.currentAllocation.grant_id;
-      allocationManager.currentAllocation.grant_item_id = '';
-      
-      if (grantId && grantPositions.value[grantId]) {
-        allocationManager.grantPositionOptions.value = grantPositions.value[grantId];
-      } else {
-        allocationManager.grantPositionOptions.value = [];
-      }
-    }
-
-    function cancelAddAllocation() {
-      showAddAllocationForm.value = false;
-      allocationManager.resetCurrentAllocation();
-    }
-
     // ============================================
     // FORM SUBMISSION
     // ============================================
 
-    async function handleUpdateEmployment() {
+    /**
+     * Save employment changes and close the modal.
+     * After saving, users can expand the employment row to manage allocations.
+     */
+    async function handleSaveAndClose() {
       const result = await employmentForm.handleUpdateEmployment();
       if (result) {
         draftPersistence.markAsSaved();
+        draftPersistence.clearFormDraft();
+        // Close the modal after successful save
+        modalLifecycle.handleModalClose();
       }
-    }
-
-    async function handleSaveAllocationsOnly() {
-      // Use employment ID from loaded data
-      const empId = employmentForm.editEmploymentId.value || employmentForm.savedEmploymentId.value;
-      
-      if (!empId) {
-        allocationManager.alertMessage.value = 'Employment must be saved first';
-        allocationManager.alertClass.value = 'alert-danger';
-        return;
-      }
-
-      await allocationManager.handleSaveAllocationsOnly(
-        employmentForm.formData.employee_id,
-        empId,
-        employmentForm.formatDateForAPI(employmentForm.formData.start_date),
-        employmentForm.formatDateForAPI(employmentForm.formData.end_date)
-      );
     }
 
     function handleSubmit() {
@@ -793,8 +555,6 @@ export default {
 
     function resetForm() {
       employmentForm.resetForm();
-      allocationManager.clearAllocations();
-      showAddAllocationForm.value = false;
     }
 
     async function openModal() {
@@ -872,20 +632,6 @@ export default {
       isEmploymentSaved: employmentForm.isEmploymentSaved,
       employmentSaveMessage: employmentForm.employmentSaveMessage,
 
-      // Allocation state from composable
-      fundingAllocations: allocationManager.fundingAllocations,
-      currentAllocation: allocationManager.currentAllocation,
-      allocationErrors: allocationManager.allocationErrors,
-      editingIndex: allocationManager.editingIndex,
-      isSubmittingAllocations: allocationManager.isSubmittingAllocations,
-      isAllocationsSaved: allocationManager.isAllocationsSaved,
-      totalFte: allocationManager.totalFte,
-      totalAllocatedSalary: allocationManager.totalAllocatedSalary,
-      grantPositionOptions: allocationManager.grantPositionOptions,
-      calculating: allocationManager.calculating,
-      formattedAmount: allocationManager.formattedAmount,
-      salaryTypeLabel: allocationManager.salaryTypeLabel,
-
       // Draft persistence
       restoredDataNotification: draftPersistence.restoredDataNotification,
       formatRestoredTime: draftPersistence.formatRestoredTime,
@@ -898,9 +644,7 @@ export default {
       workLocations,
       employmentTypes,
       sectionDepartments,
-      grantOptions,
       payMethods,
-      showAddAllocationForm,
 
       // Computed dates
       computedStartDate,
@@ -910,18 +654,9 @@ export default {
       // Event handlers
       onDepartmentChange,
       onStatusChange,
-      onGrantChange,
-      cancelAddAllocation,
-
-      // Allocation methods
-      addAllocation: allocationManager.addAllocation,
-      editAllocation: allocationManager.editAllocation,
-      deleteAllocation: allocationManager.deleteAllocation,
-      formatCurrency: allocationManager.formatCurrency,
 
       // Form submission
-      handleUpdateEmployment,
-      handleSaveAllocationsOnly,
+      handleSaveAndClose,
       handleSubmit,
 
       // Modal management

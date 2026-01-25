@@ -168,10 +168,10 @@
             </div>
 
             <div class="submit-section text-end">
-              <button type="button" class="btn btn-secondary me-2" @click="handleModalClose">Cancel</button>
+              <button type="button" class="btn btn-secondary me-2" @click="handleModalClose" :disabled="isSubmitting">Cancel</button>
               <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-                <span v-if="isSubmitting">Adding...</span>
-                <span v-else>Add Grant</span>
+                <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                {{ isSubmitting ? 'Adding...' : 'Add Grant' }}
               </button>
             </div>
           </form>

@@ -20,6 +20,7 @@ export default {
       default: false
     }
   },
+  emits: ['leaveRequestCreated', 'clearSelection'],
   setup() {
     const { showSuccess, showError } = useToast();
     const leaveStore = useLeaveStore();
@@ -114,6 +115,11 @@ export default {
       showNotification: false,
       notificationMessage: '',
       notificationClass: 'alert-success',
+
+      // Overlap detection state
+      overlapError: null,
+      overlappingRequests: [],
+      isCheckingOverlap: false,
 
       // Removed document management - using attachment_notes only
     };
@@ -520,6 +526,12 @@ export default {
       return this.itemBalances[leaveTypeId] || 0;
     },
 
+    // Get leave type name by ID
+    getLeaveTypeName(leaveTypeId) {
+      const leaveType = this.leaveTypes.find(lt => lt.id === parseInt(leaveTypeId));
+      return leaveType?.name || 'Unknown';
+    },
+
     // Validate balances for all items
     validateItemBalances(isEditMode = false) {
       const formDataToUse = isEditMode ? this.editFormData : this.formData;
@@ -881,6 +893,68 @@ export default {
       return isValid;
     },
 
+    // Check for overlapping leave requests
+    async checkLeaveOverlap(formData, excludeRequestId = null) {
+      if (!formData.employee_id || !formData.start_date || !formData.end_date) {
+        return { hasOverlap: false, overlappingRequests: [] };
+      }
+
+      this.isCheckingOverlap = true;
+      this.overlapError = null;
+      this.overlappingRequests = [];
+
+      try {
+        const payload = {
+          employee_id: parseInt(formData.employee_id),
+          start_date: this.formatDateForBackend(formData.start_date),
+          end_date: this.formatDateForBackend(formData.end_date)
+        };
+
+        // Include exclude_request_id for update operations
+        if (excludeRequestId) {
+          payload.exclude_request_id = excludeRequestId;
+        }
+
+        console.log('🔍 Checking leave overlap:', payload);
+        const result = await leaveService.checkLeaveOverlap(payload);
+
+        if (result.success && result.data) {
+          const { hasOverlap, overlappingRequests } = result.data;
+
+          if (hasOverlap) {
+            this.overlappingRequests = overlappingRequests;
+            this.overlapError = this.formatOverlapError(overlappingRequests);
+            console.log('⚠️ Leave overlap detected:', overlappingRequests);
+            return { hasOverlap: true, overlappingRequests };
+          }
+        }
+
+        console.log('✅ No leave overlap detected');
+        return { hasOverlap: false, overlappingRequests: [] };
+      } catch (error) {
+        console.error('❌ Error checking leave overlap:', error);
+        // Don't block submission on overlap check failure
+        return { hasOverlap: false, overlappingRequests: [] };
+      } finally {
+        this.isCheckingOverlap = false;
+      }
+    },
+
+    // Format overlap error message for display
+    formatOverlapError(overlappingRequests) {
+      if (!overlappingRequests || overlappingRequests.length === 0) {
+        return null;
+      }
+
+      const conflicts = overlappingRequests.map(req => {
+        const leaveTypes = req.leave_types?.join(', ') || 'Unknown';
+        const status = req.status || 'unknown';
+        return `${leaveTypes} (${req.start_date} to ${req.end_date}) - ${status}`;
+      });
+
+      return `This request overlaps with existing leave:\n${conflicts.join('\n')}`;
+    },
+
     // Submit form to backend using store
     async submitForm() {
       // Determine if we're editing or creating
@@ -919,6 +993,16 @@ export default {
         const uniqueIds = [...new Set(leaveTypeIds)];
         if (leaveTypeIds.length !== uniqueIds.length) {
           this.showError('Duplicate leave types are not allowed');
+          return;
+        }
+
+        // Check for overlapping leave requests
+        const excludeRequestId = isEditing ? (formDataToUse.id || this.selectedLeaveRequest?.id) : null;
+        const overlapResult = await this.checkLeaveOverlap(formDataToUse, excludeRequestId);
+
+        if (overlapResult.hasOverlap) {
+          this.showError('Leave dates overlap with an existing request. Please choose different dates.');
+          this.isLoading = false;
           return;
         }
 
@@ -1061,6 +1145,11 @@ export default {
       this.showNotification = false;
       this.notificationMessage = '';
       this.notificationClass = 'alert-success';
+
+      // Reset overlap detection state
+      this.overlapError = null;
+      this.overlappingRequests = [];
+      this.isCheckingOverlap = false;
 
       // Clear any pending balance load timeouts
       if (this.balanceLoadTimeout) {
@@ -1310,7 +1399,7 @@ export default {
       try {
         console.log('🧪 Testing direct API call...');
         const year = new Date().getFullYear();
-        const url = `/leaves/balance/${this.formData.employee_id}/${this.formData.leave_type_id}?year=${year}`;
+        const url = `/leave-balances/${this.formData.employee_id}/${this.formData.leave_type_id}?year=${year}`;
 
         console.log('🔗 Direct API URL:', url);
 
@@ -1559,18 +1648,16 @@ export default {
 </script>
 
 <template>
-  <!-- Add Leaves -->
-  <div class="modal fade" id="add_leaves">
+  <!-- Add Leaves Modal -->
+  <div class="modal custom-modal fade" id="add_leaves" role="dialog" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">Add Leave</h4>
-          <button type="button" class="btn-close custom-btn-close" @click="safeCloseModal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
+          <h5 class="modal-title">Add Leave Request</h5>
+          <button type="button" class="btn-close" @click="safeCloseModal" aria-label="Close"></button>
         </div>
         <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
+          <div class="modal-body">
             <!-- Success/Error Notification -->
             <div v-if="showNotification" class="alert" :class="notificationClass" role="alert">
               <i class="ti" :class="{
@@ -1583,78 +1670,97 @@ export default {
               <button type="button" class="btn-close" @click="showNotification = false" aria-label="Close"></button>
             </div>
 
-            <div class="row">
-              <!-- Employee Selection -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Employee Name <span class="text-danger">*</span></label>
-                  <div class="position-relative">
-                    <input type="text" v-model="employeeSearchQuery" @input="onEmployeeSearchInput"
-                      @focus="onEmployeeSearchFocus" @blur="onEmployeeSearchBlur" @keydown="onEmployeeKeyDown"
-                      class="form-control" :class="{ 'is-invalid': errors.employee_id }"
-                      placeholder="Type to search by Staff ID, Name, or Organization..." autocomplete="off" />
-
-                    <!-- Clear button -->
-                    <button v-if="(isCurrentlyEditing ? editFormData.employee_id : formData.employee_id)" type="button"
-                      @click="clearEmployeeSelection" class="btn btn-sm position-absolute"
-                      style="right: 8px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #6c757d;">
-                      <i class="ti ti-x"></i>
-                    </button>
-
-                    <!-- Dropdown list -->
-                    <div v-if="showEmployeeDropdown && filteredEmployees.length > 0"
-                      class="dropdown-menu show position-absolute w-100"
-                      style="max-height: 300px; overflow-y: auto; z-index: 1050;">
-                      <div v-for="(employee, index) in filteredEmployees" :key="employee.id"
-                        @mousedown="selectEmployee(employee)" class="dropdown-item"
-                        :class="{ 'active': index === selectedEmployeeIndex }" style="cursor: pointer;">
-                        <div class="d-flex justify-content-between align-items-center">
-                          <div>
-                            <strong>{{ employee.staff_id }}</strong> - {{ employee.name }}
-                          </div>
-                          <small class="text-muted">[{{ employee.organization }}]</small>
-                        </div>
-                        <small class="text-muted">{{ employee.status }}</small>
-                      </div>
-                    </div>
-
-                    <!-- No results message -->
-                    <div v-if="showEmployeeDropdown && filteredEmployees.length === 0 && employeeSearchQuery.trim()"
-                      class="dropdown-menu show position-absolute w-100" style="z-index: 1050;">
-                      <div class="dropdown-item-text text-muted">
-                        No employees found for "{{ employeeSearchQuery }}"
-                      </div>
-                    </div>
-                  </div>
-                  <div v-if="errors.employee_id" class="invalid-feedback">{{ errors.employee_id }}</div>
-                </div>
+            <!-- Row 1: Employee Selection (horizontal layout) -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Employee :
+                  <span class="text-danger">*</span>
+                </label>
               </div>
+              <div class="form-input-col">
+                <div class="position-relative">
+                  <input type="text" v-model="employeeSearchQuery" @input="onEmployeeSearchInput"
+                    @focus="onEmployeeSearchFocus" @blur="onEmployeeSearchBlur" @keydown="onEmployeeKeyDown"
+                    class="form-control" :class="{ 'is-invalid': errors.employee_id }"
+                    placeholder="Type to search by Staff ID, Name, or Organization..." autocomplete="off" />
 
-              <!-- Leave Type Allocation (Combined - v2.0) -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label mb-0">Leave Request Details <span class="text-danger">*</span></label>
-                    <button type="button" class="btn btn-sm btn-primary" @click="addLeaveTypeItem(false)">
-                      <i class="ti ti-plus me-1"></i>Add Leave Type
-                    </button>
+                  <!-- Clear button -->
+                  <button v-if="(isCurrentlyEditing ? editFormData.employee_id : formData.employee_id)" type="button"
+                    @click="clearEmployeeSelection" class="btn btn-sm position-absolute"
+                    style="right: 8px; top: 50%; transform: translateY(-50%); border: none; background: none; color: #6c757d;">
+                    <i class="ti ti-x"></i>
+                  </button>
+
+                  <!-- Dropdown list -->
+                  <div v-if="showEmployeeDropdown && filteredEmployees.length > 0"
+                    class="dropdown-menu show position-absolute w-100"
+                    style="max-height: 300px; overflow-y: auto; z-index: 1050;">
+                    <div v-for="(employee, index) in filteredEmployees" :key="employee.id"
+                      @mousedown="selectEmployee(employee)" class="dropdown-item"
+                      :class="{ 'active': index === selectedEmployeeIndex }" style="cursor: pointer;">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <strong>{{ employee.staff_id }}</strong> - {{ employee.name }}
+                        </div>
+                        <small class="text-muted">[{{ employee.organization }}]</small>
+                      </div>
+                      <small class="text-muted">{{ employee.status }}</small>
+                    </div>
                   </div>
 
-                  <!-- Leave Type Items -->
-                  <div v-for="(item, index) in formData.items" :key="index" class="card mb-2">
-                    <div class="card-body p-3">
-                      <div class="row g-2">
+                  <!-- No results message -->
+                  <div v-if="showEmployeeDropdown && filteredEmployees.length === 0 && employeeSearchQuery.trim()"
+                    class="dropdown-menu show position-absolute w-100" style="z-index: 1050;">
+                    <div class="dropdown-item-text text-muted">
+                      No employees found for "{{ employeeSearchQuery }}"
+                    </div>
+                  </div>
+                </div>
+                <div v-if="errors.employee_id" class="invalid-feedback">{{ errors.employee_id }}</div>
+              </div>
+            </div>
+
+            <!-- Row 2: Leave Type Items Section -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Leave Details :
+                  <span class="text-danger">*</span>
+                </label>
+              </div>
+              <div class="form-input-col">
+                <!-- Add Leave Type Button -->
+                <div class="d-flex justify-content-end mb-2">
+                  <button type="button" class="btn btn-sm btn-outline-primary" @click="addLeaveTypeItem(false)">
+                    <i class="ti ti-plus me-1"></i>Add Leave Type
+                  </button>
+                </div>
+
+                <!-- Leave Type Items Table -->
+                <div class="leave-items-table">
+                  <table class="table table-bordered table-sm mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th style="width: 25%">Leave Type <span class="text-danger">*</span></th>
+                        <th style="width: 18%">From <span class="text-danger">*</span></th>
+                        <th style="width: 18%">To <span class="text-danger">*</span></th>
+                        <th style="width: 12%">Days</th>
+                        <th style="width: 15%">Balance</th>
+                        <th style="width: 12%"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(item, index) in formData.items" :key="index">
                         <!-- Leave Type Selection -->
-                        <div class="col-md-3">
-                          <label class="form-label">Leave Type <span class="text-danger">*</span></label>
+                        <td>
                           <a-select
                             v-model:value="item.leave_type_id"
                             @change="onLeaveTypeChange(index, false)"
-                            placeholder="Select Type"
+                            placeholder="Select"
                             size="small"
-                            style="width: 100%"
-                            :class="{ 'is-invalid': errors[`items_${index}_leave_type_id`] }">
-                            <a-select-option value="">Select Type</a-select-option>
+                            style="width: 100%">
+                            <a-select-option value="">Select</a-select-option>
                             <a-select-option
                               v-for="leaveType in getAvailableLeaveTypes(index, false)"
                               :key="leaveType.id"
@@ -1662,212 +1768,188 @@ export default {
                               {{ leaveType.name }}
                             </a-select-option>
                           </a-select>
-                        </div>
-
+                        </td>
                         <!-- From Date -->
-                        <div class="col-md-2">
-                          <label class="form-label">From <span class="text-danger">*</span></label>
-                          <div class="input-icon-end position-relative">
-                            <date-picker class="form-control form-control-sm datetimepicker"
-                              placeholder="dd/mm/yyyy"
-                              :editable="true"
-                              :clearable="false"
-                              :input-format="displayFormat"
-                              v-model="item.start_date"
-                              @update:model-value="handleItemDateChange(index, 'start_date', $event, false)" />
-                            <span class="input-icon-addon">
-                              <i class="ti ti-calendar text-gray-7"></i>
-                            </span>
-                          </div>
-                        </div>
-
+                        <td>
+                          <date-picker class="form-control form-control-sm"
+                            placeholder="dd/mm/yyyy"
+                            :editable="true"
+                            :clearable="false"
+                            :input-format="displayFormat"
+                            v-model="item.start_date"
+                            @update:model-value="handleItemDateChange(index, 'start_date', $event, false)" />
+                        </td>
                         <!-- To Date -->
-                        <div class="col-md-2">
-                          <label class="form-label">To <span class="text-danger">*</span></label>
-                          <div class="input-icon-end position-relative">
-                            <date-picker class="form-control form-control-sm datetimepicker"
-                              placeholder="dd/mm/yyyy"
-                              :editable="true"
-                              :clearable="false"
-                              :input-format="displayFormat"
-                              v-model="item.end_date"
-                              @update:model-value="handleItemDateChange(index, 'end_date', $event, false)" />
-                            <span class="input-icon-addon">
-                              <i class="ti ti-calendar text-gray-7"></i>
-                            </span>
-                          </div>
-                        </div>
-
-                        <!-- Total Days (Auto-calculated) -->
-                        <div class="col-md-2">
-                          <label class="form-label">Days</label>
-                          <input type="number"
+                        <td>
+                          <date-picker class="form-control form-control-sm"
+                            placeholder="dd/mm/yyyy"
+                            :editable="true"
+                            :clearable="false"
+                            :input-format="displayFormat"
+                            v-model="item.end_date"
+                            @update:model-value="handleItemDateChange(index, 'end_date', $event, false)" />
+                        </td>
+                        <!-- Days -->
+                        <td>
+                          <input type="text"
                             :value="item.days || 0"
                             class="form-control form-control-sm text-center"
-                            readonly
-                            title="Auto-calculated from dates" />
-                        </div>
-
-                        <!-- Available Balance Display -->
-                        <div class="col-md-2">
-                          <label class="form-label">Balance</label>
-                          <div class="input-group input-group-sm">
-                            <input type="text"
-                              :value="item.leave_type_id ? (getBalanceForType(item.leave_type_id) + ' d') : '-'"
-                              class="form-control form-control-sm text-center"
-                              readonly
-                              title="Available balance" />
-                            <span v-if="isLoadingBalances[item.leave_type_id]" class="input-group-text">
-                              <i class="ti ti-loader ti-spin"></i>
+                            readonly />
+                        </td>
+                        <!-- Balance -->
+                        <td>
+                          <div class="d-flex align-items-center justify-content-center">
+                            <span :class="{'text-danger': item.leave_type_id && item.days > 0 && getBalanceForType(item.leave_type_id) < item.days}">
+                              {{ item.leave_type_id ? getBalanceForType(item.leave_type_id) : '-' }}
                             </span>
+                            <i v-if="isLoadingBalances[item.leave_type_id]" class="ti ti-loader ti-spin ms-1"></i>
                           </div>
-                        </div>
-
-                        <!-- Remove Button -->
-                        <div class="col-md-1">
-                          <label class="form-label d-block">&nbsp;</label>
+                        </td>
+                        <!-- Remove -->
+                        <td class="text-center">
                           <button type="button"
                             class="btn btn-sm btn-outline-danger"
                             @click="removeLeaveTypeItem(index, false)"
                             :disabled="formData.items.length === 1"
-                            title="Remove this leave type">
+                            title="Remove">
                             <i class="ti ti-trash"></i>
                           </button>
-                        </div>
-                      </div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
 
-                      <!-- Balance Warning -->
-                      <div v-if="item.leave_type_id && item.days > 0 && getBalanceForType(item.leave_type_id) < item.days"
-                        class="alert alert-warning mt-2 mb-0 py-2">
-                        <i class="ti ti-alert-triangle me-1"></i>
-                        <small>Insufficient balance! Available: {{ getBalanceForType(item.leave_type_id) }} days, Requested: {{ item.days }} days</small>
-                      </div>
-                    </div>
+                <!-- Items Validation Error -->
+                <div v-if="errors.items" class="invalid-feedback d-block mt-1">{{ errors.items }}</div>
+
+                <!-- Balance Warning -->
+                <div v-for="(item, index) in formData.items" :key="'warn-' + index">
+                  <div v-if="item.leave_type_id && item.days > 0 && getBalanceForType(item.leave_type_id) < item.days"
+                    class="alert alert-warning py-2 px-3 mt-2 mb-0">
+                    <i class="ti ti-alert-triangle me-1"></i>
+                    <small>{{ getLeaveTypeName(item.leave_type_id) }}: Insufficient balance ({{ getBalanceForType(item.leave_type_id) }} available, {{ item.days }} requested)</small>
                   </div>
+                </div>
 
-                  <!-- Items Validation Error -->
-                  <div v-if="errors.items" class="invalid-feedback d-block">{{ errors.items }}</div>
+                <!-- Overlap Error -->
+                <div v-if="overlapError && !isCurrentlyEditing" class="alert alert-danger py-2 px-3 mt-2 mb-0">
+                  <i class="ti ti-calendar-x me-1"></i>
+                  <strong>Leave Overlap Detected</strong>
+                  <p class="mb-0 mt-1 small" style="white-space: pre-line;">{{ overlapError }}</p>
                 </div>
               </div>
+            </div>
 
-              <!-- Reason -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Reason</label>
-                  <textarea v-model="formData.reason" class="form-control" rows="3" maxlength="1000"
-                    placeholder="Enter reason for leave request"></textarea>
-                  <small class="text-muted">{{ formData.reason.length }}/1000 characters</small>
-                </div>
+            <!-- Row 3: Reason -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">Reason :</label>
+              </div>
+              <div class="form-input-col">
+                <textarea v-model="formData.reason" class="form-control" rows="2" maxlength="1000"
+                  placeholder="Enter reason for leave request"></textarea>
+                <small class="text-muted">{{ formData.reason?.length || 0 }}/1000 characters</small>
+              </div>
+            </div>
+
+            <!-- Row 4: Status -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">Status :</label>
+              </div>
+              <div class="form-input-col">
+                <select v-model="formData.status" class="form-select input-short">
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="declined">Declined</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Approval Information Section -->
+            <div class="approval-section">
+              <div class="section-header mb-3">
+                <h6 class="mb-0">Approval Information</h6>
+                <small class="text-muted">Record approval status and dates from paper forms</small>
               </div>
 
-              <!-- Status -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Status</label>
-                  <select v-model="formData.status" class="form-select">
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="declined">Declined</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Approval Information Section -->
-              <div class="col-md-12">
-                <div class="card mb-3">
-                  <div class="card-header">
-                    <h6 class="mb-0">Approval Information (from Paper Forms)</h6>
-                    <small class="text-muted">Record approval status and dates as shown on physical forms</small>
+              <!-- Supervisor Approval Row -->
+              <div class="form-row mb-3">
+                <div class="form-label-col">
+                  <div class="form-check pt-1">
+                    <input type="checkbox" v-model="formData.supervisor_approved" class="form-check-input"
+                      id="supervisorApproved">
+                    <label class="form-check-label" for="supervisorApproved">
+                      Supervisor :
+                    </label>
                   </div>
-                  <div class="card-body">
-                    <div class="row">
-                      <!-- Supervisor Approval -->
-                      <div class="col-md-6">
-                        <div class="mb-3">
-                          <div class="form-check">
-                            <input type="checkbox" v-model="formData.supervisor_approved" class="form-check-input"
-                              id="supervisorApproved">
-                            <label class="form-check-label" for="supervisorApproved">
-                              Supervisor Approved
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="mb-3">
-                          <label class="form-label">Supervisor Approval Date</label>
-                          <div class="input-icon-end position-relative">
-                            <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                              :clearable="false" :input-format="displayFormat"
-                              v-model="formData.supervisor_approved_date" :disabled="!formData.supervisor_approved"
-                              @update:model-value="handleDateChange('supervisor_approved_date', $event)" />
-                            <span class="input-icon-addon">
-                              <i class="ti ti-calendar text-gray-7"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- HR/Site Admin Approval (Combined) -->
-                      <div class="col-md-6">
-                        <div class="mb-3">
-                          <div class="form-check">
-                            <input type="checkbox" v-model="formData.hr_site_admin_approved" class="form-check-input"
-                              id="hrSiteAdminApproved">
-                            <label class="form-check-label" for="hrSiteAdminApproved">
-                              HR/Site Admin Approved
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="mb-3">
-                          <label class="form-label">HR/Site Admin Approval Date</label>
-                          <div class="input-icon-end position-relative">
-                            <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                              :clearable="false" :input-format="displayFormat"
-                              v-model="formData.hr_site_admin_approved_date"
-                              :disabled="!formData.hr_site_admin_approved"
-                              @update:model-value="handleDateChange('hr_site_admin_approved_date', $event)" />
-                            <span class="input-icon-addon">
-                              <i class="ti ti-calendar text-gray-7"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                </div>
+                <div class="form-input-col">
+                  <div class="input-with-tooltip">
+                    <div class="input-short-wrapper">
+                      <date-picker class="form-control datetimepicker input-short"
+                        placeholder="dd/mm/yyyy"
+                        :editable="true"
+                        :clearable="false"
+                        :input-format="displayFormat"
+                        v-model="formData.supervisor_approved_date"
+                        :disabled="!formData.supervisor_approved"
+                        @update:model-value="handleDateChange('supervisor_approved_date', $event)" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Attachment Notes -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Attachment Notes</label>
-                  <textarea v-model="formData.attachment_notes" class="form-control" rows="2"
-                    placeholder="Simple text notes about attachments (e.g., 'Medical certificate submitted', 'Travel documents provided')"></textarea>
-                  <small class="text-muted">Text-based reference to any attachments received</small>
+              <!-- HR/Site Admin Approval Row -->
+              <div class="form-row mb-3">
+                <div class="form-label-col">
+                  <div class="form-check pt-1">
+                    <input type="checkbox" v-model="formData.hr_site_admin_approved" class="form-check-input"
+                      id="hrSiteAdminApproved">
+                    <label class="form-check-label" for="hrSiteAdminApproved">
+                      HR/Admin :
+                    </label>
+                  </div>
+                </div>
+                <div class="form-input-col">
+                  <div class="input-with-tooltip">
+                    <div class="input-short-wrapper">
+                      <date-picker class="form-control datetimepicker input-short"
+                        placeholder="dd/mm/yyyy"
+                        :editable="true"
+                        :clearable="false"
+                        :input-format="displayFormat"
+                        v-model="formData.hr_site_admin_approved_date"
+                        :disabled="!formData.hr_site_admin_approved"
+                        @update:model-value="handleDateChange('hr_site_admin_approved_date', $event)" />
+                    </div>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Attachment Requirement Notice -->
-              <div class="col-md-12" v-if="requiresAttachment && !formData.attachment_notes?.trim()">
-                <div class="alert alert-warning">
-                  <i class="ti ti-alert-triangle"></i>
-                  This leave type requires attachment notes. Please describe any documents attached to the paper form.
-                </div>
+            <!-- Row 5: Attachment Notes -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">Attachments :</label>
               </div>
-              <div v-if="errors.attachment_notes" class="col-md-12">
-                <div class="text-danger mt-1">{{ errors.attachment_notes }}</div>
+              <div class="form-input-col">
+                <textarea v-model="formData.attachment_notes" class="form-control" rows="2"
+                  placeholder="Notes about paper attachments (e.g., 'Medical certificate submitted')"></textarea>
+                <small class="text-muted">Reference any documents attached to the paper form</small>
+                <div v-if="errors.attachment_notes" class="text-danger mt-1 small">{{ errors.attachment_notes }}</div>
+                <div v-if="requiresAttachment && !formData.attachment_notes?.trim()" class="alert alert-warning py-2 mt-2 mb-0">
+                  <i class="ti ti-alert-triangle me-1"></i>
+                  <small>This leave type requires attachment notes.</small>
+                </div>
               </div>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button type="button" class="btn btn-light me-2" @click="safeCloseModal">
-              Cancel
-            </button>
+            <button type="button" class="btn btn-light me-2" @click="safeCloseModal">Cancel</button>
             <button type="submit" class="btn btn-primary" :disabled="isLoading">
               <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
               {{ isLoading ? 'Creating...' : 'Add Leave Request' }}
@@ -1879,19 +1961,17 @@ export default {
   </div>
   <!-- /Add Leaves -->
 
-  <!-- Edit Leaves -->
-  <div class="modal fade" id="edit_leaves">
+  <!-- Edit Leaves Modal -->
+  <div class="modal custom-modal fade" id="edit_leaves" role="dialog" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content">
         <div class="modal-header">
-          <h4 class="modal-title">{{ isCurrentlyEditing ? 'Edit Leave Request' : 'Edit Leave' }}</h4>
-          <button type="button" class="btn-close custom-btn-close" @click="closeEditModal" aria-label="Close">
-            <i class="ti ti-x"></i>
-          </button>
+          <h5 class="modal-title">Edit Leave Request</h5>
+          <button type="button" class="btn-close" @click="closeEditModal" aria-label="Close"></button>
         </div>
         <form @submit.prevent="submitForm">
-          <div class="modal-body pb-0">
-            <!-- Success/Error Notification for Edit Modal -->
+          <div class="modal-body">
+            <!-- Success/Error Notification -->
             <div v-if="showNotification" class="alert" :class="notificationClass" role="alert">
               <i class="ti" :class="{
                 'ti-check-circle': notificationClass.includes('success'),
@@ -1903,41 +1983,58 @@ export default {
               <button type="button" class="btn-close" @click="showNotification = false" aria-label="Close"></button>
             </div>
 
-            <div class="row">
-              <!-- Employee Selection (Read-only in edit mode) -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Employee Name</label>
-                  <input type="text" class="form-control" :value="selectedEmployeeDisplay" readonly />
-                  <small class="text-muted">Employee cannot be changed in edit mode</small>
-                </div>
+            <!-- Row 1: Employee (Read-only) -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">Employee :</label>
               </div>
+              <div class="form-input-col">
+                <input type="text" class="form-control" :value="selectedEmployeeDisplay" readonly
+                  style="background-color: #f8f9fa;" />
+                <small class="text-muted">Employee cannot be changed</small>
+              </div>
+            </div>
 
-              <!-- Leave Type Allocation (Combined - v2.0) -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label class="form-label mb-0">Leave Request Details <span class="text-danger">*</span></label>
-                    <button type="button" class="btn btn-sm btn-primary" @click="addLeaveTypeItem(true)">
-                      <i class="ti ti-plus me-1"></i>Add Leave Type
-                    </button>
-                  </div>
+            <!-- Row 2: Leave Type Items Section -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">
+                  Leave Details :
+                  <span class="text-danger">*</span>
+                </label>
+              </div>
+              <div class="form-input-col">
+                <!-- Add Leave Type Button -->
+                <div class="d-flex justify-content-end mb-2">
+                  <button type="button" class="btn btn-sm btn-outline-primary" @click="addLeaveTypeItem(true)">
+                    <i class="ti ti-plus me-1"></i>Add Leave Type
+                  </button>
+                </div>
 
-                  <!-- Leave Type Items -->
-                  <div v-for="(item, index) in editFormData.items" :key="index" class="card mb-2">
-                    <div class="card-body p-3">
-                      <div class="row g-2">
+                <!-- Leave Type Items Table -->
+                <div class="leave-items-table">
+                  <table class="table table-bordered table-sm mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th style="width: 25%">Leave Type <span class="text-danger">*</span></th>
+                        <th style="width: 18%">From <span class="text-danger">*</span></th>
+                        <th style="width: 18%">To <span class="text-danger">*</span></th>
+                        <th style="width: 12%">Days</th>
+                        <th style="width: 15%">Balance</th>
+                        <th style="width: 12%"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(item, index) in editFormData.items" :key="index">
                         <!-- Leave Type Selection -->
-                        <div class="col-md-3">
-                          <label class="form-label">Leave Type <span class="text-danger">*</span></label>
+                        <td>
                           <a-select
                             v-model:value="item.leave_type_id"
                             @change="onLeaveTypeChange(index, true)"
-                            placeholder="Select Type"
+                            placeholder="Select"
                             size="small"
-                            style="width: 100%"
-                            :class="{ 'is-invalid': errors[`items_${index}_leave_type_id`] }">
-                            <a-select-option value="">Select Type</a-select-option>
+                            style="width: 100%">
+                            <a-select-option value="">Select</a-select-option>
                             <a-select-option
                               v-for="leaveType in getAvailableLeaveTypes(index, true)"
                               :key="leaveType.id"
@@ -1945,201 +2042,183 @@ export default {
                               {{ leaveType.name }}
                             </a-select-option>
                           </a-select>
-                        </div>
-
+                        </td>
                         <!-- From Date -->
-                        <div class="col-md-2">
-                          <label class="form-label">From <span class="text-danger">*</span></label>
-                          <div class="input-icon-end position-relative">
-                            <date-picker class="form-control form-control-sm datetimepicker"
-                              placeholder="dd/mm/yyyy"
-                              :editable="true"
-                              :clearable="false"
-                              :input-format="displayFormat"
-                              v-model="item.start_date"
-                              @update:model-value="handleItemDateChange(index, 'start_date', $event, true)" />
-                            <span class="input-icon-addon">
-                              <i class="ti ti-calendar text-gray-7"></i>
-                            </span>
-                          </div>
-                        </div>
-
+                        <td>
+                          <date-picker class="form-control form-control-sm"
+                            placeholder="dd/mm/yyyy"
+                            :editable="true"
+                            :clearable="false"
+                            :input-format="displayFormat"
+                            v-model="item.start_date"
+                            @update:model-value="handleItemDateChange(index, 'start_date', $event, true)" />
+                        </td>
                         <!-- To Date -->
-                        <div class="col-md-2">
-                          <label class="form-label">To <span class="text-danger">*</span></label>
-                          <div class="input-icon-end position-relative">
-                            <date-picker class="form-control form-control-sm datetimepicker"
-                              placeholder="dd/mm/yyyy"
-                              :editable="true"
-                              :clearable="false"
-                              :input-format="displayFormat"
-                              v-model="item.end_date"
-                              @update:model-value="handleItemDateChange(index, 'end_date', $event, true)" />
-                            <span class="input-icon-addon">
-                              <i class="ti ti-calendar text-gray-7"></i>
-                            </span>
-                          </div>
-                        </div>
-
-                        <!-- Total Days (Auto-calculated) -->
-                        <div class="col-md-2">
-                          <label class="form-label">Days</label>
-                          <input type="number"
+                        <td>
+                          <date-picker class="form-control form-control-sm"
+                            placeholder="dd/mm/yyyy"
+                            :editable="true"
+                            :clearable="false"
+                            :input-format="displayFormat"
+                            v-model="item.end_date"
+                            @update:model-value="handleItemDateChange(index, 'end_date', $event, true)" />
+                        </td>
+                        <!-- Days -->
+                        <td>
+                          <input type="text"
                             :value="item.days || 0"
                             class="form-control form-control-sm text-center"
-                            readonly
-                            title="Auto-calculated from dates" />
-                        </div>
-
-                        <!-- Available Balance Display -->
-                        <div class="col-md-2">
-                          <label class="form-label">Balance</label>
-                          <div class="input-group input-group-sm">
-                            <input type="text"
-                              :value="item.leave_type_id ? (getBalanceForType(item.leave_type_id) + ' d') : '-'"
-                              class="form-control form-control-sm text-center"
-                              readonly
-                              title="Available balance" />
-                            <span v-if="isLoadingBalances[item.leave_type_id]" class="input-group-text">
-                              <i class="ti ti-loader ti-spin"></i>
+                            readonly />
+                        </td>
+                        <!-- Balance -->
+                        <td>
+                          <div class="d-flex align-items-center justify-content-center">
+                            <span :class="{'text-danger': item.leave_type_id && item.days > 0 && getBalanceForType(item.leave_type_id) < item.days}">
+                              {{ item.leave_type_id ? getBalanceForType(item.leave_type_id) : '-' }}
                             </span>
+                            <i v-if="isLoadingBalances[item.leave_type_id]" class="ti ti-loader ti-spin ms-1"></i>
                           </div>
-                        </div>
-
-                        <!-- Remove Button -->
-                        <div class="col-md-1">
-                          <label class="form-label d-block">&nbsp;</label>
+                        </td>
+                        <!-- Remove -->
+                        <td class="text-center">
                           <button type="button"
                             class="btn btn-sm btn-outline-danger"
                             @click="removeLeaveTypeItem(index, true)"
                             :disabled="editFormData.items.length === 1"
-                            title="Remove this leave type">
+                            title="Remove">
                             <i class="ti ti-trash"></i>
                           </button>
-                        </div>
-                      </div>
-
-                      <!-- Balance Warning -->
-                      <div v-if="item.leave_type_id && item.days > 0 && getBalanceForType(item.leave_type_id) < item.days"
-                        class="alert alert-warning mt-2 mb-0 py-2">
-                        <i class="ti ti-alert-triangle me-1"></i>
-                        <small>Insufficient balance! Available: {{ getBalanceForType(item.leave_type_id) }} days, Requested: {{ item.days }} days</small>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Items Validation Error -->
-                  <div v-if="errors.items" class="invalid-feedback d-block">{{ errors.items }}</div>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
-              </div>
 
-              <!-- Reason -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Reason</label>
-                  <textarea v-model="editFormData.reason" class="form-control" rows="3" maxlength="1000"
-                    placeholder="Enter reason for leave request"></textarea>
-                  <small class="text-muted">{{ editFormData.reason.length }}/1000 characters</small>
-                </div>
-              </div>
+                <!-- Items Validation Error -->
+                <div v-if="errors.items" class="invalid-feedback d-block mt-1">{{ errors.items }}</div>
 
-              <!-- Status -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Status</label>
-                  <select v-model="editFormData.status" class="form-select">
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="declined">Declined</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
-
-              <!-- Approval Information Section -->
-              <div class="col-md-12">
-                <div class="card mb-3">
-                  <div class="card-header">
-                    <h6 class="mb-0">Approval Information (from Paper Forms)</h6>
-                    <small class="text-muted">Record approval status and dates as shown on physical forms</small>
-                  </div>
-                  <div class="card-body">
-                    <div class="row">
-                      <!-- Supervisor Approval -->
-                      <div class="col-md-6">
-                        <div class="mb-3">
-                          <div class="form-check">
-                            <input type="checkbox" v-model="editFormData.supervisor_approved" class="form-check-input"
-                              id="editSupervisorApproved">
-                            <label class="form-check-label" for="editSupervisorApproved">
-                              Supervisor Approved
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="mb-3">
-                          <label class="form-label">Supervisor Approval Date</label>
-                          <div class="input-icon-end position-relative">
-                            <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                              :clearable="false" :input-format="displayFormat"
-                              v-model="editFormData.supervisor_approved_date"
-                              :disabled="!editFormData.supervisor_approved"
-                              @update:model-value="handleEditDateChange('supervisor_approved_date', $event)" />
-                            <span class="input-icon-addon">
-                              <i class="ti ti-calendar text-gray-7"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- HR/Site Admin Approval (Combined) -->
-                      <div class="col-md-6">
-                        <div class="mb-3">
-                          <div class="form-check">
-                            <input type="checkbox" v-model="editFormData.hr_site_admin_approved"
-                              class="form-check-input" id="editHrSiteAdminApproved">
-                            <label class="form-check-label" for="editHrSiteAdminApproved">
-                              HR/Site Admin Approved
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="col-md-6">
-                        <div class="mb-3">
-                          <label class="form-label">HR/Site Admin Approval Date</label>
-                          <div class="input-icon-end position-relative">
-                            <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                              :clearable="false" :input-format="displayFormat"
-                              v-model="editFormData.hr_site_admin_approved_date"
-                              :disabled="!editFormData.hr_site_admin_approved"
-                              @update:model-value="handleEditDateChange('hr_site_admin_approved_date', $event)" />
-                            <span class="input-icon-addon">
-                              <i class="ti ti-calendar text-gray-7"></i>
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                <!-- Balance Warning -->
+                <div v-for="(item, index) in editFormData.items" :key="'warn-edit-' + index">
+                  <div v-if="item.leave_type_id && item.days > 0 && getBalanceForType(item.leave_type_id) < item.days"
+                    class="alert alert-warning py-2 px-3 mt-2 mb-0">
+                    <i class="ti ti-alert-triangle me-1"></i>
+                    <small>{{ getLeaveTypeName(item.leave_type_id) }}: Insufficient balance ({{ getBalanceForType(item.leave_type_id) }} available, {{ item.days }} requested)</small>
                   </div>
                 </div>
-              </div>
 
-              <!-- Attachment Notes -->
-              <div class="col-md-12">
-                <div class="mb-3">
-                  <label class="form-label">Attachment Notes</label>
-                  <textarea v-model="editFormData.attachment_notes" class="form-control" rows="2"
-                    placeholder="Simple text notes about attachments (e.g., 'Medical certificate submitted', 'Travel documents provided')"></textarea>
-                  <small class="text-muted">Text-based reference to any attachments received</small>
+                <!-- Overlap Error -->
+                <div v-if="overlapError && isCurrentlyEditing" class="alert alert-danger py-2 px-3 mt-2 mb-0">
+                  <i class="ti ti-calendar-x me-1"></i>
+                  <strong>Leave Overlap Detected</strong>
+                  <p class="mb-0 mt-1 small" style="white-space: pre-line;">{{ overlapError }}</p>
                 </div>
               </div>
             </div>
+
+            <!-- Row 3: Reason -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">Reason :</label>
+              </div>
+              <div class="form-input-col">
+                <textarea v-model="editFormData.reason" class="form-control" rows="2" maxlength="1000"
+                  placeholder="Enter reason for leave request"></textarea>
+                <small class="text-muted">{{ editFormData.reason?.length || 0 }}/1000 characters</small>
+              </div>
+            </div>
+
+            <!-- Row 4: Status -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">Status :</label>
+              </div>
+              <div class="form-input-col">
+                <select v-model="editFormData.status" class="form-select input-short">
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="declined">Declined</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Approval Information Section -->
+            <div class="approval-section">
+              <div class="section-header mb-3">
+                <h6 class="mb-0">Approval Information</h6>
+                <small class="text-muted">Record approval status and dates from paper forms</small>
+              </div>
+
+              <!-- Supervisor Approval Row -->
+              <div class="form-row mb-3">
+                <div class="form-label-col">
+                  <div class="form-check pt-1">
+                    <input type="checkbox" v-model="editFormData.supervisor_approved" class="form-check-input"
+                      id="editSupervisorApproved">
+                    <label class="form-check-label" for="editSupervisorApproved">
+                      Supervisor :
+                    </label>
+                  </div>
+                </div>
+                <div class="form-input-col">
+                  <div class="input-with-tooltip">
+                    <div class="input-short-wrapper">
+                      <date-picker class="form-control datetimepicker input-short"
+                        placeholder="dd/mm/yyyy"
+                        :editable="true"
+                        :clearable="false"
+                        :input-format="displayFormat"
+                        v-model="editFormData.supervisor_approved_date"
+                        :disabled="!editFormData.supervisor_approved"
+                        @update:model-value="handleEditDateChange('supervisor_approved_date', $event)" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- HR/Site Admin Approval Row -->
+              <div class="form-row mb-3">
+                <div class="form-label-col">
+                  <div class="form-check pt-1">
+                    <input type="checkbox" v-model="editFormData.hr_site_admin_approved" class="form-check-input"
+                      id="editHrSiteAdminApproved">
+                    <label class="form-check-label" for="editHrSiteAdminApproved">
+                      HR/Admin :
+                    </label>
+                  </div>
+                </div>
+                <div class="form-input-col">
+                  <div class="input-with-tooltip">
+                    <div class="input-short-wrapper">
+                      <date-picker class="form-control datetimepicker input-short"
+                        placeholder="dd/mm/yyyy"
+                        :editable="true"
+                        :clearable="false"
+                        :input-format="displayFormat"
+                        v-model="editFormData.hr_site_admin_approved_date"
+                        :disabled="!editFormData.hr_site_admin_approved"
+                        @update:model-value="handleEditDateChange('hr_site_admin_approved_date', $event)" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 5: Attachment Notes -->
+            <div class="form-row mb-3">
+              <div class="form-label-col">
+                <label class="form-label">Attachments :</label>
+              </div>
+              <div class="form-input-col">
+                <textarea v-model="editFormData.attachment_notes" class="form-control" rows="2"
+                  placeholder="Notes about paper attachments (e.g., 'Medical certificate submitted')"></textarea>
+                <small class="text-muted">Reference any documents attached to the paper form</small>
+              </div>
+            </div>
           </div>
+
           <div class="modal-footer">
-            <button type="button" class="btn btn-light me-2" @click="closeEditModal">
-              Cancel
-            </button>
+            <button type="button" class="btn btn-light me-2" @click="closeEditModal">Cancel</button>
             <button type="submit" class="btn btn-primary" :disabled="isLoading">
               <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
               {{ isLoading ? 'Saving...' : 'Save Changes' }}
@@ -2175,7 +2254,161 @@ export default {
 </template>
 
 <style scoped>
-/* Date picker styling */
+/* ========================================
+   Horizontal Form Layout - Labels on left, inputs on right
+   Following Grant Modal form improvements pattern
+   ======================================== */
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-label-col {
+  flex: 0 0 120px;
+  min-width: 120px;
+  padding-top: 8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
+  display: block;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+}
+
+/* Input width classes */
+.input-short {
+  width: 200px;
+  max-width: 200px;
+}
+
+.input-medium {
+  width: 400px;
+  max-width: 400px;
+}
+
+.input-short-wrapper {
+  width: 200px;
+  max-width: 200px;
+}
+
+/* Tooltip positioning */
+.input-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.input-with-tooltip .input-short-wrapper {
+  margin: 0;
+}
+
+/* Section header styling */
+.section-header {
+  padding: 12px 0;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.section-header h6 {
+  color: #262626;
+  font-weight: 600;
+}
+
+/* Approval section styling */
+.approval-section {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Leave items table styling */
+.leave-items-table {
+  border-radius: 8px;
+  /* Note: overflow: hidden removed to allow datepicker dropdown to display properly */
+  /* Border-radius applied to table elements instead */
+}
+
+.leave-items-table .table {
+  border-radius: 8px;
+  margin-bottom: 0;
+}
+
+.leave-items-table .table thead tr:first-child th:first-child {
+  border-top-left-radius: 8px;
+}
+
+.leave-items-table .table thead tr:first-child th:last-child {
+  border-top-right-radius: 8px;
+}
+
+.leave-items-table .table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.leave-items-table .table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+.leave-items-table .table th {
+  background-color: #f8f9fa;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 8px 10px;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.leave-items-table .table td {
+  padding: 8px 10px;
+  vertical-align: middle;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .form-input-col {
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .input-short,
+  .input-medium,
+  .input-short-wrapper {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* ========================================
+   Date picker styling
+   ======================================== */
 .input-icon-end {
   position: relative;
 }
@@ -2217,6 +2450,15 @@ export default {
 
 :deep(.mx-icon-calendar) {
   display: none;
+}
+
+/* Fix datepicker popup z-index to appear above modal */
+:deep(.mx-datepicker-popup) {
+  z-index: 2060 !important;
+}
+
+:deep(.mx-calendar) {
+  z-index: 2060 !important;
 }
 
 /* Searchable dropdown styles */

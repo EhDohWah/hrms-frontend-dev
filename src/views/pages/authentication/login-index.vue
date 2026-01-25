@@ -245,4 +245,14 @@ const handleLogin = async () => {
 .invalid-feedback {
   display: block;
 }
+
+/* Auth links - underline on hover for better UX */
+.text-primary {
+  text-decoration: none;
+  transition: text-decoration 0.2s ease;
+}
+
+.text-primary:hover {
+  text-decoration: underline;
+}
 </style>

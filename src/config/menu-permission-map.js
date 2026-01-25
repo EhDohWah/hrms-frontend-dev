@@ -403,6 +403,11 @@ export const MENU_PERMISSION_MAP = {
     writePermissions: ['upload.create', 'upload.delete']
   },
 
+  'File Uploads List': {
+    readPermission: 'upload.read',
+    writePermissions: ['upload.create', 'upload.delete']
+  },
+
   // ============================================================================
   // TICKETS (if exists)
   // ============================================================================

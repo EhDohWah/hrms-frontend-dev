@@ -117,6 +117,18 @@ export const API_ENDPOINTS = {
         DETAILS: '/employments/:id',
     },
 
+    // Holiday endpoints
+    HOLIDAY: {
+        LIST: '/holidays',
+        CREATE: '/holidays',
+        UPDATE: '/holidays/:id',
+        DELETE: '/holidays/:id',
+        DETAILS: '/holidays/:id',
+        OPTIONS: '/holidays/options',
+        BULK: '/holidays/bulk',
+        IN_RANGE: '/holidays/in-range',
+    },
+
     // Permission endpoints
     PERMISSION: {
         LIST: '/permissions',
@@ -140,12 +152,13 @@ export const API_ENDPOINTS = {
         DETAILS: '/grants/:id',
         UPLOAD: '/uploads/grant',
         DOWNLOAD_TEMPLATE: '/downloads/grant-template',
+        // Grant Items - Using new RESTful routes (2026-01-24)
         ITEMS: {
-            LIST: '/grants/items',
-            CREATE: '/grants/items',
-            DETAILS: '/grants/items/:id',
-            DELETE: '/grants/items/:id',
-            UPDATE: '/grants/items/:id'
+            LIST: '/grant-items',
+            CREATE: '/grant-items',
+            DETAILS: '/grant-items/:id',
+            DELETE: '/grant-items/:id',
+            UPDATE: '/grant-items/:id'
         },
         GRANT_POSITIONS: '/grants/grant-positions',
         PAGINATED_GRANTS: '/grants/paginated',
@@ -247,30 +260,32 @@ export const API_ENDPOINTS = {
         DETAILS: '/worklocations/:id'
     },
 
-    // Leave endpoints - Updated to match simplified backend structure
+    // Leave endpoints - Updated to new RESTful routes (2026-01-24)
     LEAVE: {
         TYPES: {
-            LIST: '/leaves/types',
-            DROPDOWN: '/leaves/types/dropdown',
-            CREATE: '/leaves/types',
-            UPDATE: '/leaves/types/:id',
-            DELETE: '/leaves/types/:id',
-            DETAILS: '/leaves/types/:id'
+            LIST: '/leave-types',
+            DROPDOWN: '/leave-types/options',
+            CREATE: '/leave-types',
+            UPDATE: '/leave-types/:id',
+            DELETE: '/leave-types/:id',
+            DETAILS: '/leave-types/:id'
         },
         REQUESTS: {
-            LIST: '/leaves/requests',
-            CREATE: '/leaves/requests',
-            UPDATE: '/leaves/requests/:id',
-            DELETE: '/leaves/requests/:id',
-            DETAILS: '/leaves/requests/:id'
+            LIST: '/leave-requests',
+            CREATE: '/leave-requests',
+            UPDATE: '/leave-requests/:id',
+            DELETE: '/leave-requests/:id',
+            DETAILS: '/leave-requests/:id',
+            CHECK_OVERLAP: '/leave-requests/check-overlap',
+            CALCULATE_DAYS: '/leave-requests/calculate-days'
         },
         BALANCES: {
-            LIST: '/leaves/balances',
-            CREATE: '/leaves/balances',
-            UPDATE: '/leaves/balances/:id',
-            DELETE: '/leaves/balances/:id',
-            DETAILS: '/leaves/balances/:id',
-            EMPLOYEE_BALANCE: '/leaves/balance/:employeeId/:leaveTypeId'
+            LIST: '/leave-balances',
+            CREATE: '/leave-balances',
+            UPDATE: '/leave-balances/:id',
+            DELETE: '/leave-balances/:id',
+            DETAILS: '/leave-balances/:id',
+            EMPLOYEE_BALANCE: '/leave-balances/:employeeId/:leaveTypeId'
         }
     },
 
@@ -356,6 +371,7 @@ export const API_ENDPOINTS = {
         GRANT_STRUCTURE: '/employee-funding-allocations/grant-structure',
         CALCULATE_PREVIEW: '/employee-funding-allocations/calculate-preview',
         BULK_DEACTIVATE: '/employee-funding-allocations/bulk-deactivate',
+        BATCH_UPDATE: '/employee-funding-allocations/batch',
         BY_EMPLOYEE: '/employee-funding-allocations/employee/:employeeId',
         UPDATE_EMPLOYEE_ALLOCATIONS: '/employee-funding-allocations/employee/:employeeId'
     },
@@ -506,7 +522,9 @@ export const API_ENDPOINTS = {
         DELETE: '/resignations/:id',
         DETAILS: '/resignations/:id',
         ACKNOWLEDGE: '/resignations/:id/acknowledge',
-        BULK_DELETE: '/resignations/bulk-delete'
+        BULK_DELETE: '/resignations/bulk-delete',
+        SEARCH_EMPLOYEES: '/resignations/search-employees',
+        RECOMMENDATION_LETTER: '/resignations/:id/recommendation-letter'
     },
 
     // Travel Request endpoints

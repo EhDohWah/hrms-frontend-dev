@@ -236,10 +236,10 @@
             </div>
 
             <div class="btn-row">
-              <button type="button" class="btn btn-cancel" @click="resetForm" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-cancel" @click="resetForm" data-bs-dismiss="modal" :disabled="isSubmitting">Cancel</button>
               <button type="submit" class="btn btn-save" :disabled="isSubmitting || isLoadingData">
-                <span v-if="isSubmitting">{{ isEditMode ? 'Updating...' : 'Saving...' }}</span>
-                <span v-else>{{ isEditMode ? 'Update' : 'Save' }}</span>
+                <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                {{ isSubmitting ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update' : 'Save') }}
               </button>
             </div>
           </form>

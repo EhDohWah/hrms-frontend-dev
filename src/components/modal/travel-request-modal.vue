@@ -2,21 +2,28 @@
     <!-- Add/Edit Travel Request -->
     <div class="modal fade" id="add_travel_request">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
-                <div class="modal-header"
-                    style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 15px 20px;">
-                    <div class="d-flex align-items-center">
-                        <h4 class="modal-title me-2" style="color: #0067A5; font-weight: 600;">
-                            {{ isEditMode ? 'Edit Travel Request' : 'Add New Travel Request' }}
-                        </h4>
-                    </div>
-                    <button type="button" class="btn-close custom-btn-close" data-bs-dismiss="modal" aria-label="Close">
+            <div class="modal-content new-modal-design">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="travelRequestModalLabel">
+                        {{ isEditMode ? 'Edit Travel Request' : 'Add New Travel Request' }}
+                    </h2>
+                    <button type="button" class="btn-close-custom" @click="handleModalClose" aria-label="Close">
                         <i class="ti ti-x"></i>
                     </button>
                 </div>
 
-                <div v-if="alertMessage" class="alert" :class="alertClass" role="alert">
-                    {{ alertMessage }}
+                <div class="modal-body">
+                    <!-- Success Message -->
+                    <div v-if="alertMessage && alertClass === 'alert-success'" class="success-msg">
+                        <i class="ti ti-check-circle me-2"></i>
+                        {{ alertMessage }}
+                    </div>
+
+                    <!-- Error Message -->
+                    <div v-if="alertMessage && alertClass === 'alert-danger'" class="error-msg">
+                        <i class="ti ti-alert-circle me-2"></i>
+                        {{ alertMessage }}
+                    </div>
                 </div>
 
                 <form @submit.prevent="handleSubmit">
@@ -239,15 +246,15 @@
                                 </div>
                             </div>
 
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-cancel"
-                                    data-bs-dismiss="modal">
-                                    Cancel
-                                </button>
-                                <button type="button" class="btn btn-save"
-                                    @click="switchToDetailsTab">
-                                    Next: Travel Details
-                                </button>
+                            <div class="modal-footer-actions">
+                                <div class="btn-row">
+                                    <button type="button" class="btn btn-cancel" @click="handleModalClose">
+                                        <i class="ti ti-x"></i> Cancel
+                                    </button>
+                                    <button type="button" class="btn btn-primary" @click="switchToDetailsTab">
+                                        Next: Travel Details <i class="ti ti-arrow-right"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -452,17 +459,20 @@
                                 </div>
                             </div>
 
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-cancel"
-                                    data-bs-dismiss="modal">
-                                    Cancel
-                                </button>
-                                <button type="submit" class="btn btn-save"
-                                    :disabled="isSubmitting">
-                                    <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"
-                                        role="status" aria-hidden="true"></span>
-                                    {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }}
-                                </button>
+                            <div class="modal-footer-actions">
+                                <div class="btn-row">
+                                    <button type="button" class="btn btn-cancel" @click="handleModalClose">
+                                        <i class="ti ti-x"></i> Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
+                                        <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"
+                                            role="status" aria-hidden="true"></span>
+                                        <span v-if="isSubmitting">Saving...</span>
+                                        <span v-else>
+                                            <i class="ti ti-device-floppy"></i> {{ isEditMode ? 'Update' : 'Save' }}
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1094,6 +1104,16 @@ export default {
             }
         },
 
+        /**
+         * Handle modal close with cleanup
+         */
+        handleModalClose() {
+            this.resetForm();
+            if (this.modalInstance) {
+                this.modalInstance.hide();
+            }
+        },
+
         async openEditTravelRequestModal(travelRequest) {
             try {
                 this.isEditMode = true;
@@ -1154,6 +1174,141 @@ export default {
 
 <style scoped>
 /* ========================================
+   NEW MODAL DESIGN (Consistent with employment-modal)
+   ======================================== */
+
+/* New Modal Design Styles */
+.new-modal-design {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 24px rgba(0, 0, 0, 0.1);
+}
+
+.new-modal-design .modal-header {
+    padding: 24px 32px 16px 32px;
+    border-bottom: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.new-modal-design .modal-title {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #23325b;
+    flex: 1;
+}
+
+/* Custom close button */
+.btn-close-custom {
+    background: none;
+    border: none;
+    color: #6c757d;
+    font-size: 1.25rem;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.btn-close-custom:hover {
+    background-color: #f8f9fa;
+    color: #000;
+}
+
+/* Modal body for alerts */
+.new-modal-design > .modal-body {
+    padding: 0 32px;
+}
+
+/* Tab styling for new modal design */
+.new-modal-design .contact-grids-tab {
+    padding: 0 32px;
+    border-bottom: 1px solid #e9ecef;
+    background: #fafbfc;
+}
+
+.new-modal-design .nav-underline {
+    border-bottom: none;
+    gap: 24px;
+}
+
+.new-modal-design .nav-underline .nav-link {
+    padding: 12px 0;
+    border-bottom: 2px solid transparent;
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.new-modal-design .nav-underline .nav-link.active {
+    color: #3577ef;
+    border-bottom-color: #3577ef;
+    background: transparent;
+}
+
+.new-modal-design .nav-underline .nav-link:hover:not(.active) {
+    color: #495057;
+    border-bottom-color: #dee2e6;
+}
+
+/* Tab content padding */
+.new-modal-design .tab-pane .modal-body {
+    padding: 24px 32px;
+}
+
+/* Success and error message styles (matching employment-modal) */
+.success-msg {
+    text-align: center;
+    color: #169b53;
+    font-weight: bold;
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    background: #f0f9f4;
+    border: 1px solid #d4edda;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-msg {
+    text-align: center;
+    color: #e53e3e;
+    font-weight: bold;
+    margin-bottom: 14px;
+    padding: 12px 16px;
+    background: #fff5f5;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal Footer Actions (matching employment-modal) */
+.modal-footer-actions {
+    margin-top: 24px;
+    padding: 20px 32px;
+    border-top: 1px solid #e9ecef;
+    background-color: #f8f9fa;
+    border-radius: 0 0 12px 12px;
+}
+
+.modal-footer-actions .btn-row {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+/* ========================================
    HORIZONTAL FORM LAYOUT (Grant Modal Style)
    ======================================== */
 
@@ -1212,28 +1367,6 @@ export default {
     width: 100%;
 }
 
-/* Custom button close styling */
-.custom-btn-close {
-    background: none;
-    border: none;
-    color: #6c757d;
-    font-size: 1.25rem;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.15s ease-in-out;
-}
-
-.custom-btn-close:hover {
-    background-color: #f8f9fa;
-    color: #000;
-}
-
 /* Form styling */
 .form-label {
     font-weight: 600;
@@ -1284,13 +1417,18 @@ export default {
     font-weight: 500;
 }
 
-/* Option cards styling */
+/* Option cards styling (matching new modal design) */
 .option-card {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
+    background: #fafbfc;
+    border: 1px solid #e9ecef;
     border-radius: 8px;
     padding: 1.25rem;
     height: 100%;
+    transition: border-color 0.2s ease;
+}
+
+.option-card:hover {
+    border-color: #d0d7de;
 }
 
 .option-group {
@@ -1442,7 +1580,9 @@ export default {
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
-    margin-right: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 /* Cancel button */
@@ -1456,31 +1596,28 @@ export default {
     background: #f4f7fa;
 }
 
-/* Save/Primary button */
-.btn-save {
+/* Primary button (matching employment-modal) */
+.btn-primary {
     background: linear-gradient(90deg, #3577ef 70%, #355bef 100%);
     color: #fff;
     border: none;
 }
 
-.btn-save:hover {
+.btn-primary:hover:not(:disabled) {
     background: linear-gradient(90deg, #2566de 70%, #2449de 100%);
 }
 
-.btn-save:disabled {
+.btn-primary:disabled {
     background: #ccd4ea;
     color: #888;
     cursor: not-allowed;
 }
 
-/* Modal footer styling */
-.modal-footer {
-    background-color: #f8f9fa;
-    border-top: 1px solid #e9ecef;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 0;
+/* Spinner icon animation */
+.btn .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
 }
 
 /* Searchable dropdown styles */
@@ -1565,6 +1702,10 @@ export default {
 /* Form section styling for signature/approval section */
 .form-section {
     margin-bottom: 1rem;
+    padding: 16px;
+    background: #fafbfc;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
 }
 
 .section-header {
@@ -1574,15 +1715,17 @@ export default {
 }
 
 .section-title {
-    color: #495057;
+    color: #23325b;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 0.25rem;
 }
 
 .section-header small {
     color: #6c757d;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
+    display: block;
+    margin-top: 4px;
 }
 
 /* Responsive adjustments */

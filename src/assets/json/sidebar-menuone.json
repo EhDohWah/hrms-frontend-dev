@@ -364,23 +364,6 @@
             ]
           },
           {
-            "menuValue": "Tickets",
-            "active_link": "tickets",
-            "customSubmenuTwo": true,
-            "subMenusTwo": [
-              {
-                "menuValue": "Tickets",
-                "route": "/tickets/ticket",
-                "active_link": "/tickets/ticket"
-              },
-              {
-                "menuValue": "Ticket Details",
-                "route": "/tickets/tickets-details",
-                "active_link": "/tickets/tickets-details"
-              }
-            ]
-          },
-          {
             "menuValue": "Holidays",
             "route": "/hrm/holidays",
             "active_link": "/hrm/holidays",
@@ -395,11 +378,6 @@
                 "menuValue": "Leaves (Admin)",
                 "route": "/leave/admin/leaves-admin",
                 "active_link": "/leave/admin/leaves-admin"
-              },
-              {
-                "menuValue": "Leave (Employee)",
-                "route": "/leave/employee/leaves-employee",
-                "active_link": "/leave/employee/leaves-employee"
               },
               {
                 "menuValue": "Leave Settings",
@@ -483,21 +461,9 @@
             ]
           },
           {
-            "menuValue": "Promotion",
-            "route": "/hrm/promotion",
-            "active_link": "/hrm/promotion",
-            "customSubmenuTwo": false
-          },
-          {
             "menuValue": "Resignation",
             "route": "/hrm/resignation",
             "active_link": "/hrm/resignation",
-            "customSubmenuTwo": false
-          },
-          {
-            "menuValue": "Termination",
-            "route": "/hrm/termination",
-            "active_link": "/hrm/termination",
             "customSubmenuTwo": false
           }
         ]
@@ -729,231 +695,6 @@
                 "active_link": "/reports/daily-report"
               }
             ]
-          },
-          {
-            "menuValue": "General Settings",
-            "customSubmenuTwo": true,
-            "active_link": "general-settings",
-            "subMenusTwo": [
-              {
-                "menuValue": "Profile",
-                "route": "/general-settings/profile-settings",
-                "active_link": "/general-settings/profile-settings",
-                "hasSubRoute": false,
-                "showSubRoute": false
-              },
-              {
-                "menuValue": "Security",
-                "route": "/general-settings/security-settings",
-                "active_link": "/general-settings/security-settings",
-                "hasSubRoute": false,
-                "showSubRoute": false
-              },
-              {
-                "menuValue": "Notifications",
-                "route": "/general-settings/notification-settings",
-                "active_link": "/general-settings/notification-settings",
-                "hasSubRoute": false,
-                "showSubRoute": false
-              },
-              {
-                "menuValue": "Connected Apps",
-                "route": "/general-settings/connected-apps",
-                "active_link": "/general-settings/connected-apps",
-                "hasSubRoute": false,
-                "showSubRoute": false
-              }
-            ]
-          },
-          {
-            "menuValue": "Website Settings",
-            "customSubmenuTwo": true,
-            "active_link": "website-settings",
-            "subMenusTwo": [
-              {
-                "menuValue": "Business Settings",
-                "route": "/website-settings/bussiness-settings",
-                "active_link": "/website-settings/bussiness-settings"
-              },
-              {
-                "menuValue": "SEO Settings",
-                "route": "/website-settings/seo-settings",
-                "active_link": "/website-settings/seo-settings"
-              },
-              {
-                "menuValue": "Localization",
-                "route": "/website-settings/localization-settings",
-                "active_link": "/website-settings/localization-settings"
-              },
-              {
-                "menuValue": "Prefixes",
-                "route": "/website-settings/prefixes",
-                "active_link": "/website-settings/prefixes"
-              },
-              {
-                "menuValue": "Preferences",
-                "route": "/website-settings/preferences",
-                "active_link": "/website-settings/preferences"
-              },
-              {
-                "menuValue": "Appearance",
-                "route": "/website-settings/appearance",
-                "active_link": "/website-settings/appearance"
-              },
-              {
-                "menuValue": "Language",
-                "route": "/website-settings/language",
-                "active_link": "/website-settings/language"
-              },
-              {
-                "menuValue": "Authentication",
-                "route": "/website-settings/authentication-settings",
-                "active_link": "/website-settings/authentication-settings"
-              },
-              {
-                "menuValue": "AI Settings",
-                "route": "/website-settings/ai-settings",
-                "active_link": "/website-settings/ai-settings"
-              }
-            ]
-          },
-          {
-            "menuValue": "App Settings",
-            "customSubmenuTwo": true,
-            "active_link": "app-settings",
-            "subMenusTwo": [
-              {
-                "menuValue": "Salary Settings",
-                "route": "/app-settings/salary-settings",
-                "active_link": "/app-settings/salary-settings"
-              },
-              {
-                "menuValue": "Approval Settings",
-                "route": "/app-settings/approval-settings",
-                "active_link": "/app-settings/approval-settings"
-              },
-              {
-                "menuValue": "Invoice Settings",
-                "route": "/app-settings/invoice-settings",
-                "active_link": "/app-settings/invoice-settings"
-              },
-              {
-                "menuValue": "Leave Type",
-                "route": "/app-settings/leave-type",
-                "active_link": "/app-settings/leave-type"
-              },
-              {
-                "menuValue": "Custom Fields",
-                "route": "/app-settings/custom-fields",
-                "active_link": "/app-settings/custom-fields"
-              }
-            ]
-          },
-          {
-            "menuValue": "System Settings",
-            "customSubmenuTwo": true,
-            "active_link": "system-settings",
-            "subMenusTwo": [
-              {
-                "menuValue": "Email Settings",
-                "route": "/system-settings/email-settings",
-                "active_link": "/system-settings/email-settings"
-              },
-              {
-                "menuValue": "Email Templates",
-                "route": "/system-settings/email-template",
-                "active_link": "/system-settings/email-template"
-              },
-              {
-                "menuValue": "SMS Settings",
-                "route": "/system-settings/sms-settings",
-                "active_link": "/system-settings/sms-settings"
-              },
-              {
-                "menuValue": "SMS Templates",
-                "route": "/system-settings/sms-template",
-                "active_link": "/system-settings/sms-template"
-              },
-              {
-                "menuValue": "OTP",
-                "route": "/system-settings/otp-settings",
-                "active_link": "/system-settings/otp-settings"
-              },
-              {
-                "menuValue": "GDPR Cookies",
-                "route": "/system-settings/gdpr",
-                "active_link": "/system-settings/gdpr"
-              },
-              {
-                "menuValue": "Maintenance Mode",
-                "route": "/system-settings/maintenance-mode",
-                "active_link": "/system-settings/maintenance-mode"
-              }
-            ]
-          },
-          {
-            "menuValue": "Financial Settings",
-            "customSubmenuTwo": true,
-            "active_link": "financial-settings",
-            "subMenusTwo": [
-              {
-                "menuValue": "Payment Gateways",
-                "route": "/financial-settings/payment-gateways",
-                "active_link": "/financial-settings/payment-gateways"
-              },
-              {
-                "menuValue": "Tax Rate",
-                "route": "/financial-settings/tax-rates",
-                "active_link": "/financial-settings/tax-rates"
-              },
-              {
-                "menuValue": "Currencies",
-                "route": "/financial-settings/currencies",
-                "active_link": "/financial-settings/currencies"
-              }
-            ]
-          },
-          {
-            "menuValue": "Other Settings",
-            "customSubmenuTwo": true,
-            "active_link": "other-settings",
-            "subMenusTwo": [
-              {
-                "menuValue": "Custom CSS",
-                "route": "/others-settings/custom-css",
-                "active_link": "/others-settings/custom-css"
-              },
-              {
-                "menuValue": "Custom JS",
-                "route": "/others-settings/custom-js",
-                "active_link": "/others-settings/custom-js"
-              },
-              {
-                "menuValue": "Cronjob",
-                "route": "/others-settings/cronjob",
-                "active_link": "/others-settings/cronjob"
-              },
-              {
-                "menuValue": "Storage",
-                "route": "/others-settings/storage-settings",
-                "active_link": "/others-settings/storage-settings"
-              },
-              {
-                "menuValue": "Ban IP Address",
-                "route": "/others-settings/ban-ip-address",
-                "active_link": "/others-settings/ban-ip-address"
-              },
-              {
-                "menuValue": "Backup",
-                "route": "/others-settings/backup",
-                "active_link": "/others-settings/backup"
-              },
-              {
-                "menuValue": "Clear Cache",
-                "route": "/others-settings/clear-cache",
-                "active_link": "/others-settings/clear-cache"
-              }
-            ]
           }
         ]
       },
@@ -966,19 +707,9 @@
         "active_link1": "content",
         "subMenus": [
           {
-            "menuValue": "Starter",
-            "route": "/pages/starter",
-            "active_link": "/pages/starter"
-          },
-          {
             "menuValue": "Profile",
             "route": "/pages/profile",
             "active_link": "/pages/profile"
-          },
-          {
-            "menuValue": "Gallery",
-            "route": "/pages/gallery",
-            "active_link": "/pages/gallery"
           },
           {
             "menuValue": "Search Results",
@@ -989,11 +720,6 @@
             "menuValue": "Timeline",
             "route": "/pages/timeline",
             "active_link": "/pages/timeline"
-          },
-          {
-            "menuValue": "Pricing",
-            "route": "/pages/pricing",
-            "active_link": "/pages/pricing"
           },
           {
             "menuValue": "Coming Soon",
@@ -1009,11 +735,6 @@
             "menuValue": "Under Construction",
             "route": "/pages/under-construction",
             "active_link": "/pages/under-construction"
-          },
-          {
-            "menuValue": "API Keys",
-            "route": "/pages/api-keys",
-            "active_link": "/pages/api-keys"
           },
           {
             "menuValue": "Privacy Policy",

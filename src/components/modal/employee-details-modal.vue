@@ -522,11 +522,11 @@
                     </label>
                   </div>
                   <div class="form-input-col">
-                    <select class="form-select input-medium" id="edit-id-type" v-model="personalFormData.employee_identification.id_type"
-                      required @change="saveFormState('personalFormData')">
-                      <option value="" disabled selected>Select ID Type</option>
-                      <option v-for="idType in idTypes" :key="idType.id" :value="idType.value">
-                        {{ idType.value }}
+                    <select class="form-select input-medium" id="edit-id-type" v-model="personalFormData.identification_type"
+                      @change="saveFormState('personalFormData')">
+                      <option value="">Select ID Type</option>
+                      <option v-for="idType in identificationTypeOptions" :key="idType.value" :value="idType.value">
+                        {{ idType.label }}
                       </option>
                     </select>
                   </div>
@@ -541,7 +541,7 @@
                   </div>
                   <div class="form-input-col">
                     <input type="text" class="form-control input-medium" id="edit-id-number"
-                      v-model="personalFormData.employee_identification.document_number"
+                      v-model="personalFormData.identification_number"
                       placeholder="Enter ID number" @input="saveFormState('personalFormData')" />
                   </div>
                 </div>
@@ -1313,6 +1313,16 @@ export default {
       employeeInitialEN: [],
       employeeInitialTH: [],
       idTypes: [],
+      // Identification type options matching database schema
+      identificationTypeOptions: [
+        { value: '10YearsID', label: '10 Years ID' },
+        { value: 'BurmeseID', label: 'Burmese ID' },
+        { value: 'CI', label: 'CI' },
+        { value: 'Borderpass', label: 'Borderpass' },
+        { value: 'ThaiID', label: 'Thai ID' },
+        { value: 'Passport', label: 'Passport' },
+        { value: 'Other', label: 'Other' },
+      ],
       languages: [],
       bankNames: [],
       startdate: currentDate,
@@ -1351,14 +1361,13 @@ export default {
         religion: '',
         marital_status: '',
         spouse_name: '',
-        spouse_mobile: '',
+        spouse_phone_number: '',
         languages: [],
         current_address: '',
         permanent_address: '',
-        employee_identification: {
-          id_type: '',
-          document_number: ''
-        },
+        // Direct columns instead of nested relationship
+        identification_type: '',
+        identification_number: '',
       },
 
       editFormData: {
@@ -1979,14 +1988,13 @@ export default {
             religion: this.employee.religion || '',
             marital_status: this.employee.marital_status || '',
             spouse_name: this.employee.spouse_name || '',
-            spouse_mobile: this.employee.spouse_mobile || '',
+            spouse_phone_number: this.employee.spouse_phone_number || '',
             languages: this.employee.languages || [],
             current_address: this.employee.current_address || '',
             permanent_address: this.employee.permanent_address || '',
-            employee_identification: this.employee.employee_identification || {
-              id_type: '',
-              document_number: ''
-            },
+            // Direct columns instead of nested relationship
+            identification_type: this.employee.identification_type || '',
+            identification_number: this.employee.identification_number || '',
           };
         }
 
@@ -2023,11 +2031,10 @@ export default {
         social_security_number: this.personalFormData.social_security_number,
         tax_number: this.personalFormData.tax_number,
         spouse_name: this.personalFormData.spouse_name,
-        spouse_mobile: this.personalFormData.spouse_mobile,
-        employee_identification: {
-          id_type: this.personalFormData.employee_identification?.id_type,
-          document_number: this.personalFormData.employee_identification?.document_number,
-        },
+        spouse_phone_number: this.personalFormData.spouse_phone_number,
+        // Direct columns instead of nested relationship
+        identification_type: this.personalFormData.identification_type || null,
+        identification_number: this.personalFormData.identification_number || null,
         languages: Array.isArray(this.personalFormData.languages)
           ? this.personalFormData.languages.filter(Boolean)
           : [],
@@ -3149,14 +3156,13 @@ export default {
             religion: newVal.religion || '',
             marital_status: newVal.marital_status || '',
             spouse_name: newVal.spouse_name || '',
-            spouse_mobile: newVal.spouse_mobile || '',
+            spouse_phone_number: newVal.spouse_phone_number || '',
             languages: newVal.languages || [],
             current_address: newVal.current_address || '',
             permanent_address: newVal.permanent_address || '',
-            employee_identification: newVal.employee_identification || {
-              id_type: '',
-              document_number: ''
-            },
+            // Direct columns instead of nested relationship
+            identification_type: newVal.identification_type || '',
+            identification_number: newVal.identification_number || '',
           };
         }
       },

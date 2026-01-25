@@ -192,13 +192,13 @@ export const dataMapper = {
 
             department: backendData.department ? {
                 id: backendData.department.id,
-                name: backendData.department.name,
+                name: backendData.department.department, // Backend uses 'department' field
                 code: backendData.department.code
             } : null,
 
             position: backendData.position ? {
                 id: backendData.position.id,
-                title: backendData.position.title,
+                title: backendData.position.position, // Backend uses 'position' field
                 department: backendData.position.department
             } : null,
 

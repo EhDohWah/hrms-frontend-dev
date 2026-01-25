@@ -4,26 +4,36 @@
  * Customizes NProgress appearance to match HRMS theme colors.
  * Primary color: #011b44 (Dark Navy Blue)
  *
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * IMPORTANT: These styles ensure NProgress bar spans full viewport width,
+ * regardless of sidebar or header positioning.
  */
 
 /* ============================================================================
    PROGRESS BAR
    ============================================================================ */
 
-/* Main progress bar container */
+/* Main progress bar container - ensure it's at viewport level */
 #nprogress {
   pointer-events: none;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100vw !important;
+  z-index: 99999 !important;
 }
 
-/* Progress bar itself */
+/* Progress bar itself - full viewport width from left edge */
 #nprogress .bar {
   background: #011b44;
-  position: fixed;
-  z-index: 99999;
-  top: 0;
-  left: 0;
-  width: 100%;
+  position: fixed !important;
+  z-index: 99999 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100vw !important;
   height: 3px;
 
   /* Smooth gradient effect */
@@ -108,6 +118,9 @@
 @media (min-width: 768px) {
   #nprogress .bar {
     height: 3px;
+    /* Maintain full width positioning */
+    left: 0 !important;
+    width: 100vw !important;
   }
 }
 
@@ -115,11 +128,14 @@
 @media (max-width: 767px) {
   #nprogress .bar {
     height: 2px;
+    /* Maintain full width positioning */
+    left: 0 !important;
+    width: 100vw !important;
   }
 
   #nprogress .spinner {
     top: 10px;
-    right: 10px;
+    right: 15px;
   }
 
   #nprogress .spinner-icon {
@@ -167,6 +183,9 @@
       #3b9fd1 100%
     );
     box-shadow: 0 0 10px #3b9fd1, 0 0 5px #3b9fd1;
+    /* Maintain full width positioning in dark mode */
+    left: 0 !important;
+    width: 100vw !important;
   }
 
   #nprogress .peg {
@@ -181,18 +200,17 @@
 
 /* ============================================================================
    Z-INDEX MANAGEMENT
-   Ensures NProgress is above everything except critical modals
+   Ensures NProgress is above sidebar (1035) and header (1030) but below
+   Ant Design modals (1060) for proper layering
    ============================================================================ */
 
-/* NProgress should be below Ant Design modals but above everything else */
-#nprogress {
-  z-index: 99998;
-}
+/* Z-index values are set in the main rules above with !important
+   to ensure they take precedence over default nprogress.css styles.
 
-#nprogress .bar {
-  z-index: 99999;
-}
-
-#nprogress .spinner {
-  z-index: 99999;
-}
+   Current z-index hierarchy:
+   - Sidebar: 1035
+   - Header: 1030
+   - Modals: 1060
+   - NProgress: 99999 (above everything for visibility)
+   - Toast/Messages: 100000+ (if needed above progress bar)
+*/

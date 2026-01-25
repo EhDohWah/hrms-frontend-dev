@@ -1,6 +1,6 @@
 .header {
     height: 50px;
-    z-index: 999;
+    z-index: $z-header;  // Fixed: was 999, now uses variable (1030)
     background: $white;
     position: fixed;
     top: 0;

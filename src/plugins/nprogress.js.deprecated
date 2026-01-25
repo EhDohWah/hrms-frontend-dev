@@ -1,0 +1,407 @@
+/**
+ * NProgress Plugin for Vue Router
+ *
+ * Provides a slim progress bar at the top of the page during route transitions.
+ * Integrates cleanly with Vue Router navigation guards and handles edge cases.
+ *
+ * @version 2.0.0
+ * @author HRMS Team
+ *
+ * Features:
+ * - Automatic start/stop with route navigation
+ * - Waits for lazy-loaded components to resolve
+ * - Manual control API for data-fetching operations
+ * - Configurable appearance to match theme colors
+ * - Timeout protection for stuck progress bars
+ * - Error handling for failed route transitions
+ * - Memory leak prevention with proper cleanup
+ * - Does not interfere with WebSocket connections
+ *
+ * Usage in components:
+ * ```js
+ * import { inject } from 'vue';
+ * const nprogress = inject('nprogress');
+ *
+ * // For data fetching
+ * nprogress.start();
+ * await fetchData();
+ * nprogress.done();
+ * ```
+ */
+
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+/**
+ * NProgress configuration options
+ * @see https://ricostacruz.com/nprogress/
+ */
+const NPROGRESS_CONFIG = {
+  // Minimum percentage to start at (0.0 - 1.0)
+  minimum: 0.08,
+
+  // How much to increase per trickle (slower = smoother for heavy loads)
+  trickleSpeed: 200,
+
+  // Enable trickle for gradual progress
+  trickle: true,
+
+  // Show spinner alongside the progress bar
+  showSpinner: false,
+
+  // Easing animation
+  easing: 'ease',
+
+  // Animation speed in ms
+  speed: 350,
+
+  // Parent element to attach progress bar to
+  parent: 'body',
+};
+
+/**
+ * Timeout in ms to force-finish progress bar if navigation takes too long
+ * Prevents stuck progress bars from slow API calls or failed navigations
+ */
+const PROGRESS_TIMEOUT = 30000; // 30 seconds
+
+/**
+ * Minimum time (ms) to show the progress bar
+ * Prevents the bar from flashing too quickly on fast navigations
+ */
+const MIN_PROGRESS_TIME = 300;
+
+/**
+ * Routes that should skip the progress bar (instant transitions)
+ * Useful for routes that don't need loading indication
+ */
+const SKIP_PROGRESS_ROUTES = [
+  '/login',
+  '/logout',
+];
+
+// ============================================================================
+// STATE
+// ============================================================================
+
+let progressTimer = null;
+let isNavigating = false;
+let navigationStartTime = 0;
+let pendingDataLoads = 0; // Track pending data operations
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Check if a route should skip the progress bar
+ * @param {string} path - Route path
+ * @returns {boolean}
+ */
+function shouldSkipProgress(path) {
+  return SKIP_PROGRESS_ROUTES.some(route => path === route || path.startsWith(route + '/'));
+}
+
+/**
+ * Clear the progress timeout timer
+ */
+function clearProgressTimer() {
+  if (progressTimer) {
+    clearTimeout(progressTimer);
+    progressTimer = null;
+  }
+}
+
+/**
+ * Start the progress bar with timeout protection
+ * @param {boolean} isDataLoad - If true, this is a data loading operation (not route change)
+ */
+function startProgress(isDataLoad = false) {
+  if (isDataLoad) {
+    // Track data loading operations
+    pendingDataLoads++;
+    if (pendingDataLoads === 1 && !isNavigating) {
+      // First data load and not navigating - start progress
+      NProgress.start();
+    }
+    return;
+  }
+
+  // Prevent multiple starts for route navigation
+  if (isNavigating) return;
+
+  isNavigating = true;
+  navigationStartTime = Date.now();
+  clearProgressTimer();
+
+  // Start the progress bar
+  NProgress.start();
+
+  // Set timeout to force-finish if navigation takes too long
+  progressTimer = setTimeout(() => {
+    console.warn('[NProgress] Navigation timeout - forcing progress bar to complete');
+    finishProgress(false, true);
+  }, PROGRESS_TIMEOUT);
+}
+
+/**
+ * Finish the progress bar and cleanup
+ * @param {boolean} isDataLoad - If true, this is completing a data loading operation
+ * @param {boolean} force - If true, force finish regardless of pending operations
+ */
+function finishProgress(isDataLoad = false, force = false) {
+  if (isDataLoad) {
+    // Decrement data load counter
+    pendingDataLoads = Math.max(0, pendingDataLoads - 1);
+
+    // Only finish if no pending data loads and not navigating
+    if (pendingDataLoads === 0 && !isNavigating) {
+      NProgress.done();
+    }
+    return;
+  }
+
+  // Route navigation complete
+  clearProgressTimer();
+
+  if (force) {
+    // Force finish - skip minimum time check
+    isNavigating = false;
+    pendingDataLoads = 0;
+    NProgress.done();
+    return;
+  }
+
+  // Calculate how long the progress has been showing
+  const elapsed = Date.now() - navigationStartTime;
+  const remainingTime = Math.max(0, MIN_PROGRESS_TIME - elapsed);
+
+  // Ensure minimum display time for better UX
+  setTimeout(() => {
+    isNavigating = false;
+
+    // Only finish if no pending data loads
+    if (pendingDataLoads === 0) {
+      NProgress.done();
+    }
+  }, remainingTime);
+}
+
+/**
+ * Increment progress manually (for heavy routes that load data)
+ * Can be called from components to show intermediate progress
+ */
+function incrementProgress() {
+  if (isNavigating || pendingDataLoads > 0) {
+    NProgress.inc();
+  }
+}
+
+/**
+ * Set progress to a specific value
+ * @param {number} value - Progress value (0.0 - 1.0)
+ */
+function setProgress(value) {
+  NProgress.set(value);
+}
+
+// ============================================================================
+// ROUTER INTEGRATION
+// ============================================================================
+
+/**
+ * Install NProgress with Vue Router
+ * Sets up beforeEach and afterEach hooks for automatic progress tracking
+ *
+ * The progress bar shows during:
+ * 1. Route transitions (lazy component loading)
+ * 2. Manual data loading operations (when components call start/done)
+ *
+ * @param {Router} router - Vue Router instance
+ * @param {Object} options - Optional configuration overrides
+ */
+export function setupNProgress(router, options = {}) {
+  // Merge custom options with defaults
+  const config = { ...NPROGRESS_CONFIG, ...options };
+
+  // Configure NProgress
+  NProgress.configure(config);
+
+  // Before each route navigation - start progress
+  router.beforeEach((to, from, next) => {
+    // Skip progress for certain routes
+    if (shouldSkipProgress(to.path)) {
+      return next();
+    }
+
+    // Skip if navigating to the same route (hash changes, query updates)
+    if (to.path === from.path) {
+      return next();
+    }
+
+    // Start the progress bar for route navigation
+    startProgress(false);
+
+    next();
+  });
+
+  // After each route navigation - finish progress
+  // Note: This fires after lazy components are resolved, but BEFORE
+  // component's onMounted/created hooks complete their data fetching.
+  // Components should use the manual API (start/done) for data loading.
+  router.afterEach((to, from, failure) => {
+    // Handle navigation failures
+    if (failure) {
+      console.warn('[NProgress] Navigation failed:', failure);
+      // Force finish on failure
+      finishProgress(false, true);
+      return;
+    }
+
+    // Finish route navigation progress
+    // The MIN_PROGRESS_TIME ensures the bar is visible even on fast navigations
+    finishProgress(false, false);
+  });
+
+  // Handle navigation errors (e.g., network failures during lazy loading)
+  router.onError((error) => {
+    console.error('[NProgress] Router error:', error);
+    // Force finish on error
+    finishProgress(false, true);
+  });
+
+  console.log('[NProgress] Route progress tracking initialized');
+}
+
+// ============================================================================
+// MANUAL CONTROL API
+// ============================================================================
+
+/**
+ * Manually start the progress bar for data loading operations
+ * Call this when starting an API call or data fetch
+ *
+ * Multiple calls are tracked - the bar won't finish until all
+ * corresponding done() calls are made.
+ *
+ * @example
+ * ```js
+ * import { start, done } from '@/plugins/nprogress';
+ *
+ * async function fetchData() {
+ *   start();
+ *   try {
+ *     const data = await api.get('/endpoint');
+ *     return data;
+ *   } finally {
+ *     done();
+ *   }
+ * }
+ * ```
+ */
+export function start() {
+  startProgress(true);
+}
+
+/**
+ * Manually finish the progress bar
+ * Call this when data loading completes (success or error)
+ *
+ * If multiple start() calls were made, progress continues
+ * until all corresponding done() calls complete.
+ */
+export function done() {
+  finishProgress(true);
+}
+
+/**
+ * Force finish the progress bar immediately
+ * Use sparingly - primarily for error recovery
+ */
+export function forceFinish() {
+  finishProgress(false, true);
+}
+
+/**
+ * Manually set progress to a specific value (0.0 - 1.0)
+ * @param {number} value - Progress value
+ */
+export function set(value) {
+  setProgress(value);
+}
+
+/**
+ * Increment progress by a small amount
+ * Useful for showing activity during long operations
+ */
+export function inc() {
+  incrementProgress();
+}
+
+/**
+ * Check if progress bar is currently active
+ * @returns {boolean}
+ */
+export function isStarted() {
+  return NProgress.isStarted();
+}
+
+/**
+ * Check if currently navigating (route transition in progress)
+ * @returns {boolean}
+ */
+export function isRouteLoading() {
+  return isNavigating;
+}
+
+/**
+ * Get the count of pending data load operations
+ * @returns {number}
+ */
+export function getPendingLoads() {
+  return pendingDataLoads;
+}
+
+// ============================================================================
+// EXPORTS
+// ============================================================================
+
+/**
+ * NProgress API object for injection and global properties
+ */
+const nprogressAPI = {
+  start,
+  done,
+  forceFinish,
+  set,
+  inc,
+  isStarted,
+  isRouteLoading,
+  getPendingLoads,
+};
+
+export default {
+  install: (app, { router, options = {} } = {}) => {
+    if (!router) {
+      console.error('[NProgress] Router instance is required');
+      return;
+    }
+
+    setupNProgress(router, options);
+
+    // Provide NProgress methods globally via injection (Composition API)
+    // Usage: const nprogress = inject('nprogress');
+    app.provide('nprogress', nprogressAPI);
+
+    // Also add to global properties for Options API access
+    // Usage: this.$nprogress.start();
+    app.config.globalProperties.$nprogress = nprogressAPI;
+  },
+};
+
+// Named exports for direct imports
+// Usage: import { start, done } from '@/plugins/nprogress';

@@ -1,32 +1,99 @@
-:root {
-  --primary-color: #0067A5; // NetSuite blue color
-  --secondary-color: #6B7280;
-  --success-color: #10B981;
-  --danger-color: #EF4444;
-  --warning-color: #F59E0B;
-  --info-color: #3B82F6;
-  --light-color: #F3F4F6;
-  --dark-color: #1F2937;
-}
-
-/****** Ant Design for logout modal ******/
-
-.ant-modal-root,
-.ant-modal-mask,
-.ant-modal-wrap {
-  z-index: 99999 !important;
-}
-
-body>.ant-select-dropdown,
-body>.ant-tree-select-dropdown {
-  z-index: 99999 !important;
-}
-
-
-
-/****** Utils ******/
+/****** Utils (must be first for variables to work) ******/
 @import "utils/variables";
 @import "utils/mixins";
+
+/****** CSS Custom Properties ******/
+:root {
+  // CSS custom properties - matched to SCSS variables in utils/_variables.scss
+  --primary-color: #{$primary};
+  --secondary-color: #{$secondary};
+  --success-color: #{$success};
+  --danger-color: #{$danger};
+  --warning-color: #{$warning};
+  --info-color: #{$info};
+  --light-color: #{$light};
+  --dark-color: #{$dark};
+}
+
+/****** Ant Design Modal Z-Index ******/
+/* CRITICAL: Modal must appear above sidebar (z-index: 1041) */
+/* The sidebar uses z-index: 1001 (desktop) and 1041 (mobile) */
+/* Using 1060 to ensure modal is always on top */
+
+/* Modal root container */
+.ant-modal-root {
+  position: fixed !important;
+  z-index: 1060 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+/* Modal backdrop/mask - must cover entire viewport including sidebar */
+.ant-modal-mask {
+  position: fixed !important;
+  z-index: 1060 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+}
+
+/* Modal wrapper */
+.ant-modal-wrap {
+  position: fixed !important;
+  z-index: 1060 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  overflow: auto !important;
+}
+
+/* Modal dialog */
+.ant-modal {
+  z-index: 1060 !important;
+}
+
+/* Confirm modal specific */
+.ant-modal-confirm {
+  z-index: 1060 !important;
+}
+
+/* Dropdown selects - must appear above modals when inside them */
+body > .ant-select-dropdown,
+body > .ant-tree-select-dropdown {
+  z-index: 1070 !important;
+}
+
+/****** Vue Datepicker Z-Index Fix ******/
+/* CRITICAL: Datepicker popup must appear above Bootstrap modals (z-index: 1050-1055) */
+/* Using 2060 to ensure datepicker calendar is always on top of modals */
+.mx-datepicker-popup {
+  z-index: 2060 !important;
+}
+
+.mx-calendar {
+  z-index: 2060 !important;
+}
+
+/* Also fix for any datepicker that uses body append */
+body > .mx-datepicker-popup {
+  z-index: 2060 !important;
+}
+
+/****** Ant Design Message/Notification Z-Index ******/
+/* Messages and notifications must appear above header (z-index: 1030) */
+.ant-message {
+  z-index: $z-toast !important;  // 2000 - above everything
+}
+
+.ant-notification {
+  z-index: $z-toast !important;  // 2000 - above everything
+}
 
 /******* Base *******/
 @import "base/base";
@@ -34,7 +101,7 @@ body>.ant-tree-select-dropdown {
 
 /******* Components ******/
 @import "components/avatar";
-@import "components/boostrap";
+@import "components/bootstrap";
 @import "components/button";
 @import "components/badge";
 @import "components/border";
@@ -101,4 +168,9 @@ body>.ant-tree-select-dropdown {
 @import "pages/super-admin";
 @import "pages/blogs";
 @import "pages/ui-pages";
-@import "pages/vue";
+// Ant Design Vue Component Overrides (modular - split from _vue.scss)
+@import "pages/ant-tables";
+@import "pages/ant-pagination";
+@import "pages/ant-select";
+@import "pages/ant-dark-mode";
+@import "pages/ant-misc";

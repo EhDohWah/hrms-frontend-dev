@@ -20,17 +20,19 @@
           v-if="!readonly && !isEditMode && savedAllocations.length > 0"
           size="small"
           @click="enterEditMode"
-          :disabled="loading"
+          :disabled="loading || grantsLoading"
+          :loading="grantsLoading"
         >
-          Edit Allocations
+          {{ grantsLoading ? 'Loading...' : 'Edit Allocations' }}
         </a-button>
         <a-button
           v-if="!readonly && !isEditMode && savedAllocations.length === 0"
           size="small"
           @click="enterEditMode"
-          :disabled="loading"
+          :disabled="loading || grantsLoading"
+          :loading="grantsLoading"
         >
-          Add Allocation
+          {{ grantsLoading ? 'Loading...' : 'Add Allocation' }}
         </a-button>
 
         <!-- Save button (edit mode) -->
@@ -65,6 +67,21 @@
       <template v-else>
         {{ (totalFte - 100).toFixed(0) }}% over 100% limit
       </template>
+    </div>
+
+    <!-- Validation feedback (only when editing and has issues preventing save) -->
+    <div v-if="isEditMode && hasValidationIssues && !canSave" class="validation-feedback mb-2">
+      <a-alert
+        type="warning"
+        show-icon
+        :message="validationMessages.length === 1 ? validationMessages[0] : 'Please fix the following issues:'"
+      >
+        <template v-if="validationMessages.length > 1" #description>
+          <ul class="mb-0 ps-3">
+            <li v-for="(msg, index) in validationMessages" :key="index">{{ msg }}</li>
+          </ul>
+        </template>
+      </a-alert>
     </div>
 
     <!-- Allocations Table -->
@@ -195,8 +212,14 @@
       <template #emptyText>
         <div class="text-center py-3">
           <p class="text-muted mb-2">No funding allocations</p>
-          <a-button v-if="!readonly && !isEditMode" size="small" @click="enterEditMode">
-            Add Allocation
+          <a-button
+            v-if="!readonly && !isEditMode"
+            size="small"
+            @click="enterEditMode"
+            :disabled="grantsLoading"
+            :loading="grantsLoading"
+          >
+            {{ grantsLoading ? 'Loading...' : 'Add Allocation' }}
           </a-button>
         </div>
       </template>
@@ -253,6 +276,7 @@ const grantOptions = ref([]);
 const grantPositions = ref({});  // { grantId: [{ value, label, budget_line_code }] }
 const grantsLoading = ref(false);
 const positionsLoading = ref(false);
+const grantStructureReady = ref(false);  // Track if grant structure has loaded successfully
 
 // Counter for new row IDs
 let newRowIdCounter = 0;
@@ -291,6 +315,42 @@ const canSave = computed(() => {
   // Total must equal 100%
   return Math.abs(totalFte.value - 100) < 0.01;
 });
+
+// Validation messages for user feedback
+const validationMessages = computed(() => {
+  const messages = [];
+
+  if (!isEditMode.value) return messages;
+
+  for (let i = 0; i < editableRows.value.length; i++) {
+    const row = editableRows.value[i];
+    const rowNum = i + 1;
+
+    if (!row.grant_id) {
+      messages.push(`Row ${rowNum}: Please select a grant`);
+    } else if (!row.grant_item_id) {
+      messages.push(`Row ${rowNum}: Please select a position`);
+    }
+
+    if (!row.fte || row.fte <= 0) {
+      messages.push(`Row ${rowNum}: FTE must be greater than 0`);
+    }
+  }
+
+  // FTE total validation (only show if row validations pass)
+  if (editableRows.value.length > 0 && messages.length === 0) {
+    if (totalFte.value < 100) {
+      messages.push(`Total FTE is ${totalFte.value.toFixed(0)}% - needs ${(100 - totalFte.value).toFixed(0)}% more to reach 100%`);
+    } else if (totalFte.value > 100) {
+      messages.push(`Total FTE is ${totalFte.value.toFixed(0)}% - ${(totalFte.value - 100).toFixed(0)}% over the 100% limit`);
+    }
+  }
+
+  return messages;
+});
+
+// Check if there are validation issues (for UI display)
+const hasValidationIssues = computed(() => validationMessages.value.length > 0);
 
 // Can add another row?
 const canAddAnother = computed(() => {
@@ -356,17 +416,32 @@ const loadAllocations = async () => {
 
     if (response.success) {
       const data = response.data?.funding_allocations || response.data || [];
-      savedAllocations.value = (Array.isArray(data) ? data : []).map(alloc => ({
-        id: alloc.id,
-        rowKey: `saved-${alloc.id}`,
-        grant_id: alloc.grant_item?.grant?.id || alloc.grant_id || null,
-        grant_item_id: alloc.grant_item_id,
-        fte: alloc.fte || 0,
-        allocated_amount: alloc.allocated_amount || 0,
-        grant_name: alloc.grant_name || alloc.grant_item?.grant?.name || 'Unknown',
-        budget_line_code: alloc.budgetline_code || alloc.grant_item?.budgetline_code || '',
-        position_name: alloc.grant_position || alloc.grant_item?.grant_position || ''
-      }));
+      savedAllocations.value = (Array.isArray(data) ? data : []).map(alloc => {
+        // Extract grant_id with multiple fallback paths for robustness
+        // Priority: direct grant_id > grant_item.grant_id > grant_item.grant.id
+        let grantId = alloc.grant_id;
+
+        if (!grantId && alloc.grant_item) {
+          grantId = alloc.grant_item.grant_id || alloc.grant_item.grant?.id;
+        }
+
+        // Debug warning if grant_id is still missing (helps identify API issues)
+        if (!grantId && alloc.grant_item_id) {
+          console.warn('Funding allocation missing grant_id:', { id: alloc.id, grant_item_id: alloc.grant_item_id });
+        }
+
+        return {
+          id: alloc.id,
+          rowKey: `saved-${alloc.id}`,
+          grant_id: grantId,
+          grant_item_id: alloc.grant_item_id,
+          fte: alloc.fte || 0,
+          allocated_amount: alloc.allocated_amount || 0,
+          grant_name: alloc.grant_name || alloc.grant_item?.grant?.name || 'Unknown',
+          budget_line_code: alloc.budgetline_code || alloc.grant_item?.budgetline_code || '',
+          position_name: alloc.grant_position || alloc.grant_item?.grant_position || ''
+        };
+      });
     }
   } catch (error) {
     console.error('Error loading allocations:', error);
@@ -379,6 +454,7 @@ const loadAllocations = async () => {
 // Load grant structure for dropdowns
 const loadGrantStructure = async () => {
   grantsLoading.value = true;
+  grantStructureReady.value = false;  // Reset on new load
   try {
     const response = await employeeFundingAllocationService.getGrantStructure();
 
@@ -397,9 +473,11 @@ const loadGrantStructure = async () => {
         }));
       });
       grantPositions.value = positionsMap;
+      grantStructureReady.value = true;  // Mark as ready after successful load
     }
   } catch (error) {
     console.error('Error loading grant structure:', error);
+    grantStructureReady.value = false;  // Ensure false on error
   } finally {
     grantsLoading.value = false;
   }
@@ -440,7 +518,35 @@ const debouncedCalculate = (row) => {
 };
 
 // Enter batch edit mode
-const enterEditMode = () => {
+const enterEditMode = async () => {
+  // Ensure grant structure is loaded before entering edit mode
+  if (!grantStructureReady.value) {
+    if (grantsLoading.value) {
+      // Wait for grant structure to finish loading (with timeout)
+      message.info('Loading grant options, please wait...');
+      const startTime = Date.now();
+      const timeout = 5000;  // 5 second timeout
+
+      while (grantsLoading.value && (Date.now() - startTime) < timeout) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      if (!grantStructureReady.value) {
+        message.error('Failed to load grant options. Please try again.');
+        return;
+      }
+    } else {
+      // Grant structure failed to load previously, try again
+      message.info('Loading grant options...');
+      await loadGrantStructure();
+
+      if (!grantStructureReady.value) {
+        message.error('Failed to load grant options. Please try again.');
+        return;
+      }
+    }
+  }
+
   // Clone saved allocations to editable rows
   editableRows.value = savedAllocations.value.map(alloc => ({
     ...alloc,
@@ -642,5 +748,19 @@ onMounted(() => {
 .badge-soft-info {
   background-color: #e6f7ff;
   color: #1890ff;
+}
+
+/* Validation feedback styling */
+.validation-feedback {
+  font-size: 13px;
+}
+
+.validation-feedback ul {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.validation-feedback li {
+  margin-bottom: 2px;
 }
 </style>

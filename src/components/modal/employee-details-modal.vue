@@ -545,6 +545,34 @@
                       placeholder="Enter ID number" @input="saveFormState('personalFormData')" />
                   </div>
                 </div>
+
+                <!-- Row 14: ID Issue Date -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="edit-id-issue-date">
+                      ID Issue Date :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="date" class="form-control input-medium" id="edit-id-issue-date"
+                      v-model="personalFormData.identification_issue_date"
+                      @change="saveFormState('personalFormData')" />
+                  </div>
+                </div>
+
+                <!-- Row 15: ID Expiry Date -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="edit-id-expiry-date">
+                      ID Expiry Date :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="date" class="form-control input-medium" id="edit-id-expiry-date"
+                      v-model="personalFormData.identification_expiry_date"
+                      @change="saveFormState('personalFormData')" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1368,6 +1396,8 @@ export default {
         // Direct columns instead of nested relationship
         identification_type: '',
         identification_number: '',
+        identification_issue_date: '',
+        identification_expiry_date: '',
       },
 
       editFormData: {
@@ -1995,6 +2025,8 @@ export default {
             // Direct columns instead of nested relationship
             identification_type: this.employee.identification_type || '',
             identification_number: this.employee.identification_number || '',
+            identification_issue_date: this.employee.identification_issue_date || '',
+            identification_expiry_date: this.employee.identification_expiry_date || '',
           };
         }
 
@@ -2035,6 +2067,8 @@ export default {
         // Direct columns instead of nested relationship
         identification_type: this.personalFormData.identification_type || null,
         identification_number: this.personalFormData.identification_number || null,
+        identification_issue_date: this.personalFormData.identification_issue_date || null,
+        identification_expiry_date: this.personalFormData.identification_expiry_date || null,
         languages: Array.isArray(this.personalFormData.languages)
           ? this.personalFormData.languages.filter(Boolean)
           : [],
@@ -3163,6 +3197,8 @@ export default {
             // Direct columns instead of nested relationship
             identification_type: newVal.identification_type || '',
             identification_number: newVal.identification_number || '',
+            identification_issue_date: newVal.identification_issue_date || '',
+            identification_expiry_date: newVal.identification_expiry_date || '',
           };
         }
       },

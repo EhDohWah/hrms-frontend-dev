@@ -138,7 +138,12 @@
   </div>
 
   <!-- Interview Modal -->
-  <interview-modal ref="interviewModal" @interview-added="refreshInterviews" @interview-updated="refreshInterviews" />
+  <interview-modal
+      :visible="interviewModalVisible"
+      :editingInterview="editingInterview"
+      @saved="handleInterviewSaved"
+      @close="handleInterviewModalClose"
+  />
 
   <!-- Notification Toast - z-index 2000 to appear above modals -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
@@ -292,17 +297,21 @@ export default {
     const currentPage = ref(1);
     const pageSize = ref(10);
     const total = ref(0);
-    
+
     // Initialize interview store
     const interviewStore = useInterviewStore();
-    
+
+    // Modal state
+    const interviewModalVisible = ref(false);
+    const editingInterview = ref(null);
+
     // Initialize permission checks for interviews module
-    const { 
-      canRead, 
-      canEdit, 
-      isReadOnly, 
-      accessLevelText, 
-      accessLevelBadgeClass 
+    const {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     } = usePermissions('interviews');
 
     return {
@@ -312,6 +321,8 @@ export default {
       pageSize,
       total,
       interviewStore,
+      interviewModalVisible,
+      editingInterview,
       canRead,
       canEdit,
       isReadOnly,
@@ -625,17 +636,22 @@ export default {
     },
 
     openAddInterviewModal() {
-      if (this.$refs.interviewModal) {
-        this.$refs.interviewModal.editMode = false;
-        this.$refs.interviewModal.interviewData = null;
-        this.$refs.interviewModal.openModal();
-      }
+      this.editingInterview = null;
+      this.interviewModalVisible = true;
     },
 
     openEditInterviewModal(interview) {
-      this.$refs.interviewModal.interviewData = interview;
-      this.$refs.interviewModal.editMode = true;
-      this.$refs.interviewModal.openModal();
+      this.editingInterview = interview;
+      this.interviewModalVisible = true;
+    },
+
+    handleInterviewSaved() {
+      this.refreshInterviews();
+    },
+
+    handleInterviewModalClose() {
+      this.interviewModalVisible = false;
+      this.editingInterview = null;
     },
 
     async deleteInterview(id) {

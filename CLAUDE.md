@@ -91,3 +91,60 @@ Copy `.env.example` to `.env.development` and set:
 ```
 VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
+
+## Known Issues & Fixes
+
+### Ant Design Vue Select Dropdown Text Visibility & Alignment
+
+**Issue**: Selected text in `<a-select>` dropdowns appears blurry, partially hidden, cut off at the bottom, or positioned too low within the input.
+
+**Root Cause**: Default Ant Design Vue styles can conflict with Bootstrap or custom styles, affecting text rendering, opacity, and vertical alignment on the selected value display.
+
+**Fix Location**: `src/assets/scss/pages/_ant-select.scss`
+
+**Solution Applied**:
+```scss
+// Fix selector container flex alignment
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 38px !important;
+}
+
+// Ensure selected text is fully visible and vertically centered
+.ant-select-selection-item {
+  display: flex !important;
+  align-items: center !important;
+  color: $gray-900 !important;
+  opacity: 1 !important;
+  line-height: 1.5 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// Fix for single select mode
+.ant-select-single .ant-select-selector .ant-select-selection-item {
+  line-height: 36px !important;
+  padding-right: 18px;
+}
+
+.ant-select-selection-placeholder {
+  color: $gray-500 !important;
+  opacity: 1 !important;
+}
+```
+
+### Ant Design Vue Teleported Components Styling
+
+**Issue**: Scoped styles don't work on `<a-modal>`, `<a-select>` dropdowns, `<a-date-picker>` popups, etc.
+
+**Root Cause**: These components are teleported to `<body>` and are outside the component's DOM tree, so Vue's scoped styles cannot reach them.
+
+**Solution**: Use global styles in `src/assets/scss/main.scss`. See `docs/styling-guides/ANT_DESIGN_TELEPORTED_COMPONENTS.md` for detailed documentation.
+
+### Ant Design Vue Empty Component
+
+**Issue**: `<a-empty :image="null" />` throws error "Cannot use 'in' operator to search for 'type' in null".
+
+**Solution**: Don't pass `null` to the `image` prop. Use `:image-style="{ height: '60px' }"` to customize size, or omit the prop entirely for default behavior.

@@ -106,20 +106,6 @@
               <small class="text-muted">Select one or more grants</small>
             </div>
 
-            <!-- Employment Type Filter -->
-            <div class="col-md-6">
-              <label class="form-label">Employment Type</label>
-              <a-select
-                v-model:value="filters.employment_types"
-                mode="multiple"
-                class="w-100"
-                placeholder="Select employment types"
-                :options="employmentTypeOptions"
-                :max-tag-count="2"
-                allow-clear
-              />
-              <small class="text-muted">Select one or more employment types</small>
-            </div>
           </div>
 
           <!-- Active Filters Summary -->
@@ -134,9 +120,6 @@
               </span>
               <span v-if="filters.grants.length > 0" class="badge bg-success">
                 Grants: {{ filters.grants.length }}
-              </span>
-              <span v-if="filters.employment_types.length > 0" class="badge bg-warning text-dark">
-                Employment Types: {{ filters.employment_types.length }}
               </span>
               <button type="button" class="btn btn-sm btn-outline-secondary" @click="clearAllFilters">
                 <i class="ti ti-x me-1"></i>Clear All
@@ -315,7 +298,6 @@ export default {
       subsidiaries: [],
       departments: [],
       grants: [],
-      employment_types: [],
     });
 
     const availableSubsidiaries = ref([]);
@@ -326,8 +308,7 @@ export default {
     const hasActiveFilters = computed(() => {
       return filters.subsidiaries.length > 0 ||
              filters.departments.length > 0 ||
-             filters.grants.length > 0 ||
-             filters.employment_types.length > 0;
+             filters.grants.length > 0;
     });
 
     const departmentOptions = computed(() => {
@@ -345,13 +326,6 @@ export default {
         name: grant.name,
       }));
     });
-
-    const employmentTypeOptions = computed(() => [
-      { value: 'permanent', label: 'Permanent' },
-      { value: 'probation', label: 'Probation' },
-      { value: 'contract', label: 'Contract' },
-      { value: 'daily', label: 'Daily Wage' },
-    ]);
 
     const displayedWarnings = computed(() => {
       if (!previewData.value || !previewData.value.warnings) return [];
@@ -380,7 +354,6 @@ export default {
       filters.subsidiaries = [];
       filters.departments = [];
       filters.grants = [];
-      filters.employment_types = [];
     };
 
     const formatPayPeriod = (payPeriod) => {
@@ -415,7 +388,6 @@ export default {
             subsidiaries: filters.subsidiaries.length > 0 ? filters.subsidiaries : undefined,
             departments: filters.departments.length > 0 ? filters.departments : undefined,
             grants: filters.grants.length > 0 ? filters.grants : undefined,
-            employment_types: filters.employment_types.length > 0 ? filters.employment_types : undefined,
           },
         };
 
@@ -457,7 +429,6 @@ export default {
             subsidiaries: filters.subsidiaries.length > 0 ? filters.subsidiaries : undefined,
             departments: filters.departments.length > 0 ? filters.departments : undefined,
             grants: filters.grants.length > 0 ? filters.grants : undefined,
-            employment_types: filters.employment_types.length > 0 ? filters.employment_types : undefined,
           },
         };
 
@@ -550,7 +521,6 @@ export default {
       availableSubsidiaries,
       departmentOptions,
       grantOptions,
-      employmentTypeOptions,
       hasActiveFilters,
       displayedWarnings,
       disablePayPeriod,

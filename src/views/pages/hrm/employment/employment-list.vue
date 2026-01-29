@@ -21,15 +21,8 @@
         </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div v-if="canEdit" class="mb-2 me-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="openAddEmploymentModal"
-              @mouseenter="preloadEmploymentModal" :disabled="openingAddModal">
-              <template v-if="openingAddModal">
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Loading form...
-              </template>
-              <template v-else>
-                <i class="ti ti-circle-plus me-2"></i>Add Employment
-              </template>
+            <button class="btn btn-primary d-flex align-items-center" @click="openAddEmploymentModal">
+              <i class="ti ti-circle-plus me-2"></i>Add Employment
             </button>
           </div>
           <div v-if="canEdit" class="mb-2 me-2">
@@ -75,7 +68,7 @@
               :columns="columns"
               :data-source="tableData"
               :pagination="false"
-              :scroll="{ x: 'max-content', y: 600 }"
+              :scroll="{ x: 1400, y: 600 }"
               row-key="id"
               @change="handleTableChange"
               :scrollToFirstRowOnChange="false"
@@ -97,7 +90,7 @@
                 <template v-if="column.dataIndex === 'actions'">
                   <div class="action-icon d-inline-flex" v-memo="[record.id, editingEmploymentId]">
                     <a v-if="canEdit" href="javascript:void(0);" class="me-2 edit-button" @click="openEditEmploymentModal(record)"
-                      @mouseenter="preloadEmploymentEditModal" :class="{ 'loading': editingEmploymentId === record.id }"
+                      :class="{ 'loading': editingEmploymentId === record.id }"
                       :disabled="editingEmploymentId === record.id">
                       <span class="button-content">
                         <i class="ti ti-edit edit-icon" :class="{ 'fade-out': editingEmploymentId === record.id }"></i>
@@ -189,11 +182,13 @@
     <layout-footer></layout-footer>
   </div>
 
-  <!-- FIXED: True lazy loading - modals only render when needed -->
-  <employment-modal v-if="isEmploymentModalMounted" ref="employmentModal" @employment-added="onEmploymentAdded"
-    @modal-closed="handleEmploymentModalClosed" />
-  <employment-edit-modal v-if="isEditModalMounted" ref="employmentEditModal" @employment-updated="onEmploymentUpdated"
-    @modal-closed="handleEditModalClosed" />
+  <!-- Employment Modal (Unified Add/Edit) - Uses props-based Ant Design pattern -->
+  <employment-modal
+    :visible="employmentModalVisible"
+    :editingEmployment="editingEmployment"
+    @saved="handleEmploymentSaved"
+    @close="handleEmploymentModalClose"
+  />
 
   <!-- Notification Toast - z-index 2000 to appear above modals -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
@@ -210,24 +205,10 @@
 </template>
 
 <script>
-import { defineAsyncComponent, shallowRef, markRaw, ref, computed } from 'vue';
+import { shallowRef, markRaw, ref, computed } from 'vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-// Lazy load Add modal (doesn't need direct method access during load)
-const EmploymentModal = defineAsyncComponent({
-  loader: () => import('@/components/modal/employment-modal.vue'),
-  timeout: 10000,
-  onError(error, retry, fail, attempts) {
-    console.error('❌ Failed to load EmploymentModal:', error, 'Attempt:', attempts);
-    if (attempts <= 2) {
-      retry();
-    } else {
-      fail();
-    }
-  }
-});
-// FIXED: Use regular import for Edit modal - defineAsyncComponent wraps component
-// and prevents direct method access via refs (Vue 3 limitation)
-import EmploymentEditModal from '@/components/modal/employment-edit-modal.vue';
+// Unified Add/Edit modal using Ant Design Vue props-based pattern
+import EmploymentModal from '@/components/modal/employment-modal.vue';
 // Funding allocation panel for expandable rows
 import EmployeeFundingAllocationPanel from '@/components/panel/EmployeeFundingAllocationPanel.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
@@ -244,7 +225,6 @@ export default {
   components: {
     indexBreadcrumb,
     EmploymentModal,
-    EmploymentEditModal,
     EmployeeFundingAllocationPanel,
     LayoutHeader,
     LayoutSidebar,
@@ -260,6 +240,10 @@ export default {
 
     // Expandable rows state - only one row expanded at a time
     const expandedRowKeys = ref([]);
+
+    // Employment Modal state (props-based Ant Design pattern)
+    const employmentModalVisible = ref(false);
+    const editingEmployment = ref(null);
 
     // Initialize permission checks for employment module
     const {
@@ -282,6 +266,8 @@ export default {
       pageSize,
       total,
       expandedRowKeys,
+      employmentModalVisible,
+      editingEmployment,
       canRead,
       canEdit,
       isReadOnly,
@@ -319,14 +305,6 @@ export default {
       statusCache: new WeakMap(),
       displayCache: new Map(),
 
-      // Preloading flags
-      employmentModalPreloaded: false,
-      employmentEditModalPreloaded: false,
-
-      // FIXED: True lazy loading flags - modals only mount when needed
-      isEmploymentModalMounted: false,
-      isEditModalMounted: false,
-      openingAddModal: false,
     };
   },
   computed: {
@@ -367,23 +345,6 @@ export default {
           ellipsis: true,
           sorter: true,
           sortOrder: sorted.columnKey === 'employee_name' && sorted.order
-        },
-        {
-          title: 'Type',
-          dataIndex: 'employment_type',
-          key: 'employment_type',
-          width: 100,
-          filters: [
-            { text: 'Full-Time', value: 'Full-Time' },
-            { text: 'Part-Time', value: 'Part-Time' },
-            { text: 'Contract', value: 'Contract' },
-            { text: 'Temporary', value: 'Temporary' },
-            { text: 'Internship', value: 'Internship' },
-          ],
-          filteredValue: filtered.employment_type || null,
-          sorter: true,
-          sortOrder: sorted.columnKey === 'employment_type' && sorted.order,
-          filterSearch: true
         },
         {
           title: 'Department',
@@ -488,7 +449,6 @@ export default {
           organization: emp.employee?.organization || 'N/A',
           staff_id: emp.employee?.staff_id || 'N/A',
           employee_name: emp.employee ? `${emp.employee.first_name_en || ''} ${emp.employee.last_name_en || ''}`.trim() : 'N/A',
-          employment_type: emp.employment_type,
           department: emp.department?.name || 'N/A',
           position: emp.position?.title || 'N/A',
           // Use site field from backend (work_location is alias for backward compatibility)
@@ -577,9 +537,6 @@ export default {
         if (this.filteredInfo.organization && this.filteredInfo.organization.length > 0) {
           params.filter_organization = this.filteredInfo.organization.join(',');
         }
-        if (this.filteredInfo.employment_type && this.filteredInfo.employment_type.length > 0) {
-          params.filter_employment_type = this.filteredInfo.employment_type.join(',');
-        }
         if (this.filteredInfo.status && this.filteredInfo.status.length > 0) {
           params.filter_status = this.filteredInfo.status.join(',');
         }
@@ -644,7 +601,6 @@ export default {
       const fieldMapping = {
         'staff_id': 'staff_id',
         'employee_name': 'employee_name',
-        'employment_type': 'employment_type',
         'department': 'department',
         'position': 'position',
         'work_location': 'work_location',
@@ -714,7 +670,6 @@ export default {
             id: emp.id,
             employee: emp.employee,
             employee_id: emp.employee_id,
-            employment_type: emp.employment_type,
             // Map site to work_location for backward compatibility
             site: emp.site,
             work_location: emp.site,
@@ -797,7 +752,6 @@ export default {
             id: emp.id,
             employee: Object.freeze(emp.employee || {}),
             employee_id: emp.employee_id,
-            employment_type: emp.employment_type,
             // Map site to work_location for backward compatibility
             site: Object.freeze(emp.site || {}),
             work_location: Object.freeze(emp.site || {}),
@@ -895,10 +849,10 @@ export default {
     },
 
     formatCurrency(value) {
-      if (!value) return '$0.00';
-      return new Intl.NumberFormat('en-US', {
+      if (!value) return '฿0.00';
+      return new Intl.NumberFormat('th-TH', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'THB'
       }).format(value);
     },
 
@@ -926,47 +880,13 @@ export default {
       // are loaded separately in the expanded panel
     },
 
-    // FIXED: True lazy loading - mount modal component only when needed
-    async openAddEmploymentModal() {
-      try {
-        this.openingAddModal = true;
-        // Ensure async component chunk is loaded (handles first-click cold load)
-        if (!this.employmentModalPreloaded) {
-          try {
-            await import('@/components/modal/employment-modal.vue');
-            this.employmentModalPreloaded = true;
-          } catch (e) {
-            // ignore preload error; we'll still attempt to mount
-          }
-        }
-
-        if (!this.isEmploymentModalMounted) {
-          this.isEmploymentModalMounted = true;
-          await this.$nextTick();
-        }
-        // On first mount with async component, ref may not be ready immediately; wait briefly
-        let attempts = 0;
-        while (
-          (!this.$refs.employmentModal || typeof this.$refs.employmentModal.openModal !== 'function') &&
-          attempts < 40
-        ) {
-          await new Promise(resolve => setTimeout(resolve, 25));
-          attempts++;
-        }
-
-        if (this.$refs.employmentModal && typeof this.$refs.employmentModal.openModal === 'function') {
-          await this.$refs.employmentModal.openModal();
-        } else {
-          this.$message && this.$message.warning && this.$message.warning('Form is loading, please try again.');
-        }
-      } catch (error) {
-        console.error('Error opening Add Employment modal:', error);
-        this.$message.error('Failed to open employment form');
-      } finally {
-        this.openingAddModal = false;
-      }
+    // Open Add Employment modal (props-based approach)
+    openAddEmploymentModal() {
+      this.editingEmployment = null;
+      this.employmentModalVisible = true;
     },
 
+    // Open Edit Employment modal (props-based approach)
     async openEditEmploymentModal(record) {
       console.log('Opening edit modal for employment:', record.id);
 
@@ -974,51 +894,14 @@ export default {
         // Show loading state on the specific edit button
         this.editingEmploymentId = record.id;
 
-        // Ensure async component chunk is loaded (handles first-click cold load)
-        if (!this.employmentEditModalPreloaded) {
-          try {
-            await import('@/components/modal/employment-edit-modal.vue');
-            this.employmentEditModalPreloaded = true;
-          } catch (e) {
-            // ignore preload error; we'll still attempt to mount
-          }
-        }
-
-        // Mount the edit modal component if not already mounted
-        if (!this.isEditModalMounted) {
-          this.isEditModalMounted = true;
-          await this.$nextTick();
-        }
-
-        // With regular import (not defineAsyncComponent), ref should be ready immediately
-        // Just wait one tick for Vue to update the DOM
-        await this.$nextTick();
-
         // Fetch complete employment details with all related data
         const response = await employmentService.getEmploymentById(record.id);
 
         if (response.success && response.data) {
           console.log('Employment details loaded:', response.data);
-
-          const modalRef = this.$refs.employmentEditModal;
-          if (modalRef && typeof modalRef.openModal === 'function') {
-            // Set the employment data to the edit modal
-            modalRef.employmentData = response.data;
-            
-            // Wait for next tick to ensure component is fully rendered
-            await this.$nextTick();
-            
-            // Open the modal
-            console.log('🚀 Opening employment edit modal...');
-            await modalRef.openModal();
-          } else {
-            console.error('❌ Modal ref not ready:', {
-              ref: modalRef,
-              refType: typeof modalRef,
-              hasOpenModal: modalRef ? typeof modalRef.openModal : 'undefined'
-            });
-            this.$message && this.$message.warning && this.$message.warning('Edit form is not available. Please refresh the page.');
-          }
+          // Set employment data and open modal via props
+          this.editingEmployment = response.data;
+          this.employmentModalVisible = true;
         } else {
           console.error('Failed to load employment details:', response);
           this.$message.error('Failed to load employment details');
@@ -1085,74 +968,27 @@ export default {
     },
 
     // OPTIMIZED EVENT HANDLERS
-    onEmploymentAdded(result) {
-      console.log('Employment added:', result);
+    // Unified handler for employment saved (add or update)
+    handleEmploymentSaved(result) {
+      console.log('Employment saved:', result);
       if (this.isComponentDestroyed) return;
 
       if (result.success) {
-        this.$message.success(result.message || 'Employment added successfully');
         // Clear caches before refresh
         this.displayCache.clear();
         this.statusCache = new WeakMap();
-        // Refresh the employments list to show the new employment
+        // Refresh the employments list to show the changes
         this.fetchEmployments();
       } else {
-        this.$message.error(result.message || 'Failed to add employment');
+        this.$message.error(result.message || 'Failed to save employment');
       }
     },
 
-    onEmploymentUpdated(result) {
-      console.log('Employment updated:', result);
-      if (this.isComponentDestroyed) return;
-
-      if (result.success) {
-        this.$message.success(result.message || 'Employment updated successfully');
-        // Clear caches before refresh
-        this.displayCache.clear();
-        this.statusCache = new WeakMap();
-        // Refresh the employments list to show the updated employment
-        this.fetchEmployments();
-      } else {
-        this.$message.error(result.message || 'Failed to update employment');
-      }
-    },
-
-    // PRELOADING METHODS FOR BETTER PERCEIVED PERFORMANCE
-    async preloadEmploymentModal() {
-      if (this.employmentModalPreloaded) return;
-
-      try {
-        // Dynamically import the modal component to start loading it
-        await import('@/components/modal/employment-modal.vue');
-        this.employmentModalPreloaded = true;
-        console.log('📦 Employment modal preloaded on hover');
-      } catch (error) {
-        console.warn('Failed to preload employment modal:', error);
-      }
-    },
-
-    async preloadEmploymentEditModal() {
-      if (this.employmentEditModalPreloaded) return;
-
-      try {
-        // Dynamically import the edit modal component
-        await import('@/components/modal/employment-edit-modal.vue');
-        this.employmentEditModalPreloaded = true;
-        console.log('📦 Employment edit modal preloaded on hover');
-      } catch (error) {
-        console.warn('Failed to preload employment edit modal:', error);
-      }
-    },
-
-    // FIXED: Modal close handlers to unmount components for memory efficiency
-    handleEmploymentModalClosed() {
-      this.isEmploymentModalMounted = false;
-      console.log('📦 Employment modal unmounted to free memory');
-    },
-
-    handleEditModalClosed() {
-      this.isEditModalMounted = false;
-      console.log('📦 Employment edit modal unmounted to free memory');
+    // Handle modal close
+    handleEmploymentModalClose() {
+      this.employmentModalVisible = false;
+      this.editingEmployment = null;
+      console.log('📦 Employment modal closed');
     },
 
     // Action Change Modal Handler

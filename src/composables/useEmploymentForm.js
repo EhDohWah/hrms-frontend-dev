@@ -45,7 +45,6 @@ export function useEmploymentForm(options = {}) {
   const formData = reactive({
     employment_id: null,
     employee_id: '',
-    employment_type: '',
     pay_method: '',
     department_id: '',
     position_id: '',
@@ -117,24 +116,6 @@ export function useEmploymentForm(options = {}) {
    * Employment ID for edit mode (tracked separately from formData)
    */
   const editEmploymentId = ref(employmentId);
-
-  // ============================================
-  // COMPUTED PROPERTIES
-  // ============================================
-
-  /**
-   * Check if employment type is Local ID Staff
-   */
-  const isLocalIDStaff = computed(() => {
-    return formData.employment_type === 'Local ID Staff';
-  });
-
-  /**
-   * Check if employment type is Local non ID Staff
-   */
-  const isLocalNonIDStaff = computed(() => {
-    return formData.employment_type === 'Local non ID Staff';
-  });
 
   // ============================================
   // DATE UTILITIES
@@ -298,62 +279,6 @@ export function useEmploymentForm(options = {}) {
     onFormChange?.();
   };
 
-  /**
-   * Auto-select benefits based on employment type
-   * Note: This only applies if employee status hasn't already set the benefits
-   * Employment type selection happens AFTER employee is selected, so it can override if needed
-   * 
-   * @param {string} employmentType - Employment type value
-   */
-  const autoSelectBenefitsBasedOnType = (employmentType) => {
-    console.log('Auto-selecting benefits for employment type:', employmentType);
-
-    if (!employmentType) return;
-
-    // Check if employee status already determined benefits
-    // If we have an employee selected with a status, prefer that
-    const hasEmployeeStatus = selectedEmployeeInfo.value && selectedEmployeeInfo.value.status;
-
-    if (hasEmployeeStatus) {
-      const status = selectedEmployeeInfo.value.status;
-      // Only override if employment type matches status category
-      if ((status === 'Local ID' || status === 'Local ID Staff') && employmentType === 'Local ID Staff') {
-        // Status and type agree - reinforce selection
-        formData.pvd = true;
-        formData.saving_fund = false;
-        console.log('✅ Confirmed PVD (employment type matches employee status)');
-      } else if ((status === 'Local non ID' || status === 'Local non ID Staff') && employmentType === 'Local non ID Staff') {
-        // Status and type agree - reinforce selection
-        formData.pvd = false;
-        formData.saving_fund = true;
-        console.log('✅ Confirmed Saving Fund (employment type matches employee status)');
-      } else {
-        // Conflict: employment type differs from employee status
-        // Keep employee status selection (higher priority)
-        console.log('⚠️ Employment type differs from employee status - keeping status-based selection');
-      }
-    } else {
-      // No employee selected yet, use employment type
-      if (employmentType === 'Local ID Staff') {
-        formData.pvd = true;
-        formData.saving_fund = false;
-        console.log('✅ Auto-selected PVD for Local ID Staff employment type');
-      } else if (employmentType === 'Local non ID Staff') {
-        formData.pvd = false;
-        formData.saving_fund = true;
-        console.log('✅ Auto-selected Saving Fund for Local non ID Staff employment type');
-      } else {
-        // For other employment types, reset
-        formData.pvd = false;
-        formData.saving_fund = false;
-        console.log('ℹ️ Reset benefits for employment type:', employmentType);
-      }
-    }
-
-    // Save form state after auto-selection
-    onFormChange?.();
-  };
-
   // ============================================
   // EMPLOYEE CHANGE HANDLER
   // ============================================
@@ -417,7 +342,6 @@ export function useEmploymentForm(options = {}) {
 
     const requiredFields = [
       { field: 'employee_id', message: 'Please select an employee' },
-      { field: 'employment_type', message: 'Please select employment type' },
       { field: 'department_id', message: 'Please select department' },
       { field: 'position_id', message: 'Please select position' },
       { field: 'site_id', message: 'Please select site' },
@@ -451,7 +375,6 @@ export function useEmploymentForm(options = {}) {
     // Validate required fields
     const requiredFields = [
       { field: 'employee_id', message: 'Please select an employee' },
-      { field: 'employment_type', message: 'Please select employment type' },
       { field: 'department_id', message: 'Please select department' },
       { field: 'position_id', message: 'Please select position' },
       { field: 'site_id', message: 'Please select site' },
@@ -493,7 +416,6 @@ export function useEmploymentForm(options = {}) {
   const buildEmploymentOnlyPayload = () => {
     return {
       employee_id: formData.employee_id,
-      employment_type: formData.employment_type,
       pay_method: formData.pay_method || null,
       pass_probation_date: formatDateForAPI(formData.pass_probation_date),
       start_date: formatDateForAPI(formData.start_date),
@@ -641,7 +563,7 @@ export function useEmploymentForm(options = {}) {
    * await loadEmployment(123);
    * 
    * // Load from existing data (no API call)
-   * await loadEmployment({ id: 123, employment_type: 'Full-time', ... });
+   * await loadEmployment({ id: 123, start_date: '2025-01-01', ... });
    */
   const loadEmployment = async (employmentIdOrData) => {
     try {
@@ -674,7 +596,6 @@ export function useEmploymentForm(options = {}) {
       Object.assign(formData, {
         employment_id: data.id,
         employee_id: String(data.employee_id || ''),
-        employment_type: data.employment_type || '',
         pay_method: data.pay_method || '',
         department_id: String(data.department_id || ''),
         position_id: String(data.position_id || ''),
@@ -821,7 +742,6 @@ export function useEmploymentForm(options = {}) {
     Object.assign(formData, {
       employment_id: null,
       employee_id: '',
-      employment_type: '',
       pay_method: '',
       department_id: '',
       position_id: '',
@@ -884,10 +804,6 @@ export function useEmploymentForm(options = {}) {
     currentMode,
     editEmploymentId,
 
-    // Computed
-    isLocalIDStaff,
-    isLocalNonIDStaff,
-
     // Date utilities
     safeConvertToDate,
     formatDateForAPI,
@@ -898,7 +814,6 @@ export function useEmploymentForm(options = {}) {
 
     // Benefit auto-selection
     autoSelectBenefitsBasedOnStatus,
-    autoSelectBenefitsBasedOnType,
 
     // Employee handling
     onEmployeeChange,

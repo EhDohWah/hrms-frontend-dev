@@ -1049,7 +1049,6 @@ export default {
             employeeName: this.getEmployeeName(payroll),
             department: employment?.department?.name || 'N/A',
             position: employment?.position?.title || 'N/A',
-            employment_type: employment?.employment_type || 'N/A',
             pay_method: employment?.pay_method || 'N/A',
             pvd_svf: pvdSvfStatus,
             employee_status: employee?.status || 'N/A',

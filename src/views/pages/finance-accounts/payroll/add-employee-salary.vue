@@ -538,12 +538,6 @@ const columns = ref([
     width: 150,
   },
   {
-    title: 'Employment Type',
-    dataIndex: 'employmentType',
-    key: 'employmentType',
-    width: 130,
-  },
-  {
     title: 'FTE %',
     dataIndex: 'fte',
     key: 'fte',
@@ -896,7 +890,6 @@ const updateTableWithEmployeeData = () => {
       organization: employee.organization,
       department: employee.employment?.department?.name || 'N/A',
       position: employee.employment?.position?.title || 'N/A',
-      employmentType: employee.employment?.employment_type || 'N/A',
       fte: parseFloat(employee.employment?.fte || 1) * 100,
       positionSalary: parseFloat(employee.employment?.position_salary || 0),
       payMethod: employee.employment?.pay_method || 'Bank',

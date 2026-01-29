@@ -20,9 +20,9 @@ import { cacheManager, CacheStrategy, performanceMonitor } from '@/utils/cache';
  * Data categorization based on change frequency
  */
 const DataCategory = {
-  // Static: Rarely changes (e.g., employment types, gender)
+  // Static: Rarely changes (e.g., gender, marital status)
   STATIC: {
-    resources: ['employment_types', 'genders', 'marital_status'],
+    resources: ['genders', 'marital_status'],
     strategy: CacheStrategy.STATIC,
     priority: 'critical'
   },
@@ -128,10 +128,6 @@ export function useDropdownData() {
 
         case 'work_locations':
           result = await sharedStore.fetchWorkLocations(forceRefresh);
-          break;
-
-        case 'employment_types':
-          result = await lookupStore.fetchLookupsByType('employment_type', forceRefresh);
           break;
 
         default:
@@ -276,7 +272,6 @@ export function useDropdownData() {
         // When hovering over "Add Employment" button, preload all modal data
         addToPrefetchQueue([
           { resource: 'departments', params: {} },
-          { resource: 'employment_types', params: {} },
           { resource: 'grants', params: {} },
           { resource: 'subsidiaries', params: {} }
         ]);
@@ -285,8 +280,7 @@ export function useDropdownData() {
       case 'modal_opening':
         // When modal is about to open, prioritize critical data
         addToPrefetchQueue([
-          { resource: 'departments', params: {}, priority: 'high' },
-          { resource: 'employment_types', params: {}, priority: 'high' }
+          { resource: 'departments', params: {}, priority: 'high' }
         ]);
         break;
     }
@@ -466,8 +460,7 @@ export function useEmploymentModalData() {
     return dropdown.loadProgressively({
       // Critical: User sees the form immediately
       critical: [
-        { resource: 'departments', params: {} },
-        { resource: 'employment_types', params: {} }
+        { resource: 'departments', params: {} }
       ],
 
       // High: Needed soon for form completion

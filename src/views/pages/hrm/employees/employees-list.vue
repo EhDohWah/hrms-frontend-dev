@@ -22,15 +22,8 @@
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <!-- Add Employee Button - Only visible if user can edit -->
           <div v-if="canEdit" class="mb-2 me-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="openAddEmployeeModal"
-              :disabled="openingAddEmployee">
-              <template v-if="openingAddEmployee">
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Loading form...
-              </template>
-              <template v-else>
-                <i class="ti ti-circle-plus me-2"></i>Add New Employee
-              </template>
+            <button class="btn btn-primary d-flex align-items-center" @click="openAddEmployeeModal">
+              <i class="ti ti-circle-plus me-2"></i>Add New Employee
             </button>
           </div>
           <!-- Delete Selected Button - Only visible if user can edit -->
@@ -282,20 +275,24 @@
     <layout-footer></layout-footer>
   </div>
 
-  <!-- Add Employee Modal -->
-  <employee-list-modal ref="employeeListModal" @employee-added="fetchEmployees"></employee-list-modal>
+  <!-- Employee Modal (Add/Edit) -->
+  <employee-modal
+    :visible="employeeModalVisible"
+    :editing-employee="editingEmployee"
+    @saved="handleEmployeeSaved"
+    @close="handleEmployeeModalClose"
+  />
 </template>
 
 <script>
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-import EmployeeListModal from '@/components/modal/employee-list-modal.vue';
+import EmployeeModal from '@/components/modal/employee-modal.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
 import { employeeService } from '@/services/employee.service';
 import moment from 'moment';
 import { Modal, Table } from 'ant-design-vue';
-import { Modal as BootstrapModal } from 'bootstrap';
 import { usePermissions } from '@/composables/usePermissions';
 import { ref } from 'vue';
 
@@ -303,7 +300,7 @@ export default {
   name: 'EmployeesList',
   components: {
     indexBreadcrumb,
-    EmployeeListModal,
+    EmployeeModal,
     LayoutHeader,
     LayoutSidebar,
     LayoutFooter,
@@ -315,22 +312,28 @@ export default {
     const currentPage = ref(1);
     const pageSize = ref(10);
     const total = ref(0);
-    
+
+    // Employee modal state (Add/Edit)
+    const employeeModalVisible = ref(false);
+    const editingEmployee = ref(null);
+
     // Initialize permission checks for employees module
-    const { 
-      canRead, 
-      canEdit, 
-      isReadOnly, 
-      accessLevelText, 
-      accessLevelBadgeClass 
+    const {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     } = usePermissions('employees');
-    
+
     return {
       filteredInfo,
       sortedInfo,
       currentPage,
       pageSize,
       total,
+      employeeModalVisible,
+      editingEmployee,
       canRead,
       canEdit,
       isReadOnly,
@@ -365,9 +368,6 @@ export default {
         newJoinerCount: 0,
         organizationCount: { SMRU_count: 0, BHF_count: 0 },
       },
-
-      // UI loading states for opening modals
-      openingAddEmployee: false,
     };
   },
   computed: {
@@ -944,43 +944,27 @@ export default {
       }
     },
 
-    async openAddEmployeeModal() {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:980',message:'openAddEmployeeModal called',data:{componentExists:!!this.$refs.employeeListModal},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-      // #endregion
-      try {
-        this.openingAddEmployee = true;
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:985',message:'Starting element search',data:{initialCheck:!!document.getElementById('add_employee')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-        // #endregion
-        // Wait for modal DOM to be available in case of first-time load
-        let attempts = 0;
-        while (!document.getElementById('add_employee') && attempts < 40) {
-          await new Promise(resolve => setTimeout(resolve, 25));
-          attempts++;
-          // #region agent log
-          if (attempts % 10 === 0) fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:990',message:'Still waiting for element',data:{attempts,elementFound:!!document.getElementById('add_employee')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-          // #endregion
-        }
-        const el = document.getElementById('add_employee');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:993',message:'Element search completed',data:{elementFound:!!el,attempts,allModals:document.querySelectorAll('.modal').length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-        // #endregion
-        if (el) {
-          const modal = new BootstrapModal(el);
-          modal.show();
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:996',message:'Modal shown successfully',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
-        } else {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/bbbca396-2230-41be-a2ce-0555c1ae62b5',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'employees-list.vue:999',message:'Element not found after wait',data:{attempts,allModals:document.querySelectorAll('.modal').length,modalIds:Array.from(document.querySelectorAll('.modal')).map(m=>m.id)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C'})}).catch(()=>{});
-          // #endregion
-          this.$message && this.$message.warning && this.$message.warning('Form is loading, please try again.');
-        }
-      } finally {
-        this.openingAddEmployee = false;
-      }
+    // Open Add Employee modal
+    openAddEmployeeModal() {
+      this.editingEmployee = null;
+      this.employeeModalVisible = true;
+    },
+
+    // Open Edit Employee modal
+    openEditEmployeeModal(employee) {
+      this.editingEmployee = employee;
+      this.employeeModalVisible = true;
+    },
+
+    // Handle employee saved (add or edit)
+    handleEmployeeSaved() {
+      this.fetchEmployees();
+    },
+
+    // Handle employee modal close
+    handleEmployeeModalClose() {
+      this.employeeModalVisible = false;
+      this.editingEmployee = null;
     },
 
     // Get unique values for filter dropdowns

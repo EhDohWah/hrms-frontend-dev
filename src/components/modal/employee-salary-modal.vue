@@ -59,10 +59,6 @@
                   <input class="form-input" :value="selectedEmployee.employment.position" readonly>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Employment Type</label>
-                  <input class="form-input" :value="selectedEmployee.employment.employment_type" readonly>
-                </div>
-                <div class="form-group">
                   <label class="form-label">FTE (%)</label>
                   <input class="form-input" :value="selectedEmployee.employment.fte" readonly>
                 </div>
@@ -175,7 +171,6 @@ export default {
           department: "Finance",
           funding_description: "Org Funded Only",
           employment: {
-            employment_type: "Full-Time",
             position: "Accountant",
             position_salary: 25000,
             fte: 100,
@@ -199,7 +194,6 @@ export default {
           department: "Admin",
           funding_description: "Grant+Org Funding",
           employment: {
-            employment_type: "Full-Time",
             position: "Local ID Staff",
             position_salary: 40000,
             fte: 80,
@@ -229,7 +223,6 @@ export default {
           department: "Programs",
           funding_description: "Org + 2 Grants",
           employment: {
-            employment_type: "Full-Time",
             position: "Program Manager",
             position_salary: 60000,
             fte: 100,

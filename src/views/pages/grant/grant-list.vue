@@ -307,11 +307,13 @@
     <layout-footer></layout-footer>
   </div>
 
-  <!-- Grant Modal -->
-  <grant-modal ref="grantModal" @add-grant="handleAddGrant" />
-
-  <!-- Grant Modal Update -->
-  <grant-modal-update ref="grantModalUpdate" @update-grant="handleUpdateGrant" />
+  <!-- Grant Modal (Add/Edit) -->
+  <grant-modal
+    :visible="grantModalVisible"
+    :editingGrant="editingGrant"
+    @saved="handleGrantSaved"
+    @close="handleGrantModalClose"
+  />
 
 
   <!-- Notification Toast - z-index 2000 to appear above modals -->
@@ -329,11 +331,10 @@
 </template>
 
 <script>
-import { Toast, Modal as BootstrapModal, Tooltip as BootstrapTooltip } from 'bootstrap';
+import { Toast, Tooltip as BootstrapTooltip } from 'bootstrap';
 import { InfoCircleOutlined } from '@ant-design/icons-vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import GrantModal from '@/components/modal/grant-modal.vue';
-import GrantModalUpdate from '@/components/modal/grant-modal-update.vue';
 import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
@@ -349,7 +350,6 @@ export default {
   components: {
     indexBreadcrumb,
     GrantModal,
-    GrantModalUpdate,
     LayoutHeader,
     LayoutSidebar,
     LayoutFooter,
@@ -383,8 +383,9 @@ export default {
       notificationTitle: '',
       notificationMessage: '',
       notificationClass: '',
-      grantModalInstance: null,
-      grantModalUpdateInstance: null,
+      // Grant modal state (Ant Design pattern)
+      grantModalVisible: false,
+      editingGrant: null,
       // Data properties from setup()
       dateRangeInput: null,
       filteredInfo: {},
@@ -651,13 +652,6 @@ export default {
         return start.format('M/D/YYYY') + ' - ' + end.format('M/D/YYYY');
       });
     }
-
-    // Initialize modal instances once
-    const grantModalEl = document.getElementById('grant_modal');
-    const grantModalUpdateEl = document.getElementById('grant_modal_update');
-
-    this.grantModalInstance = BootstrapModal.getInstance(grantModalEl) || new BootstrapModal(grantModalEl);
-    this.grantModalUpdateInstance = BootstrapModal.getInstance(grantModalUpdateEl) || new BootstrapModal(grantModalUpdateEl);
 
     this.fetchGrants();
 
@@ -1219,57 +1213,35 @@ export default {
     },
 
     openAddGrantModal() {
-      this.$refs.grantModal.resetForm();
-      this.grantModalInstance.show();
+      this.editingGrant = null;
+      this.grantModalVisible = true;
     },
 
     openEditGrantModal(grant) {
-      const grantData = {
+      this.editingGrant = {
         id: grant.id,
         organization: grant.organization,
         code: grant.code,
         name: grant.name,
         description: grant.description,
-        end_date: grant.isoEndDate // Use the ISO date format stored in the grant object
+        end_date: grant.isoEndDate
       };
-      this.$refs.grantModalUpdate.setEditData(grantData);
-      this.grantModalUpdateInstance.show();
+      this.grantModalVisible = true;
     },
 
-    async handleAddGrant(grantData) {
-      // The grant has already been created by the modal
-      // This method now just handles the UI updates after successful creation
+    handleGrantModalClose() {
+      this.grantModalVisible = false;
+      this.editingGrant = null;
+    },
+
+    async handleGrantSaved() {
+      // Refresh the grants list after successful save
       this.loading = true;
       try {
-        // Show success message (grant was already created in modal)
-        this.$message.success('Grant created successfully');
-        // Refresh the grants list to show the new grant
         await this.fetchGrants();
       } catch (error) {
         console.error('Error refreshing grants list:', error);
         this.$message.error('Failed to refresh grants list');
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async handleUpdateGrant(formData) {
-      this.loading = true;
-      try {
-        // Validate the ID before updating
-        if (formData.id === undefined || formData.id === null) {
-          throw new Error('ID is missing');
-        }
-
-        console.log('Updating grant with ID:', formData.id);
-        // Update existing grant with validated ID
-        await this.grantService.updateGrant(formData.id, { ...formData });
-        this.$message.success('Grant updated successfully');
-        // Refresh the grants list
-        this.fetchGrants();
-      } catch (error) {
-        console.error('Error updating grant:', error);
-        this.$message.error(`Failed to update grant: ${error.message || 'Unknown error'}`);
       } finally {
         this.loading = false;
       }

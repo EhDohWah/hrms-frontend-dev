@@ -318,6 +318,22 @@
                       <p class="text-dark mb-0">{{ employee.identification_number || 'N/A' }}</p>
                     </div>
 
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="d-inline-flex align-items-center">
+                        <i class="ti ti-calendar-event me-2"></i>
+                        Issue Date
+                      </span>
+                      <p class="text-dark mb-0">{{ formatDate(employee.identification_issue_date) || 'N/A' }}</p>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                      <span class="d-inline-flex align-items-center">
+                        <i class="ti ti-calendar-off me-2"></i>
+                        Expiry Date
+                      </span>
+                      <p class="text-dark mb-0">{{ formatDate(employee.identification_expiry_date) || 'N/A' }}</p>
+                    </div>
+
                     <!-- <template
                       v-if="employee.employee_identification && employee.employee_identification.id_type === 'Passport'">
                       <div class="d-flex align-items-center justify-content-between mb-2">
@@ -1351,12 +1367,6 @@
                                   </li>
                                   <li class="list-group-item px-0 py-2 border-0">
                                     <div class="d-flex justify-content-between">
-                                      <span class="text-muted"><i class="ti ti-id me-2"></i>Employment Type</span>
-                                      <span class="fw-medium">{{ employee.employment?.employment_type || 'N/A' }}</span>
-                                    </div>
-                                  </li>
-                                  <li class="list-group-item px-0 py-2 border-0">
-                                    <div class="d-flex justify-content-between">
                                       <span class="text-muted"><i class="ti ti-cash-banknote me-2"></i>Pay Method</span>
                                       <span class="fw-medium">{{ employee.employment?.pay_method || 'N/A' }}</span>
                                     </div>
@@ -1558,14 +1568,6 @@
                                   </span>
                                   <h6 class="d-flex align-items-center fw-medium mt-1">
                                     {{ history.department?.name || 'N/A' }}
-                                  </h6>
-                                </div>
-                                <div class="col-md-4">
-                                  <span class="d-inline-flex align-items-center">
-                                    <i class="ti ti-id me-1"></i> Employment Type
-                                  </span>
-                                  <h6 class="d-flex align-items-center fw-medium mt-1">
-                                    {{ history.employment_type || 'N/A' }}
                                   </h6>
                                 </div>
                                 <div class="col-md-4">
@@ -1833,6 +1835,8 @@ export default {
         // Direct columns instead of nested relationship
         identification_type: employee.identification_type || '',
         identification_number: employee.identification_number || '',
+        identification_issue_date: employee.identification_issue_date || '',
+        identification_expiry_date: employee.identification_expiry_date || '',
       };
     },
 

@@ -63,23 +63,8 @@
               </div>
             </div>
 
-            <!-- Row 2: Employment Type + Pay Method -->
+            <!-- Row 2: Pay Method -->
             <div class="date-row">
-              <div class="form-group">
-                <label class="form-label required">Employment Type</label>
-                <select class="form-control" v-model="formData.employment_type"
-                  :class="{ 'is-invalid': validationErrors.employment_type }" required @change="saveFormState"
-                  :disabled="isLoadingData">
-                  <option disabled value="">Select Type</option>
-                  <option v-for="type in employmentTypes" :key="type.id" :value="type.value">
-                    {{ type.value }}
-                  </option>
-                </select>
-                <div v-if="validationErrors.employment_type" class="invalid-feedback">
-                  {{ validationErrors.employment_type }}
-                </div>
-              </div>
-
               <div class="form-group">
                 <label class="form-label">Pay Method</label>
                 <select class="form-control" v-model="formData.pay_method"
@@ -333,7 +318,6 @@ export default {
     const departments = shallowRef([]);
     const positions = shallowRef([]);
     const workLocations = shallowRef([]);
-    const employmentTypes = shallowRef([]);
     const sectionDepartments = shallowRef([]);
     const payMethods = markRaw([
       { id: 1, value: 'Transferred to bank' },
@@ -407,14 +391,6 @@ export default {
     // WATCHERS
     // ============================================
 
-    // Watch employment type changes for benefit auto-selection
-    watch(() => employmentForm.formData.employment_type, (newVal, oldVal) => {
-      if (newVal !== oldVal && draftPersistence.isComponentReady.value) {
-        employmentForm.autoSelectBenefitsBasedOnType(newVal);
-        draftPersistence.debouncedSaveState();
-      }
-    });
-
     // Watch salary changes
     watch(() => employmentForm.formData.pass_probation_salary, () => {
       if (draftPersistence.isComponentReady.value) {
@@ -454,12 +430,8 @@ export default {
         workLocations.value = sharedStore.getWorkLocations;
 
         // Load lookups
-        const [types, sections] = await Promise.all([
-          lookupStore.fetchLookupsByType('employment_type'),
-          lookupStore.fetchLookupsByType('section_department')
-        ]);
+        const sections = await lookupStore.fetchLookupsByType('section_department');
 
-        employmentTypes.value = types || [];
         sectionDepartments.value = sections || [];
 
         dataLoaded.value = true;
@@ -642,7 +614,6 @@ export default {
       positions,
       positionsLoading,
       workLocations,
-      employmentTypes,
       sectionDepartments,
       payMethods,
 

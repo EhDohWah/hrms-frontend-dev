@@ -188,10 +188,9 @@ class EmploymentService extends BaseService {
      * @param {number} params.per_page - Items per page (default: 10, max: 100)
      * @param {string} params.search - Search term for staff ID, employee name
      * @param {string} params.filter_organization - Filter by organization
-     * @param {string} params.filter_employment_type - Filter by employment type
      * @param {string} params.filter_work_location - Filter by work location
      * @param {string} params.filter_status - Filter by employment status
-     * @param {string} params.sort_by - Column to sort by (staff_id, employee_name, employment_type, work_location, start_date, end_date, salary, organization)
+     * @param {string} params.sort_by - Column to sort by (staff_id, employee_name, work_location, start_date, end_date, salary, organization)
      * @param {string} params.sort_order - Sort order (asc, desc)
      * @param {boolean} params.include_inactive - Include inactive employments
      * @returns {Promise} API response with paginated employments data

@@ -330,6 +330,35 @@ export default {
 </template>
 
 <style scoped>
+/* Reset Ant Design 4 modal content padding */
+:deep(.ant-modal-content) {
+  padding: 0 !important;
+}
+
+/* Modal header styling - add divider line and spacing */
+:deep(.ant-modal-header) {
+  padding: 16px 24px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  background: #fff;
+}
+
+:deep(.ant-modal-title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+:deep(.ant-modal-body) {
+  padding: 24px !important;
+  margin-top: 0 !important;
+}
+
+:deep(.ant-modal-close) {
+  top: 12px;
+  right: 12px;
+}
+
 /* Horizontal form layout - labels on left, inputs on right */
 .form-row {
   display: flex;
@@ -456,8 +485,23 @@ export default {
   width: 300px !important;
 }
 
-/* Ensure select dropdown has proper width */
+/* Fix for select dropdown to prevent text clipping */
 :deep(.ant-select-selector) {
   min-width: inherit;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+:deep(.ant-select-selection-item) {
+  line-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+:deep(.ant-select-selection-placeholder) {
+  line-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 </style>

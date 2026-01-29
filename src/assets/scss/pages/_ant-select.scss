@@ -74,3 +74,65 @@ body > .ant-select-dropdown,
 body > .ant-tree-select-dropdown {
   z-index: $z-popover;
 }
+
+// ============================================
+// FIX: Select dropdown text visibility and alignment
+// ============================================
+// Issue: Selected text in Ant Design Vue select appears cut off, hidden, or positioned too low
+// Root cause: Default Ant Design styles may conflict with Bootstrap or custom styles
+// affecting text rendering, opacity, and vertical alignment
+
+// Fix selector container flex alignment
+.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 38px !important;
+}
+
+// Ensure selected text is fully visible, properly rendered, and vertically centered
+.ant-select-selection-item {
+  display: flex !important;
+  align-items: center !important;
+  color: $gray-900 !important;
+  opacity: 1 !important;
+  line-height: 1.5 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+// Fix for single select mode
+.ant-select-single .ant-select-selector .ant-select-selection-item {
+  line-height: 36px !important;
+  padding-right: 18px;
+}
+
+// Fix for single select search input alignment
+.ant-select-single .ant-select-selector .ant-select-selection-search {
+  display: flex;
+  align-items: center;
+}
+
+// Placeholder text styling
+.ant-select-selection-placeholder {
+  color: $gray-500 !important;
+  opacity: 1 !important;
+}
+
+// Dropdown option text in the popup
+.ant-select-item-option-content {
+  color: $gray-900;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Selected option in dropdown
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  color: $gray-900;
+  font-weight: $font-weight-medium;
+}
+
+// Input search text within select
+.ant-select-selection-search-input {
+  color: $gray-900 !important;
+}

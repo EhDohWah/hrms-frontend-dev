@@ -160,7 +160,12 @@
     </div>
 
     <!-- Job Offer Modal -->
-    <job-offers-modal ref="jobOffersModal" @job-offer-added="fetchJobOffers" @job-offer-updated="fetchJobOffers" />
+    <job-offers-modal
+        :visible="jobOfferModalVisible"
+        :editingJobOffer="editingJobOffer"
+        @saved="handleJobOfferSaved"
+        @close="handleJobOfferModalClose"
+    />
 
     <!-- Job Offer Report Modal -->
     <job-offer-report-modal ref="jobOfferReportModal" :pdf-url="pdfUrl" />
@@ -205,14 +210,18 @@ export default {
         const pageSize = ref(10);
         const total = ref(0);
         const jobOfferStore = useJobOfferStore();
-        
+
+        // Modal state
+        const jobOfferModalVisible = ref(false);
+        const editingJobOffer = ref(null);
+
         // Initialize permission checks for job_offers module
-        const { 
-            canRead, 
-            canEdit, 
-            isReadOnly, 
-            accessLevelText, 
-            accessLevelBadgeClass 
+        const {
+            canRead,
+            canEdit,
+            isReadOnly,
+            accessLevelText,
+            accessLevelBadgeClass
         } = usePermissions('job_offers');
 
         return {
@@ -222,6 +231,8 @@ export default {
             pageSize,
             total,
             jobOfferStore,
+            jobOfferModalVisible,
+            editingJobOffer,
             canRead,
             canEdit,
             isReadOnly,
@@ -625,17 +636,22 @@ export default {
         },
 
         openAddJobOfferModal() {
-            if (this.$refs.jobOffersModal) {
-                this.$refs.jobOffersModal.editMode = false;
-                this.$refs.jobOffersModal.jobOfferData = null;
-                this.$refs.jobOffersModal.openModal();
-            }
+            this.editingJobOffer = null;
+            this.jobOfferModalVisible = true;
         },
 
         openEditJobOfferModal(jobOffer) {
-            this.$refs.jobOffersModal.jobOfferData = jobOffer;
-            this.$refs.jobOffersModal.editMode = true;
-            this.$refs.jobOffersModal.openModal();
+            this.editingJobOffer = jobOffer;
+            this.jobOfferModalVisible = true;
+        },
+
+        handleJobOfferSaved() {
+            this.fetchJobOffers();
+        },
+
+        handleJobOfferModalClose() {
+            this.jobOfferModalVisible = false;
+            this.editingJobOffer = null;
         },
 
         async deleteJobOffer(id) {

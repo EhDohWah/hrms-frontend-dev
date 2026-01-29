@@ -452,6 +452,32 @@
                   </div>
                 </div>
 
+                <!-- Row 13: ID Issue Date -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="id-issue-date">
+                      ID Issue Date :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="date" class="form-control input-medium" id="id-issue-date"
+                      v-model="personalForm.identification_issue_date" />
+                  </div>
+                </div>
+
+                <!-- Row 14: ID Expiry Date -->
+                <div class="form-row mb-3">
+                  <div class="form-label-col">
+                    <label class="form-label" for="id-expiry-date">
+                      ID Expiry Date :
+                    </label>
+                  </div>
+                  <div class="form-input-col">
+                    <input type="date" class="form-control input-medium" id="id-expiry-date"
+                      v-model="personalForm.identification_expiry_date" />
+                  </div>
+                </div>
+
                 <!-- Section Header: Bank Information -->
                 <div class="form-row mb-3">
                   <div class="form-label-col"></div>
@@ -1412,6 +1438,8 @@ export default {
         // Direct columns instead of nested relationship
         identification_type: '',
         identification_number: '',
+        identification_issue_date: '',
+        identification_expiry_date: '',
       },
       // Identification type options matching database schema
       identificationTypeOptions: [
@@ -1787,6 +1815,8 @@ export default {
         // Direct columns instead of nested relationship
         identification_type: this.personalForm.identification_type || null,
         identification_number: this.personalForm.identification_number || null,
+        identification_issue_date: this.personalForm.identification_issue_date || null,
+        identification_expiry_date: this.personalForm.identification_expiry_date || null,
       };
     },
 
@@ -2063,6 +2093,8 @@ export default {
         // Direct columns instead of nested relationship
         identification_type: '',
         identification_number: '',
+        identification_issue_date: '',
+        identification_expiry_date: '',
       };
       this.bankForm = {
         bank_name: '',

@@ -1,10 +1,70 @@
+/**
+ * Validate an environment variable.
+ * In production, throws an error if a required variable is missing.
+ * In development, logs a warning and returns the fallback.
+ *
+ * @param {string} name - The environment variable name (without VITE_ prefix)
+ * @param {*} value - The current value
+ * @param {*} fallback - Default value for development
+ * @param {boolean} required - Whether the variable is required in production
+ * @returns {*} The validated value
+ */
+function validateEnvVar(name, value, fallback = null, required = false) {
+    const isProduction = import.meta.env.VITE_ENV === 'production' || import.meta.env.MODE === 'production';
+
+    if (!value || value === 'undefined' || value === '') {
+        if (isProduction && required) {
+            console.error(`[Config] Missing required environment variable: VITE_${name}`);
+            throw new Error(`Missing required environment variable: VITE_${name}`);
+        }
+
+        if (!isProduction && required) {
+            console.warn(`[Config] Missing recommended environment variable: VITE_${name}, using fallback`);
+        }
+
+        return fallback;
+    }
+
+    return value;
+}
+
+/**
+ * Validate API URL format.
+ * Ensures the URL is properly formatted and uses HTTPS in production.
+ *
+ * @param {string} url - The URL to validate
+ * @returns {string} The validated URL
+ */
+function validateApiUrl(url) {
+    const isProduction = import.meta.env.VITE_ENV === 'production' || import.meta.env.MODE === 'production';
+
+    if (!url) {
+        if (isProduction) {
+            throw new Error('VITE_API_BASE_URL is required in production');
+        }
+        console.warn('[Config] VITE_API_BASE_URL not set, using default localhost');
+        return 'http://localhost:8000/api/v1';
+    }
+
+    // Warn if using HTTP in production
+    if (isProduction && url.startsWith('http://')) {
+        console.warn('[Config] WARNING: Using HTTP instead of HTTPS in production. This is a security risk.');
+    }
+
+    // Remove trailing slash for consistency
+    return url.replace(/\/$/, '');
+}
+
 export const API_CONFIG = {
-    BASE_URL: import.meta.env.VITE_API_BASE_URL,
+    BASE_URL: validateApiUrl(import.meta.env.VITE_API_BASE_URL),
     HEADERS: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     }
 };
+
+// Export validation function for use in other modules
+export { validateEnvVar };
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -460,9 +520,14 @@ export const API_ENDPOINTS = {
     RECYCLE_BIN: {
         LIST: '/recycle-bin',
         STATS: '/recycle-bin/stats',
-        RESTORE: '/recycle-bin/restore',
-        BULK_RESTORE: '/recycle-bin/bulk-restore',
-        PERMANENT_DELETE: '/recycle-bin/:deletedRecordId'
+        // Manifest-based operations (Employee, Grant, Department with cascading children)
+        RESTORE_BY_KEY: '/recycle-bin/restore/:deletionKey',
+        BULK_RESTORE_KEYS: '/recycle-bin/bulk-restore-keys',
+        PERMANENT_DELETE_BY_KEY: '/recycle-bin/permanent/:deletionKey',
+        // Legacy operations (Interview, JobOffer flat records)
+        RESTORE_LEGACY: '/recycle-bin/restore-legacy',
+        BULK_RESTORE_LEGACY: '/recycle-bin/bulk-restore-legacy',
+        PERMANENT_DELETE_LEGACY: '/recycle-bin/:deletedRecordId'
     },
 
     // Tax Settings endpoints

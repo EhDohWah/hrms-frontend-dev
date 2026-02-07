@@ -138,8 +138,9 @@ function cloneSidebarData() {
  */
 function preloadMenuFromCache() {
     try {
-        const token = localStorage.getItem('token');
-        if (!token) {
+        // NOTE: Token is in HttpOnly cookie, check user data for auth state
+        const user = localStorage.getItem('user');
+        if (!user) {
             return { sideBarData: [], isLoading: false };
         }
 

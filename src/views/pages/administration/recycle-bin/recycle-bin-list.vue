@@ -9,8 +9,8 @@
                 <div class="d-flex align-items-center">
                     <index-breadcrumb :title="title" :text="text" :text1="text1" />
                     <!-- Read-Only Badge -->
-                    <span 
-                        v-if="isReadOnly" 
+                    <span
+                        v-if="isReadOnly"
                         class="badge bg-warning text-dark ms-3 d-flex align-items-center"
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
@@ -69,7 +69,7 @@
                                     <i class="ti ti-trash"></i>
                                 </span>
                                 <div class="dash-count">
-                                    <h3>{{ totalCount || 0 }}</h3>
+                                    <h3>{{ stats?.total_deleted || 0 }}</h3>
                                     <div class="dash-counts">
                                         <p>Total Deleted Records</p>
                                     </div>
@@ -82,13 +82,13 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="dash-widget-header">
-                                <span class="dash-widget-icon text-warning border-warning">
-                                    <i class="ti ti-calendar"></i>
+                                <span class="dash-widget-icon text-info border-info">
+                                    <i class="ti ti-archive"></i>
                                 </span>
                                 <div class="dash-count">
-                                    <h3>{{ stats?.this_week || 0 }}</h3>
+                                    <h3>{{ stats?.manifests_count || 0 }}</h3>
                                     <div class="dash-counts">
-                                        <p>Deleted This Week</p>
+                                        <p>Cascading Deletions</p>
                                     </div>
                                 </div>
                             </div>
@@ -99,13 +99,13 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="dash-widget-header">
-                                <span class="dash-widget-icon text-success border-success">
-                                    <i class="ti ti-refresh"></i>
+                                <span class="dash-widget-icon text-warning border-warning">
+                                    <i class="ti ti-file"></i>
                                 </span>
                                 <div class="dash-count">
-                                    <h3>{{ stats?.restored_this_month || 0 }}</h3>
+                                    <h3>{{ stats?.legacy_count || 0 }}</h3>
                                     <div class="dash-counts">
-                                        <p>Restored This Month</p>
+                                        <p>Simple Deletions</p>
                                     </div>
                                 </div>
                             </div>
@@ -120,9 +120,9 @@
                                     <i class="ti ti-clock"></i>
                                 </span>
                                 <div class="dash-count">
-                                    <h3>{{ stats?.older_than_30_days || 0 }}</h3>
+                                    <h3>30</h3>
                                     <div class="dash-counts">
-                                        <p>Older Than 30 Days</p>
+                                        <p>Day Retention Period</p>
                                     </div>
                                 </div>
                             </div>
@@ -159,34 +159,46 @@
                                 showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} items`
                             }">
                             <template #bodyCell="{ column, record }">
-                                <template v-if="column.key === 'deleted_record_id'">
-                                    <span class="fw-medium">#{{ record.deleted_record_id }}</span>
+                                <template v-if="column.key === 'RecordKey'">
+                                    <span class="fw-medium text-muted" style="font-size: 12px;">
+                                        {{ record.type === 'manifest' ? record.deletion_key?.substring(0, 8) + '...' : '#' + record.deleted_record_id }}
+                                    </span>
                                 </template>
                                 <template v-if="column.key === 'ModelType'">
                                     <a-tag :color="getModelTypeColor(record.model_type)">
                                         {{ record.model_type }}
                                     </a-tag>
+                                    <a-tag v-if="record.type === 'manifest'" color="blue" class="ms-1" style="font-size: 10px;">
+                                        CASCADE
+                                    </a-tag>
                                 </template>
-                                <template v-if="column.key === 'OriginalId'">
-                                    <span class="fw-medium">{{ record.original_id }}</span>
-                                </template>
-                                <template v-if="column.key === 'PrimaryInfo'">
+                                <template v-if="column.key === 'DisplayName'">
                                     <div>
-                                        <div class="fw-medium">{{ record.primary_info }}</div>
-                                        <small class="text-muted">Key: {{ record.restoration_key }}</small>
+                                        <div class="fw-medium">{{ record.display_name }}</div>
+                                        <small class="text-muted">ID: {{ record.original_id }}</small>
                                     </div>
+                                </template>
+                                <template v-if="column.key === 'DeletedBy'">
+                                    <span v-if="record.deleted_by">{{ record.deleted_by }}</span>
+                                    <span v-else class="text-muted">-</span>
+                                </template>
+                                <template v-if="column.key === 'Reason'">
+                                    <span v-if="record.reason" class="text-truncate d-inline-block" style="max-width: 150px;" :title="record.reason">
+                                        {{ record.reason }}
+                                    </span>
+                                    <span v-else class="text-muted">-</span>
+                                </template>
+                                <template v-if="column.key === 'Children'">
+                                    <a-tag v-if="record.child_records_count > 0" color="orange">
+                                        +{{ record.child_records_count }} related
+                                    </a-tag>
+                                    <span v-else class="text-muted">-</span>
                                 </template>
                                 <template v-if="column.key === 'DeletedAt'">
                                     <div>
                                         <div class="fw-medium">{{ formatDate(record.deleted_at) }}</div>
                                         <small class="text-muted">{{ record.deleted_ago }}</small>
                                     </div>
-                                </template>
-                                <template v-if="column.key === 'ModelDetails'">
-                                    <a-button type="link" size="small" @click="showDetails(record)"
-                                        title="View Details">
-                                        <i class="ti ti-eye me-1"></i>Details
-                                    </a-button>
                                 </template>
                                 <template v-if="column.key === 'action'">
                                     <div class="action-icon d-inline-flex">
@@ -197,14 +209,14 @@
                                                     <a-menu-item @click="showDetails(record)">
                                                         <i class="ti ti-eye me-1"></i>View Details
                                                     </a-menu-item>
-                                                    <!-- Restore actions - Only visible if user can edit -->
+                                                    <!-- Restore/Delete actions - Only visible if user can edit -->
                                                     <template v-if="canEdit">
                                                         <a-menu-divider />
-                                                        <a-menu-item @click="restoreByDeletedId(record)">
-                                                            <i class="ti ti-refresh me-1"></i>Restore by Deleted ID
-                                                        </a-menu-item>
-                                                        <a-menu-item @click="restoreByModelAndId(record)">
-                                                            <i class="ti ti-refresh me-1"></i>Restore by Model & ID
+                                                        <a-menu-item @click="initiateRestore(record)">
+                                                            <i class="ti ti-refresh me-1"></i>Restore
+                                                            <span v-if="record.child_records_count > 0" class="text-muted ms-1">
+                                                                (+{{ record.child_records_count }} related)
+                                                            </span>
                                                         </a-menu-item>
                                                         <a-menu-divider />
                                                         <a-menu-item @click="confirmPermanentDelete(record)"
@@ -231,77 +243,126 @@
     <!-- /Page Wrapper -->
 
     <!-- Details Modal -->
-    <a-modal v-model:open="showDetailsModal" title="Record Details" :footer="null" width="900px">
+    <a-modal v-model:open="showDetailsModal" title="Record Details" :footer="null" width="900px" :destroyOnClose="true">
         <div v-if="selectedRecord">
             <div class="row mb-3">
                 <div class="col-md-4">
-                    <strong>Record Type:</strong> {{ selectedRecord.model_type }}
+                    <strong>Record Type:</strong>
+                    <a-tag :color="getModelTypeColor(selectedRecord.model_type)">{{ selectedRecord.model_type }}</a-tag>
+                    <a-tag v-if="selectedRecord.type === 'manifest'" color="blue">CASCADE</a-tag>
                 </div>
                 <div class="col-md-4">
                     <strong>Original ID:</strong> {{ selectedRecord.original_id }}
                 </div>
                 <div class="col-md-4">
-                    <strong>Deleted Record ID:</strong> {{ selectedRecord.deleted_record_id }}
+                    <strong>Display Name:</strong> {{ selectedRecord.display_name }}
                 </div>
             </div>
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <strong>Deleted:</strong> {{ formatDate(selectedRecord.deleted_at) }}
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <strong>Deleted Ago:</strong> {{ selectedRecord.deleted_ago }}
                 </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <strong>Primary Info:</strong> {{ selectedRecord.primary_info }}
-                </div>
-                <div class="col-md-6">
-                    <strong>Restoration Key:</strong> {{ selectedRecord.restoration_key }}
+                <div class="col-md-4">
+                    <strong>Deleted By:</strong> {{ selectedRecord.deleted_by || 'N/A' }}
                 </div>
             </div>
-            <div class="mb-3">
-                <strong>Model Class:</strong>
-                <code>{{ selectedRecord.model_class }}</code>
+            <div class="row mb-3" v-if="selectedRecord.type === 'manifest'">
+                <div class="col-md-4">
+                    <strong>Deletion Key:</strong>
+                    <code>{{ selectedRecord.deletion_key }}</code>
+                </div>
+                <div class="col-md-4">
+                    <strong>Child Records:</strong>
+                    <a-tag v-if="selectedRecord.child_records_count > 0" color="orange">
+                        {{ selectedRecord.child_records_count }} related records
+                    </a-tag>
+                    <span v-else>None</span>
+                </div>
+                <div class="col-md-4">
+                    <strong>Reason:</strong> {{ selectedRecord.reason || 'N/A' }}
+                </div>
+            </div>
+            <div class="row mb-3" v-if="selectedRecord.type === 'legacy'">
+                <div class="col-md-6">
+                    <strong>Deleted Record ID:</strong> #{{ selectedRecord.deleted_record_id }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Model Class:</strong>
+                    <code>{{ selectedRecord.model_class }}</code>
+                </div>
             </div>
 
-            <h6>Original Data:</h6>
-            <div class="bg-light p-3 rounded">
-                <pre>{{ JSON.stringify(selectedRecord.data, null, 2) }}</pre>
+            <!-- Cascade info banner for manifest records -->
+            <div v-if="selectedRecord.type === 'manifest' && selectedRecord.child_records_count > 0" class="alert alert-info mb-3">
+                <i class="ti ti-info-circle me-1"></i>
+                This record was deleted with <strong>{{ selectedRecord.child_records_count }} related child records</strong>.
+                Restoring this record will also restore all associated data.
             </div>
         </div>
     </a-modal>
 
-    <!-- Restore Confirmation Modals -->
-    <a-modal v-model:open="showRestoreModal" :title="restoreModalTitle" @ok="confirmRestore" ok-text="Restore"
-        cancel-text="Cancel">
-        <p>{{ restoreModalMessage }}</p>
-        <div v-if="selectedRecord" class="alert alert-info">
-            <strong>Type:</strong> {{ selectedRecord.model_type }}<br>
-            <strong>Original ID:</strong> {{ selectedRecord.original_id }}<br>
-            <strong>Info:</strong> {{ selectedRecord.primary_info }}<br>
-            <strong>Method:</strong> {{ restoreMethod }}
+    <!-- Restore Confirmation Modal -->
+    <a-modal v-model:open="showRestoreModal" title="Restore Record" @ok="confirmRestore" ok-text="Restore"
+        cancel-text="Cancel" :confirm-loading="restoring" :destroyOnClose="true"
+        :ok-button-props="{ disabled: !!restoreError }">
+        <div v-if="selectedRecord">
+            <p>Are you sure you want to restore this record?</p>
+            <div class="alert alert-info mb-2">
+                <div class="d-flex align-items-center mb-2">
+                    <a-tag :color="getModelTypeColor(selectedRecord.model_type)" class="me-2">{{ selectedRecord.model_type }}</a-tag>
+                    <span class="fw-medium">{{ selectedRecord.display_name }}</span>
+                </div>
+                <small class="text-muted">Original ID: {{ selectedRecord.original_id }}</small>
+                <span v-if="selectedRecord.deleted_by" class="ms-3">
+                    <small class="text-muted">Deleted by: {{ selectedRecord.deleted_by }}</small>
+                </span>
+            </div>
+            <div v-if="selectedRecord.type === 'manifest' && selectedRecord.child_records_count > 0" class="alert alert-warning mb-2">
+                <i class="ti ti-alert-triangle me-1"></i>
+                This will also restore <strong>{{ selectedRecord.child_records_count }} related child records</strong>
+                (employments, leave records, etc.) that were deleted together.
+            </div>
+            <!-- Inline error display when restore fails -->
+            <div v-if="restoreError" class="alert alert-danger mb-0">
+                <div class="d-flex align-items-start">
+                    <i class="ti ti-alert-circle me-2 mt-1"></i>
+                    <div>
+                        <strong>Restoration failed</strong>
+                        <p class="mb-0 mt-1" style="font-size: 13px;">{{ restoreError }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </a-modal>
 
+    <!-- Permanent Delete Confirmation Modal -->
     <a-modal v-model:open="showDeleteModal" title="Confirm Permanent Deletion" @ok="confirmDelete"
-        ok-text="Delete Permanently" cancel-text="Cancel" ok-type="danger">
+        ok-text="Delete Permanently" cancel-text="Cancel" ok-type="danger" :confirm-loading="deleting" :destroyOnClose="true">
         <p class="text-danger">
-            <strong>Warning:</strong> This action cannot be undone. Are you sure you want to permanently delete this
-            record?
+            <strong>Warning:</strong> This action cannot be undone. The record will be permanently removed.
         </p>
         <div v-if="selectedRecord" class="alert alert-warning">
             <strong>Type:</strong> {{ selectedRecord.model_type }}<br>
-            <strong>Original ID:</strong> {{ selectedRecord.original_id }}<br>
-            <strong>Info:</strong> {{ selectedRecord.primary_info }}
+            <strong>Name:</strong> {{ selectedRecord.display_name }}<br>
+            <strong>Original ID:</strong> {{ selectedRecord.original_id }}
+        </div>
+        <div v-if="selectedRecord?.type === 'manifest' && selectedRecord?.child_records_count > 0" class="alert alert-danger">
+            <i class="ti ti-alert-triangle me-1"></i>
+            This will also permanently delete <strong>{{ selectedRecord.child_records_count }} related child records</strong>.
+            This data cannot be recovered.
         </div>
     </a-modal>
 
+    <!-- Bulk Restore Confirmation Modal -->
     <a-modal v-model:open="showBulkRestoreModal" title="Confirm Bulk Restore" @ok="confirmBulkRestore"
-        ok-text="Restore Selected" cancel-text="Cancel">
+        ok-text="Restore Selected" cancel-text="Cancel" :confirm-loading="restoring" :destroyOnClose="true">
         <p>Are you sure you want to restore {{ selectedRowKeys.length }} selected record(s)?</p>
         <div class="alert alert-info">
-            <strong>Note:</strong> Records will be restored using their deleted_record_id for faster processing.
+            <i class="ti ti-info-circle me-1"></i>
+            Records with cascading deletions (Employee, Grant, Department) will also restore all their related child records.
         </div>
     </a-modal>
 </template>
@@ -317,15 +378,14 @@ import { usePermissions } from '@/composables/usePermissions';
 
 export default {
   setup() {
-    // Initialize permission checks for recycle_bin module
-    const { 
-      canRead, 
-      canEdit, 
-      isReadOnly, 
-      accessLevelText, 
-      accessLevelBadgeClass 
-    } = usePermissions('recycle_bin');
-    
+    const {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
+    } = usePermissions('recycle_bin_list');
+
     return {
       canRead,
       canEdit,
@@ -348,15 +408,15 @@ export default {
             filteredInfo: null,
             sortedInfo: null,
             loading: false,
+            restoring: false,
+            deleting: false,
+            restoreError: null,
             selectedRowKeys: [],
             selectedRecord: null,
             showRestoreModal: false,
             showDeleteModal: false,
             showBulkRestoreModal: false,
             showDetailsModal: false,
-            restoreMethod: '',
-            restoreModalTitle: '',
-            restoreModalMessage: '',
         };
     },
     computed: {
@@ -367,73 +427,67 @@ export default {
 
             return [
                 {
-                    title: "ID",
-                    dataIndex: "deleted_record_id",
-                    key: "deleted_record_id",
-                    width: 80,
-                    sorter: {
-                        compare: (a, b) => a.deleted_record_id - b.deleted_record_id,
-                    },
-                    sortOrder: sorted.columnKey === "deleted_record_id" && sorted.order,
+                    title: "Key",
+                    key: "RecordKey",
+                    width: 100,
+                    sorter: false,
                 },
                 {
                     title: "Type",
                     dataIndex: "model_type",
                     key: "ModelType",
-                    width: 120,
+                    width: 160,
                     filters: this.getModelTypeFilters(),
                     filteredValue: filtered.ModelType || null,
                     filterSearch: true,
-                    onFilter: (value, record) => record.model_type.includes(value),
+                    onFilter: (value, record) => record.model_type === value,
                     sorter: {
-                        compare: (a, b) => {
-                            a = a.model_type.toLowerCase();
-                            b = b.model_type.toLowerCase();
-                            return a > b ? -1 : b > a ? 1 : 0;
-                        },
+                        compare: (a, b) => a.model_type.localeCompare(b.model_type),
                     },
                     sortOrder: sorted.columnKey === "ModelType" && sorted.order,
                 },
                 {
-                    title: "Original ID",
-                    dataIndex: "original_id",
-                    key: "OriginalId",
-                    width: 100,
+                    title: "Record Info",
+                    key: "DisplayName",
                     sorter: {
-                        compare: (a, b) => a.original_id - b.original_id,
+                        compare: (a, b) => (a.display_name || '').localeCompare(b.display_name || ''),
                     },
-                    sortOrder: sorted.columnKey === "OriginalId" && sorted.order,
+                    sortOrder: sorted.columnKey === "DisplayName" && sorted.order,
                 },
                 {
-                    title: "Record Info",
-                    dataIndex: "primary_info",
-                    key: "PrimaryInfo",
+                    title: "Deleted By",
+                    key: "DeletedBy",
+                    width: 130,
                     sorter: {
-                        compare: (a, b) => {
-                            const infoA = a.primary_info || '';
-                            const infoB = b.primary_info || '';
-                            return infoA.toLowerCase() > infoB.toLowerCase() ? -1 : infoB.toLowerCase() > infoA.toLowerCase() ? 1 : 0;
-                        },
+                        compare: (a, b) => (a.deleted_by || '').localeCompare(b.deleted_by || ''),
                     },
-                    sortOrder: sorted.columnKey === "PrimaryInfo" && sorted.order,
+                    sortOrder: sorted.columnKey === "DeletedBy" && sorted.order,
+                },
+                {
+                    title: "Reason",
+                    key: "Reason",
+                    width: 160,
+                    sorter: false,
+                },
+                {
+                    title: "Related",
+                    key: "Children",
+                    width: 110,
+                    sorter: {
+                        compare: (a, b) => (a.child_records_count || 0) - (b.child_records_count || 0),
+                    },
+                    sortOrder: sorted.columnKey === "Children" && sorted.order,
                 },
                 {
                     title: "Deleted At",
                     dataIndex: "deleted_at",
                     key: "DeletedAt",
-                    width: 180,
+                    width: 170,
                     sorter: {
-                        compare: (a, b) => {
-                            return moment(a.deleted_at).unix() - moment(b.deleted_at).unix();
-                        },
+                        compare: (a, b) => moment(a.deleted_at).unix() - moment(b.deleted_at).unix(),
                     },
                     sortOrder: sorted.columnKey === "DeletedAt" && sorted.order,
-                },
-                {
-                    title: "Details",
-                    key: "ModelDetails",
-                    width: 100,
-                    sorter: false,
+                    defaultSortOrder: 'descend',
                 },
                 {
                     title: "Actions",
@@ -446,11 +500,12 @@ export default {
         rowSelection() {
             return {
                 selectedRowKeys: this.selectedRowKeys,
-                onChange: (selectedRowKeys, selectedRows) => {
+                onChange: (selectedRowKeys) => {
                     this.selectedRowKeys = selectedRowKeys;
                 },
                 getCheckboxProps: (record) => ({
-                    name: record.deleted_record_id,
+                    // Use unique key per record type
+                    name: record.type === 'manifest' ? record.deletion_key : String(record.deleted_record_id),
                 }),
             };
         },
@@ -478,7 +533,11 @@ export default {
             try {
                 const response = await recycleBinService.getAllDeletedRecords();
                 if (response.success) {
-                    this.data = response.data || [];
+                    // Add a unique 'key' field for Ant Design table row selection
+                    this.data = (response.data || []).map(record => ({
+                        ...record,
+                        key: record.type === 'manifest' ? record.deletion_key : record.deleted_record_id,
+                    }));
                     this.totalCount = response.total_count || 0;
                 } else {
                     throw new Error('Failed to fetch deleted records');
@@ -493,11 +552,10 @@ export default {
             try {
                 const response = await recycleBinService.getRecycleBinStats();
                 if (response.success) {
-                    this.stats = response.data || {};
+                    this.stats = response.stats || {};
                 }
             } catch (error) {
                 console.error('Error fetching stats:', error);
-                // Don't throw here as stats are not critical
             }
         },
 
@@ -511,49 +569,37 @@ export default {
             this.showDetailsModal = true;
         },
 
-        // Method 1: Restore by deleted_record_id (recommended for bulk operations)
-        restoreByDeletedId(record) {
+        // Initiate restore based on record type
+        initiateRestore(record) {
             this.selectedRecord = record;
-            this.restoreMethod = 'By Deleted Record ID';
-            this.restoreModalTitle = 'Restore Record (Method 1)';
-            this.restoreModalMessage = 'This will restore the record using its deleted_record_id. This is the fastest method.';
+            this.restoreError = null;
             this.showRestoreModal = true;
         },
 
-        // Method 2: Restore by model_class and original_id (dynamic method)
-        restoreByModelAndId(record) {
-            this.selectedRecord = record;
-            this.restoreMethod = 'By Model Class & Original ID';
-            this.restoreModalTitle = 'Restore Record (Method 2)';
-            this.restoreModalMessage = 'This will restore the record using its model class and original ID. This is the dynamic method.';
-            this.showRestoreModal = true;
-        },
-
+        // Execute restore - routes to correct service method based on type
         async confirmRestore() {
             if (!this.selectedRecord) return;
 
+            this.restoring = true;
+            this.restoreError = null;
             try {
-                let restoreData;
+                let response;
 
-                if (this.restoreMethod === 'By Deleted Record ID') {
-                    // Method 1: Use deleted_record_id
-                    restoreData = {
-                        deleted_record_id: this.selectedRecord.deleted_record_id
-                    };
+                if (this.selectedRecord.type === 'manifest') {
+                    // Manifest-based restore (Employee, Grant, Department)
+                    response = await recycleBinService.restoreByKey(this.selectedRecord.deletion_key);
                 } else {
-                    // Method 2: Use model_class and original_id
-                    restoreData = {
-                        model_class: this.selectedRecord.model_class,
-                        original_id: this.selectedRecord.original_id
-
-                        
-                    };
+                    // Legacy restore (Interview, JobOffer)
+                    response = await recycleBinService.restoreLegacy({
+                        deleted_record_id: this.selectedRecord.deleted_record_id
+                    });
                 }
 
-                const response = await recycleBinService.restoreRecord(restoreData);
-
                 if (response.success) {
-                    message.success(`Record restored successfully using ${this.restoreMethod}`);
+                    const childInfo = this.selectedRecord.child_records_count > 0
+                        ? ` (and ${this.selectedRecord.child_records_count} related records)`
+                        : '';
+                    message.success(`${this.selectedRecord.model_type} restored successfully${childInfo}`);
                     this.showRestoreModal = false;
                     this.selectedRecord = null;
                     await this.fetchData();
@@ -562,7 +608,10 @@ export default {
                 }
             } catch (error) {
                 console.error('Error restoring record:', error);
-                message.error(error.response?.data?.message || 'Failed to restore record');
+                // Show error inline in the modal instead of a toast (keeps context visible)
+                this.restoreError = error.response?.data?.message || error.message || 'Failed to restore record';
+            } finally {
+                this.restoring = false;
             }
         },
 
@@ -571,11 +620,21 @@ export default {
             this.showDeleteModal = true;
         },
 
+        // Execute permanent delete - routes to correct service method based on type
         async confirmDelete() {
             if (!this.selectedRecord) return;
 
+            this.deleting = true;
             try {
-                const response = await recycleBinService.permanentlyDeleteRecord(this.selectedRecord.deleted_record_id);
+                let response;
+
+                if (this.selectedRecord.type === 'manifest') {
+                    // Manifest-based permanent delete
+                    response = await recycleBinService.permanentDeleteByKey(this.selectedRecord.deletion_key);
+                } else {
+                    // Legacy permanent delete
+                    response = await recycleBinService.permanentDeleteLegacy(this.selectedRecord.deleted_record_id);
+                }
 
                 if (response.success !== false) {
                     message.success('Record permanently deleted');
@@ -588,6 +647,8 @@ export default {
             } catch (error) {
                 console.error('Error deleting record:', error);
                 message.error(error.response?.data?.message || 'Failed to delete record permanently');
+            } finally {
+                this.deleting = false;
             }
         },
 
@@ -600,29 +661,47 @@ export default {
         },
 
         async confirmBulkRestore() {
+            this.restoring = true;
             try {
+                // Separate selected records into manifest and legacy groups
                 const selectedRecords = this.data.filter(record =>
-                    this.selectedRowKeys.includes(record.deleted_record_id)
+                    this.selectedRowKeys.includes(record.key)
                 );
 
-                const restoreData = {
-                    records: selectedRecords.map(record => ({
-                        deleted_record_id: record.deleted_record_id
-                    }))
-                };
+                const manifestKeys = selectedRecords
+                    .filter(r => r.type === 'manifest')
+                    .map(r => r.deletion_key);
 
-                const response = await recycleBinService.bulkRestoreRecords(restoreData);
+                const legacyRecords = selectedRecords
+                    .filter(r => r.type === 'legacy');
 
-                if (response.success) {
-                    const successCount = response.results?.filter(r => r.success).length || this.selectedRowKeys.length;
-                    message.success(`${successCount} record(s) restored successfully`);
+                let totalSuccess = 0;
+                let totalFailed = 0;
 
-                    if (response.results?.some(r => !r.success)) {
-                        const failedCount = response.results.filter(r => !r.success).length;
-                        message.warning(`${failedCount} record(s) failed to restore`);
-                    }
-                } else {
-                    throw new Error(response.message || 'Bulk restore failed');
+                // Restore manifest-based records
+                if (manifestKeys.length > 0) {
+                    const manifestResponse = await recycleBinService.bulkRestoreByKeys(manifestKeys);
+                    totalSuccess += manifestResponse.succeeded?.length || 0;
+                    totalFailed += manifestResponse.failed?.length || 0;
+                }
+
+                // Restore legacy records
+                if (legacyRecords.length > 0) {
+                    const legacyResponse = await recycleBinService.bulkRestoreLegacy({
+                        restore_requests: legacyRecords.map(r => ({
+                            deleted_record_id: r.deleted_record_id
+                        }))
+                    });
+                    const legacyResults = legacyResponse.results || [];
+                    totalSuccess += legacyResults.filter(r => r.success).length;
+                    totalFailed += legacyResults.filter(r => !r.success).length;
+                }
+
+                if (totalSuccess > 0) {
+                    message.success(`${totalSuccess} record(s) restored successfully`);
+                }
+                if (totalFailed > 0) {
+                    message.warning(`${totalFailed} record(s) failed to restore`);
                 }
 
                 this.showBulkRestoreModal = false;
@@ -631,6 +710,8 @@ export default {
             } catch (error) {
                 console.error('Error bulk restoring records:', error);
                 message.error(error.response?.data?.message || 'Failed to restore selected records');
+            } finally {
+                this.restoring = false;
             }
         },
 
@@ -645,7 +726,7 @@ export default {
                 'Training': 'gold',
                 'Department': 'lime',
                 'Position': 'magenta',
-                'BlogPost': 'geekblue',
+                'GrantItem': 'volcano',
             };
 
             return colors[modelType] || 'default';
@@ -661,7 +742,6 @@ export default {
         },
 
         handleChange(pagination, filters, sorter) {
-            console.log("Various parameters", pagination, filters, sorter);
             this.filteredInfo = filters;
             this.sortedInfo = sorter;
         },

@@ -54,8 +54,10 @@ class UserService {
   // Update user's password
   async updatePassword(passwordData) {
     try {
-      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
-      if (!token) {
+      // NOTE: Token is in HttpOnly cookie, sent automatically with credentials: 'include'
+      // Check user data presence to verify authentication state
+      const user = localStorage.getItem(STORAGE_KEYS.USER);
+      if (!user) {
         return { success: false, error: 'Not authenticated' };
       }
 

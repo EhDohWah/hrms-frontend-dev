@@ -22,24 +22,20 @@ class ModuleService {
         this.headers = { ...API_CONFIG.HEADERS };
         this.cacheKey = 'hrms_modules_cache';
         this.cacheTTL = 3600000; // 1 hour in milliseconds
-
-        // Set auth token if available
-        const token = localStorage.getItem('token');
-        if (token) {
-            this.setAuthToken(token);
-        }
+        // NOTE: Token is now in HttpOnly cookie, no manual header management needed
+        // The browser sends the cookie automatically with credentials: 'include'
     }
 
     /**
-     * Set authentication token
-     * @param {string} token - JWT token
+     * Set authentication token - DEPRECATED
+     * Token is now stored in HttpOnly cookie for XSS protection.
+     * This method is kept for backward compatibility but does nothing.
+     * @param {string} token - JWT token (ignored)
      */
     setAuthToken(token) {
-        if (token) {
-            this.headers['Authorization'] = `Bearer ${token}`;
-        } else {
-            delete this.headers['Authorization'];
-        }
+        // NOTE: Token is in HttpOnly cookie, no need to set Authorization header
+        // The cookie is sent automatically with credentials: 'include'
+        console.debug('[ModuleService] setAuthToken called but token is now in HttpOnly cookie');
     }
 
     /**

@@ -7,7 +7,8 @@ import { API_ENDPOINTS } from '@/config/api.config';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    token: localStorage.getItem(STORAGE_KEYS.TOKEN) || null,
+    // NOTE: Token is now stored in HttpOnly cookie only (not in localStorage)
+    // This provides XSS protection - JavaScript cannot access the token
     user: localStorage.getItem(STORAGE_KEYS.USER)
       ? JSON.parse(localStorage.getItem(STORAGE_KEYS.USER))
       : null,
@@ -20,6 +21,9 @@ export const useAuthStore = defineStore('auth', {
     error: null,
     tokenTimer: null,
     justLoggedIn: null, // persist flag
+    // Proactive token refresh state
+    refreshTimer: null, // Timer for proactive token refresh before expiry
+    isRefreshingToken: false, // Prevent concurrent refresh attempts
     // Real-time permission sync state
     permissionRefreshTimer: null, // Debounce timer for permission refresh
     permissionRefreshPromise: null, // Prevent concurrent refresh calls
@@ -29,7 +33,9 @@ export const useAuthStore = defineStore('auth', {
     permissionEventQueue: [], // Queue for pending permission update events
   }),
   getters: {
-    isAuthenticated: (state) => !!state.token && !!state.user,
+    // Authentication is determined by user data presence
+    // The actual auth token is in HttpOnly cookie (browser handles it automatically)
+    isAuthenticated: (state) => !!state.user,
     currentUser: (state) => state.user,
     userPermissions: (state) => state.permissions,
     isAdmin: (state) => state.userRole === 'admin',
@@ -91,7 +97,12 @@ export const useAuthStore = defineStore('auth', {
 
     // --- Auth State Management ---
     clearAuthData() {
-      Object.values(STORAGE_KEYS).forEach((key) => this.removeStorageItem(key));
+      // Clear localStorage items (excluding TOKEN since it's now in HttpOnly cookie)
+      // The HttpOnly cookie is cleared by the backend on logout
+      const keysToRemove = Object.values(STORAGE_KEYS).filter(key => key !== STORAGE_KEYS.TOKEN);
+      keysToRemove.forEach((key) => this.removeStorageItem(key));
+      // Also remove legacy token key if it exists
+      this.removeStorageItem(STORAGE_KEYS.TOKEN);
 
       // NOTE: DO NOT clear 'intendedRoute' here during login!
       // It needs to persist through the login process for post-login redirect
@@ -99,7 +110,6 @@ export const useAuthStore = defineStore('auth', {
       // 1. login-index.vue after successful redirect
       // 2. logout() method below (for clean logout)
 
-      this.token = null;
       this.user = null;
       this.userRole = null;
       this.permissions = [];
@@ -108,6 +118,12 @@ export const useAuthStore = defineStore('auth', {
         clearTimeout(this.tokenTimer);
         this.tokenTimer = null;
       }
+      // Clear proactive refresh timer
+      if (this.refreshTimer) {
+        clearTimeout(this.refreshTimer);
+        this.refreshTimer = null;
+      }
+      this.isRefreshingToken = false;
     },
 
     setTokenTimer(duration) {
@@ -115,6 +131,80 @@ export const useAuthStore = defineStore('auth', {
       this.tokenTimer = setTimeout(() => {
         this.logout();
       }, duration);
+    },
+
+    /**
+     * Schedule proactive token refresh before expiration.
+     * Refreshes the token 5 minutes before it expires to prevent interruptions.
+     *
+     * @param {number} expirationTime - Token expiration timestamp in milliseconds
+     */
+    scheduleProactiveRefresh(expirationTime) {
+      // Clear any existing refresh timer
+      if (this.refreshTimer) {
+        clearTimeout(this.refreshTimer);
+        this.refreshTimer = null;
+      }
+
+      const now = Date.now();
+      const timeUntilExpiry = expirationTime - now;
+
+      // Refresh 5 minutes (300000ms) before expiry
+      const REFRESH_BUFFER = 5 * 60 * 1000;
+      const refreshTime = timeUntilExpiry - REFRESH_BUFFER;
+
+      // Only schedule if we have enough time (more than 5 minutes remaining)
+      if (refreshTime > 0) {
+        console.log(`[AuthStore] Scheduling proactive token refresh in ${Math.round(refreshTime / 60000)} minutes`);
+
+        this.refreshTimer = setTimeout(() => {
+          this.proactiveTokenRefresh();
+        }, refreshTime);
+      } else if (timeUntilExpiry > 60000) {
+        // If less than 5 minutes but more than 1 minute, refresh immediately
+        console.log('[AuthStore] Token expiring soon, refreshing immediately');
+        this.proactiveTokenRefresh();
+      } else {
+        console.warn('[AuthStore] Token too close to expiry, cannot schedule proactive refresh');
+      }
+    },
+
+    /**
+     * Perform proactive token refresh.
+     * Called automatically before token expires.
+     */
+    async proactiveTokenRefresh() {
+      // Prevent concurrent refresh attempts
+      if (this.isRefreshingToken) {
+        console.log('[AuthStore] Token refresh already in progress, skipping');
+        return false;
+      }
+
+      // Don't refresh if not authenticated (check user since token is in cookie)
+      if (!this.user) {
+        console.warn('[AuthStore] Cannot refresh token - not authenticated');
+        return false;
+      }
+
+      this.isRefreshingToken = true;
+      console.log('[AuthStore] Starting proactive token refresh');
+
+      try {
+        const success = await this.refreshToken();
+
+        if (success) {
+          console.log('[AuthStore] Proactive token refresh successful');
+          return true;
+        } else {
+          console.warn('[AuthStore] Proactive token refresh failed');
+          return false;
+        }
+      } catch (error) {
+        console.error('[AuthStore] Error during proactive token refresh:', error);
+        return false;
+      } finally {
+        this.isRefreshingToken = false;
+      }
     },
 
     // -------------------------
@@ -132,12 +222,9 @@ export const useAuthStore = defineStore('auth', {
       // Clear any existing authentication data
       this.clearAuthData();
 
-      // Set token and update API headers
-      if (response.access_token) {
-        this.token = response.access_token;
-        this.setStorageItem(STORAGE_KEYS.TOKEN, response.access_token);
-        // Note: apiService.setAuthToken call is omitted as it's not in the selection scope
-      }
+      // NOTE: Token is now stored in HttpOnly cookie by the backend
+      // We no longer store it in localStorage for XSS protection
+      // The browser automatically sends the cookie with each request
 
       // Save user data and role information if available
       if (response.user) {
@@ -165,26 +252,37 @@ export const useAuthStore = defineStore('auth', {
       this.setStorageItem(STORAGE_KEYS.TOKEN_EXPIRATION, expirationTime.toString());
       this.setTokenTimer(expiresIn);
 
-      // Fetch user permissions in simplified read/edit format
-      await this.fetchMyPermissions();
+      // Schedule proactive token refresh before expiration
+      this.scheduleProactiveRefresh(expirationTime);
 
       // Initialize menu service after authentication
-      this.initializeMenuService();
+      // This must run before fetchMyPermissions to avoid being blocked by 401 errors
+      await this.initializeMenuService();
 
       // Initialize cross-tab synchronization for real-time permission updates
       this.initCrossTabSync();
+
+      // Fetch enhanced permissions (read/edit format) in background
+      // The login response already includes basic permissions (set above)
+      // This call enhances them but should NOT block or break the login flow
+      this.fetchMyPermissions().catch(err => {
+        console.warn('[AuthStore] Enhanced permissions fetch failed, using login response permissions:', err?.message);
+      });
 
       return true;
     },
 
     async checkAuth() {
-      const token = this.getStorageItem(STORAGE_KEYS.TOKEN);
+      // Check if we have stored user data and token expiration hasn't passed
+      const storedUser = this.getStorageItem(STORAGE_KEYS.USER, true);
       const expiration = this.getStorageItem(STORAGE_KEYS.TOKEN_EXPIRATION);
-      if (token && expiration && Date.now() < Number(expiration)) {
-        this.token = token;
-        this.user = this.getStorageItem(STORAGE_KEYS.USER, true);
+
+      // If we have stored user data and expiration is valid, restore from storage first
+      if (storedUser && expiration && Date.now() < Number(expiration)) {
+        this.user = storedUser;
         this.userRole = this.getStorageItem(STORAGE_KEYS.USER_ROLE);
         this.permissions = this.getStorageItem(STORAGE_KEYS.PERMISSIONS, true) || [];
+        this.tokenExpiration = Number(expiration);
 
         // Load permission version from storage
         const storedVersion = this.getStorageItem('permissionVersion');
@@ -192,17 +290,50 @@ export const useAuthStore = defineStore('auth', {
           this.permissionVersion = Number(storedVersion);
         }
 
-        // Refresh permissions from API to ensure they're up-to-date
-        await this.fetchMyPermissions();
+        // Set up token expiration timer
+        const timeUntilExpiry = Number(expiration) - Date.now();
+        this.setTokenTimer(timeUntilExpiry);
 
-        // Initialize menu service if user is authenticated
-        this.initializeMenuService();
+        // Schedule proactive token refresh before expiration
+        this.scheduleProactiveRefresh(Number(expiration));
 
-        // Initialize cross-tab synchronization for real-time permission updates
-        this.initCrossTabSync();
+        // Validate with server - the HttpOnly cookie is sent automatically
+        try {
+          const response = await apiService.get(API_ENDPOINTS.AUTH.USER);
+          if (response && (response.id || response.user)) {
+            // Update user data from server response
+            const userData = response.user || response;
+            this.user = userData;
+            this.setStorageItem(STORAGE_KEYS.USER, userData);
 
-        return true;
+            // Refresh permissions from API to ensure they're up-to-date
+            await this.fetchMyPermissions();
+
+            // Initialize menu service if user is authenticated
+            this.initializeMenuService();
+
+            // Initialize cross-tab synchronization for real-time permission updates
+            this.initCrossTabSync();
+
+            return true;
+          }
+        } catch (error) {
+          // If server validation fails (401), clear auth data
+          if (error.response?.status === 401) {
+            console.log('[AuthStore] Server validation failed, clearing auth data');
+            this.clearAuthData();
+            return false;
+          }
+          // For other errors (network issues), trust stored data temporarily
+          console.warn('[AuthStore] Server validation error, using stored data:', error.message);
+
+          // Initialize menu service with stored permissions
+          this.initializeMenuService();
+          this.initCrossTabSync();
+          return true;
+        }
       }
+
       this.clearAuthData();
       return false;
     },
@@ -213,7 +344,9 @@ export const useAuthStore = defineStore('auth', {
       this.error = null;
       try {
         const response = await authService.login(credentials);
-        if (response.access_token) {
+        // Check for successful login - user data indicates success
+        // Token is now in HttpOnly cookie, not needed in response body
+        if (response.user || response.success) {
           await this.setAuthData(response);
           // Set the justLoggedIn flag in localStorage
           this.justLoggedIn = true;
@@ -223,7 +356,7 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         // Preserve the full error object with response data for better error handling
         this.error = error.response?.data?.message || error.message || 'Authentication failed';
-        
+
         // Re-throw the error to allow the component to handle it with full context
         throw error;
       } finally {
@@ -236,7 +369,9 @@ export const useAuthStore = defineStore('auth', {
       let result = { success: true };
 
       try {
-        if (this.token) {
+        // Call logout API if user is authenticated
+        // The HttpOnly cookie will be cleared by the backend
+        if (this.user) {
           await authService.logout();
         }
       } catch (error) {
@@ -417,14 +552,18 @@ export const useAuthStore = defineStore('auth', {
     async refreshToken() {
       try {
         const response = await authService.refreshToken();
-        if (response.access_token) {
-          this.token = response.access_token;
-          const expiresIn = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        // Token is now in HttpOnly cookie - we just need to update expiration tracking
+        if (response.success || response.access_token) {
+          // Use expires_in from response if available, otherwise default to 6 hours
+          const expiresIn = response.expires_in ? response.expires_in * 1000 : 6 * 60 * 60 * 1000;
           const expirationTime = Date.now() + expiresIn;
           this.tokenExpiration = expirationTime;
-          this.setStorageItem(STORAGE_KEYS.TOKEN, this.token);
           this.setStorageItem(STORAGE_KEYS.TOKEN_EXPIRATION, expirationTime.toString());
           this.setTokenTimer(expiresIn);
+
+          // Schedule next proactive refresh
+          this.scheduleProactiveRefresh(expirationTime);
+
           return true;
         }
         return false;
@@ -453,8 +592,8 @@ export const useAuthStore = defineStore('auth', {
      * @returns {Promise<boolean>} - Whether the refresh was successful
      */
     async refreshPermissions(eventData = null, debounceMs = 500) {
-      // Prevent refresh if not authenticated
-      if (!this.token || !this.user) {
+      // Prevent refresh if not authenticated (check user since token is in cookie)
+      if (!this.user) {
         console.warn('[AuthStore] Cannot refresh permissions - not authenticated');
         return false;
       }

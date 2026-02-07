@@ -197,9 +197,10 @@ import { menuService } from './services/menu.service';
 
 async function initializeApp() {
     // Check if user is already authenticated
-    const token = localStorage.getItem('token');
-    
-    if (token) {
+    // NOTE: Token is in HttpOnly cookie, we check user data presence in localStorage
+    const user = localStorage.getItem('user');
+
+    if (user) {
     try {
             console.log('[App] User authenticated, initializing menu service...');
         await menuService.initialize();

@@ -66,8 +66,15 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>Are you sure you want to delete this department? This action cannot be undone.</p>
-          <p class="text-warning"><i class="ti ti-alert-triangle me-1"></i>Note: Departments with active positions cannot be deleted.</p>
+          <p>Are you sure you want to delete this department?</p>
+          <p class="text-info"><i class="ti ti-info-circle me-1"></i>The department and related data will be moved to the Recycle Bin and can be restored within 30 days.</p>
+          <p class="text-warning"><i class="ti ti-alert-triangle me-1"></i>Note: Departments with active employments or personnel actions cannot be deleted.</p>
+          <div v-if="deleteError" class="alert alert-danger mt-2">
+            <strong>Cannot delete:</strong>
+            <ul class="mb-0 mt-1">
+              <li v-for="(blocker, index) in deleteBlockers" :key="index">{{ blocker }}</li>
+            </ul>
+          </div>
           </div>
           <div class="modal-footer">
           <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
@@ -104,6 +111,8 @@ export default {
       addModalInstance: null,
       deleteModalInstance: null,
       deleteId: null,
+      deleteError: false,
+      deleteBlockers: [],
     };
   },
   methods: {
@@ -148,6 +157,8 @@ export default {
 
     confirmDeleteDepartment(departmentId) {
       this.deleteId = departmentId;
+      this.deleteError = false;
+      this.deleteBlockers = [];
       if (!this.deleteModalInstance) {
         this.deleteModalInstance = new Modal(document.getElementById('delete_department_modal'));
       }
@@ -192,6 +203,8 @@ export default {
 
     async deleteDepartment() {
       this.isSubmitting = true;
+      this.deleteError = false;
+      this.deleteBlockers = [];
 
       try {
         const departmentStore = useDepartmentStore();
@@ -202,12 +215,19 @@ export default {
         }
 
         this.$emit('department-updated');
-        this.$message.success('Department deleted successfully');
+        this.$message.success('Department moved to Recycle Bin');
       } catch (error) {
-        this.$message.error(error.message || 'Failed to delete department');
+        const responseData = error.response?.data || error;
+
+        // Show blocker messages inline in the modal
+        if (responseData.blockers && responseData.blockers.length > 0) {
+          this.deleteError = true;
+          this.deleteBlockers = responseData.blockers;
+        } else {
+          this.$message.error(responseData.message || 'Failed to delete department');
+        }
       } finally {
         this.isSubmitting = false;
-        this.deleteId = null;
       }
     },
   },

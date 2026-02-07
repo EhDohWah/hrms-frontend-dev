@@ -892,7 +892,7 @@ export default {
 
       Modal.confirm({
         title: `Are you sure you want to delete ${this.selectedRowKeys.length} selected employee(s)?`,
-        content: 'This will delete all selected employees and their associated data. This action cannot be undone.',
+        content: 'The employee(s) and all associated data will be moved to the Recycle Bin and can be restored within 30 days.',
         centered: true,
         okText: 'Yes, Delete All',
         okType: 'danger',
@@ -903,17 +903,38 @@ export default {
       });
     },
 
-    // Delete selected employees
+    // Delete selected employees (bulk safe delete)
     async deleteSelectedEmployees() {
       try {
         console.log('Sending IDs to delete:', this.selectedRowKeys);
-        await employeeService.deleteSelectedEmployees(this.selectedRowKeys);
-        this.$message.success(`${this.selectedRowKeys.length} employee(s) deleted successfully`);
+        const response = await employeeService.deleteSelectedEmployees(this.selectedRowKeys);
+
+        // Handle partial success (HTTP 207)
+        if (response.succeeded && response.failed) {
+          const successCount = response.succeeded.length;
+          const failedCount = response.failed.length;
+
+          if (successCount > 0) {
+            this.$message.success(`${successCount} employee(s) moved to Recycle Bin`);
+          }
+          if (failedCount > 0) {
+            const blockerMessages = response.failed
+              .map(f => `ID ${f.id}: ${f.blockers?.join(', ') || f.error}`)
+              .join('\n');
+            Modal.warning({
+              title: `${failedCount} employee(s) could not be deleted`,
+              content: blockerMessages,
+              centered: true,
+            });
+          }
+        } else {
+          this.$message.success(`${this.selectedRowKeys.length} employee(s) moved to Recycle Bin`);
+        }
+
         this.selectedRowKeys = [];
         this.fetchEmployees();
       } catch (error) {
-        this.$message.error('Failed to delete employees');
-        console.error("Error deleting employees:", error);
+        this.handleDeleteError(error, 'employees');
       }
     },
 
@@ -921,7 +942,7 @@ export default {
     confirmDeleteEmployee(id) {
       Modal.confirm({
         title: 'Are you sure you want to delete this employee?',
-        content: 'This will delete the employee and all associated data. This action cannot be undone.',
+        content: 'The employee and all associated data (employments, leave records, etc.) will be moved to the Recycle Bin and can be restored within 30 days.',
         centered: true,
         okText: 'Yes, Delete',
         okType: 'danger',
@@ -932,15 +953,32 @@ export default {
       });
     },
 
-    // Delete single employee
+    // Delete single employee (safe delete)
     async deleteEmployee(id) {
       try {
-        await employeeService.deleteEmployee(id);
-        this.$message.success('Employee deleted successfully');
+        const response = await employeeService.deleteEmployee(id);
+        const count = response.deleted_records_count || 1;
+        this.$message.success(`Employee moved to Recycle Bin (${count} record${count > 1 ? 's' : ''} archived)`);
         this.fetchEmployees();
       } catch (error) {
-        this.$message.error('Failed to delete employee');
-        console.error("Error deleting employee:", error);
+        this.handleDeleteError(error, 'employee');
+      }
+    },
+
+    // Handle delete errors with blocker support
+    handleDeleteError(error, entityName) {
+      console.error(`Error deleting ${entityName}:`, error);
+      const responseData = error.response?.data || error;
+
+      // Check for blocker messages (422 response)
+      if (responseData.blockers && responseData.blockers.length > 0) {
+        Modal.error({
+          title: `Cannot delete ${entityName}`,
+          content: responseData.blockers.join('\n'),
+          centered: true,
+        });
+      } else {
+        this.$message.error(responseData.message || `Failed to delete ${entityName}`);
       }
     },
 

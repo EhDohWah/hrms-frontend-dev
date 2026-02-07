@@ -88,6 +88,7 @@
 import UploadRow from '@/components/uploads/upload-row.vue';
 import { message } from 'ant-design-vue';
 import { uploadGrantService } from '@/services/upload-grant.service';
+import { sanitizeErrorHtml, escapeHtml } from '@/utils/sanitize';
 
 export default {
     name: 'GrantUpload',
@@ -249,22 +250,24 @@ export default {
             }
         },
         formatErrorMessage(error) {
-            // Highlight cell references like (Cell B1), (Cell B3), Row 9, etc.
-            let formatted = error;
+            // First escape the raw error to prevent XSS
+            let formatted = escapeHtml(error);
 
-            // Highlight cell references
+            // Then apply formatting on escaped text (safe patterns)
+            // Highlight cell references like (Cell B1), (Cell B3)
             formatted = formatted.replace(/\(Cell ([A-Z]+\d+)\)/g, '<span class="cell-ref">(Cell $1)</span>');
 
             // Highlight row references
             formatted = formatted.replace(/Row (\d+):/g, '<span class="row-ref">Row $1:</span>');
 
-            // Highlight "Did you mean" suggestions
-            formatted = formatted.replace(/(Did you mean ['"]([^'"]+)['"]?\?)/g, '<span class="suggestion">$1</span>');
+            // Highlight "Did you mean" suggestions (escaped quotes become &#39;)
+            formatted = formatted.replace(/(Did you mean [&#39;"]([^&#39;"]+)[&#39;"]?\?)/g, '<span class="suggestion">$1</span>');
 
-            // Highlight sheet names
-            formatted = formatted.replace(/Sheet '([^']+)':/g, '<span class="sheet-ref">Sheet \'$1\':</span>');
+            // Highlight sheet names (escaped quotes become &#39;)
+            formatted = formatted.replace(/Sheet &#39;([^&#39;]+)&#39;:/g, '<span class="sheet-ref">Sheet \'$1\':</span>');
 
-            return formatted;
+            // Final sanitization pass to ensure safety
+            return sanitizeErrorHtml(formatted);
         },
         closeResultsModal() {
             this.showResultsModal = false;

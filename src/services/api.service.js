@@ -28,20 +28,18 @@ class ApiService {
         this.baseURL = API_CONFIG.BASE_URL;
         this.headers = { ...API_CONFIG.HEADERS };
 
-        // If there's a token in localStorage, set it
-        const token = localStorage.getItem('token');
-        if (token) {
-            this.setAuthToken(token);
-        }
+        // NOTE: Authentication token is now stored in HttpOnly cookie
+        // The browser automatically sends the cookie with each request
+        // when credentials: 'include' is set (which is already configured)
+        // No need to manage Authorization header manually
     }
 
-    // Set auth token
+    // Set auth token - DEPRECATED: Token is now in HttpOnly cookie
+    // Kept for backward compatibility during migration
     setAuthToken(token) {
-        if (token) {
-            this.headers['Authorization'] = `Bearer ${token}`;
-        } else {
-            delete this.headers['Authorization'];
-        }
+        // No-op: Token is now handled via HttpOnly cookie
+        // The browser sends the cookie automatically with credentials: 'include'
+        console.debug('[ApiService] setAuthToken called but token is now in HttpOnly cookie');
     }
 
     // Get full URL
@@ -80,12 +78,27 @@ class ApiService {
             // For other 401 errors (token expiration), attempt to refresh token
             const refreshed = await this.attemptRefreshToken();
             if (refreshed) {
-                // Retry the original request with new token
+                // Retry the original request with new token (cookie is updated automatically)
                 return this.retryRequest(originalRequest);
             } else {
-                // If refresh fails, clear stored token and reject
-                localStorage.removeItem('token');
-                localStorage.removeItem('tokenExpiration');
+                // If refresh fails, only clear stored data if the session is actually stale
+                // Don't clear during fresh login setup (token expiration far in future means we just logged in)
+                const tokenExpiration = localStorage.getItem('tokenExpiration');
+                const timeUntilExpiry = tokenExpiration ? Number(tokenExpiration) - Date.now() : 0;
+                const FRESH_LOGIN_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+
+                if (!tokenExpiration || timeUntilExpiry < FRESH_LOGIN_THRESHOLD) {
+                    // Session is stale or expired - safe to clear
+                    localStorage.removeItem('tokenExpiration');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('userRole');
+                    localStorage.removeItem('permissions');
+                } else {
+                    // Session was just established - don't clear auth data
+                    // This prevents race conditions during login setup
+                    console.warn('[ApiService] 401 during fresh session, not clearing auth data');
+                }
+
                 const error = new Error(data.message || 'Unauthenticated.');
                 error.response = {
                     status: response.status,
@@ -126,7 +139,7 @@ class ApiService {
 
     async attemptRefreshToken() {
         try {
-            // Call the refresh endpoint; adjust the URL if needed
+            // Call the refresh endpoint - the HttpOnly cookie is sent automatically
             const refreshResponse = await fetch(this.getFullURL('/refresh-token'), {
                 method: 'POST',
                 headers: this.headers,
@@ -136,15 +149,14 @@ class ApiService {
                 return false;
             }
             const refreshData = await refreshResponse.json();
-            const newToken = refreshData.access_token;
-            // Update localStorage and headers
-            localStorage.setItem('token', newToken);
-            // Optionally update token expiration if provided
+
+            // Token is now in HttpOnly cookie, no need to store in localStorage
+            // Just update the expiration tracking
             if (refreshData.expires_in) {
                 const expiration = Date.now() + refreshData.expires_in * 1000;
                 localStorage.setItem('tokenExpiration', expiration);
             }
-            this.setAuthToken(newToken);
+
             return true;
         } catch (error) {
             console.error('Error refreshing token:', error);

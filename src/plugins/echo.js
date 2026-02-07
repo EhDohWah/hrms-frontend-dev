@@ -1,68 +1,68 @@
 // src/plugins/echo.js
-// import Echo from 'laravel-echo';
-// import Pusher from 'pusher-js';
-
-// window.Pusher = Pusher;
-
-// let echoInstance = null;
-
-// export function initEcho(token) {
-//     // Cleanup old instance if any
-//     if (echoInstance) {
-//         echoInstance.disconnect();
-//         echoInstance = null;
-//     }
-
-//     echoInstance = new Echo({
-//         broadcaster: 'pusher',
-//         key: '1kysachzmqjvsnxg3e4q',
-//         wsHost: '127.0.0.1',
-//         wsPort: 6001,
-//         wssPort: 6001,
-//         forceTLS: false,
-//         encrypted: false,
-//         disableStats: true,
-//         enabledTransports: ['ws', 'wss'],
-//         authEndpoint: 'http://127.0.0.1:8000/broadcasting/auth',
-//         auth: {
-//             headers: {
-//                 Authorization: `Bearer ${token}`,
-//             },
-//         },
-//     });
-
-//     echoInstance.connector.pusher.connection.bind('connected', () => {
-//         console.log('[Echo] Connected to Reverb!');
-//     });
-//     echoInstance.connector.pusher.connection.bind('error', (err) => {
-//         console.error('[Echo] Connection error:', err);
-//     });
-
-//     // Attach to global if you want (for debugging)
-//     window.Echo = echoInstance;
-
-//     return echoInstance;
-// }
-
-// export function disconnectEcho() {
-//     if (echoInstance) {
-//         echoInstance.disconnect();
-//         echoInstance = null;
-//         delete window.Echo;
-
-//         console.log('[Echo] Disconnected');
-//     }
-// }
-
-// export function getEcho() {
-//     return echoInstance;
-// }
+// WebSocket communication via Laravel Echo + Reverb (Pusher protocol)
+// Authentication: HttpOnly cookie sent automatically via credentials: 'include'
 
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 
 // Pusher is still required for Reverb as it uses the Pusher protocol
 window.Pusher = Pusher;
+
+/**
+ * Validate Reverb configuration.
+ * Returns true if configuration is valid, false otherwise.
+ * Logs warnings/errors depending on environment.
+ */
+function validateReverbConfig() {
+    const isProduction = import.meta.env.VITE_ENV === 'production' || import.meta.env.MODE === 'production';
+
+    const appKey = import.meta.env.VITE_REVERB_APP_KEY;
+    const host = import.meta.env.VITE_REVERB_HOST;
+    const authEndpoint = import.meta.env.VITE_BROADCASTING_AUTH_ENDPOINT;
+    const scheme = import.meta.env.VITE_REVERB_SCHEME;
+
+    const issues = [];
+
+    // Check for placeholder values
+    if (!appKey || appKey === 'your_reverb_app_key_here') {
+        issues.push('VITE_REVERB_APP_KEY is not configured (still has placeholder value)');
+    }
+
+    // Check for missing host
+    if (!host) {
+        issues.push('VITE_REVERB_HOST is not configured');
+    }
+
+    // Check for missing auth endpoint
+    if (!authEndpoint) {
+        issues.push('VITE_BROADCASTING_AUTH_ENDPOINT is not configured');
+    }
+
+    // Production-specific checks
+    if (isProduction) {
+        // Check for HTTP in production (should be HTTPS)
+        if (scheme === 'http') {
+            issues.push('VITE_REVERB_SCHEME should be "https" in production');
+        }
+
+        if (authEndpoint && authEndpoint.startsWith('http://')) {
+            issues.push('VITE_BROADCASTING_AUTH_ENDPOINT should use HTTPS in production');
+        }
+    }
+
+    if (issues.length > 0) {
+        if (isProduction) {
+            console.error('[Echo] Reverb configuration issues detected:', issues);
+            // In production, don't initialize Echo with invalid config
+            return false;
+        } else {
+            console.warn('[Echo] Reverb configuration warnings:', issues);
+            // In development, continue but warn
+        }
+    }
+
+    return true;
+}
 
 let echoInstance = null;
 let connectionListeners = [];
@@ -121,7 +121,22 @@ function hasActiveSubscription(userId, type) {
     return activeUserChannels.has(key) && activeUserChannels.get(key).has(type);
 }
 
-export function initEcho(token) {
+/**
+ * Initialize Echo instance for WebSocket communication.
+ * This function is idempotent - if Echo is already initialized and connected,
+ * it returns the existing instance instead of creating a new one.
+ * This prevents redundant broadcasting/auth calls on every route navigation.
+ *
+ * @param {Object} options - Configuration options
+ * @param {boolean} options.force - Force reinitialize even if already connected (e.g., after token refresh)
+ * @returns {Object|null} - The Echo instance or null if initialization failed
+ */
+export function initEcho({ force = false } = {}) {
+    // If already initialized and not forcing, return existing instance
+    if (echoInstance && window.__ECHO_INITIALIZED && !force) {
+        return echoInstance;
+    }
+
     // Cleanup old instance if any - IMPORTANT: Unbind listeners BEFORE disconnecting
     if (echoInstance) {
         unbindConnectionListeners();
@@ -129,20 +144,58 @@ export function initEcho(token) {
         echoInstance = null;
     }
 
+    // Validate configuration before initializing
+    const isConfigValid = validateReverbConfig();
+    const isProduction = import.meta.env.VITE_ENV === 'production' || import.meta.env.MODE === 'production';
+
+    if (!isConfigValid && isProduction) {
+        console.error('[Echo] Skipping Echo initialization due to invalid configuration');
+        // Return null but don't throw - allow app to function without real-time features
+        return null;
+    }
+
     // Reverb Configuration
+    // NOTE: Authentication is now cookie-based (HttpOnly cookie for XSS protection)
+    const broadcastAuthEndpoint = import.meta.env.VITE_BROADCASTING_AUTH_ENDPOINT || 'http://localhost:8000/broadcasting/auth';
+
     const reverbConfig = {
         broadcaster: 'reverb',
         key: import.meta.env.VITE_REVERB_APP_KEY || 'qr5fnpjwyv6ckd89vk3d',
-        wsHost: import.meta.env.VITE_REVERB_HOST || '127.0.0.1',
+        wsHost: import.meta.env.VITE_REVERB_HOST || 'localhost',
         wsPort: import.meta.env.VITE_REVERB_PORT || 8081,
         wssPort: import.meta.env.VITE_REVERB_PORT || 8081,
         forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'http') === 'https',
         enabledTransports: ['ws', 'wss'],
         disableStats: true,
-        authEndpoint: import.meta.env.VITE_BROADCASTING_AUTH_ENDPOINT || 'http://127.0.0.1:8000/broadcasting/auth',
-        auth: {
-            headers: { Authorization: `Bearer ${token}` },
-        },
+        // Custom authorizer using fetch with credentials: 'include'
+        // Pusher.js's default XHR auth does NOT support withCredentials,
+        // so the HttpOnly cookie would not be sent. This custom authorizer
+        // uses the Fetch API which properly sends cookies cross-origin.
+        authorizer: (channel) => ({
+            authorize: (socketId, callback) => {
+                fetch(broadcastAuthEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: JSON.stringify({
+                        socket_id: socketId,
+                        channel_name: channel.name,
+                    }),
+                    credentials: 'include',
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Broadcasting auth failed: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => callback(null, data))
+                .catch(error => callback(true, error));
+            },
+        }),
     };
 
     echoInstance = new Echo(reverbConfig);

@@ -156,10 +156,11 @@ export const useDepartmentStore = defineStore('department', {
                 if (response.success) {
                     this.departments = this.departments.filter(dept => dept.id !== parseInt(id));
                     this.total -= 1;
-                    return true;
+                    return response;
                 }
             } catch (error) {
                 this.error = error.message;
+                // Re-throw with full response data for blocker handling
                 throw error;
             } finally {
                 this.submitting = false;

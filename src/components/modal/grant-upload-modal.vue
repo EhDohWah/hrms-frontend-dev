@@ -102,6 +102,7 @@
 
   <script>
   import { uploadGrantService } from '@/services/upload-grant.service';
+  import { sanitizeErrorHtml, escapeHtml } from '@/utils/sanitize';
 
   export default {
     name: 'GrantUploadModal',
@@ -140,25 +141,28 @@
         this.showErrorDetails = !this.showErrorDetails;
       },
       formatErrorMessage(error) {
-        let formatted = error;
+        // First escape the raw error to prevent XSS
+        let formatted = escapeHtml(error);
 
+        // Then apply formatting on escaped text (safe patterns)
         // Highlight cell references like (Cell B1), (Cell B3)
         formatted = formatted.replace(/\(Cell ([A-Z]+\d+)\)/g, '<span class="badge bg-info text-white">(Cell $1)</span>');
 
         // Highlight row references like "Row 9:"
         formatted = formatted.replace(/Row (\d+):/g, '<span class="badge bg-warning text-dark">Row $1:</span>');
 
-        // Highlight "Did you mean" suggestions
-        formatted = formatted.replace(/(Did you mean ['"]([^'"]+)['"]?\?)/g, '<span class="text-success fw-bold">$1</span>');
+        // Highlight "Did you mean" suggestions (escaped quotes become &#39;)
+        formatted = formatted.replace(/(Did you mean [&#39;"]([^&#39;"]+)[&#39;"]?\?)/g, '<span class="text-success fw-bold">$1</span>');
 
-        // Highlight sheet names like "Sheet 'Grant ABC':"
-        formatted = formatted.replace(/Sheet '([^']+)':/g, '<span class="fw-bold text-primary">Sheet \'$1\':</span>');
+        // Highlight sheet names (escaped quotes become &#39;)
+        formatted = formatted.replace(/Sheet &#39;([^&#39;]+)&#39;:/g, '<span class="fw-bold text-primary">Sheet \'$1\':</span>');
 
-        return formatted;
+        // Final sanitization pass to ensure safety
+        return sanitizeErrorHtml(formatted);
       },
       formatAlertMessage(message) {
-        // Simple formatting for alert messages
-        return message.replace(/\n/g, '<br>');
+        // Escape first then apply safe formatting
+        return sanitizeErrorHtml(escapeHtml(message).replace(/\n/g, '<br>'));
       },
       async handleSubmit() {
         if (!this.file) {

@@ -30,16 +30,16 @@ class MenuService {
    */
   async initialize() {
     try {
-      // Check if user is authenticated
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.warn('[MenuService] No auth token found, skipping module initialization');
+      // Check if user is authenticated by checking user data presence
+      // NOTE: Token is in HttpOnly cookie (sent automatically), we check user data for auth state
+      const user = localStorage.getItem('user');
+      if (!user) {
+        console.warn('[MenuService] No user data found, skipping module initialization');
         this.useApiModules = false;
         return false;
       }
 
-      // Set auth token in module service
-      moduleService.setAuthToken(token);
+      // NOTE: Token is in HttpOnly cookie, no need to set auth header manually
 
       console.log('[MenuService] Initializing - loading modules from API');
       this.modules = await moduleService.fetchModules();

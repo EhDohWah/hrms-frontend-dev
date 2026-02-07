@@ -5,7 +5,6 @@ import { useVuelidate } from '@vuelidate/core';
 import { required, email, minLength } from '@vuelidate/validators';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/stores/authStore';
-import { initEcho } from '@/plugins/echo';
 
 const router = useRouter();
 const showPassword = ref(false);
@@ -33,30 +32,39 @@ const rules = {
 
 const v$ = useVuelidate(rules, formData);
 
-// Check for existing token on mount
+// Check for existing authentication on mount
+// NOTE: Token is in HttpOnly cookie, we check user data presence for auth state
 onMounted(() => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    verifyToken(token);
+  const user = localStorage.getItem('user');
+  if (user) {
+    verifySession();
   }
 });
 
-const verifyToken = async (token) => {
+// Verify if the current session is valid with the backend
+// Token is in HttpOnly cookie, sent automatically
+const verifySession = async () => {
   try {
-    const response = await authService.verifyToken(token);
+    // Call verify endpoint - cookie is sent automatically
+    const response = await authService.verifyToken();
     if (response.valid) {
-      // Token is valid, redirect to dashboard
+      // Session is valid, redirect to dashboard
       const authStore = useAuthStore();
       const redirectPath = authStore.getRedirectPath();
       await router.replace(redirectPath);
     } else {
-      // Token invalid, remove it
-      localStorage.removeItem('token');
+      // Session invalid, clear user data (cookie will be cleared by backend)
       localStorage.removeItem('user');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('permissions');
+      localStorage.removeItem('tokenExpiration');
     }
   } catch {
-    localStorage.removeItem('token');
+    // Error verifying, clear local data
     localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('permissions');
+    localStorage.removeItem('tokenExpiration');
   }
 };
 
@@ -75,12 +83,10 @@ const handleLogin = async () => {
     const response = await authStore.login(formData);
 
     if (response.success) {
-      // Disconnect and reinitialize Echo with new token
-      if (window.Echo) {
-        window.Echo.disconnect();
-      }
-
-      initEcho(localStorage.getItem('token'));
+      // Echo initialization is handled by the router guard (guards.js) on first authenticated navigation.
+      // The guard checks isEchoInitialized() and calls initEcho() + sets up channel listeners once.
+      // Doing it here would cause duplicate broadcasting/auth calls and prevent the guard from
+      // setting up permission/profile listeners.
 
       // Check for intended route (saved by authGuard when user tried to access protected route)
       const intendedRoute = localStorage.getItem('intendedRoute');

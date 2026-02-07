@@ -363,14 +363,14 @@ class ResignationService {
     async downloadRecommendationLetter(id, employeeName = 'employee') {
         try {
             const endpoint = API_ENDPOINTS.RESIGNATION.RECOMMENDATION_LETTER.replace(':id', id);
-            const token = localStorage.getItem('auth_token');
+            // NOTE: Token is in HttpOnly cookie, sent automatically with credentials: 'include'
 
             const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/pdf'
-                }
+                },
+                credentials: 'include' // Send HttpOnly cookie automatically
             });
 
             if (!response.ok) {

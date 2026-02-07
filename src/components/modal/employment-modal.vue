@@ -850,6 +850,14 @@ export default {
 </template>
 
 <style scoped>
+/* Scrollable form container */
+.employment-form {
+  min-height: 400px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
 /* Form layout */
 .form-row {
   display: flex;

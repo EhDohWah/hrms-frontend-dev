@@ -5,18 +5,18 @@ export const authGuard = (to, from, next) => {
     const isAuthenticated = authService.isAuthenticated();
     const publicPages = ['/login', '/register', '/forgot-password', '/reset-password'];
     const authRequired = !publicPages.includes(to.path);
-    // Retrieve token and expiration from localStorage
-    const token = localStorage.getItem('token');
+    // NOTE: Token is now in HttpOnly cookie (not in localStorage) for XSS protection
+    // We track user data and expiration in localStorage to determine auth state
+    const user = localStorage.getItem('user');
     const tokenExpiration = localStorage.getItem('tokenExpiration');
-    // e.g. "1741721978" (seconds since epoch)
 
-    // If token and expiration exist, check whether it is expired
-    if (token && tokenExpiration) {
-        // If your tokenExpiration is in seconds, multiply by 1000 to compare with Date.now() (which is in ms)
-        const expiryTimeMs = Number(tokenExpiration) * 1000;
+    // If user and expiration exist, check whether session is expired
+    if (user && tokenExpiration) {
+        // tokenExpiration is stored in milliseconds
+        const expiryTimeMs = Number(tokenExpiration);
         if (Date.now() > expiryTimeMs) {
-            // Token is expired. Clear out local storage and redirect to login.
-            localStorage.removeItem('token');
+            // Session is expired. Clear out local storage and redirect to login.
+            // NOTE: We no longer clear 'token' as it's in HttpOnly cookie (cleared by backend on logout)
             localStorage.removeItem('tokenExpiration');
             localStorage.removeItem('user');
             localStorage.removeItem('userRole');
@@ -26,17 +26,16 @@ export const authGuard = (to, from, next) => {
         }
     }
 
-
-
     // Initialize Echo once per session when user is authenticated
-    if (isAuthenticated && token && !isEchoInitialized()) {
-        initEcho(token);
+    // NOTE: Token is in HttpOnly cookie, Echo uses cookie-based auth via credentials: 'include'
+    if (isAuthenticated && user && !isEchoInitialized()) {
+        initEcho(); // No token parameter needed - cookie is sent automatically
 
         // Initialize real-time listeners for permission and profile sync
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user?.id) {
-            initPermissionUpdateListener(user.id);
-            initProfileUpdateListener(user.id);
+        const userData = JSON.parse(user);
+        if (userData?.id) {
+            initPermissionUpdateListener(userData.id);
+            initProfileUpdateListener(userData.id);
             // Note: Notification subscription is handled in layout-header.vue
             // to properly show toast notifications with retry logic
         }

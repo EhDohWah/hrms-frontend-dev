@@ -1,0 +1,621 @@
+
+ ▐▛███▜▌   Claude Code v2.1.29
+▝▜█████▛▘  Opus 4.5 · Claude Max
+  ▘▘ ▝▝    D:\HR_management_system\3. Implementation\hrms-frontend-dev
+
+✻ Conversation compacted (ctrl+o for history)
+
+  ⎿  Read src\services\auth.service.js (334 lines)
+  ⎿  Referenced file src\services\api.service.js
+  ⎿  Referenced file src\stores\authStore.js
+  ⎿  Read ..\hrms-backend-api-v1\bootstrap\app.php (61 lines)
+  ⎿ Read ..\hrms-backend-api-v1\app\Http\Middleware\AuthenticateFromCookie.php 
+    (44 lines)
+  ⎿ Plan file referenced 
+    (C:\Users\User\.claude\plans\transient-mapping-horizon.md)
+
+● I'll continue completing the cookie-only migration by updating the remaining
+  methods in auth.service.js.
+
+● Update(src\services\auth.service.js)
+  ⎿  Added 4 lines, removed 6 lines
+      228    // Logout the current user
+      229    async logout() {
+      230      try {
+      231 -      const token = this.getToken();                          
+      232 -      if (token) {                                            
+      233 -        // Set token for the API call to ensure authorization 
+      234 -        apiService.setAuthToken(`Bearer ${token}`);           
+      231 +      // NOTE: Token is in HttpOnly cookie, sent automatically
+          + with credentials: 'include'                                  
+      232 +      // No need to check or set token manually               
+      233 +      if (this.user) {                                        
+      234          try {
+      236 -          // Call the logout endpoint if available            
+      237 -                                                              
+      235 +          // Call the logout endpoint - backend will clear the
+          + HttpOnly cookie                                              
+      236            await apiService.post(API_ENDPOINTS.AUTH.LOGOUT);
+      237          } catch (error) {
+      238            console.warn('Logout API call failed:', error);
+
+● Update(src\services\auth.service.js)
+  ⎿  Added 12 lines, removed 6 lines
+      258      }
+      259    }
+      260  
+      261 -  // Refresh the token. Uses response.access_token and a defau
+          -lt expiration if none provided.                               
+      261 +  // Refresh the token. Backend sets new HttpOnly cookie, we j
+          +ust update expiration tracking.                               
+      262    async refreshToken() {
+      263      try {
+      264 +      // NOTE: Token is in HttpOnly cookie, sent automatically
+          + with credentials: 'include'                                  
+      265 +      // Backend will set a new HttpOnly cookie with the refre
+          +shed token                                                    
+      266        const response = await apiService.post(API_ENDPOINTS.AUT
+           H.REFRESH);
+      265 -      if (response.access_token) {                            
+      266 -        this.token = response.access_token;                   
+      267 -        this.setStorageItem(STORAGE_KEYS.TOKEN, response.acces
+          -s_token);                                                     
+      268 -        apiService.setAuthToken(`${response.token_type || 'Bea
+          -rer'} ${response.access_token}`);                             
+      267  
+      270 -        const expiresIn = response.expires_in ? response.expir
+          -es_in * 1000 : 24 * 60 * 60 * 1000; // default 24 hours       
+      268 +      if (response.success || response.user) {                
+      269 +        // Update expiration tracking (token itself is in Http
+          +Only cookie)                                                  
+      270 +        const expiresIn = response.expires_in ? response.expir
+          +es_in * 1000 : 6 * 60 * 60 * 1000; // default 6 hours         
+      271          const expirationTime = Date.now() + expiresIn;
+      272          this.setStorageItem(STORAGE_KEYS.TOKEN_EXPIRATION, exp
+           irationTime.toString());
+      273          this.setTokenTimer(expiresIn);
+      274 +                                                              
+      275 +        // Update user data if provided                       
+      276 +        if (response.user) {                                  
+      277 +          this.user = response.user;                          
+      278 +          this.setStorageItem(STORAGE_KEYS.USER, response.user
+          +);                                                            
+      279 +        }                                                     
+      280        }
+      281        return response;
+      282      } catch (error) {
+
+● Update(src\services\auth.service.js)
+  ⎿  Added 8 lines, removed 3 lines
+      310    // -------------------------
+      311    // Utility Methods
+      312    // -------------------------
+      313 +  // Check if user is authenticated based on stored user data 
+          +and expiration                                                
+      314 +  // NOTE: Actual token is in HttpOnly cookie (browser handles
+          + it automatically)                                            
+      315    isAuthenticated() {
+      314 -    const token = this.getToken();                            
+      316 +    const user = this.getStorageItem(STORAGE_KEYS.USER, true);
+      317      const expiration = this.getStorageItem(STORAGE_KEYS.TOKEN_
+           EXPIRATION);
+      316 -    if (!token || !expiration) return false;                  
+      318 +    if (!user || !expiration) return false;                   
+      319      return Date.now() < Number(expiration);
+      320    }
+      321  
+      322 +  // DEPRECATED: Token is now stored in HttpOnly cookie, not a
+          +ccessible via JavaScript                                      
+      323 +  // This method is kept for backward compatibility but will a
+          +lways return null                                             
+      324    getToken() {
+      321 -    return this.getStorageItem(STORAGE_KEYS.TOKEN);           
+      325 +    console.debug('[AuthService] getToken() called but token i
+          +s now in HttpOnly cookie');                                   
+      326 +    return null;                                              
+      327    }
+      328  
+      329    getCurrentUser() {
+
+● Now let me clean up the STORAGE_KEYS constant since TOKEN is no longer used,
+  and update any references.
+
+● Read 1 file (ctrl+o to expand)
+
+● Now let me update the STORAGE_KEYS constant to mark TOKEN as deprecated.
+
+● Update(src\services\auth.service.js)
+  ⎿  Added 3 lines, removed 2 lines
+       3  import { getEcho } from '@/plugins/echo';
+       4  
+       5  // Storage keys
+       6 +// NOTE: Token is stored in HttpOnly cookie (not in localStorag
+         +e) for XSS protection                                          
+       7  const STORAGE_KEYS = {
+       7 -  TOKEN: 'token',                                              
+       8 +  TOKEN: 'token', // DEPRECATED: Kept for clearing legacy stora
+         +ge only                                                        
+       9    USER: 'user',
+      10    USER_ROLE: 'userRole',
+      11    PERMISSIONS: 'permissions',
+      11 -  TOKEN_EXPIRATION: 'tokenExpiration',                         
+      12 +  TOKEN_EXPIRATION: 'tokenExpiration', // Tracks expiration for
+         + proactive refresh                                             
+      13  };
+      14  
+      15  class AuthService {
+
+● Let me search for any other places that might still be accessing the token
+  directly.
+
+● Searched for 1 pattern (ctrl+o to expand)
+
+● I found several files that still reference the token from localStorage. Let me
+   update each of them. First, let me read and update the router guards.
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(src\router\guards.js)
+  ⎿  Added 16 lines, removed 17 lines
+       5      const isAuthenticated = authService.isAuthenticated();
+       6      const publicPages = ['/login', '/register', '/forgot-passwo
+          rd', '/reset-password'];
+       7      const authRequired = !publicPages.includes(to.path);
+       8 -    // Retrieve token and expiration from localStorage         
+       9 -    const token = localStorage.getItem('token');               
+       8 +    // NOTE: Token is now in HttpOnly cookie (not in localStora
+         +ge) for XSS protection                                         
+       9 +    // We track user data and expiration in localStorage to det
+         +ermine auth state                                              
+      10 +    const user = localStorage.getItem('user');                 
+      11      const tokenExpiration = localStorage.getItem('tokenExpirati
+          on');
+      11 -    // e.g. "1741721978" (seconds since epoch)                 
+      12  
+      13 -    // If token and expiration exist, check whether it is expir
+         -ed                                                             
+      14 -    if (token && tokenExpiration) {                            
+      15 -        // If your tokenExpiration is in seconds, multiply by 1
+         -000 to compare with Date.now() (which is in ms)                
+      16 -        const expiryTimeMs = Number(tokenExpiration) * 1000;   
+      13 +    // If user and expiration exist, check whether session is e
+         +xpired                                                         
+      14 +    if (user && tokenExpiration) {                             
+      15 +        // tokenExpiration is stored in milliseconds           
+      16 +        const expiryTimeMs = Number(tokenExpiration);          
+      17          if (Date.now() > expiryTimeMs) {
+      18 -            // Token is expired. Clear out local storage and re
+         -direct to login.                                               
+      19 -            localStorage.removeItem('token');                  
+      18 +            // Session is expired. Clear out local storage and 
+         +redirect to login.                                             
+      19 +            // NOTE: We no longer clear 'token' as it's in Http
+         +Only cookie (cleared by backend on logout)                     
+      20              localStorage.removeItem('tokenExpiration');
+      21              localStorage.removeItem('user');
+      22              localStorage.removeItem('userRole');
+     ...
+      26          }
+      27      }
+      28  
+      29 -                                                               
+      30 -                                                               
+      29      // Initialize Echo once per session when user is authentica
+          ted
+      32 -    if (isAuthenticated && token && !isEchoInitialized()) {    
+      33 -        initEcho(token);                                       
+      30 +    // NOTE: Token is in HttpOnly cookie, Echo uses cookie-base
+         +d auth via credentials: 'include'                              
+      31 +    if (isAuthenticated && user && !isEchoInitialized()) {     
+      32 +        initEcho(); // No token parameter needed - cookie is se
+         +nt automatically                                               
+      33  
+      34          // Initialize real-time listeners for permission and pr
+          ofile sync
+      36 -        const user = JSON.parse(localStorage.getItem('user')); 
+      37 -        if (user?.id) {                                        
+      38 -            initPermissionUpdateListener(user.id);             
+      39 -            initProfileUpdateListener(user.id);                
+      35 +        const userData = JSON.parse(user);                     
+      36 +        if (userData?.id) {                                    
+      37 +            initPermissionUpdateListener(userData.id);         
+      38 +            initProfileUpdateListener(userData.id);            
+      39              // Note: Notification subscription is handled in la
+          yout-header.vue
+      40              // to properly show toast notifications with retry 
+          logic
+      41          }
+
+● Let me check and update the echo.js plugin to handle authentication without
+  passing the token directly.
+
+● Read 1 file (ctrl+o to expand)
+
+● I need to update the echo.js to support cookie-based authentication instead of
+   passing the token directly.
+
+● Update(src\plugins\echo.js)
+  ⎿  Added 17 lines, removed 2 lines
+      177      return activeUserChannels.has(key) && activeUserChannels.g
+           et(key).has(type);
+      178  }
+      179  
+      180 -export function initEcho(token) {                             
+      180 +// NOTE: Token parameter is deprecated - authentication now us
+          +es HttpOnly cookie                                            
+      181 +// The cookie is sent automatically with credentials: 'include
+          +'                                                             
+      182 +export function initEcho(token = null) {                      
+      183      // Cleanup old instance if any - IMPORTANT: Unbind listene
+           rs BEFORE disconnecting
+      184      if (echoInstance) {
+      185          unbindConnectionListeners();
+     ...
+      198      }
+      199  
+      200      // Reverb Configuration
+      201 +    // NOTE: Authentication is now cookie-based (HttpOnly cook
+          +ie for XSS protection)                                        
+      202 +    // The browser sends the cookie automatically when authEnd
+          +point is called                                               
+      203      const reverbConfig = {
+      204          broadcaster: 'reverb',
+      205          key: import.meta.env.VITE_REVERB_APP_KEY || 'qr5fnpjwy
+           v6ckd89vk3d',
+     ...
+      210          enabledTransports: ['ws', 'wss'],
+      211          disableStats: true,
+      212          authEndpoint: import.meta.env.VITE_BROADCASTING_AUTH_E
+           NDPOINT || 'http://127.0.0.1:8000/broadcasting/auth',
+      213 +        // Cookie-based authentication - HttpOnly cookie is se
+          +nt automatically                                              
+      214 +        // withCredentials ensures cookies are included in cro
+          +ss-origin requests                                            
+      215          auth: {
+      210 -            headers: { Authorization: `Bearer ${token}` },    
+      216 +            headers: {                                        
+      217 +                'X-Requested-With': 'XMLHttpRequest',         
+      218 +                'Accept': 'application/json',                 
+      219 +            },                                                
+      220          },
+      221      };
+      222  
+      223 +    // Configure axios/fetch to include credentials for cookie
+          +-based auth                                                   
+      224 +    // This is needed for the auth endpoint to receive the Htt
+          +pOnly cookie                                                  
+      225 +    if (typeof window !== 'undefined' && window.axios) {      
+      226 +        window.axios.defaults.withCredentials = true;         
+      227 +    }                                                         
+      228 +                                                              
+      229      echoInstance = new Echo(reverbConfig);
+      230  
+      231      // Define connection event handlers - CRITICAL: Store refe
+           rences for cleanup
+
+● Now let me update the other files that still reference the token. Let me read
+  and update them.
+
+● Read 4 files (ctrl+o to expand)
+
+● Update(src\main.js)
+  ⎿  Added 4 lines, removed 3 lines
+      197  
+      198  async function initializeApp() {
+      199      // Check if user is already authenticated
+      200 -    const token = localStorage.getItem('token');              
+      201 -                                                              
+      202 -    if (token) {                                              
+      200 +    // NOTE: Token is in HttpOnly cookie, we check user data p
+          +resence in localStorage                                       
+      201 +    const user = localStorage.getItem('user');                
+      202 +                                                              
+      203 +    if (user) {                                               
+      204      try {
+      205              console.log('[App] User authenticated, initializin
+           g menu service...');
+      206          await menuService.initialize();
+
+● Update(src\services\user.service.js)
+  ⎿  Added 4 lines, removed 2 lines
+      54    // Update user's password
+      55    async updatePassword(passwordData) {
+      56      try {
+      57 -      const token = localStorage.getItem(STORAGE_KEYS.TOKEN);  
+      58 -      if (!token) {                                            
+      57 +      // NOTE: Token is in HttpOnly cookie, sent automatically 
+         +with credentials: 'include'                                    
+      58 +      // Check user data presence to verify authentication stat
+         +e                                                              
+      59 +      const user = localStorage.getItem(STORAGE_KEYS.USER);    
+      60 +      if (!user) {                                             
+      61          return { success: false, error: 'Not authenticated' };
+      62        }
+      63  
+
+● Update(src\services\module.service.js)
+  ⎿  Added 9 lines, removed 13 lines
+      22          this.headers = { ...API_CONFIG.HEADERS };
+      23          this.cacheKey = 'hrms_modules_cache';
+      24          this.cacheTTL = 3600000; // 1 hour in milliseconds
+      25 -                                                               
+      26 -        // Set auth token if available                         
+      27 -        const token = localStorage.getItem('token');           
+      28 -        if (token) {                                           
+      29 -            this.setAuthToken(token);                          
+      30 -        }                                                      
+      25 +        // NOTE: Token is now in HttpOnly cookie, no manual hea
+         +der management needed                                          
+      26 +        // The browser sends the cookie automatically with cred
+         +entials: 'include'                                             
+      27      }
+      28  
+      29      /**
+      34 -     * Set authentication token                                
+      35 -     * @param {string} token - JWT token                       
+      30 +     * Set authentication token - DEPRECATED                   
+      31 +     * Token is now stored in HttpOnly cookie for XSS protectio
+         +n.                                                             
+      32 +     * This method is kept for backward compatibility but does 
+         +nothing.                                                       
+      33 +     * @param {string} token - JWT token (ignored)             
+      34       */
+      35      setAuthToken(token) {
+      38 -        if (token) {                                           
+      39 -            this.headers['Authorization'] = `Bearer ${token}`; 
+      40 -        } else {                                               
+      41 -            delete this.headers['Authorization'];              
+      42 -        }                                                      
+      36 +        // NOTE: Token is in HttpOnly cookie, no need to set Au
+         +thorization header                                             
+      37 +        // The cookie is sent automatically with credentials: '
+         +include'                                                       
+      38 +        console.debug('[ModuleService] setAuthToken called but 
+         +token is now in HttpOnly cookie');                             
+      39      }
+      40  
+      41      /**
+
+● Update(src\services\menu.service.js)
+  ⎿  Added 6 lines, removed 6 lines
+      30     */
+      31    async initialize() {
+      32      try {
+      33 -      // Check if user is authenticated                        
+      34 -      const token = localStorage.getItem('token');             
+      35 -      if (!token) {                                            
+      36 -        console.warn('[MenuService] No auth token found, skippi
+         -ng module initialization');                                    
+      33 +      // Check if user is authenticated by checking user data p
+         +resence                                                        
+      34 +      // NOTE: Token is in HttpOnly cookie (sent automatically)
+         +, we check user data for auth state                            
+      35 +      const user = localStorage.getItem('user');               
+      36 +      if (!user) {                                             
+      37 +        console.warn('[MenuService] No user data found, skippin
+         +g module initialization');                                     
+      38          this.useApiModules = false;
+      39          return false;
+      40        }
+      41  
+      41 -      // Set auth token in module service                      
+      42 -      moduleService.setAuthToken(token);                       
+      42 +      // NOTE: Token is in HttpOnly cookie, no need to set auth
+         + header manually                                               
+      43  
+      44        console.log('[MenuService] Initializing - loading modules
+           from API');
+      45        this.modules = await moduleService.fetchModules();
+
+● Now let me update the sidebar-menu.vue and login-index.vue files.
+
+● Read 2 files (ctrl+o to expand)
+
+● Update(src\views\layouts\sidebar-menu.vue)
+  ⎿  Added 3 lines, removed 2 lines
+      138   */
+      139  function preloadMenuFromCache() {
+      140      try {
+      141 -        const token = localStorage.getItem('token');          
+      142 -        if (!token) {                                         
+      141 +        // NOTE: Token is in HttpOnly cookie, check user data 
+          +for auth state                                                
+      142 +        const user = localStorage.getItem('user');            
+      143 +        if (!user) {                                          
+      144              return { sideBarData: [], isLoading: false };
+      145          }
+      146  
+
+● Update(src\views\pages\authentication\login-index.vue)
+  ⎿  Added 19 lines, removed 10 lines
+      33  
+      34  const v$ = useVuelidate(rules, formData);
+      35  
+      36 -// Check for existing token on mount                           
+      36 +// Check for existing authentication on mount                  
+      37 +// NOTE: Token is in HttpOnly cookie, we check user data presen
+         +ce for auth state                                              
+      38  onMounted(() => {
+      38 -  const token = localStorage.getItem('token');                 
+      39 -  if (token) {                                                 
+      40 -    verifyToken(token);                                        
+      39 +  const user = localStorage.getItem('user');                   
+      40 +  if (user) {                                                  
+      41 +    verifySession();                                           
+      42    }
+      43  });
+      44  
+      44 -const verifyToken = async (token) => {                         
+      45 +// Verify if the current session is valid with the backend     
+      46 +// Token is in HttpOnly cookie, sent automatically             
+      47 +const verifySession = async () => {                            
+      48    try {
+      46 -    const response = await authService.verifyToken(token);     
+      49 +    // Call verify endpoint - cookie is sent automatically     
+      50 +    const response = await authService.verifyToken();          
+      51      if (response.valid) {
+      48 -      // Token is valid, redirect to dashboard                 
+      52 +      // Session is valid, redirect to dashboard               
+      53        const authStore = useAuthStore();
+      54        const redirectPath = authStore.getRedirectPath();
+      55        await router.replace(redirectPath);
+      56      } else {
+      53 -      // Token invalid, remove it                              
+      54 -      localStorage.removeItem('token');                        
+      57 +      // Session invalid, clear user data (cookie will be clear
+         +ed by backend)                                                 
+      58        localStorage.removeItem('user');
+      59 +      localStorage.removeItem('userRole');                     
+      60 +      localStorage.removeItem('permissions');                  
+      61 +      localStorage.removeItem('tokenExpiration');              
+      62      }
+      63    } catch {
+      58 -    localStorage.removeItem('token');                          
+      64 +    // Error verifying, clear local data                       
+      65      localStorage.removeItem('user');
+      66 +    localStorage.removeItem('userRole');                       
+      67 +    localStorage.removeItem('permissions');                    
+      68 +    localStorage.removeItem('tokenExpiration');                
+      69    }
+      70  };
+      71  
+
+● Update(src\views\pages\authentication\login-index.vue)
+  ⎿  Added 3 lines, removed 2 lines
+      84      const response = await authStore.login(formData);
+      85  
+      86      if (response.success) {
+      87 -      // Disconnect and reinitialize Echo with new token       
+      87 +      // Disconnect and reinitialize Echo with cookie-based aut
+         +h                                                              
+      88 +      // NOTE: Token is in HttpOnly cookie, no need to pass it 
+         +to initEcho                                                    
+      89        if (window.Echo) {
+      90          window.Echo.disconnect();
+      91        }
+      92  
+      92 -      initEcho(localStorage.getItem('token'));                 
+      93 +      initEcho(); // Cookie is sent automatically              
+      94  
+      95        // Check for intended route (saved by authGuard when user
+           tried to access protected route)
+      96        const intendedRoute = localStorage.getItem('intendedRoute
+          ');
+
+● Let me verify there are no more direct token references and also check the
+  authStore.js for any remaining issues.
+
+● Searched for 2 patterns (ctrl+o to expand)
+
+● These remaining references are for clearing legacy data, which is correct. Let
+   me verify the authStore.js is properly configured.
+
+● Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Let me verify that the module.service.js has proper credentials handling for
+  the API calls.
+
+● Read 1 file (ctrl+o to expand)
+
+● The module.service.js already has credentials: 'include' which sends the
+  cookie automatically. Let me do a final verification to ensure the migration
+  is complete.
+
+● Searched for 1 pattern (ctrl+o to expand)
+
+● Found one more file that needs updating. Let me check the
+  resignation.service.js.
+
+● Read 1 file (ctrl+o to expand)
+
+● Update(src\services\resignation.service.js)
+  ⎿  Added 3 lines, removed 3 lines
+      363      async downloadRecommendationLetter(id, employeeName = 'emp
+           loyee') {
+      364          try {
+      365              const endpoint = API_ENDPOINTS.RESIGNATION.RECOMME
+           NDATION_LETTER.replace(':id', id);
+      366 -            const token = localStorage.getItem('auth_token'); 
+      366 +            // NOTE: Token is in HttpOnly cookie, sent automat
+          +ically with credentials: 'include'                            
+      367  
+      368              const response = await fetch(`${API_CONFIG.BASE_UR
+           L}${endpoint}`, {
+      369                  method: 'GET',
+      370                  headers: {
+      371 -                    'Authorization': `Bearer ${token}`,       
+      371                      'Accept': 'application/pdf'
+      373 -                }                                             
+      372 +                },                                            
+      373 +                credentials: 'include' // Send HttpOnly cookie
+          + automatically                                                
+      374              });
+      375  
+      376              if (!response.ok) {
+
+● Let me do one final verification.
+
+● Searched for 2 patterns (ctrl+o to expand)
+
+● The cookie-only authentication migration is now complete. Here's a summary of
+  all the changes made:
+
+  Frontend Files Updated
+
+  Services
+
+  - auth.service.js: Updated logout(), refreshToken(), isAuthenticated(), 
+  getToken() methods to use user-based auth checks instead of token
+  - api.service.js: setAuthToken() deprecated (token is in HttpOnly cookie)
+  - module.service.js: setAuthToken() deprecated, removed token initialization
+  from constructor
+  - menu.service.js: Changed auth check from token to user presence
+  - user.service.js: Changed updatePassword() to check user instead of token
+  - resignation.service.js: Changed PDF download to use credentials: 'include' 
+  instead of Bearer token header
+
+  Stores
+
+  - authStore.js: Already updated - isAuthenticated getter checks user presence,
+   all methods use cookie-based auth
+
+  Router
+
+  - guards.js: Changed auth guard to check user presence, updated Echo
+  initialization to not pass token
+
+  Plugins
+
+  - echo.js: Updated initEcho() to use cookie-based auth headers instead of 
+  Bearer token
+
+  Views
+
+  - login-index.vue: Changed to verifySession() checking user presence, Echo
+  init without token
+  - sidebar-menu.vue: Changed preload check from token to user presence
+
+  Main
+
+  - main.js: Changed app initialization to check user instead of token
+
+  Key Security Improvements
+
+  1. Token is no longer accessible via JavaScript - stored only in HttpOnly
+  cookie
+  2. XSS attacks cannot steal the authentication token
+  3. Browser automatically sends cookie with credentials: 'include'
+  4. Backend AuthenticateFromCookie middleware extracts token from cookie and 
+  sets Authorization header
+
+  How It Works Now
+
+  1. Login: Backend sets HttpOnly cookie with token, frontend stores user data 
+  (not token)
+  2. API Requests: Browser sends HttpOnly cookie automatically, backend
+  middleware extracts token
+  3. Auth Check: Frontend checks user data presence + expiration, validates with
+   server
+  4. Logout: Backend clears the HttpOnly cookie, frontend clears user data
+
+✻ Churned for 8m 30s

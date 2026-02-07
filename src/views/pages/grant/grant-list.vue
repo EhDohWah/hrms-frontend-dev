@@ -962,7 +962,7 @@ export default {
     confirmDeleteGrant(id) {
       Modal.confirm({
         title: 'Are you sure you want to delete this grant?',
-        content: 'This will delete the grant and all associated items. This action cannot be undone.',
+        content: 'The grant and all associated items will be moved to the Recycle Bin and can be restored within 30 days.',
         centered: true,
         okText: 'Yes',
         okType: 'danger',
@@ -1250,13 +1250,22 @@ export default {
     async deleteGrant(id) {
       this.loading = true;
       try {
-        await this.grantService.deleteGrant(id);
-        this.$message.success('Grant deleted successfully');
-        // Refresh the grants list
+        const response = await this.grantService.deleteGrant(id);
+        const count = response.deleted_records_count || 1;
+        this.$message.success(`Grant moved to Recycle Bin (${count} record${count > 1 ? 's' : ''} archived)`);
         this.fetchGrants();
       } catch (error) {
         console.error('Error deleting grant:', error);
-        this.$message.error('Failed to delete grant');
+        const responseData = error.response?.data || error;
+        if (responseData.blockers && responseData.blockers.length > 0) {
+          Modal.error({
+            title: 'Cannot delete grant',
+            content: responseData.blockers.join('\n'),
+            centered: true,
+          });
+        } else {
+          this.$message.error(responseData.message || 'Failed to delete grant');
+        }
       } finally {
         this.loading = false;
       }
@@ -1277,7 +1286,7 @@ export default {
 
       Modal.confirm({
         title: `Are you sure you want to delete ${this.selectedRowKeys.length} selected grant(s)?`,
-        content: 'This will delete all selected grants and their associated grant items. This action cannot be undone.',
+        content: 'The selected grants and their items will be moved to the Recycle Bin and can be restored within 30 days.',
         centered: true,
         okText: 'Yes, Delete All',
         okType: 'danger',
@@ -1288,18 +1297,40 @@ export default {
       });
     },
 
-    // Delete selected grants
+    // Delete selected grants (bulk safe delete)
     async deleteSelectedGrants() {
       this.loading = true;
       try {
         console.log('Sending IDs to delete:', this.selectedRowKeys);
-        await this.grantService.deleteSelectedGrants(this.selectedRowKeys);
-        this.$message.success(`${this.selectedRowKeys.length} grant(s) deleted successfully`);
+        const response = await this.grantService.deleteSelectedGrants(this.selectedRowKeys);
+
+        if (response.succeeded && response.failed) {
+          const successCount = response.succeeded.length;
+          const failedCount = response.failed.length;
+
+          if (successCount > 0) {
+            this.$message.success(`${successCount} grant(s) moved to Recycle Bin`);
+          }
+          if (failedCount > 0) {
+            const blockerMessages = response.failed
+              .map(f => `ID ${f.id}: ${f.blockers?.join(', ') || f.error}`)
+              .join('\n');
+            Modal.warning({
+              title: `${failedCount} grant(s) could not be deleted`,
+              content: blockerMessages,
+              centered: true,
+            });
+          }
+        } else {
+          this.$message.success(`${this.selectedRowKeys.length} grant(s) moved to Recycle Bin`);
+        }
+
         this.selectedRowKeys = [];
         this.fetchGrants();
       } catch (error) {
-        this.$message.error('Failed to delete grants');
         console.error("Error deleting grants:", error);
+        const responseData = error.response?.data || error;
+        this.$message.error(responseData.message || 'Failed to delete grants');
       } finally {
         this.loading = false;
       }

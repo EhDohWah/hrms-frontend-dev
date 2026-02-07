@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '@/config/api.config';
 
 class RecycleBinService {
 
-    // Fetch all deleted records in recycle bin
+    // Fetch all deleted records (both manifest-based and legacy)
     async getAllDeletedRecords() {
         return await apiService.get(API_ENDPOINTS.RECYCLE_BIN.LIST);
     }
@@ -14,21 +14,44 @@ class RecycleBinService {
         return await apiService.get(API_ENDPOINTS.RECYCLE_BIN.STATS);
     }
 
-    // Restore a single record from recycle bin
-    async restoreRecord(restoreData) {
-        return await apiService.post(API_ENDPOINTS.RECYCLE_BIN.RESTORE, restoreData);
+    // ─── Manifest-based operations (Employee, Grant, Department) ────────
+
+    // Restore a manifest-based deletion by its deletion key
+    async restoreByKey(deletionKey) {
+        const endpoint = API_ENDPOINTS.RECYCLE_BIN.RESTORE_BY_KEY.replace(':deletionKey', deletionKey);
+        return await apiService.post(endpoint);
     }
 
-    // Bulk restore multiple records from recycle bin
-    async bulkRestoreRecords(bulkRestoreData) {
-        return await apiService.post(API_ENDPOINTS.RECYCLE_BIN.BULK_RESTORE, bulkRestoreData);
+    // Bulk restore manifest-based deletions by their deletion keys
+    async bulkRestoreByKeys(deletionKeys) {
+        return await apiService.post(API_ENDPOINTS.RECYCLE_BIN.BULK_RESTORE_KEYS, {
+            deletion_keys: deletionKeys
+        });
     }
 
-    // Permanently delete a record from recycle bin
-    async permanentlyDeleteRecord(deletedRecordId) {
-        const endpoint = API_ENDPOINTS.RECYCLE_BIN.PERMANENT_DELETE.replace(':deletedRecordId', deletedRecordId);
+    // Permanently delete a manifest-based deletion by its key
+    async permanentDeleteByKey(deletionKey) {
+        const endpoint = API_ENDPOINTS.RECYCLE_BIN.PERMANENT_DELETE_BY_KEY.replace(':deletionKey', deletionKey);
+        return await apiService.delete(endpoint);
+    }
+
+    // ─── Legacy operations (Interview, JobOffer) ────────────────────────
+
+    // Restore a legacy flat record
+    async restoreLegacy(restoreData) {
+        return await apiService.post(API_ENDPOINTS.RECYCLE_BIN.RESTORE_LEGACY, restoreData);
+    }
+
+    // Bulk restore legacy flat records
+    async bulkRestoreLegacy(bulkRestoreData) {
+        return await apiService.post(API_ENDPOINTS.RECYCLE_BIN.BULK_RESTORE_LEGACY, bulkRestoreData);
+    }
+
+    // Permanently delete a legacy flat record by deleted_models ID
+    async permanentDeleteLegacy(deletedRecordId) {
+        const endpoint = API_ENDPOINTS.RECYCLE_BIN.PERMANENT_DELETE_LEGACY.replace(':deletedRecordId', deletedRecordId);
         return await apiService.delete(endpoint);
     }
 }
 
-export const recycleBinService = new RecycleBinService(); 
+export const recycleBinService = new RecycleBinService();

@@ -238,7 +238,8 @@ import sideBarData from "@/assets/json/sidebar-menuone.json";
 import { Modal, notification } from 'ant-design-vue'
 import { notification as antNotification } from 'ant-design-vue';
 import eventBus from '@/plugins/eventBus';
-import { disconnectEcho, getEcho } from '@/plugins/echo';
+import { disconnectEcho, subscribeToNotifications, unsubscribeFromNotifications } from '@/plugins/echo';
+import { sanitizeNotificationHtml, escapeHtml } from '@/utils/sanitize';
 
 export default {
   data() {
@@ -297,59 +298,57 @@ export default {
     this.notificationStore.fetchNotifications();
 
     // Setup WebSocket listener for real-time notifications
+    // Uses echo.js's managed subscription to prevent duplicate subscriptions
+    // and avoid the destructive window.Echo.leave() pattern
     const user = JSON.parse(localStorage.getItem('user'));
     const userId = user ? user.id : null;
+    this._notificationUserId = userId; // Store for cleanup in beforeUnmount
 
-    if (userId && getEcho()) {
-      getEcho().private(`App.Models.User.${userId}`)
-        .notification((notif) => {
-          console.log('[Echo] Notification received:', notif);
+    if (userId) {
+      subscribeToNotifications(userId, (notif) => {
+        // Ensure the notification has the proper structure for Laravel notifications
+        const formattedNotif = {
+          id: notif.id || Date.now().toString(),
+          data: notif.data || { message: notif.message },
+          read_at: null,
+          created_at: new Date().toISOString(),
+          ...notif
+        };
 
-          // Ensure the notification has the proper structure for Laravel notifications
-          const formattedNotif = {
-            id: notif.id || Date.now().toString(),
-            data: notif.data || { message: notif.message },
-            read_at: null,
-            created_at: new Date().toISOString(),
-            ...notif
-          };
+        // Add to store
+        this.notificationStore.addNotification(formattedNotif);
 
-          // Add to store
-          this.notificationStore.addNotification(formattedNotif);
+        // Get category-specific configuration
+        const category = this.getNotificationCategory(formattedNotif);
+        const categoryConfig = this.getCategoryConfig()[category] || this.getCategoryConfig().general;
 
-          // Get category-specific configuration
-          const category = this.getNotificationCategory(formattedNotif);
-          const categoryConfig = this.getCategoryConfig()[category] || this.getCategoryConfig().general;
-
-          // Show toast notification
-          notification.open({
-            message: `${categoryConfig.icon} ${categoryConfig.label}`,
-            description: this.getNotificationMessage(formattedNotif),
-            placement: 'topRight',
-            duration: 5,
-            style: {
-              borderLeft: `4px solid ${categoryConfig.color}`,
-            },
-            onClick: () => {
-              console.log('Notification Clicked!');
-              // Navigate to notification detail
-              this.$router.push(`/notifications/${formattedNotif.id}`);
-              notification.destroy();
-            },
-          });
-
-          console.log('Notification Event Fired!');
-          eventBus.emit('notification-clicked', formattedNotif);
+        // Show toast notification
+        notification.open({
+          message: `${categoryConfig.icon} ${categoryConfig.label}`,
+          description: this.getNotificationMessage(formattedNotif),
+          placement: 'topRight',
+          duration: 5,
+          style: {
+            borderLeft: `4px solid ${categoryConfig.color}`,
+          },
+          onClick: () => {
+            // Navigate to notification detail
+            this.$router.push(`/notifications/${formattedNotif.id}`);
+            notification.destroy();
+          },
         });
+
+        eventBus.emit('notification-clicked', formattedNotif);
+      });
     }
   },
 
   beforeUnmount() {
-    // Clean up Echo listener
-    const user = JSON.parse(localStorage.getItem('user'));
-    const userId = user ? user.id : null;
-    if (userId && window.Echo) {
-      window.Echo.leave(`private-App.Models.User.${userId}`);
+    // Unsubscribe from notification events using echo.js's managed cleanup
+    // This only removes the notification listener, NOT the entire channel
+    // (permission and profile listeners may still be active on the same channel)
+    if (this._notificationUserId) {
+      unsubscribeFromNotifications(this._notificationUserId);
     }
 
     // Clean up event listeners
@@ -579,7 +578,8 @@ export default {
 
     /**
      * Format notification text with highlighted user and object names
-     * Returns HTML string for v-html binding
+     * Returns sanitized HTML string for v-html binding
+     * Uses DOMPurify via sanitize utility to prevent XSS attacks
      */
     formatNotificationText(notification) {
       const type = notification.data?.type || notification.type || '';
@@ -593,7 +593,7 @@ export default {
       ];
 
       if (directMessageTypes.includes(type)) {
-        return this.escapeHtml(this.getNotificationMessage(notification));
+        return escapeHtml(this.getNotificationMessage(notification));
       }
 
       const userName = this.getPerformedByName(notification);
@@ -602,26 +602,27 @@ export default {
 
       // If no meaningful action info, fallback to message
       if (action === 'made changes to' && !objectInfo) {
-        return this.escapeHtml(this.getNotificationMessage(notification));
+        return escapeHtml(this.getNotificationMessage(notification));
       }
 
-      // Build formatted message
+      // Build formatted message with escaped user content
       let text = '';
 
-      // Add user name (highlighted)
+      // Add user name (highlighted) - escape to prevent XSS
       if (userName && userName !== 'System') {
-        text += `<span class="notif-user">${this.escapeHtml(userName)}</span> `;
+        text += `<span class="notif-user">${escapeHtml(userName)}</span> `;
       }
 
-      // Add action verb
-      text += action;
+      // Add action verb (safe, from our code)
+      text += escapeHtml(action);
 
-      // Add object info if available
+      // Add object info if available - escape to prevent XSS
       if (objectInfo) {
-        text += ` <span class="notif-object">${this.escapeHtml(objectInfo)}</span>`;
+        text += ` <span class="notif-object">${escapeHtml(objectInfo)}</span>`;
       }
 
-      return text || this.getNotificationMessage(notification);
+      // Sanitize the final HTML before returning
+      return sanitizeNotificationHtml(text || escapeHtml(this.getNotificationMessage(notification)));
     },
 
     /**
@@ -685,15 +686,6 @@ export default {
       }
 
       return '';
-    },
-
-    /**
-     * Escape HTML to prevent XSS
-     */
-    escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
     },
 
     /**

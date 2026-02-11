@@ -271,14 +271,12 @@ export default {
         endDate: null
       },
       currentAllocation: {
-        allocation_type: 'grant',
         grant_id: '',
         grant_items_id: '',
         position_slot_id: '',
         level_of_effort: 100
       },
       editData: {
-        allocation_type: 'grant',
         grant_id: '',
         grant_items_id: '',
         position_slot_id: '',
@@ -307,12 +305,7 @@ export default {
     };
   },
 
-  computed: {
-    hasOrgFunded() {
-      // All allocations are now grant type
-      return false;
-    }
-  },
+  computed: {},
 
   methods: {
     isOrgFundGrant(grantId) {
@@ -550,8 +543,6 @@ export default {
     async onGrantChange() {
       console.log('Grant changed:', this.currentAllocation.grant_id);
 
-      // All allocations are now grant type with grant_item_id
-      this.currentAllocation.allocation_type = 'grant';
       this.currentAllocation.grant_items_id = '';
       this.currentAllocation.position_slot_id = '';
       this.grantPositionOptions = this.grantPositions[this.currentAllocation.grant_id] || [];
@@ -600,18 +591,13 @@ export default {
 
       // Compose allocation row
       const alloc = {
-        ...this.currentAllocation,
-        allocation_type: 'grant' // All allocations are grant type now
+        ...this.currentAllocation
       };
 
-      // Prevent duplicate for both types
+      // Prevent duplicate by position_slot_id
       if (this.grantAllocations.some((a, i) => {
         if (this.editingIndex !== null && i === this.editingIndex) return false;
-        // All allocations are grant type, check by grant_item_id
-        if (alloc.allocation_type === 'grant' && a.allocation_type === 'grant') {
-          return a.position_slot_id == alloc.position_slot_id;
-        }
-        return false;
+        return a.position_slot_id == alloc.position_slot_id;
       })) {
         this.alertMessage = 'This allocation is already added.';
         this.alertClass = 'alert-danger';
@@ -631,7 +617,6 @@ export default {
 
       // Reset current allocation form
       this.currentAllocation = {
-        allocation_type: 'grant',
         grant_id: '',
         grant_items_id: '',
         position_slot_id: '',
@@ -805,7 +790,6 @@ export default {
           end_date: this.formData.endDate,
           allocations: this.grantAllocations.map(allocation => ({
             level_of_effort: allocation.level_of_effort,
-            allocation_type: 'grant',
             grant_item_id: allocation.grant_items_id,
             position_slot_id: allocation.position_slot_id
           }))
@@ -884,7 +868,6 @@ export default {
         endDate: null
       };
       this.currentAllocation = {
-        allocation_type: 'grant',
         grant_id: '',
         grant_items_id: '',
         position_slot_id: '',
@@ -940,10 +923,8 @@ export default {
               grantItemsId = position ? position.id : null;
             }
 
-            // All allocations are now grant type
             return {
               id: allocation.id, // Store the allocation ID for potential updates/deletes
-              allocation_type: 'grant',
               grant_id: grantId,
               grant_items_id: grantItemsId,
               position_slot_id: allocation.position_slot_id,

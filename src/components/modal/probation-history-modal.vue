@@ -195,6 +195,7 @@
 </template>
 
 <script>
+import moment from 'moment';
 import { Modal } from 'bootstrap';
 import { employmentService } from '@/services/employment.service';
 import { useToast } from '@/composables/useToast';
@@ -330,16 +331,8 @@ export default {
     },
 
     formatDate(date) {
-      if (!date) return 'N/A';
-
-      const d = new Date(date);
-      if (isNaN(d.getTime())) return 'Invalid Date';
-
-      return d.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      });
+      if (!date) return '';
+      return moment(date).format('DD/MM/YYYY');
     },
 
     getEventTypeLabel(eventType) {

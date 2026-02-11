@@ -1,1144 +1,771 @@
-<template>
-  <!-- Add Resignation -->
-  <div class="modal fade" id="new_resignation" tabindex="-1" aria-labelledby="newResignationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content new-modal-design">
-        <div class="modal-header">
-          <h2 class="modal-title" id="newResignationModalLabel">
-            Add Resignation
-          </h2>
-          <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close" @click="resetCreateForm">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="handleCreateSubmit">
-          <div class="modal-body">
-            <!-- Alert Messages -->
-            <div v-if="createForm.alertMessage && createForm.alertClass === 'alert-success'" class="success-msg">
-              {{ createForm.alertMessage }}
-            </div>
-            <div v-if="createForm.alertMessage && createForm.alertClass === 'alert-danger'" class="error-msg">
-              {{ createForm.alertMessage }}
-            </div>
-
-            <!-- Employee Field -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Resigning Employee :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <div class="input-medium-wrapper">
-                    <EmployeeTreeSelect
-                      v-model="createForm.data.employee_id"
-                      :tree-data="employeeTreeData"
-                      :display-value="createForm.selectedEmployeeDisplay"
-                      :has-error="!!createForm.errors.employee_id"
-                      :error-message="createForm.errors.employee_id"
-                      placeholder="Select employee"
-                      search-placeholder="Search employees..."
-                      @select="handleEmployeeSelect"
-                    />
-                  </div>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Select the employee who is resigning" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Selected Employee Info Card -->
-            <div v-if="createForm.selectedEmployeeInfo" class="employee-info-card mb-3">
-              <div class="card-body">
-                <h6 class="card-title">Selected Employee</h6>
-                <p class="card-text">
-                  <strong>{{ createForm.selectedEmployeeInfo.name }}</strong><br>
-                  <small class="text-muted">Staff ID: {{ createForm.selectedEmployeeInfo.staffId }}</small><br>
-                  <small class="text-muted">Organization: {{ createForm.selectedEmployeeInfo.organization }}</small>
-                </p>
-              </div>
-            </div>
-
-            <!-- Department Field -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Department :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <select
-                    class="form-control input-short"
-                    v-model="createForm.data.department_id"
-                    :class="{ 'is-invalid': createForm.errors.department_id }"
-                    required
-                    @change="onCreateDepartmentChange"
-                    :disabled="isLoadingData"
-                  >
-                    <option disabled value="">{{ isLoadingData ? 'Loading...' : 'Select Department' }}</option>
-                    <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                      {{ dept.name }}
-                    </option>
-                  </select>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Select the employee's department at time of resignation" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="createForm.errors.department_id" class="invalid-feedback">
-                  {{ createForm.errors.department_id }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Position Field -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Position :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <select
-                    class="form-control input-short"
-                    v-model="createForm.data.position_id"
-                    :class="{ 'is-invalid': createForm.errors.position_id }"
-                    required
-                    :disabled="!createForm.data.department_id || positionsLoading"
-                  >
-                    <option disabled value="">{{ positionsLoading ? 'Loading...' : 'Select Position' }}</option>
-                    <option v-for="pos in positions" :key="pos.id" :value="pos.id">
-                      {{ pos.title }}
-                    </option>
-                  </select>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Select the employee's position at time of resignation" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="createForm.errors.position_id" class="invalid-feedback">
-                  {{ createForm.errors.position_id }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Resignation Date -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Resignation Date :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <div class="input-icon-end position-relative input-short-wrapper">
-                    <date-picker
-                      class="form-control datetimepicker input-short"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                      v-model="createForm.data.resignation_date"
-                      :class="{ 'is-invalid': createForm.errors.resignation_date }"
-                      required
-                    />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Date when the resignation was submitted" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="createForm.errors.resignation_date" class="invalid-feedback">
-                  {{ createForm.errors.resignation_date }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Last Working Date -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Last Working Date :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <div class="input-icon-end position-relative input-short-wrapper">
-                    <date-picker
-                      class="form-control datetimepicker input-short"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                      v-model="createForm.data.last_working_date"
-                      :class="{ 'is-invalid': createForm.errors.last_working_date }"
-                      required
-                    />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Employee's last day of work (must be on or after resignation date)" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="createForm.errors.last_working_date" class="invalid-feedback">
-                  {{ createForm.errors.last_working_date }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Reason -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Reason :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <select
-                    class="form-control input-medium"
-                    v-model="createForm.data.reason"
-                    :class="{ 'is-invalid': createForm.errors.reason }"
-                    required
-                  >
-                    <option disabled value="">Select Reason</option>
-                    <option v-for="reason in resignationReasons" :key="reason" :value="reason">
-                      {{ reason }}
-                    </option>
-                  </select>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Primary reason for resignation" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="createForm.errors.reason" class="invalid-feedback">
-                  {{ createForm.errors.reason }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Reason Details -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label">
-                  Reason Details :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <textarea
-                  class="form-control"
-                  v-model="createForm.data.reason_details"
-                  rows="3"
-                  placeholder="Additional details about the resignation reason (optional)"
-                  maxlength="1000"
-                ></textarea>
-                <small class="text-muted">{{ (createForm.data.reason_details || '').length }}/1000 characters</small>
-              </div>
-            </div>
-
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-cancel" data-bs-dismiss="modal" @click="resetCreateForm">
-              <i class="ti ti-x"></i> Cancel
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting">
-                <i class="ti ti-loader spinner-icon"></i> Saving...
-              </span>
-              <span v-else>
-                <i class="ti ti-device-floppy"></i> Add Resignation
-              </span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <!-- /Add Resignation -->
-
-  <!-- Edit Resignation -->
-  <div class="modal fade" id="edit_resignation" tabindex="-1" aria-labelledby="editResignationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content new-modal-design">
-        <div class="modal-header">
-          <h2 class="modal-title" id="editResignationModalLabel">
-            Edit Resignation
-          </h2>
-          <button type="button" class="btn-close-custom" data-bs-dismiss="modal" aria-label="Close" @click="resetEditForm">
-            <i class="ti ti-x"></i>
-          </button>
-        </div>
-        <form @submit.prevent="handleEditSubmit">
-          <div class="modal-body">
-            <!-- Alert Messages -->
-            <div v-if="editForm.alertMessage && editForm.alertClass === 'alert-success'" class="success-msg">
-              {{ editForm.alertMessage }}
-            </div>
-            <div v-if="editForm.alertMessage && editForm.alertClass === 'alert-danger'" class="error-msg">
-              {{ editForm.alertMessage }}
-            </div>
-
-            <!-- Employee Field (Read-only in edit mode) -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label">
-                  Resigning Employee :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <input
-                  type="text"
-                  class="form-control input-medium disabled-input"
-                  :value="editForm.selectedEmployeeDisplay"
-                  disabled
-                />
-                <small class="text-muted">Employee cannot be changed after resignation is created</small>
-              </div>
-            </div>
-
-            <!-- Department Field -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Department :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <select
-                    class="form-control input-short"
-                    v-model="editForm.data.department_id"
-                    :class="{ 'is-invalid': editForm.errors.department_id }"
-                    required
-                    @change="onEditDepartmentChange"
-                    :disabled="isLoadingData"
-                  >
-                    <option disabled value="">{{ isLoadingData ? 'Loading...' : 'Select Department' }}</option>
-                    <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                      {{ dept.name }}
-                    </option>
-                  </select>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Select the employee's department" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="editForm.errors.department_id" class="invalid-feedback">
-                  {{ editForm.errors.department_id }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Position Field -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Position :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <select
-                    class="form-control input-short"
-                    v-model="editForm.data.position_id"
-                    :class="{ 'is-invalid': editForm.errors.position_id }"
-                    required
-                    :disabled="!editForm.data.department_id || editPositionsLoading"
-                  >
-                    <option disabled value="">{{ editPositionsLoading ? 'Loading...' : 'Select Position' }}</option>
-                    <option v-for="pos in editPositions" :key="pos.id" :value="pos.id">
-                      {{ pos.title }}
-                    </option>
-                  </select>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Select the employee's position" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="editForm.errors.position_id" class="invalid-feedback">
-                  {{ editForm.errors.position_id }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Resignation Date -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Resignation Date :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <div class="input-icon-end position-relative input-short-wrapper">
-                    <date-picker
-                      class="form-control datetimepicker input-short"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                      v-model="editForm.data.resignation_date"
-                      :class="{ 'is-invalid': editForm.errors.resignation_date }"
-                      required
-                    />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Date when the resignation was submitted" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="editForm.errors.resignation_date" class="invalid-feedback">
-                  {{ editForm.errors.resignation_date }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Last Working Date -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Last Working Date :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <div class="input-icon-end position-relative input-short-wrapper">
-                    <date-picker
-                      class="form-control datetimepicker input-short"
-                      placeholder="dd/mm/yyyy"
-                      :editable="true"
-                      :clearable="false"
-                      :input-format="dateFormat"
-                      v-model="editForm.data.last_working_date"
-                      :class="{ 'is-invalid': editForm.errors.last_working_date }"
-                      required
-                    />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Employee's last day of work" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="editForm.errors.last_working_date" class="invalid-feedback">
-                  {{ editForm.errors.last_working_date }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Reason -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label required">
-                  Reason :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="input-with-tooltip">
-                  <select
-                    class="form-control input-medium"
-                    v-model="editForm.data.reason"
-                    :class="{ 'is-invalid': editForm.errors.reason }"
-                    required
-                  >
-                    <option disabled value="">Select Reason</option>
-                    <option v-for="reason in resignationReasons" :key="reason" :value="reason">
-                      {{ reason }}
-                    </option>
-                  </select>
-                  <span data-bs-toggle="tooltip" data-bs-placement="top" title="Primary reason for resignation" class="tooltip-icon">
-                    <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
-                  </span>
-                </div>
-                <div v-if="editForm.errors.reason" class="invalid-feedback">
-                  {{ editForm.errors.reason }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Reason Details -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label">
-                  Reason Details :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <textarea
-                  class="form-control"
-                  v-model="editForm.data.reason_details"
-                  rows="3"
-                  placeholder="Additional details about the resignation reason (optional)"
-                  maxlength="1000"
-                ></textarea>
-                <small class="text-muted">{{ (editForm.data.reason_details || '').length }}/1000 characters</small>
-              </div>
-            </div>
-
-            <!-- Acknowledgement Status (Edit only) -->
-            <div class="form-row mb-3">
-              <div class="form-label-col">
-                <label class="form-label">
-                  Status :
-                </label>
-              </div>
-              <div class="form-input-col">
-                <div class="acknowledgement-status">
-                  <a-tag :color="getStatusColor(editForm.data.acknowledgement_status)">
-                    {{ editForm.data.acknowledgement_status || 'Pending' }}
-                  </a-tag>
-                  <div v-if="editForm.data.acknowledgement_status === 'Pending'" class="mt-2">
-                    <a-button type="primary" size="small" @click="acknowledgeResignation" :loading="isAcknowledging" class="me-2">
-                      <template #icon><CheckOutlined /></template>
-                      Acknowledge
-                    </a-button>
-                    <a-button danger size="small" @click="rejectResignation" :loading="isRejecting">
-                      <template #icon><CloseOutlined /></template>
-                      Reject
-                    </a-button>
-                  </div>
-                  <div v-if="editForm.data.acknowledged_at" class="mt-2">
-                    <small class="text-muted">
-                      {{ editForm.data.acknowledgement_status === 'Acknowledged' ? 'Acknowledged' : 'Rejected' }}
-                      on {{ formatDate(editForm.data.acknowledged_at) }}
-                    </small>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-cancel" data-bs-dismiss="modal" @click="resetEditForm">
-              <i class="ti ti-x"></i> Cancel
-            </button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting">
-                <i class="ti ti-loader spinner-icon"></i> Saving...
-              </span>
-              <span v-else>
-                <i class="ti ti-device-floppy"></i> Save Changes
-              </span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  <!-- /Edit Resignation -->
-
-  <!-- Delete Modal -->
-  <div class="modal fade" id="delete_modal">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-body text-center">
-          <span class="avatar avatar-xl bg-transparent-danger text-danger mb-3">
-            <i class="ti ti-trash-x fs-36"></i>
-          </span>
-          <h4 class="mb-1">Confirm Delete</h4>
-          <p class="mb-3">
-            Are you sure you want to delete this resignation record? This action cannot be undone.
-          </p>
-          <div class="d-flex justify-content-center">
-            <button type="button" class="btn btn-light me-3" data-bs-dismiss="modal">
-              Cancel
-            </button>
-            <button type="button" class="btn btn-danger" @click="confirmDelete" :disabled="isDeleting">
-              <span v-if="isDeleting">Deleting...</span>
-              <span v-else>Yes, Delete</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- /Delete Modal -->
-</template>
-
-<script setup>
-import { ref, reactive, shallowRef, onMounted, nextTick } from 'vue';
-import { resignationService } from '@/services/resignation.service';
-import { useSharedDataStore } from '@/stores/sharedDataStore';
-import { reasonUtils } from '@/utils/resignation.utils';
+<script>
+/**
+ * Resignation Modal Component (Unified Add/Edit)
+ *
+ * Migrated from Bootstrap to Ant Design Vue.
+ * This modal handles both resignation creation and editing.
+ * Includes acknowledge/reject functionality in edit mode.
+ *
+ * Props:
+ * - visible: Boolean - Controls modal visibility
+ * - editingResignation: Object - Resignation data for edit mode (null for add mode)
+ *
+ * Emits:
+ * - saved: When resignation is successfully created/updated/acknowledged
+ * - close: When modal is closed
+ */
+import { ref, computed, watch, markRaw, onMounted, onBeforeUnmount } from 'vue';
 import { message } from 'ant-design-vue';
-import { Tooltip } from 'bootstrap';
 import { InfoCircleOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons-vue';
+import dayjs from 'dayjs';
+
+// Stores
+import { useSharedDataStore } from '@/stores/sharedDataStore';
+
+// Services
+import { resignationService } from '@/services/resignation.service';
+
+// Utils
+import { reasonUtils } from '@/utils/resignation.utils';
+
+// Components
 import EmployeeTreeSelect from '@/components/shared/EmployeeTreeSelect.vue';
 
-// Emits
-const emit = defineEmits(['resignation-created', 'resignation-updated', 'resignation-deleted']);
-
-// Constants
-const dateFormat = 'dd/MM/yyyy';
-const resignationReasons = reasonUtils.getResignationReasons();
-
-// Loading states
-const isLoadingData = ref(false);
-const isSubmitting = ref(false);
-const isAcknowledging = ref(false);
-const isRejecting = ref(false);
-const isDeleting = ref(false);
-const positionsLoading = ref(false);
-const editPositionsLoading = ref(false);
-
-// Data sources
-const employeeTreeData = shallowRef([]);
-const departments = shallowRef([]);
-const positions = shallowRef([]);
-const editPositions = shallowRef([]);
-
-// Create form state
-const createForm = reactive({
-  data: {
-    employee_id: '',
-    department_id: '',
-    position_id: '',
-    resignation_date: null,
-    last_working_date: null,
-    reason: '',
-    reason_details: ''
+export default {
+  name: 'ResignationModal',
+  components: {
+    EmployeeTreeSelect,
+    InfoCircleOutlined,
+    CheckOutlined,
+    CloseOutlined
   },
-  errors: {},
-  alertMessage: '',
-  alertClass: '',
-  selectedEmployeeInfo: null,
-  selectedEmployeeDisplay: ''
-});
-
-// Edit form state
-const editForm = reactive({
-  id: null,
-  data: {
-    employee_id: '',
-    department_id: '',
-    position_id: '',
-    resignation_date: null,
-    last_working_date: null,
-    reason: '',
-    reason_details: '',
-    acknowledgement_status: 'Pending',
-    acknowledged_at: null
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
+    },
+    editingResignation: {
+      type: Object,
+      default: null
+    }
   },
-  errors: {},
-  alertMessage: '',
-  alertClass: '',
-  selectedEmployeeDisplay: ''
-});
+  emits: ['saved', 'close'],
+  setup(props, { emit }) {
+    // ============================================
+    // STORES
+    // ============================================
+    const sharedDataStore = useSharedDataStore();
 
-// Delete state
-const deleteId = ref(null);
+    // ============================================
+    // UI STATE
+    // ============================================
+    const loading = ref(false);
+    const dataLoaded = ref(false);
+    const formErrors = ref({});
+    const isAcknowledging = ref(false);
+    const isRejecting = ref(false);
 
-// Status color mapping
-const getStatusColor = (status) => {
-  const colors = {
-    'Pending': 'warning',
-    'Acknowledged': 'success',
-    'Rejected': 'error'
-  };
-  return colors[status] || 'default';
-};
-
-// Format date for display
-const formatDate = (dateString) => {
-  if (!dateString) return '-';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-};
-
-// Format date for API
-const formatDateForAPI = (date) => {
-  if (!date) return null;
-  if (date instanceof Date) {
-    return date.toISOString().split('T')[0];
-  }
-  return date;
-};
-
-// Load initial data
-const loadInitialData = async () => {
-  isLoadingData.value = true;
-  try {
-    const sharedStore = useSharedDataStore();
-    await sharedStore.loadAllDropdownData({
-      includeEmployees: true,
-      includeDepartments: true,
-      includePositions: true,
-      force: false
+    // ============================================
+    // FORM DATA
+    // ============================================
+    const formData = ref({
+      employee_id: '',
+      department_id: '',
+      position_id: '',
+      resignation_date: null,
+      last_working_date: null,
+      reason: '',
+      reason_details: '',
+      acknowledgement_status: 'Pending',
+      acknowledged_at: null
     });
 
-    employeeTreeData.value = sharedStore.getEmployeeTreeData;
-    departments.value = sharedStore.getDepartments;
-  } catch (error) {
-    console.error('Error loading data:', error);
-    message.error('Failed to load form data');
-  } finally {
-    isLoadingData.value = false;
-  }
-};
+    // Selected employee info for display
+    const selectedEmployeeInfo = ref(null);
+    const selectedEmployeeDisplay = ref('');
 
-// Handle employee selection
-const handleEmployeeSelect = (employee) => {
-  createForm.data.employee_id = employee.value;
-  createForm.selectedEmployeeDisplay = employee.title;
+    // ============================================
+    // DROPDOWN DATA
+    // ============================================
+    const employeeTreeData = ref([]);
+    const departments = ref([]);
+    const positions = ref([]);
+    const positionsLoading = ref(false);
 
-  // Find employee info from tree data
-  for (const org of employeeTreeData.value) {
-    const emp = org.children?.find(e => e.value === employee.value);
-    if (emp) {
-      createForm.selectedEmployeeInfo = {
-        name: emp.title,
-        staffId: emp.staffId,
-        organization: org.title
+    // Resignation reasons (hardcoded from utils)
+    const resignationReasons = markRaw(
+      reasonUtils.getResignationReasons().map(r => ({
+        value: r,
+        label: r
+      }))
+    );
+
+    // ============================================
+    // COMPUTED PROPERTIES
+    // ============================================
+    const isEditing = computed(() => !!props.editingResignation);
+    const modalTitle = computed(() => isEditing.value ? 'Edit Resignation' : 'Add Resignation');
+
+    // Convert dropdown data to options format
+    // Use Number() to ensure consistent type matching with form values
+    const departmentOptions = computed(() =>
+      departments.value.map(d => ({ value: Number(d.id), label: d.name }))
+    );
+
+    const positionOptions = computed(() =>
+      positions.value.map(p => ({ value: Number(p.id), label: p.title }))
+    );
+
+    // Status color mapping
+    const getStatusColor = (status) => {
+      const colors = {
+        'Pending': 'warning',
+        'Acknowledged': 'success',
+        'Rejected': 'error'
       };
-      break;
-    }
-  }
-
-  // Clear employee error
-  createForm.errors.employee_id = '';
-};
-
-// Department change handlers
-const onCreateDepartmentChange = async () => {
-  createForm.data.position_id = '';
-  positions.value = [];
-  positionsLoading.value = true;
-
-  if (!createForm.data.department_id) {
-    positionsLoading.value = false;
-    return;
-  }
-
-  try {
-    const sharedStore = useSharedDataStore();
-    const positionsData = await sharedStore.fetchPositions(true, {
-      department_id: createForm.data.department_id
-    });
-    positions.value = Array.isArray(positionsData) ? positionsData : (positionsData?.data || []);
-  } catch (error) {
-    console.error('Error loading positions:', error);
-    positions.value = [];
-  } finally {
-    positionsLoading.value = false;
-  }
-};
-
-const onEditDepartmentChange = async () => {
-  editForm.data.position_id = '';
-  editPositions.value = [];
-  editPositionsLoading.value = true;
-
-  if (!editForm.data.department_id) {
-    editPositionsLoading.value = false;
-    return;
-  }
-
-  try {
-    const sharedStore = useSharedDataStore();
-    const positionsData = await sharedStore.fetchPositions(true, {
-      department_id: editForm.data.department_id
-    });
-    editPositions.value = Array.isArray(positionsData) ? positionsData : (positionsData?.data || []);
-  } catch (error) {
-    console.error('Error loading positions:', error);
-    editPositions.value = [];
-  } finally {
-    editPositionsLoading.value = false;
-  }
-};
-
-// Validate form
-const validateForm = (formData, isEdit = false) => {
-  const errors = {};
-
-  if (!isEdit && !formData.employee_id) {
-    errors.employee_id = 'Employee is required';
-  }
-  if (!formData.department_id) {
-    errors.department_id = 'Department is required';
-  }
-  if (!formData.position_id) {
-    errors.position_id = 'Position is required';
-  }
-  if (!formData.resignation_date) {
-    errors.resignation_date = 'Resignation date is required';
-  }
-  if (!formData.last_working_date) {
-    errors.last_working_date = 'Last working date is required';
-  }
-  if (!formData.reason) {
-    errors.reason = 'Reason is required';
-  }
-
-  // Date validation
-  if (formData.resignation_date && formData.last_working_date) {
-    const resignDate = new Date(formData.resignation_date);
-    const lastDate = new Date(formData.last_working_date);
-    if (lastDate < resignDate) {
-      errors.last_working_date = 'Last working date must be on or after resignation date';
-    }
-  }
-
-  return errors;
-};
-
-// Create form submission
-const handleCreateSubmit = async () => {
-  createForm.errors = validateForm(createForm.data);
-
-  if (Object.keys(createForm.errors).length > 0) {
-    createForm.alertMessage = 'Please fix the validation errors';
-    createForm.alertClass = 'alert-danger';
-    return;
-  }
-
-  isSubmitting.value = true;
-  createForm.alertMessage = '';
-
-  try {
-    const payload = {
-      employee_id: createForm.data.employee_id,
-      department_id: createForm.data.department_id,
-      position_id: createForm.data.position_id,
-      resignation_date: formatDateForAPI(createForm.data.resignation_date),
-      last_working_date: formatDateForAPI(createForm.data.last_working_date),
-      reason: createForm.data.reason,
-      reason_details: createForm.data.reason_details || null
+      return colors[status] || 'default';
     };
 
-    const response = await resignationService.createResignation(payload);
+    // ============================================
+    // DATA LOADING
+    // ============================================
+    const loadDropdownData = async () => {
+      try {
+        // Load from shared store (uses internal caching, won't re-fetch if cached)
+        await sharedDataStore.loadAllDropdownData({
+          includeEmployees: true,
+          includeDepartments: true,
+          includePositions: true,
+          force: false
+        });
 
-    if (response.success) {
-      createForm.alertMessage = 'Resignation created successfully';
-      createForm.alertClass = 'alert-success';
-      message.success('Resignation created successfully');
-      emit('resignation-created', response.data);
+        // Always copy data from shared store to local refs
+        // This ensures local refs are in sync even if previously cleared
+        employeeTreeData.value = sharedDataStore.getEmployeeTreeData;
+        departments.value = sharedDataStore.getDepartments;
 
-      // Close modal after short delay
-      setTimeout(() => {
-        const modal = document.getElementById('new_resignation');
-        const bsModal = bootstrap.Modal.getInstance(modal);
-        if (bsModal) bsModal.hide();
-        resetCreateForm();
-      }, 1000);
-    } else {
-      throw new Error(response.message || 'Failed to create resignation');
-    }
-  } catch (error) {
-    console.error('Error creating resignation:', error);
-    createForm.alertMessage = error.message || 'Failed to create resignation';
-    createForm.alertClass = 'alert-danger';
-    message.error(createForm.alertMessage);
-  } finally {
-    isSubmitting.value = false;
-  }
-};
-
-// Edit form submission
-const handleEditSubmit = async () => {
-  editForm.errors = validateForm(editForm.data, true);
-
-  if (Object.keys(editForm.errors).length > 0) {
-    editForm.alertMessage = 'Please fix the validation errors';
-    editForm.alertClass = 'alert-danger';
-    return;
-  }
-
-  isSubmitting.value = true;
-  editForm.alertMessage = '';
-
-  try {
-    const payload = {
-      department_id: editForm.data.department_id,
-      position_id: editForm.data.position_id,
-      resignation_date: formatDateForAPI(editForm.data.resignation_date),
-      last_working_date: formatDateForAPI(editForm.data.last_working_date),
-      reason: editForm.data.reason,
-      reason_details: editForm.data.reason_details || null
+        dataLoaded.value = true;
+      } catch (error) {
+        console.error('Error loading resignation modal data:', error);
+        message.error('Failed to load form data');
+      }
     };
 
-    const response = await resignationService.updateResignation(editForm.id, payload);
+    const loadPositionsForDepartment = async (departmentId) => {
+      if (!departmentId) {
+        positions.value = [];
+        return;
+      }
 
-    if (response.success) {
-      editForm.alertMessage = 'Resignation updated successfully';
-      editForm.alertClass = 'alert-success';
-      message.success('Resignation updated successfully');
-      emit('resignation-updated', response.data);
+      try {
+        positionsLoading.value = true;
+        const positionData = await sharedDataStore.fetchPositionsByDepartment(departmentId);
+        positions.value = Array.isArray(positionData) ? positionData : (positionData?.data || []);
+      } catch (error) {
+        console.error('Error loading positions:', error);
+        positions.value = [];
+      } finally {
+        positionsLoading.value = false;
+      }
+    };
 
-      // Close modal after short delay
-      setTimeout(() => {
-        const modal = document.getElementById('edit_resignation');
-        const bsModal = bootstrap.Modal.getInstance(modal);
-        if (bsModal) bsModal.hide();
-        resetEditForm();
-      }, 1000);
-    } else {
-      throw new Error(response.message || 'Failed to update resignation');
-    }
-  } catch (error) {
-    console.error('Error updating resignation:', error);
-    editForm.alertMessage = error.message || 'Failed to update resignation';
-    editForm.alertClass = 'alert-danger';
-    message.error(editForm.alertMessage);
-  } finally {
-    isSubmitting.value = false;
-  }
-};
+    // ============================================
+    // EVENT HANDLERS
+    // ============================================
+    const handleEmployeeSelect = (employee) => {
+      formData.value.employee_id = employee.value;
+      selectedEmployeeDisplay.value = employee.title;
 
-// Acknowledge resignation
-const acknowledgeResignation = async () => {
-  isAcknowledging.value = true;
-  try {
-    const response = await resignationService.acknowledgeResignation(editForm.id, {
-      status: 'Acknowledged'
-    });
+      // Find employee info from tree data
+      for (const org of employeeTreeData.value) {
+        const found = org.children?.find(e => e.value === employee.value);
+        if (found) {
+          selectedEmployeeInfo.value = {
+            name: found.title,
+            staff_id: found.staffId || found.staff_id,
+            organization: org.title
+          };
+          break;
+        }
+      }
 
-    if (response.success) {
-      editForm.data.acknowledgement_status = 'Acknowledged';
-      editForm.data.acknowledged_at = new Date().toISOString();
-      message.success('Resignation acknowledged successfully');
-      emit('resignation-updated', response.data);
-    }
-  } catch (error) {
-    console.error('Error acknowledging resignation:', error);
-    message.error('Failed to acknowledge resignation');
-  } finally {
-    isAcknowledging.value = false;
-  }
-};
+      // Clear employee error
+      formErrors.value.employee_id = '';
+    };
 
-// Reject resignation
-const rejectResignation = async () => {
-  isRejecting.value = true;
-  try {
-    const response = await resignationService.acknowledgeResignation(editForm.id, {
-      status: 'Rejected'
-    });
+    const handleDepartmentChange = async (value) => {
+      formData.value.position_id = '';
+      await loadPositionsForDepartment(value);
+    };
 
-    if (response.success) {
-      editForm.data.acknowledgement_status = 'Rejected';
-      editForm.data.acknowledged_at = new Date().toISOString();
-      message.success('Resignation rejected');
-      emit('resignation-updated', response.data);
-    }
-  } catch (error) {
-    console.error('Error rejecting resignation:', error);
-    message.error('Failed to reject resignation');
-  } finally {
-    isRejecting.value = false;
-  }
-};
+    // ============================================
+    // VALIDATION
+    // ============================================
+    const validateForm = () => {
+      const errors = {};
 
-// Reset forms
-const resetCreateForm = () => {
-  createForm.data = {
-    employee_id: '',
-    department_id: '',
-    position_id: '',
-    resignation_date: null,
-    last_working_date: null,
-    reason: '',
-    reason_details: ''
-  };
-  createForm.errors = {};
-  createForm.alertMessage = '';
-  createForm.alertClass = '';
-  createForm.selectedEmployeeInfo = null;
-  createForm.selectedEmployeeDisplay = '';
-  positions.value = [];
-};
+      if (!isEditing.value && !formData.value.employee_id) {
+        errors.employee_id = 'Employee is required';
+      }
+      if (!formData.value.department_id) {
+        errors.department_id = 'Department is required';
+      }
+      if (!formData.value.position_id) {
+        errors.position_id = 'Position is required';
+      }
+      if (!formData.value.resignation_date) {
+        errors.resignation_date = 'Resignation date is required';
+      }
+      if (!formData.value.last_working_date) {
+        errors.last_working_date = 'Last working date is required';
+      }
+      if (!formData.value.reason) {
+        errors.reason = 'Reason is required';
+      }
 
-const resetEditForm = () => {
-  editForm.id = null;
-  editForm.data = {
-    employee_id: '',
-    department_id: '',
-    position_id: '',
-    resignation_date: null,
-    last_working_date: null,
-    reason: '',
-    reason_details: '',
-    acknowledgement_status: 'Pending',
-    acknowledged_at: null
-  };
-  editForm.errors = {};
-  editForm.alertMessage = '';
-  editForm.alertClass = '';
-  editForm.selectedEmployeeDisplay = '';
-  editPositions.value = [];
-};
+      // Date validation: last working date must be on or after resignation date
+      if (formData.value.resignation_date && formData.value.last_working_date) {
+        if (dayjs(formData.value.last_working_date).isBefore(dayjs(formData.value.resignation_date))) {
+          errors.last_working_date = 'Last working date must be on or after resignation date';
+        }
+      }
 
-// Load resignation for editing
-const loadResignationForEdit = async (resignation) => {
-  editForm.id = resignation.id;
-  editForm.data = {
-    employee_id: resignation.employeeId,
-    department_id: resignation.departmentId,
-    position_id: resignation.positionId,
-    resignation_date: resignation.resignationDate ? new Date(resignation.resignationDate) : null,
-    last_working_date: resignation.lastWorkingDate ? new Date(resignation.lastWorkingDate) : null,
-    reason: resignation.reason,
-    reason_details: resignation.reasonDetails || '',
-    acknowledgement_status: resignation.acknowledgementStatus || 'Pending',
-    acknowledged_at: resignation.acknowledgedAt
-  };
-  editForm.selectedEmployeeDisplay = resignation.employee?.name || resignation.employeeName || '-';
+      formErrors.value = errors;
+      return Object.keys(errors).length === 0;
+    };
 
-  // Load positions for the department
-  if (resignation.departmentId) {
-    editPositionsLoading.value = true;
-    try {
-      const sharedStore = useSharedDataStore();
-      const positionsData = await sharedStore.fetchPositions(true, {
-        department_id: resignation.departmentId
-      });
-      editPositions.value = Array.isArray(positionsData) ? positionsData : (positionsData?.data || []);
-    } catch (error) {
-      console.error('Error loading positions:', error);
-    } finally {
-      editPositionsLoading.value = false;
-    }
-  }
-};
+    // ============================================
+    // FORM SUBMISSION
+    // ============================================
+    const formatDateForAPI = (date) => {
+      if (!date) return null;
+      return dayjs(date).format('YYYY-MM-DD');
+    };
 
-// Set delete target
-const setDeleteTarget = (id) => {
-  deleteId.value = id;
-};
+    const handleSubmit = async () => {
+      if (!validateForm()) {
+        message.warning('Please fill in all required fields');
+        return;
+      }
 
-// Confirm delete
-const confirmDelete = async () => {
-  if (!deleteId.value) return;
+      loading.value = true;
 
-  isDeleting.value = true;
-  try {
-    await resignationService.deleteResignation(deleteId.value);
-    message.success('Resignation deleted successfully');
-    emit('resignation-deleted', deleteId.value);
+      try {
+        const payload = {
+          employee_id: formData.value.employee_id,
+          department_id: formData.value.department_id,
+          position_id: formData.value.position_id,
+          resignation_date: formatDateForAPI(formData.value.resignation_date),
+          last_working_date: formatDateForAPI(formData.value.last_working_date),
+          reason: formData.value.reason,
+          reason_details: formData.value.reason_details || null
+        };
 
-    // Close modal
-    const modal = document.getElementById('delete_modal');
-    const bsModal = bootstrap.Modal.getInstance(modal);
-    if (bsModal) bsModal.hide();
-    deleteId.value = null;
-  } catch (error) {
-    console.error('Error deleting resignation:', error);
-    message.error('Failed to delete resignation');
-  } finally {
-    isDeleting.value = false;
-  }
-};
+        let response;
+        if (isEditing.value) {
+          response = await resignationService.updateResignation(props.editingResignation.id, payload);
+        } else {
+          response = await resignationService.createResignation(payload);
+        }
 
-// Initialize tooltips
-const initializeTooltips = () => {
-  nextTick(() => {
-    const tooltipElements = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    tooltipElements.forEach(element => {
-      if (!element._tooltip) {
-        new Tooltip(element);
+        if (response?.success) {
+          message.success(isEditing.value ? 'Resignation updated successfully' : 'Resignation created successfully');
+          emit('saved', {
+            success: true,
+            message: isEditing.value ? 'Resignation updated successfully' : 'Resignation created successfully',
+            data: response.data
+          });
+          handleClose();
+        } else {
+          throw new Error(response?.message || 'Failed to save resignation');
+        }
+      } catch (error) {
+        console.error('Error saving resignation:', error);
+        handleSubmitError(error);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const handleSubmitError = (error) => {
+      let errorMessage = 'An error occurred while saving the resignation.';
+
+      if (error.response?.data) {
+        const data = error.response.data;
+        errorMessage = data.error || data.message || errorMessage;
+
+        // Handle validation errors (422)
+        if (data.errors) {
+          const fieldErrors = {};
+          Object.entries(data.errors).forEach(([field, messages]) => {
+            fieldErrors[field] = Array.isArray(messages) ? messages[0] : messages;
+          });
+          formErrors.value = { ...formErrors.value, ...fieldErrors };
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      message.error(errorMessage);
+    };
+
+    // ============================================
+    // ACKNOWLEDGE / REJECT
+    // ============================================
+    const acknowledgeResignation = async () => {
+      isAcknowledging.value = true;
+      try {
+        const response = await resignationService.acknowledgeResignation(
+          props.editingResignation.id,
+          { action: 'acknowledge' }
+        );
+
+        if (response.success) {
+          message.success('Resignation acknowledged successfully');
+          emit('saved', { success: true, data: response.data });
+          handleClose();
+        }
+      } catch (error) {
+        console.error('Error acknowledging resignation:', error);
+        message.error(error.message || 'Failed to acknowledge resignation');
+      } finally {
+        isAcknowledging.value = false;
+      }
+    };
+
+    const rejectResignation = async () => {
+      isRejecting.value = true;
+      try {
+        const response = await resignationService.acknowledgeResignation(
+          props.editingResignation.id,
+          { action: 'reject' }
+        );
+
+        if (response.success) {
+          message.success('Resignation rejected');
+          emit('saved', { success: true, data: response.data });
+          handleClose();
+        }
+      } catch (error) {
+        console.error('Error rejecting resignation:', error);
+        message.error(error.message || 'Failed to reject resignation');
+      } finally {
+        isRejecting.value = false;
+      }
+    };
+
+    // ============================================
+    // FORM RESET
+    // ============================================
+    const resetForm = () => {
+      formData.value = {
+        employee_id: '',
+        department_id: '',
+        position_id: '',
+        resignation_date: null,
+        last_working_date: null,
+        reason: '',
+        reason_details: '',
+        acknowledgement_status: 'Pending',
+        acknowledged_at: null
+      };
+
+      selectedEmployeeInfo.value = null;
+      selectedEmployeeDisplay.value = '';
+      formErrors.value = {};
+      positions.value = [];
+    };
+
+    // ============================================
+    // MODAL MANAGEMENT
+    // ============================================
+    const handleClose = () => {
+      resetForm();
+      emit('close');
+    };
+
+    const handleAfterClose = () => {
+      // Cleanup any lingering DOM elements
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+
+    // ============================================
+    // WATCHERS
+    // ============================================
+
+    // Populate form with resignation data for editing
+    const populateEditForm = (resignationData) => {
+      // Use Number() to ensure type consistency with dropdown option values
+      const deptId = resignationData.departmentId || resignationData.department_id || resignationData.department?.id || '';
+      const posId = resignationData.positionId || resignationData.position_id || resignationData.position?.id || '';
+
+      formData.value = {
+        employee_id: resignationData.employeeId || resignationData.employee_id || '',
+        department_id: deptId ? Number(deptId) : '',
+        position_id: posId ? Number(posId) : '',
+        resignation_date: resignationData.resignationDate || resignationData.resignation_date
+          ? dayjs(resignationData.resignationDate || resignationData.resignation_date)
+          : null,
+        last_working_date: resignationData.lastWorkingDate || resignationData.last_working_date
+          ? dayjs(resignationData.lastWorkingDate || resignationData.last_working_date)
+          : null,
+        reason: resignationData.reason || '',
+        reason_details: resignationData.reasonDetails || resignationData.reason_details || '',
+        acknowledgement_status: resignationData.acknowledgementStatus || resignationData.acknowledgement_status || 'Pending',
+        acknowledged_at: resignationData.acknowledgedAt || resignationData.acknowledged_at || null
+      };
+
+      // Set employee info for display
+      if (resignationData.employee) {
+        const emp = resignationData.employee;
+        selectedEmployeeInfo.value = {
+          name: emp.name || `${emp.firstNameEn || emp.first_name_en || ''} ${emp.lastNameEn || emp.last_name_en || ''}`.trim(),
+          staff_id: emp.staffId || emp.staff_id,
+          organization: emp.organization
+        };
+        selectedEmployeeDisplay.value = selectedEmployeeInfo.value.name;
+      }
+    };
+
+    // Single watcher on visible — handles both Add and Edit mode
+    // This eliminates the race condition between two concurrent watchers
+    watch(() => props.visible, async (isVisible) => {
+      if (!isVisible) return;
+
+      // Always load dropdown data when modal opens
+      await loadDropdownData();
+
+      // If editing, populate form after dropdown data is ready
+      if (props.editingResignation) {
+        populateEditForm(props.editingResignation);
+
+        // Load department-specific positions after form is populated
+        if (formData.value.department_id) {
+          await loadPositionsForDepartment(formData.value.department_id);
+        }
       }
     });
-  });
+
+    // ============================================
+    // LIFECYCLE
+    // ============================================
+    onMounted(() => {
+      // Dropdown data will be loaded when modal becomes visible
+    });
+
+    onBeforeUnmount(() => {
+      // Cleanup
+    });
+
+    // ============================================
+    // RETURN
+    // ============================================
+    return {
+      // State
+      loading,
+      dataLoaded,
+      formErrors,
+      formData,
+      selectedEmployeeInfo,
+      selectedEmployeeDisplay,
+      positionsLoading,
+      isAcknowledging,
+      isRejecting,
+
+      // Dropdown data
+      employeeTreeData,
+      resignationReasons,
+      departmentOptions,
+      positionOptions,
+
+      // Computed
+      isEditing,
+      modalTitle,
+
+      // Utilities
+      dayjs,
+
+      // Methods
+      getStatusColor,
+      handleEmployeeSelect,
+      handleDepartmentChange,
+      handleSubmit,
+      handleClose,
+      handleAfterClose,
+      acknowledgeResignation,
+      rejectResignation
+    };
+  }
 };
-
-// Lifecycle
-onMounted(() => {
-  loadInitialData();
-
-  // Initialize tooltips when modals are shown
-  const newModal = document.getElementById('new_resignation');
-  const editModal = document.getElementById('edit_resignation');
-
-  if (newModal) {
-    newModal.addEventListener('shown.bs.modal', initializeTooltips);
-  }
-  if (editModal) {
-    editModal.addEventListener('shown.bs.modal', initializeTooltips);
-  }
-});
-
-// Expose methods for parent component
-defineExpose({
-  loadResignationForEdit,
-  setDeleteTarget,
-  resetCreateForm,
-  resetEditForm
-});
 </script>
 
+<template>
+  <a-modal
+    :open="visible"
+    :title="modalTitle"
+    :confirmLoading="loading"
+    @cancel="handleClose"
+    @afterClose="handleAfterClose"
+    :footer="null"
+    :width="800"
+    :maskClosable="false"
+    :destroyOnClose="true"
+    centered
+  >
+    <div class="resignation-form">
+      <!-- Employee Selection (Add mode) / Display (Edit mode) -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">Employee <span v-if="!isEditing" class="text-danger">*</span> :</label>
+        </div>
+        <div class="form-input-col">
+          <!-- Add Mode: Tree Select -->
+          <template v-if="!isEditing">
+            <EmployeeTreeSelect
+              v-model="formData.employee_id"
+              :tree-data="employeeTreeData"
+              :display-value="selectedEmployeeDisplay"
+              :has-error="!!formErrors.employee_id"
+              :error-message="formErrors.employee_id"
+              placeholder="Select employee"
+              search-placeholder="Search employees..."
+              @select="handleEmployeeSelect"
+            />
+          </template>
+
+          <!-- Edit Mode: Display Card -->
+          <template v-else>
+            <div class="employee-display-card">
+              <div v-if="selectedEmployeeInfo" class="employee-info">
+                <strong>{{ selectedEmployeeInfo.name }}</strong>
+                <span v-if="selectedEmployeeInfo.staff_id" class="text-muted ms-2">({{ selectedEmployeeInfo.staff_id }})</span>
+                <br>
+                <small v-if="selectedEmployeeInfo.organization" class="text-muted">Organization: {{ selectedEmployeeInfo.organization }}</small>
+              </div>
+              <div v-else class="text-muted">
+                Loading employee info...
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Selected Employee Info Card (Add mode only) -->
+      <div v-if="!isEditing && selectedEmployeeInfo" class="employee-info-card mb-3">
+        <h6 class="card-title">Selected Employee</h6>
+        <p class="mb-0">
+          <strong>{{ selectedEmployeeInfo.name }}</strong><br>
+          <small v-if="selectedEmployeeInfo.staff_id" class="text-muted">Staff ID: {{ selectedEmployeeInfo.staff_id }}</small><br>
+          <small v-if="selectedEmployeeInfo.organization" class="text-muted">Organization: {{ selectedEmployeeInfo.organization }}</small>
+        </p>
+      </div>
+
+      <!-- Department -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">Department <span class="text-danger">*</span> :</label>
+        </div>
+        <div class="form-input-col">
+          <a-select
+            v-model:value="formData.department_id"
+            placeholder="Select department"
+            :options="departmentOptions"
+            :status="formErrors.department_id ? 'error' : ''"
+            show-search
+            :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
+            @change="handleDepartmentChange"
+            class="input-medium"
+          />
+          <div v-if="formErrors.department_id" class="error-feedback">{{ formErrors.department_id }}</div>
+        </div>
+      </div>
+
+      <!-- Position -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">Position <span class="text-danger">*</span> :</label>
+        </div>
+        <div class="form-input-col">
+          <a-select
+            v-model:value="formData.position_id"
+            :placeholder="positionsLoading ? 'Loading positions...' : 'Select position'"
+            :options="positionOptions"
+            :status="formErrors.position_id ? 'error' : ''"
+            :disabled="!formData.department_id || positionsLoading"
+            :loading="positionsLoading"
+            show-search
+            :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
+            class="input-medium"
+          />
+          <div v-if="formErrors.position_id" class="error-feedback">{{ formErrors.position_id }}</div>
+        </div>
+      </div>
+
+      <!-- Resignation Date -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">Resignation Date <span class="text-danger">*</span> :</label>
+        </div>
+        <div class="form-input-col">
+          <div class="input-with-tooltip">
+            <a-date-picker
+              v-model:value="formData.resignation_date"
+              placeholder="Select resignation date"
+              format="DD/MM/YYYY"
+              :status="formErrors.resignation_date ? 'error' : ''"
+              class="input-short"
+            />
+            <span class="tooltip-icon" title="Date when the resignation was submitted">
+              <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+            </span>
+          </div>
+          <div v-if="formErrors.resignation_date" class="error-feedback">{{ formErrors.resignation_date }}</div>
+        </div>
+      </div>
+
+      <!-- Last Working Date -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">Last Working Date <span class="text-danger">*</span> :</label>
+        </div>
+        <div class="form-input-col">
+          <div class="input-with-tooltip">
+            <a-date-picker
+              v-model:value="formData.last_working_date"
+              placeholder="Select last working date"
+              format="DD/MM/YYYY"
+              :status="formErrors.last_working_date ? 'error' : ''"
+              class="input-short"
+            />
+            <span class="tooltip-icon" title="Employee's last day of work (must be on or after resignation date)">
+              <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />
+            </span>
+          </div>
+          <div v-if="formErrors.last_working_date" class="error-feedback">{{ formErrors.last_working_date }}</div>
+        </div>
+      </div>
+
+      <!-- Reason -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">Reason <span class="text-danger">*</span> :</label>
+        </div>
+        <div class="form-input-col">
+          <a-select
+            v-model:value="formData.reason"
+            placeholder="Select reason"
+            :options="resignationReasons"
+            :status="formErrors.reason ? 'error' : ''"
+            show-search
+            :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
+            class="input-medium"
+          />
+          <div v-if="formErrors.reason" class="error-feedback">{{ formErrors.reason }}</div>
+        </div>
+      </div>
+
+      <!-- Reason Details -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">Reason Details :</label>
+        </div>
+        <div class="form-input-col">
+          <a-textarea
+            v-model:value="formData.reason_details"
+            placeholder="Additional details about the resignation reason (optional)"
+            :rows="3"
+            :maxlength="1000"
+            show-count
+          />
+        </div>
+      </div>
+
+      <!-- Acknowledgement Status (Edit mode only) -->
+      <div v-if="isEditing" class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">Status :</label>
+        </div>
+        <div class="form-input-col">
+          <div class="acknowledgement-status">
+            <a-tag :color="getStatusColor(formData.acknowledgement_status)">
+              {{ formData.acknowledgement_status || 'Pending' }}
+            </a-tag>
+
+            <!-- Acknowledge/Reject buttons when status is Pending -->
+            <div v-if="formData.acknowledgement_status === 'Pending'" class="mt-2">
+              <a-button
+                type="primary"
+                size="small"
+                @click="acknowledgeResignation"
+                :loading="isAcknowledging"
+                class="me-2"
+              >
+                <template #icon><CheckOutlined /></template>
+                Acknowledge
+              </a-button>
+              <a-button
+                danger
+                size="small"
+                @click="rejectResignation"
+                :loading="isRejecting"
+              >
+                <template #icon><CloseOutlined /></template>
+                Reject
+              </a-button>
+            </div>
+
+            <!-- Acknowledged/Rejected timestamp -->
+            <div v-if="formData.acknowledged_at" class="mt-2">
+              <small class="text-muted">
+                {{ formData.acknowledgement_status === 'Acknowledged' ? 'Acknowledged' : 'Rejected' }}
+                on {{ dayjs(formData.acknowledged_at).format('DD/MM/YYYY') }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="modal-footer-actions">
+      <div class="footer-info">
+        <small v-if="isEditing && formData.acknowledgement_status === 'Pending'" class="text-muted">
+          <info-circle-outlined /> You can acknowledge or reject the resignation above before saving changes.
+        </small>
+      </div>
+      <div class="footer-buttons">
+        <a-button @click="handleClose" :disabled="loading">Cancel</a-button>
+        <a-button type="primary" @click="handleSubmit" :loading="loading">
+          {{ isEditing ? 'Save Changes' : 'Save Resignation' }}
+        </a-button>
+      </div>
+    </div>
+  </a-modal>
+</template>
+
 <style scoped>
-/* New Modal Design Styles */
-.new-modal-design {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.1);
+/* Scrollable form container */
+.resignation-form {
+  min-height: 400px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
-.modal-header {
-  padding: 24px 32px 16px 32px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.modal-title {
-  margin: 0;
-  font-size: 1.25em;
-  font-weight: 700;
-  color: #23325b;
-}
-
-.btn-close-custom {
-  background: none;
-  border: none;
-  color: #6c757d;
-  font-size: 1.25rem;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.15s ease-in-out;
-}
-
-.btn-close-custom:hover {
-  background-color: #f8f9fa;
-  color: #000;
-}
-
-.modal-body {
-  padding: 24px 32px;
-}
-
-.modal-footer {
-  padding: 16px 32px 24px 32px;
-  border-top: 1px solid #e9ecef;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-/* Horizontal Form Layout - Following Grant Modal Standard */
+/* Form layout */
 .form-row {
   display: flex;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .form-label-col {
-  flex: 0 0 140px;
-  min-width: 140px;
-  padding-top: 8px;
+  flex: 0 0 160px;
+  min-width: 160px;
+  padding-top: 6px;
   display: flex;
-  align-items: flex-start;
   justify-content: flex-end;
 }
 
@@ -1150,198 +777,64 @@ defineExpose({
 .form-label {
   font-weight: 500;
   margin-bottom: 0;
-  display: block;
   text-align: right;
   color: #262626;
   font-size: 14px;
+  white-space: nowrap;
 }
 
-.form-label.required:after {
-  content: " *";
-  color: #e53e3e;
-}
-
-/* Input widths - Matching Grant Modal Standard */
+/* Input widths */
 .input-short {
-  width: 200px;
+  width: 200px !important;
   max-width: 200px;
 }
 
 .input-medium {
-  width: 400px;
-  max-width: 400px;
+  width: 300px !important;
+  max-width: 300px;
 }
 
-.input-short-wrapper {
-  width: 200px;
-  max-width: 200px;
-}
-
-.input-medium-wrapper {
-  width: 400px;
-  max-width: 400px;
-}
-
-/* Input with tooltip - Matching Grant Modal Standard */
+/* Tooltip */
 .input-with-tooltip {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 8px;
 }
 
 .tooltip-icon {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 8px;
   flex-shrink: 0;
 }
 
-/* Form controls */
-.form-control {
-  padding: 7px 12px;
-  border-radius: 6px;
-  border: 1px solid #c9d2e2;
-  font-size: 1em;
-  background: #f7f8fa;
-  transition: border 0.2s;
+/* Error feedback */
+.error-feedback {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 4px;
 }
 
-.form-control:focus {
-  border: 1.5px solid #4a7fff;
-  background: #fff;
-  outline: none;
+.text-danger {
+  color: #ff4d4f;
 }
 
-.form-control.is-invalid {
-  border-color: #e53e3e;
-  background: #fff5f5;
-}
-
-.form-control.disabled-input {
-  background: #e9ecef;
-  color: #6c757d;
-  cursor: not-allowed;
-}
-
-.invalid-feedback {
-  display: block;
-  width: 100%;
-  margin-top: 5px;
-  font-size: 0.875em;
-  color: #e53e3e;
-  font-weight: 500;
-}
-
-/* Date picker */
-.input-icon-end {
-  position: relative;
-}
-
-.input-icon-addon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #6B7280;
-  z-index: 2;
-}
-
-.datetimepicker {
-  padding-right: 35px !important;
-}
-
-:deep(.mx-datepicker) {
-  width: 100%;
-}
-
-:deep(.mx-input) {
-  width: 100% !important;
-  padding: 7px 35px 7px 12px !important;
-  border-radius: 6px !important;
-  border: 1px solid #c9d2e2 !important;
-  font-size: 1em !important;
-  background: #f7f8fa !important;
-}
-
-:deep(.mx-input:focus) {
-  border: 1.5px solid #4a7fff !important;
-  background: #fff !important;
-}
-
-:deep(.mx-icon-calendar) {
-  display: none;
-}
-
-/* Buttons */
-.btn {
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 1em;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-cancel {
-  background: #fff;
-  color: #2a3146;
-  border: 1.2px solid #bbc4d1;
-}
-
-.btn-cancel:hover {
-  background: #f4f7fa;
-}
-
-.btn-primary {
-  background: linear-gradient(90deg, #3577ef 70%, #355bef 100%);
-  color: #fff;
-}
-
-.btn-primary:disabled {
-  background: #ccd4ea;
-  color: #888;
-  cursor: not-allowed;
-}
-
-/* Alert messages */
-.success-msg {
-  text-align: center;
-  color: #169b53;
-  font-weight: bold;
-  margin-bottom: 20px;
-  padding: 10px 14px;
-  background: #f0f9f4;
-  border: 1px solid #d4edda;
+/* Employee display card */
+.employee-display-card {
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
   border-radius: 6px;
 }
 
-.error-msg {
-  text-align: center;
-  color: #e53e3e;
-  font-weight: bold;
-  margin-bottom: 20px;
-  padding: 10px 14px;
-  background: #fff5f5;
-  border: 1px solid #f5c6cb;
-  border-radius: 6px;
+.employee-info {
+  line-height: 1.6;
 }
 
-/* Employee info card - margin = label width (140px) + gap (16px) = 156px */
+/* Employee info card (add mode) */
 .employee-info-card {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
   border-radius: 6px;
-  padding: 12px;
-  margin-left: 156px;
-}
-
-.employee-info-card .card-body {
-  padding: 0;
+  padding: 12px 16px;
+  margin-left: 176px;
 }
 
 .employee-info-card .card-title {
@@ -1351,29 +844,34 @@ defineExpose({
   color: #495057;
 }
 
-.employee-info-card .card-text {
-  margin-bottom: 0;
-  font-size: 0.9em;
-}
-
-/* Acknowledgement status */
+/* Acknowledgement status section */
 .acknowledgement-status {
   padding: 12px;
   background: #f8f9fa;
+  border: 1px solid #e9ecef;
   border-radius: 6px;
 }
 
-/* Spinner animation */
-.spinner-icon {
-  animation: spin 1s linear infinite;
+/* Footer actions */
+.modal-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #e5e5e5;
+  margin-top: 16px;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.footer-info {
+  flex: 1;
 }
 
-/* Responsive - Mobile breakpoint at 768px */
+.footer-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;
@@ -1391,16 +889,9 @@ defineExpose({
     text-align: left;
   }
 
-  .form-input-col {
-    flex: 1;
-    min-width: 100%;
-  }
-
   .input-short,
-  .input-medium,
-  .input-short-wrapper,
-  .input-medium-wrapper {
-    width: 100%;
+  .input-medium {
+    width: 100% !important;
     max-width: 100%;
   }
 
@@ -1408,14 +899,34 @@ defineExpose({
     margin-left: 0;
   }
 
-  .modal-body {
-    padding: 16px;
+  :deep(.ant-picker),
+  :deep(.ant-select),
+  :deep(.ant-input-number) {
+    width: 100% !important;
   }
 
-  .modal-header,
-  .modal-footer {
-    padding-left: 16px;
-    padding-right: 16px;
+  .modal-footer-actions {
+    flex-direction: column;
+    gap: 12px;
   }
+
+  .footer-info {
+    text-align: center;
+  }
+}
+
+/* Ant Design component overrides */
+:deep(.input-short.ant-picker),
+:deep(.input-short.ant-select) {
+  width: 200px !important;
+}
+
+:deep(.input-medium.ant-select),
+:deep(.input-medium.ant-input-number) {
+  width: 300px !important;
+}
+
+:deep(.ant-select-selector) {
+  min-width: inherit;
 }
 </style>

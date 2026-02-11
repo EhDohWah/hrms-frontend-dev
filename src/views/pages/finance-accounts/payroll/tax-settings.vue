@@ -21,11 +21,13 @@
         </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <div class="d-flex align-items-center me-2">
-            <select class="form-select form-select-sm me-2" v-model="selectedYear" @change="handleYearChange"
-              style="width: 100px;">
-              <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
-            </select>
-            <span class="text-muted small">Tax Year</span>
+            <span class="text-muted small me-2">Tax Year</span>
+            <a-select
+              v-model:value="selectedYear"
+              size="small"
+              style="width: 100px;"
+              :options="availableYears.map(y => ({ value: y, label: String(y) }))"
+            />
           </div>
           <div class="head-icons ms-2">
             <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -37,66 +39,70 @@
       </div>
       <!-- /Breadcrumb -->
 
-      <!-- Main Tabs Navigation -->
-      <ul class="nav nav-tabs mb-3 tab-style-6" id="tax-settings-tabs" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" :class="{ active: activeKey === '1' }" id="tax-settings-tab" data-bs-toggle="tab"
-            data-bs-target="#tax-settings-pane" type="button" role="tab" aria-controls="tax-settings-pane"
-            :aria-selected="activeKey === '1'" @click="setActiveTab('1')">
-            <i class="ti ti-settings me-1 align-middle d-inline-block"></i>Tax Settings
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" :class="{ active: activeKey === '2' }" id="tax-brackets-tab" data-bs-toggle="tab"
-            data-bs-target="#tax-brackets-pane" type="button" role="tab" aria-controls="tax-brackets-pane"
-            :aria-selected="activeKey === '2'" @click="setActiveTab('2')">
-            <i class="ti ti-list me-1 align-middle d-inline-block"></i>Tax Brackets
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" :class="{ active: activeKey === '3' }" id="tax-calculator-tab" data-bs-toggle="tab"
-            data-bs-target="#tax-calculator-pane" type="button" role="tab" aria-controls="tax-calculator-pane"
-            :aria-selected="activeKey === '3'" @click="setActiveTab('3')">
-            <i class="ti ti-calculator me-1 align-middle d-inline-block"></i>Tax Calculator
-          </button>
-        </li>
-      </ul>
+      <!-- Fallback Data Warning Banner -->
+      <a-alert
+        v-if="usingFallbackSettings || usingFallbackBrackets"
+        type="warning"
+        show-icon
+        closable
+        class="mb-3"
+      >
+        <template #message>
+          <strong>Using offline data</strong>
+        </template>
+        <template #description>
+          <span v-if="usingFallbackSettings && usingFallbackBrackets">
+            Could not load tax settings and tax brackets from the server. Displaying sample data for reference only. Changes will not be saved.
+          </span>
+          <span v-else-if="usingFallbackSettings">
+            Could not load tax settings from the server. Displaying sample data for reference only. Changes will not be saved.
+          </span>
+          <span v-else>
+            Could not load tax brackets from the server. Displaying sample data for reference only. Changes will not be saved.
+          </span>
+          <a href="javascript:void(0)" class="ms-2" @click="retryFetchData">
+            <i class="ti ti-refresh me-1"></i>Retry
+          </a>
+        </template>
+      </a-alert>
 
-      <!-- Tab Content -->
-      <div class="tab-content" id="tax-settings-tabContent">
-        <!-- Tax Settings Tab -->
-        <div class="tab-pane fade p-0 border-bottom-0" :class="{ 'show active': activeKey === '1' }"
-          id="tax-settings-pane" role="tabpanel" aria-labelledby="tax-settings-tab" tabindex="0">
+      <!-- Main Tabs Navigation (Ant Design Vue) -->
+      <a-tabs v-model:activeKey="activeKey" type="card" class="tax-settings-tabs" @change="handleTabChange">
+        <a-tab-pane key="1">
+          <template #tab>
+            <span><i class="ti ti-settings me-1"></i>Tax Settings</span>
+          </template>
           <!-- Header Section -->
-          <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="tab-section-header">
             <div>
-              <h1 class="h3 mb-1">Tax Settings Management</h1>
-              <p class="text-muted mb-0">Manage tax settings with advanced filtering, bulk operations, and year-based
-                controls.
-              </p>
+              <h5 class="section-title mb-1">Tax Settings Management</h5>
+              <p class="text-muted mb-0 small">Manage tax settings with advanced filtering, bulk operations, and year-based controls.</p>
             </div>
             <div class="d-flex gap-2">
-              <!-- Bulk Update Button - Only visible if user can edit -->
-              <button 
-                v-if="canEdit" 
-                class="btn btn-outline-primary btn-sm d-flex align-items-center" 
+              <a-button
+                v-if="canEdit"
+                size="small"
                 @click="bulkUpdateTaxSettings"
                 :disabled="selectedTaxSettingKeys.length === 0"
               >
                 <i class="ti ti-upload me-1"></i>Bulk Update
-              </button>
-              <!-- Create Setting Button - Only visible if user can edit -->
-              <button 
-                v-if="canEdit" 
-                class="btn btn-primary btn-sm d-flex align-items-center" 
+              </a-button>
+              <a-button
+                v-if="canEdit"
+                type="primary"
+                size="small"
                 @click="openAddTaxSettingModal"
               >
                 <i class="ti ti-plus me-1"></i>Create Setting
-              </button>
-              <!-- Export Button - Always visible -->
-              <button class="btn btn-outline-secondary btn-sm d-flex align-items-center" @click="exportToExcel">
-                <i class="ti ti-download me-1"></i>Export
-              </button>
+              </a-button>
+              <a-button
+                size="small"
+                @click="exportToExcel"
+                :loading="exportingExcel"
+              >
+                <template #icon><i class="ti ti-download"></i></template>
+                {{ exportingExcel ? 'Exporting...' : 'Export' }}
+              </a-button>
             </div>
           </div>
 
@@ -205,14 +211,13 @@
                   </thead>
                   <tbody>
                     <tr v-if="taxSettingsLoading">
-                      <td colspan="7" class="text-center py-4">
-                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                        Loading tax settings...
+                      <td colspan="7" class="text-center py-5">
+                        <a-spin tip="Loading tax settings..." />
                       </td>
                     </tr>
                     <tr v-else-if="!taxSettings.length">
-                      <td colspan="7" class="text-center py-4 text-muted">
-                        No tax settings found
+                      <td colspan="7" class="text-center py-5">
+                        <a-empty description="No tax settings found" />
                       </td>
                     </tr>
                     <tr v-else v-for="record in taxSettings" :key="record.id" class="border-bottom">
@@ -284,75 +289,51 @@
                 </table>
               </div>
 
-              <!-- Backend Pagination -->
-              <div class="pagination-wrapper p-3 border-top" v-if="total > 0">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="text-muted small">
-                    Showing {{ getShowingText() }}
-                  </div>
-                  <div class="d-flex align-items-center">
-                    <div class="d-flex align-items-center me-3">
-                      <label class="form-label me-2 mb-0 small">Show:</label>
-                      <select class="form-select form-select-sm" v-model="pageSize" @change="handlePageSizeChange"
-                        style="width: 80px;">
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                      </select>
-                    </div>
-                    <nav>
-                      <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item" :class="{ disabled: currentPage === 1 }">
-                          <button class="page-link" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">
-                            <i class="ti ti-chevron-left"></i>
-                          </button>
-                        </li>
-                        <li class="page-item" :class="{ active: page === currentPage }" v-for="page in visiblePages"
-                          :key="page">
-                          <button class="page-link" @click="goToPage(page)">{{ page }}</button>
-                        </li>
-                        <li class="page-item" :class="{ disabled: currentPage === totalPages }">
-                          <button class="page-link" @click="goToPage(currentPage + 1)"
-                            :disabled="currentPage === totalPages">
-                            <i class="ti ti-chevron-right"></i>
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                    <div class="d-flex align-items-center ms-3">
-                      <label class="form-label me-2 mb-0 small">Go to:</label>
-                      <input type="number" class="form-control form-control-sm" v-model.number="jumpToPage"
-                        @keyup.enter="handleJumpToPage" :min="1" :max="totalPages" style="width: 60px;">
-                      <button class="btn btn-sm btn-outline-secondary ms-1" @click="handleJumpToPage">
-                        <i class="ti ti-arrow-right"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              <!-- Pagination -->
+              <div class="pagination-wrapper" v-if="total > 0">
+                <a-pagination
+                  v-model:current="currentPage"
+                  v-model:page-size="pageSize"
+                  :total="total"
+                  :show-size-changer="true"
+                  :show-quick-jumper="true"
+                  :page-size-options="['10', '20', '50', '100']"
+                  :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                  @change="handlePaginationChange"
+                  @show-size-change="handleSizeChange"
+                />
               </div>
             </div>
           </div>
-        </div>
+        </a-tab-pane>
 
-        <!-- Tax Brackets Tab -->
-        <div class="tab-pane fade p-0 border-bottom-0" :class="{ 'show active': activeKey === '2' }"
-          id="tax-brackets-pane" role="tabpanel" aria-labelledby="tax-brackets-tab" tabindex="0">
+        <a-tab-pane key="2">
+          <template #tab>
+            <span><i class="ti ti-list me-1"></i>Tax Brackets</span>
+          </template>
           <!-- Header Section -->
-          <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="tab-section-header">
             <div>
-              <h1 class="h3 mb-1">Tax Brackets Management</h1>
-              <p class="text-muted mb-0">Configure income tax brackets and progressive tax rates for {{ selectedYear }}.
-              </p>
+              <h5 class="section-title mb-1">Tax Brackets Management</h5>
+              <p class="text-muted mb-0 small">Configure income tax brackets and progressive tax rates for {{ selectedYear }}.</p>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-primary btn-sm d-flex align-items-center" @click="openAddTaxBracketModal">
+              <a-button
+                v-if="canEdit"
+                type="primary"
+                size="small"
+                @click="openAddTaxBracketModal"
+              >
                 <i class="ti ti-plus me-1"></i>Add Tax Bracket
-              </button>
-              <button class="btn btn-outline-secondary btn-sm d-flex align-items-center"
-                @click="exportTaxBracketsToExcel">
-                <i class="ti ti-download me-1"></i>Export
-              </button>
+              </a-button>
+              <a-button
+                size="small"
+                @click="exportTaxBracketsToExcel"
+                :loading="exportingBracketsExcel"
+              >
+                <template #icon><i class="ti ti-download"></i></template>
+                {{ exportingBracketsExcel ? 'Exporting...' : 'Export' }}
+              </a-button>
             </div>
           </div>
 
@@ -522,14 +503,13 @@
                   </thead>
                   <tbody>
                     <tr v-if="taxBracketsLoading">
-                      <td colspan="7" class="text-center py-4">
-                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
-                        Loading tax brackets...
+                      <td colspan="7" class="text-center py-5">
+                        <a-spin tip="Loading tax brackets..." />
                       </td>
                     </tr>
                     <tr v-else-if="!taxBrackets.length">
-                      <td colspan="7" class="text-center py-4 text-muted">
-                        No tax brackets found
+                      <td colspan="7" class="text-center py-5">
+                        <a-empty description="No tax brackets found" />
                       </td>
                     </tr>
                     <tr v-else v-for="record in taxBrackets" :key="record.id" class="border-bottom">
@@ -595,81 +575,44 @@
                 </table>
               </div>
 
-              <!-- Backend Pagination -->
-              <div class="pagination-wrapper p-3 border-top" v-if="taxBracketsTotal > 0">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="text-muted small">
-                    Showing {{ getTaxBracketsShowingText() }}
-                  </div>
-                  <div class="d-flex align-items-center">
-                    <div class="d-flex align-items-center me-3">
-                      <label class="form-label me-2 mb-0 small">Show:</label>
-                      <select class="form-select form-select-sm" v-model="taxBracketsPageSize"
-                        @change="handleTaxBracketsPageSizeChange" style="width: 80px;">
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                      </select>
-                    </div>
-                    <nav>
-                      <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item" :class="{ disabled: taxBracketsCurrentPage === 1 }">
-                          <button class="page-link" @click="goToTaxBracketsPage(taxBracketsCurrentPage - 1)"
-                            :disabled="taxBracketsCurrentPage === 1">
-                            <i class="ti ti-chevron-left"></i>
-                          </button>
-                        </li>
-                        <li class="page-item" :class="{ active: page === taxBracketsCurrentPage }"
-                          v-for="page in taxBracketsVisiblePages" :key="page">
-                          <button class="page-link" @click="goToTaxBracketsPage(page)">{{ page }}</button>
-                        </li>
-                        <li class="page-item" :class="{ disabled: taxBracketsCurrentPage === taxBracketsTotalPages }">
-                          <button class="page-link" @click="goToTaxBracketsPage(taxBracketsCurrentPage + 1)"
-                            :disabled="taxBracketsCurrentPage === taxBracketsTotalPages">
-                            <i class="ti ti-chevron-right"></i>
-                          </button>
-                        </li>
-                      </ul>
-                    </nav>
-                    <div class="d-flex align-items-center ms-3">
-                      <label class="form-label me-2 mb-0 small">Go to:</label>
-                      <input type="number" class="form-control form-control-sm" v-model.number="taxBracketsJumpToPage"
-                        @keyup.enter="handleTaxBracketsJumpToPage" :min="1" :max="taxBracketsTotalPages"
-                        style="width: 60px;">
-                      <button class="btn btn-sm btn-outline-secondary ms-1" @click="handleTaxBracketsJumpToPage">
-                        <i class="ti ti-arrow-right"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+              <!-- Pagination -->
+              <div class="pagination-wrapper" v-if="taxBracketsTotal > 0">
+                <a-pagination
+                  v-model:current="taxBracketsCurrentPage"
+                  v-model:page-size="taxBracketsPageSize"
+                  :total="taxBracketsTotal"
+                  :show-size-changer="true"
+                  :show-quick-jumper="true"
+                  :page-size-options="['10', '20', '50', '100']"
+                  :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                  @change="handleTaxBracketsPaginationChange"
+                  @show-size-change="handleTaxBracketsSizeChange"
+                />
               </div>
             </div>
           </div>
-        </div>
+        </a-tab-pane>
 
-        <!-- Tax Calculator Tab -->
-        <div class="tab-pane fade p-0 border-bottom-0" :class="{ 'show active': activeKey === '3' }"
-          id="tax-calculator-pane" role="tabpanel" aria-labelledby="tax-calculator-tab" tabindex="0">
+        <a-tab-pane key="3">
+          <template #tab>
+            <span><i class="ti ti-calculator me-1"></i>Tax Calculator</span>
+          </template>
           <!-- Header Section -->
-          <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="tab-section-header">
             <div>
-              <h1 class="h3 mb-1">Tax Calculator</h1>
-              <p class="text-muted mb-0">Calculate income tax, social security, and other deductions for {{ selectedYear
-              }}</p>
+              <h5 class="section-title mb-1">Tax Calculator</h5>
+              <p class="text-muted mb-0 small">Calculate income tax, social security, and other deductions for {{ selectedYear }}.</p>
             </div>
             <div class="d-flex gap-2">
-              <button class="btn btn-outline-primary btn-sm d-flex align-items-center" @click="saveCalculation"
-                :disabled="!hasCalculationResults">
-                <i class="ti ti-device-floppy me-1"></i>Save Calculation
-              </button>
-              <button class="btn btn-outline-secondary btn-sm d-flex align-items-center" @click="printCalculation"
-                :disabled="!hasCalculationResults">
+              <a-button size="small" @click="saveCalculation" :disabled="!hasCalculationResults" :loading="submitting">
+                <i class="ti ti-device-floppy me-1"></i>Save
+              </a-button>
+              <a-button size="small" @click="printCalculation" :disabled="!hasCalculationResults">
                 <i class="ti ti-printer me-1"></i>Print
-              </button>
-              <button class="btn btn-primary btn-sm d-flex align-items-center" @click="resetCalculator">
+              </a-button>
+              <a-button type="primary" size="small" @click="resetCalculator">
                 <i class="ti ti-refresh me-1"></i>Reset
-              </button>
+              </a-button>
             </div>
           </div>
 
@@ -800,12 +743,17 @@
 
                     <!-- Calculate Button -->
                     <div class="d-flex justify-content-center">
-                      <button type="submit" class="btn btn-primary btn-lg px-5"
-                        :disabled="calculatorLoading || !calculator.monthlySalary">
-                        <span v-if="calculatorLoading" class="spinner-border spinner-border-sm me-2"
-                          role="status"></span>
-                        <i v-else class="ti ti-calculator me-2"></i>Calculate Payroll
-                      </button>
+                      <a-button
+                        type="primary"
+                        size="large"
+                        html-type="submit"
+                        :loading="calculatorLoading"
+                        :disabled="!calculator.monthlySalary"
+                        class="px-5"
+                      >
+                        <template #icon><i class="ti ti-calculator"></i></template>
+                        Calculate Payroll
+                      </a-button>
                     </div>
                     <div class="text-center text-muted small mt-2">
                       <i class="ti ti-info-circle me-1"></i>Calculation updates automatically as you type
@@ -907,8 +855,8 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </a-tab-pane>
+      </a-tabs>
     </div>
 
     <layout-footer></layout-footer>
@@ -926,6 +874,7 @@
 
 <script>
 import moment from 'moment';
+import { Modal, message } from 'ant-design-vue';
 import { taxSettingsService } from '@/services/tax-settings.service';
 import { taxBracketsService } from '@/services/tax-brackets.service';
 import { taxCalculationsService } from '@/services/tax-calculations.service';
@@ -1038,6 +987,16 @@ export default {
         providentFund: 5.0,
         corporateTax: 20.0
       },
+
+      // Fallback data flags - show warning banner when API fails
+      usingFallbackSettings: false,
+      usingFallbackBrackets: false,
+
+      // Export loading states
+      exportingExcel: false,
+      exportingPDF: false,
+      exportingBracketsExcel: false,
+      exportingBracketsPDF: false,
 
       // API Data
       taxSettings: [],
@@ -1181,17 +1140,6 @@ export default {
       this.calculator.annualSalary = (parseFloat(newVal) || 0) * 12;
     },
 
-    // Watch for active tab changes
-    activeKey(newKey) {
-      if (newKey === '1') {
-        this.fetchTaxSettings();
-      } else if (newKey === '2') {
-        this.fetchTaxBrackets();
-      } else if (newKey === '3') {
-        this.initializeCalculator();
-      }
-    },
-
     // Watch for year changes
     selectedYear(newYear) {
       this.fetchTaxSettings();
@@ -1206,9 +1154,6 @@ export default {
   mounted() {
     this.availableYears = this.generateAvailableYears();
     this.initializeData();
-
-    // Ensure the first tab is properly set as active
-    this.setActiveTab('1');
   },
 
   methods: {
@@ -1238,6 +1183,16 @@ export default {
       } catch (error) {
         console.error('Error initializing data:', error);
         this.showMessage('Failed to load tax data', 'error');
+      }
+    },
+
+    // Retry fetching data from server (called from fallback warning banner)
+    async retryFetchData() {
+      if (this.usingFallbackSettings) {
+        await this.fetchTaxSettings();
+      }
+      if (this.usingFallbackBrackets) {
+        await this.fetchTaxBrackets();
       }
     },
 
@@ -1376,6 +1331,7 @@ export default {
         if (response.success && response.data) {
           this.rawTaxSettings = response.data;
           this.taxSettings = response.data;
+          this.usingFallbackSettings = false;
 
           // Update pagination properties from server response
           if (response.pagination) {
@@ -1388,7 +1344,6 @@ export default {
           }
 
           this.updateTaxRatesSummary();
-          this.showMessage('Tax settings loaded successfully', 'success');
         } else {
           this.rawTaxSettings = [];
           this.taxSettings = [];
@@ -1397,8 +1352,8 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching tax settings:', error);
-        this.showMessage('Using fallback tax settings data', 'warning');
-        // Use fallback data for development/testing
+        // Use fallback data and show persistent warning banner
+        this.usingFallbackSettings = true;
         this.rawTaxSettings = this.getFallbackTaxSettings();
         this.taxSettings = this.rawTaxSettings;
         this.total = this.taxSettings.length;
@@ -1425,6 +1380,7 @@ export default {
         if (response.success && response.data) {
           this.rawTaxBrackets = response.data;
           this.taxBrackets = response.data;
+          this.usingFallbackBrackets = false;
 
           // Update pagination properties from server response
           if (response.pagination) {
@@ -1435,8 +1391,6 @@ export default {
             this.taxBracketsTotal = response.data.length;
             this.taxBracketsCurrentPage = 1;
           }
-
-          this.showMessage('Tax brackets loaded successfully', 'success');
         } else {
           this.rawTaxBrackets = [];
           this.taxBrackets = [];
@@ -1445,8 +1399,8 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching tax brackets:', error);
-        this.showMessage('Using fallback tax brackets data', 'warning');
-        // Use fallback data for development/testing
+        // Use fallback data and show persistent warning banner
+        this.usingFallbackBrackets = true;
         this.rawTaxBrackets = this.getFallbackTaxBrackets();
         this.taxBrackets = this.rawTaxBrackets.sort((a, b) => a.bracket_order - b.bracket_order);
         this.taxBracketsTotal = this.taxBrackets.length;
@@ -1629,18 +1583,19 @@ export default {
         return;
       }
 
+      this.submitting = true;
       try {
         const calculationData = {
+          employee_id: this.calculator.employeeId || null,
           monthly_salary: this.calculator.monthlySalary,
           annual_salary: this.calculator.annualSalary,
-          allowances: this.calculator.allowances,
-          other_income: this.calculator.otherIncome,
-          deductions: this.calculator.deductions,
-          dependents: this.calculator.dependents,
+          additional_incomes: this.calculator.additionalIncomes,
+          additional_deductions: this.calculator.additionalDeductions,
           calculation_year: this.calculator.calculationYear,
           results: {
             gross_income: this.calculator.grossIncome,
             taxable_income: this.calculator.taxableIncome,
+            personal_deductions: this.calculator.personalDeductions,
             income_tax: this.calculator.incomeTax,
             social_security: this.calculator.socialSecurity,
             provident_fund: this.calculator.providentFund,
@@ -1661,6 +1616,8 @@ export default {
       } catch (error) {
         console.error('Error saving calculation:', error);
         this.showMessage('Failed to save calculation', 'error');
+      } finally {
+        this.submitting = false;
       }
     },
 
@@ -1670,7 +1627,49 @@ export default {
         return;
       }
 
-      window.print();
+      // Print only the calculator tab content
+      const printContent = this.$el.querySelector('#tax-calculator-pane');
+      if (!printContent) {
+        window.print();
+        return;
+      }
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Tax Calculation - ${this.calculator.calculationYear}</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 20px; }
+              table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background-color: #f5f5f5; }
+              h2, h3 { color: #333; }
+              .text-end { text-align: right; }
+              .text-success { color: #198754; }
+              .text-danger { color: #dc3545; }
+            </style>
+          </head>
+          <body>
+            <h2>Tax Calculation Report - Year ${this.calculator.calculationYear}</h2>
+            <table>
+              <tr><th>Monthly Salary</th><td class="text-end">${this.formatCurrency(this.calculator.monthlySalary)}</td></tr>
+              <tr><th>Annual Salary</th><td class="text-end">${this.formatCurrency(this.calculator.annualSalary)}</td></tr>
+              <tr><th>Gross Income</th><td class="text-end">${this.formatCurrency(this.calculator.grossIncome)}</td></tr>
+              <tr><th>Personal Deductions</th><td class="text-end">${this.formatCurrency(this.calculator.personalDeductions)}</td></tr>
+              <tr><th>Taxable Income</th><td class="text-end">${this.formatCurrency(this.calculator.taxableIncome)}</td></tr>
+              <tr><th>Income Tax</th><td class="text-end text-danger">${this.formatCurrency(this.calculator.incomeTax)}</td></tr>
+              <tr><th>Social Security</th><td class="text-end">${this.formatCurrency(this.calculator.socialSecurity)}</td></tr>
+              <tr><th>Provident Fund</th><td class="text-end">${this.formatCurrency(this.calculator.providentFund)}</td></tr>
+              <tr><th>Net Income</th><td class="text-end text-success"><strong>${this.formatCurrency(this.calculator.netIncome)}</strong></td></tr>
+              <tr><th>Effective Tax Rate</th><td class="text-end">${this.calculator.effectiveTaxRate}%</td></tr>
+            </table>
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">Generated on ${new Date().toLocaleDateString()}</p>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
     },
 
 
@@ -1716,9 +1715,17 @@ export default {
     },
 
     confirmDeleteTaxSetting(id) {
-      if (confirm('Are you sure you want to delete this tax setting? This action cannot be undone.')) {
-        this.deleteTaxSetting(id);
-      }
+      Modal.confirm({
+        title: 'Are you sure you want to delete this tax setting?',
+        content: 'This action cannot be undone.',
+        centered: true,
+        okText: 'Yes, Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: () => {
+          this.deleteTaxSetting(id);
+        }
+      });
     },
 
     async deleteTaxSetting(id) {
@@ -1745,8 +1752,45 @@ export default {
         return;
       }
 
-      // This would open a bulk update modal or perform bulk operations
-      this.showMessage('Bulk update functionality to be implemented', 'info');
+      const selectedSettings = this.taxSettings.filter(
+        s => this.selectedTaxSettingKeys.includes(s.id)
+      );
+
+      // Confirm bulk update with the user — update effective_year for all selected
+      Modal.confirm({
+        title: `Bulk Update ${selectedSettings.length} Tax Setting(s)`,
+        content: `This will update the effective year to ${this.selectedYear} for all selected tax settings. Continue?`,
+        centered: true,
+        okText: 'Yes, Update',
+        okType: 'primary',
+        cancelText: 'Cancel',
+        onOk: async () => {
+          try {
+            const bulkData = {
+              effective_year: this.selectedYear,
+              settings: selectedSettings.map(s => ({
+                setting_key: s.setting_key,
+                setting_value: s.setting_value,
+                setting_type: s.setting_type,
+                description: s.description
+              }))
+            };
+
+            const response = await taxSettingsService.bulkUpdateTaxSettings(bulkData);
+
+            if (response.success) {
+              this.showMessage(response.message || `${selectedSettings.length} tax settings updated successfully`, 'success');
+              this.selectedTaxSettingKeys = [];
+              await this.fetchTaxSettings();
+            } else {
+              this.showMessage(response.message || 'Bulk update failed', 'error');
+            }
+          } catch (error) {
+            console.error('Error in bulk update:', error);
+            this.showMessage('Failed to perform bulk update', 'error');
+          }
+        }
+      });
     },
 
     async toggleTaxSetting(id) {
@@ -1811,9 +1855,17 @@ export default {
     },
 
     confirmDeleteTaxBracket(id) {
-      if (confirm('Are you sure you want to delete this tax bracket? This action cannot be undone.')) {
-        this.deleteTaxBracket(id);
-      }
+      Modal.confirm({
+        title: 'Are you sure you want to delete this tax bracket?',
+        content: 'This action cannot be undone.',
+        centered: true,
+        okText: 'Yes, Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: () => {
+          this.deleteTaxBracket(id);
+        }
+      });
     },
 
     async deleteTaxBracket(id) {
@@ -1841,15 +1893,12 @@ export default {
 
     // TABLE CHANGE HANDLER (for sorting/filtering only)
     handleTableChange(pagination, filters, sorter) {
-      console.log('Table change (sorting/filtering):', filters, sorter);
-
       // Check if there's actually a meaningful change
       const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
       const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
 
       // Only proceed if there's an actual filter or sort change
       if (!hasFilterChange && !hasSorterChange) {
-        console.log('No meaningful change detected, skipping reload');
         return;
       }
 
@@ -1858,10 +1907,8 @@ export default {
 
       // Only update sorter if it's a real sort operation (has field and order)
       if (sorter && sorter.field && sorter.order) {
-        console.log('Applying sort:', sorter);
         this.sortedInfo = sorter;
       } else if (!sorter || (!sorter.field && !sorter.order)) {
-        console.log('Clearing sort (filtering only or no sort)');
         this.sortedInfo = {};
       }
 
@@ -1899,7 +1946,6 @@ export default {
 
     // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING (following employee-list pattern)
     handlePaginationChange(page, pageSize) {
-      console.log('Pagination change:', page, pageSize);
       this.currentPage = page;
       this.pageSize = pageSize || this.pageSize;
 
@@ -1913,7 +1959,6 @@ export default {
     },
 
     handleSizeChange(current, size) {
-      console.log('Size change:', current, size);
       this.currentPage = 1; // Reset to first page when changing page size
       this.pageSize = size;
 
@@ -2027,11 +2072,21 @@ export default {
       this.fetchTaxSettings(params);
     },
 
-    // Message helper method
+    // Message helper method using Ant Design Vue message API
     showMessage(text, type = 'info') {
-      // Simple console logging for now, can be replaced with toast notifications
-      console.log(`${type.toUpperCase()}: ${text}`);
-      // You can integrate with your preferred notification system here
+      switch (type) {
+        case 'success':
+          message.success(text);
+          break;
+        case 'error':
+          message.error(text);
+          break;
+        case 'warning':
+          message.warning(text);
+          break;
+        default:
+          message.info(text);
+      }
     },
 
     getSortIcon(column) {
@@ -2077,15 +2132,12 @@ export default {
 
     // TAX BRACKETS TABLE CHANGE HANDLER (for sorting/filtering only)
     handleTaxBracketsTableChange(pagination, filters, sorter) {
-      console.log('Tax Brackets Table change (sorting/filtering):', filters, sorter);
-
       // Check if there's actually a meaningful change
       const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.taxBracketsFilteredInfo);
       const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.taxBracketsSortedInfo);
 
       // Only proceed if there's an actual filter or sort change
       if (!hasFilterChange && !hasSorterChange) {
-        console.log('No meaningful change detected, skipping reload');
         return;
       }
 
@@ -2094,10 +2146,8 @@ export default {
 
       // Only update sorter if it's a real sort operation (has field and order)
       if (sorter && sorter.field && sorter.order) {
-        console.log('Applying sort:', sorter);
         this.taxBracketsSortedInfo = sorter;
       } else if (!sorter || (!sorter.field && !sorter.order)) {
-        console.log('Clearing sort (filtering only or no sort)');
         this.taxBracketsSortedInfo = {};
       }
 
@@ -2148,7 +2198,6 @@ export default {
 
     // Tax Brackets Pagination Event Handlers (following employee-list pattern)
     handleTaxBracketsPaginationChange(page, pageSize) {
-      console.log('Tax Brackets Pagination change:', page, pageSize);
       this.taxBracketsCurrentPage = page;
       this.taxBracketsPageSize = pageSize || this.taxBracketsPageSize;
 
@@ -2302,7 +2351,7 @@ export default {
 
     formatDate(dateString) {
       if (!dateString) return '';
-      return moment(dateString).format('DD MMM YYYY');
+      return moment(dateString).format('DD/MM/YYYY');
     },
 
     formatTime(dateString) {
@@ -2410,9 +2459,8 @@ export default {
 
     // Export Functions
     async exportToExcel() {
+      this.exportingExcel = true;
       try {
-        this.showMessage('Exporting tax settings to Excel...', 'info');
-
         const params = {
           year: this.selectedYear,
           search: this.searchText
@@ -2421,7 +2469,6 @@ export default {
         const response = await taxSettingsService.exportToExcel(params);
 
         if (response.success) {
-          // Create download link
           const url = window.URL.createObjectURL(new Blob([response.data]));
           const link = document.createElement('a');
           link.href = url;
@@ -2438,13 +2485,14 @@ export default {
       } catch (error) {
         console.error('Error exporting to Excel:', error);
         this.showMessage('Failed to export tax settings', 'error');
+      } finally {
+        this.exportingExcel = false;
       }
     },
 
     async exportToPDF() {
+      this.exportingPDF = true;
       try {
-        this.showMessage('Exporting tax settings to PDF...', 'info');
-
         const params = {
           year: this.selectedYear,
           search: this.searchText
@@ -2453,7 +2501,6 @@ export default {
         const response = await taxSettingsService.exportToPDF(params);
 
         if (response.success) {
-          // Create download link
           const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
           const link = document.createElement('a');
           link.href = url;
@@ -2468,16 +2515,16 @@ export default {
           this.showMessage(response.message || 'Export failed', 'error');
         }
       } catch (error) {
-        message.destroy();
         console.error('Error exporting to PDF:', error);
-        message.error('Failed to export tax settings');
+        this.showMessage('Failed to export tax settings', 'error');
+      } finally {
+        this.exportingPDF = false;
       }
     },
 
     async exportTaxBracketsToExcel() {
+      this.exportingBracketsExcel = true;
       try {
-        this.showMessage('Exporting tax brackets to Excel...', 'info');
-
         const params = {
           filter_effective_year: this.taxBracketsFilters.effectiveYear || this.selectedYear,
           search: this.taxBracketsSearchText,
@@ -2503,13 +2550,14 @@ export default {
       } catch (error) {
         console.error('Error exporting tax brackets to Excel:', error);
         this.showMessage('Failed to export tax brackets', 'error');
+      } finally {
+        this.exportingBracketsExcel = false;
       }
     },
 
     async exportTaxBracketsToPDF() {
+      this.exportingBracketsPDF = true;
       try {
-        this.showMessage('Exporting tax brackets to PDF...', 'info');
-
         const params = {
           filter_effective_year: this.taxBracketsFilters.effectiveYear || this.selectedYear,
           search: this.taxBracketsSearchText,
@@ -2535,14 +2583,13 @@ export default {
       } catch (error) {
         console.error('Error exporting tax brackets to PDF:', error);
         this.showMessage('Failed to export tax brackets', 'error');
+      } finally {
+        this.exportingBracketsPDF = false;
       }
     },
 
-    // Set active tab with proper Bootstrap functionality
-    setActiveTab(tabKey) {
-      this.activeKey = tabKey;
-
-      // Handle tab-specific logic
+    // Handle tab change from a-tabs @change event
+    handleTabChange(tabKey) {
       if (tabKey === '1') {
         this.fetchTaxSettings();
       } else if (tabKey === '2') {
@@ -2570,22 +2617,83 @@ export default {
 </script>
 
 <style scoped>
+/* ============================================================
+   Tab Section Headers (title + action buttons per tab)
+   ============================================================ */
+.tab-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+/* ============================================================
+   Avatar & Icons
+   ============================================================ */
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.15rem;
 }
 
+.avatar-md {
+  width: 44px;
+  height: 44px;
+}
+
+/* ============================================================
+   Cards
+   ============================================================ */
 .card {
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-  border: 1px solid rgba(0, 0, 0, 0.125);
+  border: 1px solid #e8ecf0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-bottom: 16px;
 }
 
+.card-body {
+  padding: 16px 20px;
+}
+
+/* Summary stat cards - softer tints with matching border */
+.bg-light-primary {
+  background-color: rgba(13, 110, 253, 0.06) !important;
+  border-color: rgba(13, 110, 253, 0.12) !important;
+}
+
+.bg-light-success {
+  background-color: rgba(25, 135, 84, 0.06) !important;
+  border-color: rgba(25, 135, 84, 0.12) !important;
+}
+
+.bg-light-warning {
+  background-color: rgba(255, 193, 7, 0.06) !important;
+  border-color: rgba(255, 193, 7, 0.12) !important;
+}
+
+.bg-light-info {
+  background-color: rgba(13, 202, 240, 0.06) !important;
+  border-color: rgba(13, 202, 240, 0.12) !important;
+}
+
+/* ============================================================
+   Badges
+   ============================================================ */
 .badge {
   font-size: 0.75rem;
-  padding: 0.375rem 0.75rem;
+  padding: 0.35rem 0.65rem;
+  font-weight: 500;
+  border-radius: 4px;
 }
 
 .badge-success {
@@ -2598,44 +2706,53 @@ export default {
   color: white;
 }
 
-.action-icon a {
-  padding: 0.25rem;
-  margin: 0 0.125rem;
-  border-radius: 0.25rem;
-  color: #6c757d;
-  transition: all 0.2s;
+.badge-secondary {
+  background-color: #6c757d;
+  color: white;
 }
 
-.action-icon a:hover {
-  background-color: #f8f9fa;
-  color: #495057;
+/* ============================================================
+   Table Styling
+   ============================================================ */
+.table thead th {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #6b7280;
+  white-space: nowrap;
 }
 
-.bg-light-primary {
-  background-color: rgba(13, 110, 253, 0.1) !important;
+.table tbody td {
+  vertical-align: middle;
+  padding: 12px 8px;
 }
 
-.bg-light-success {
-  background-color: rgba(25, 135, 84, 0.1) !important;
+.table tbody tr:hover {
+  background-color: #f9fafb;
 }
 
-.bg-light-warning {
-  background-color: rgba(255, 193, 7, 0.1) !important;
+/* ============================================================
+   Pagination (Ant Design a-pagination)
+   ============================================================ */
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid #f0f0f0;
 }
 
-.bg-light-info {
-  background-color: rgba(13, 202, 240, 0.1) !important;
-}
-
-/* Tax Calculator Styling */
+/* ============================================================
+   Tax Calculator Styling
+   ============================================================ */
 .tax-results-summary {
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  background-color: #fafafa;
+  padding: 16px;
+  border-radius: 8px;
 }
 
 .result-item {
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .result-item:last-child {
@@ -2646,83 +2763,31 @@ export default {
   border-width: 2px !important;
 }
 
-.avatar {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ============================================================
+   Action Dropdowns
+   ============================================================ */
+.dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e8ecf0;
+  padding: 4px;
 }
 
-/* Additional Income/Deduction Items */
-.income-deduction-item {
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 0.375rem;
-  transition: all 0.2s ease;
+.dropdown-item {
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 0.875rem;
 }
 
-.income-deduction-item:hover {
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+.dropdown-item:hover {
+  background-color: #f5f5f5;
 }
 
-/* Tab Style-6 Integration */
-.tab-style-6 .nav-link {
-  border: 1px solid #dee2e6;
-  border-bottom: 0;
-  background-color: #f8f9fa;
-  color: #6c757d;
-  margin-right: 2px;
-  transition: all 0.15s ease-in-out;
-}
-
-.tab-style-6 .nav-link:hover {
-  background-color: #e9ecef;
-  border-color: #dee2e6;
-  color: #495057;
-}
-
-.tab-style-6 .nav-link.active {
-  background-color: #fff;
-  border-color: #dee2e6 #dee2e6 #fff;
-  color: #0d6efd;
-  font-weight: 500;
-}
-
-.tab-style-6 .nav-link i {
-  font-size: 1rem;
-}
-
-/* Tab content styling */
-#tax-settings-tabContent {
-  border: 1px solid #dee2e6;
-  border-top: 0;
-  background-color: #fff;
-}
-
-#tax-settings-tabContent .tab-pane {
-  padding: 1.5rem;
-}
-
-/* Ensure proper fade transition */
-.tab-pane.fade {
-  transition: opacity 0.15s linear;
-}
-
-.tab-pane.fade:not(.show) {
-  opacity: 0;
-}
-
-.tab-pane.fade.show {
-  opacity: 1;
-}
-
-/* Collapse header functionality */
+/* ============================================================
+   Collapse header
+   ============================================================ */
 #collapse-header.active i {
   transform: rotate(180deg);
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transition: transform 0.3s ease;
 }
 
@@ -2730,57 +2795,37 @@ export default {
   transition: transform 0.3s ease;
 }
 
-/* Backend Pagination Styling */
-.pagination-wrapper {
-  background-color: #f8f9fa;
-  border-top: 1px solid #dee2e6;
-  margin-top: 0;
-}
-
-.pagination .page-link {
-  border: 1px solid #dee2e6;
-  color: #6c757d;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-}
-
-.pagination .page-link:hover {
-  background-color: #e9ecef;
-  border-color: #adb5bd;
-  color: #495057;
-}
-
-.pagination .page-item.active .page-link {
-  background-color: #007bff;
-  border-color: #007bff;
-  color: white;
-}
-
-.pagination .page-item.disabled .page-link {
-  color: #6c757d;
-  background-color: #fff;
-  border-color: #dee2e6;
-  cursor: not-allowed;
-}
-
-/* Responsive adjustments */
+/* ============================================================
+   Responsive
+   ============================================================ */
 @media (max-width: 768px) {
-  .nav-tabs .nav-link {
-    font-size: 0.9rem;
-    padding: 0.75rem 0.5rem;
-  }
-
-  .nav-tabs .nav-link i {
-    display: none;
-  }
-
-  .pagination-wrapper .d-flex {
+  .tab-section-header {
     flex-direction: column;
-    gap: 1rem;
+    gap: 12px;
   }
+}
+</style>
 
-  .pagination-wrapper .pagination {
-    justify-content: center;
-  }
+<!-- Unscoped styles for Ant Design teleported components -->
+<style>
+.tax-settings-tabs .ant-tabs-nav {
+  margin-bottom: 0 !important;
+}
+
+.tax-settings-tabs .ant-tabs-content-holder {
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 24px;
+}
+
+.tax-settings-tabs .ant-tabs-tab {
+  padding: 10px 20px !important;
+  font-size: 0.9rem;
+}
+
+.tax-settings-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  font-weight: 600;
 }
 </style>

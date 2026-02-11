@@ -122,14 +122,9 @@
         "icon": "clipboard-check",
         "subMenus": [
           {
-            "menuValue": "Leaves (Admin)",
+            "menuValue": "Leave Request List",
             "route": "/leave/admin/leaves-admin",
             "active_link": "/leave/admin/leaves-admin"
-          },
-          {
-            "menuValue": "Leave Settings",
-            "route": "/leave/admin/leave-settings",
-            "active_link": "/leave/admin/leave-settings"
           },
           {
             "menuValue": "Leave Types",
@@ -145,21 +140,16 @@
       },
       {
         "menuValue": "Travel",
-        "route": "/requests/travel",
-        "active_link": "/requests/travel",
+        "route": "/requests/travel/admin",
+        "active_link": "/requests/travel/admin",
         "hasSubRoute": true,
         "showSubRoute": false,
         "icon": "bus",
         "subMenus": [
           {
-            "menuValue": "Travel (Admin)",
+            "menuValue": "Travel Request List",
             "route": "/requests/travel/admin",
             "active_link": "/requests/travel/admin"
-          },
-          {
-            "menuValue": "Travel (Employee)",
-            "route": "/requests/travel",
-            "active_link": "/requests/travel"
           }
         ]
       },
@@ -171,14 +161,9 @@
         "active_link": "attendance",
         "subMenus": [
           {
-            "menuValue": "Attendance (Admin)",
-            "route": "/attendance/attendance-admin",
-            "active_link": "/attendance/attendance-admin"
-          },
-          {
-            "menuValue": "Attendance (Employee)",
-            "route": "/attendance/attendance-employee",
-            "active_link": "/attendance/attendance-employee"
+            "menuValue": "Attendance List",
+            "route": "/attendance/attendance-list",
+            "active_link": "/attendance/attendance-list"
           }
         ]
       },
@@ -334,6 +319,21 @@
             "menuValue": "File Uploads List",
             "route": "/file-uploads",
             "active_link": "/file-uploads"
+          }
+        ]
+      },
+      {
+        "menuValue": "Letter Templates",
+        "route": "/letter-templates",
+        "active_link": "/letter-templates",
+        "hasSubRoute": true,
+        "showSubRoute": false,
+        "icon": "template",
+        "subMenus": [
+          {
+            "menuValue": "Template List",
+            "route": "/letter-templates",
+            "active_link": "/letter-templates"
           }
         ]
       },

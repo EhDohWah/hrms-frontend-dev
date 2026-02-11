@@ -543,7 +543,7 @@ export default {
               v-model:value="form.interview_date"
               class="input-short"
               placeholder="Select date"
-              format="DD MMM YYYY"
+              format="DD/MM/YYYY"
               :status="formErrors.interview_date ? 'error' : ''"
               @change="handleFormChange"
             />

@@ -96,6 +96,7 @@
 </template>
 
 <script setup>
+import moment from 'moment';
 import { ref, onMounted, h, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
@@ -220,7 +221,7 @@ async function fetchGrantDetails() {
         name: grantData.name,
         code: grantData.code,
         amount: grantData.amount ?? calculateTotalAmount(grantData.grant_items),
-        endDate: grantData.end_date ? new Date(grantData.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '',
+        endDate: grantData.end_date ? moment(grantData.end_date).format('DD/MM/YYYY') : '',
         status: grantData.status ?? 'Pending',
         department: grantData.department ?? '',
         investigator: grantData.investigator ?? '',

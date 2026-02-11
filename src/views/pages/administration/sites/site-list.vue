@@ -22,7 +22,7 @@
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <!-- Add Site Button - Only visible if user can edit -->
           <div v-if="canEdit" class="mb-2">
-            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_site_modal"
+            <a href="javascript:void(0);" @click="openCreateModal"
               class="btn btn-primary d-flex align-items-center">
               <i class="ti ti-circle-plus me-2"></i>Add Site
             </a>
@@ -131,14 +131,15 @@
     </div>
   </div>
   <!-- /Page Wrapper -->
-  <SiteModal ref="siteModal" @site-added="fetchSites" @site-updated="fetchSites"></SiteModal>
+  <site-modal :visible="modalVisible" :editing-record="editingRecord" @saved="handleSaved" @close="closeModal" />
 </template>
 
 <script>
 import moment from "moment";
 import { useSiteStore } from "@/stores/siteStore";
-import SiteModal from "@/components/modal/site-modal.vue";
+import { siteService } from "@/services/site.service";
 import { usePermissions } from '@/composables/usePermissions';
+import { Modal, message } from 'ant-design-vue';
 
 const rowSelection = {
   onChange: () => {},
@@ -147,9 +148,6 @@ const rowSelection = {
 };
 
 export default {
-  components: {
-    SiteModal
-  },
   setup() {
     // Initialize permission checks for sites module
     const { 
@@ -181,6 +179,8 @@ export default {
       siteStore: useSiteStore(),
       searchValue: '',
       searchTimeout: null,
+      modalVisible: false,
+      editingRecord: null,
     };
   },
   computed: {
@@ -266,7 +266,7 @@ export default {
           title: "Created Date",
           dataIndex: "created_at",
           render: (text) => {
-            return moment(text).format('DD MMM YYYY');
+            return moment(text).format('DD/MM/YYYY');
           },
           sorter: {
             compare: (a, b) => {
@@ -316,12 +316,48 @@ export default {
       }
     },
 
+    openCreateModal() {
+      this.editingRecord = null;
+      this.modalVisible = true;
+    },
+
     editSite(record) {
-      this.$refs.siteModal.setEditSite(record);
+      this.editingRecord = record;
+      this.modalVisible = true;
+    },
+
+    closeModal() {
+      this.modalVisible = false;
+      this.editingRecord = null;
+    },
+
+    handleSaved() {
+      this.closeModal();
+      this.fetchSites();
     },
 
     confirmDeleteSite(siteId) {
-      this.$refs.siteModal.confirmDeleteSite(siteId);
+      Modal.confirm({
+        title: 'Delete Site',
+        content: 'Are you sure you want to delete this site? This action cannot be undone.',
+        okText: 'Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        centered: true,
+        onOk: async () => {
+          try {
+            const response = await siteService.deleteSite(siteId);
+            if (response.success) {
+              message.success('Site deleted successfully');
+              this.fetchSites();
+            } else {
+              message.error(response.message || 'Failed to delete site');
+            }
+          } catch (error) {
+            message.error(error.message || 'Failed to delete site');
+          }
+        },
+      });
     },
 
     toggleHeader() {

@@ -1,317 +1,525 @@
-<template>
-  <!-- Add/Edit Position Modal -->
-  <div class="modal fade" id="add_position_modal" tabindex="-1" aria-labelledby="positionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title" id="positionModalLabel">
-            {{ isEditMode ? 'Edit Position' : 'Add New Position' }}
-          </h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <div v-if="alertMessage" class="alert mx-3 mt-3" :class="alertClass" role="alert">
-          {{ alertMessage }}
-        </div>
-
-        <form @submit.prevent="handleSubmit">
-          <div class="modal-body">
-            <div class="row g-3">
-              <!-- Title -->
-              <div class="col-md-6">
-                <label class="form-label">Title <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" v-model="formData.title"
-                  :class="{ 'is-invalid': validationErrors.title }" placeholder="Enter position title" required>
-                <div v-if="validationErrors.title" class="invalid-feedback">
-                  {{ validationErrors.title }}
-                </div>
-              </div>
-
-              <!-- Department -->
-              <div class="col-md-6">
-                <label class="form-label">Department <span class="text-danger">*</span></label>
-                <select class="form-select" v-model="formData.department_id"
-                  :class="{ 'is-invalid': validationErrors.department_id }" required
-                  @change="onDepartmentChange">
-                  <option value="">Select Department</option>
-                  <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                    {{ dept.name }}
-                  </option>
-                </select>
-                <div v-if="validationErrors.department_id" class="invalid-feedback">
-                  {{ validationErrors.department_id }}
-                </div>
-              </div>
-
-              <!-- Reports To -->
-              <div class="col-md-6">
-                <label class="form-label">Reports To</label>
-                <select class="form-select" v-model="formData.reports_to_position_id">
-                  <option value="">None</option>
-                  <option v-for="pos in availableReportsTo" :key="pos.id" :value="pos.id">
-                    {{ pos.title }} ({{ pos.department_name }})
-                  </option>
-                </select>
-                <small class="text-muted">Select the position this position reports to</small>
-              </div>
-
-              <!-- Level -->
-              <div class="col-md-6">
-                <label class="form-label">Level <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" v-model.number="formData.level"
-                  :class="{ 'is-invalid': validationErrors.level }" min="1" required>
-                <div v-if="validationErrors.level" class="invalid-feedback">
-                  {{ validationErrors.level }}
-                </div>
-                <small class="text-muted">1 = Department Head, 2 = Manager, 3+ = Staff</small>
-              </div>
-
-              <!-- Is Manager -->
-              <div class="col-md-6">
-                <label class="form-label">Position Type</label>
-                <select class="form-select" v-model="formData.is_manager">
-                  <option :value="true">Manager</option>
-                  <option :value="false">Staff</option>
-                </select>
-              </div>
-
-              <!-- Status -->
-              <div class="col-md-6">
-                <label class="form-label">Status</label>
-                <select class="form-select" v-model="formData.is_active">
-                  <option :value="true">Active</option>
-                  <option :value="false">Inactive</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-              {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Delete Confirmation Modal -->
-  <div class="modal fade" id="delete_position_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Delete Position</h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>Are you sure you want to delete this position? This action cannot be undone.</p>
-          <p class="text-warning"><i class="ti ti-alert-triangle me-1"></i>Note: Positions with active subordinates cannot be deleted.</p>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-danger" @click="deletePosition" :disabled="isSubmitting">
-            <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-            {{ isSubmitting ? 'Deleting...' : 'Delete' }}
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
-import { Modal } from 'bootstrap';
-import { usePositionStore } from '@/stores/positionStore';
-import { useDepartmentStore } from '@/stores/departmentStore';
+import { ref, watch, computed } from 'vue';
+import { positionService } from '@/services/position.service';
+import { departmentService } from '@/services/department.service';
+import { message } from 'ant-design-vue';
 
 export default {
   name: 'PositionModal',
-  emits: ['position-added', 'position-updated'],
-  data() {
-    return {
-      isEditMode: false,
-      currentId: null,
-      formData: {
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
+    },
+    editingRecord: {
+      type: Object,
+      default: null
+    }
+  },
+  emits: ['saved', 'close'],
+  setup(props, { emit }) {
+    const form = ref({
+      title: '',
+      department_id: undefined,
+      reports_to_position_id: undefined,
+      level: 1,
+      is_manager: false,
+      is_active: true,
+    });
+
+    const loading = ref(false);
+    const formErrors = ref({});
+
+    // Dropdown options
+    const departmentOptions = ref([]);
+    const positionOptionsRaw = ref([]);
+
+    const isEditing = computed(() => !!props.editingRecord);
+    const modalTitle = computed(() => isEditing.value ? 'Edit Position' : 'Add New Position');
+    const submitButtonText = computed(() => isEditing.value ? 'Save Changes' : 'Add Position');
+
+    // Filter positions: same department, exclude self when editing
+    const availableReportsTo = computed(() => {
+      let filtered = positionOptionsRaw.value;
+
+      if (isEditing.value && props.editingRecord?.id) {
+        filtered = filtered.filter(p => p.id !== props.editingRecord.id);
+      }
+
+      if (form.value.department_id) {
+        filtered = filtered.filter(p => p.department_id === form.value.department_id);
+      }
+
+      return filtered.map(p => ({
+        value: p.id,
+        label: `${p.title} (${p.department_name || 'N/A'})`,
+      }));
+    });
+
+    const resetForm = () => {
+      form.value = {
         title: '',
-        department_id: '',
-        reports_to_position_id: '',
+        department_id: undefined,
+        reports_to_position_id: undefined,
         level: 1,
         is_manager: false,
         is_active: true,
-      },
-      departments: [],
-      positions: [],
-      validationErrors: {},
-      alertMessage: '',
-      alertClass: '',
-      isSubmitting: false,
-      addModalInstance: null,
-      deleteModalInstance: null,
-      deleteId: null,
+      };
+      formErrors.value = {};
     };
-  },
-  computed: {
-    availableReportsTo() {
-      // Filter positions to exclude the current position (if editing) and only show positions from the same department
-      let filtered = this.positions;
-      
-      if (this.isEditMode && this.currentId) {
-        filtered = filtered.filter(p => p.id !== this.currentId);
-      }
-      
-      // Optionally filter by same department
-      if (this.formData.department_id) {
-        filtered = filtered.filter(p => p.department_id === parseInt(this.formData.department_id));
-      }
-      
-      return filtered;
-    }
-  },
-  methods: {
-    async loadDropdowns() {
+
+    const loadOptions = async () => {
       try {
-        const departmentStore = useDepartmentStore();
-        const positionStore = usePositionStore();
-        
-        await departmentStore.fetchDepartmentOptions();
-        await positionStore.fetchPositionOptions();
-        
-        this.departments = departmentStore.departmentOptions;
-        this.positions = positionStore.positionOptions;
+        const [deptResponse, posResponse] = await Promise.all([
+          departmentService.getDepartmentOptions(),
+          positionService.getPositionOptions(),
+        ]);
+
+        if (deptResponse.success && deptResponse.data) {
+          departmentOptions.value = deptResponse.data.map(d => ({
+            value: d.id,
+            label: d.name,
+          }));
+        }
+
+        if (posResponse.success && posResponse.data) {
+          positionOptionsRaw.value = posResponse.data;
+        }
       } catch (error) {
-        console.error('Error loading dropdowns:', error);
+        console.error('Error loading options:', error);
       }
-    },
+    };
 
-    setEditPosition(record) {
-      this.isEditMode = true;
-      this.currentId = record.id;
-      this.formData = {
-        title: record.title || '',
-        department_id: record.department_id || '',
-        reports_to_position_id: record.reports_to_position_id || '',
-        level: record.level || 1,
-        is_manager: record.is_manager || false,
-        is_active: record.is_active !== undefined ? record.is_active : true,
-      };
-      this.validationErrors = {};
-      this.alertMessage = '';
-      this.loadDropdowns();
-      this.openModal();
-    },
-
-    openModal() {
-      if (!this.addModalInstance) {
-        this.addModalInstance = new Modal(document.getElementById('add_position_modal'));
+    watch(() => props.editingRecord, (newVal) => {
+      if (newVal) {
+        form.value = {
+          title: newVal.title || '',
+          department_id: newVal.department_id || undefined,
+          reports_to_position_id: newVal.reports_to_position_id || undefined,
+          level: newVal.level || 1,
+          is_manager: newVal.is_manager || false,
+          is_active: newVal.is_active !== undefined ? newVal.is_active : true,
+        };
+      } else {
+        resetForm();
       }
-      this.addModalInstance.show();
-    },
+    }, { immediate: true });
 
-    closeModal() {
-      if (this.addModalInstance) {
-        this.addModalInstance.hide();
+    watch(() => props.visible, async (newVal) => {
+      if (newVal) {
+        await loadOptions();
+        if (!props.editingRecord) {
+          resetForm();
+        }
       }
-      this.resetForm();
-    },
+    });
 
-    resetForm() {
-      this.isEditMode = false;
-      this.currentId = null;
-      this.formData = {
-        title: '',
-        department_id: '',
-        reports_to_position_id: '',
-        level: 1,
-        is_manager: false,
-        is_active: true,
-      };
-      this.validationErrors = {};
-      this.alertMessage = '';
-    },
+    // Reset reports_to when department changes
+    const onDepartmentChange = () => {
+      form.value.reports_to_position_id = undefined;
+    };
 
-    onDepartmentChange() {
-      // Reset reports_to when department changes
-      this.formData.reports_to_position_id = '';
-    },
-
-    confirmDeletePosition(positionId) {
-      this.deleteId = positionId;
-      if (!this.deleteModalInstance) {
-        this.deleteModalInstance = new Modal(document.getElementById('delete_position_modal'));
+    const validateForm = () => {
+      const errors = {};
+      if (!form.value.title?.trim()) {
+        errors.title = 'Position title is required';
       }
-      this.deleteModalInstance.show();
-    },
+      if (!form.value.department_id) {
+        errors.department_id = 'Department is required';
+      }
+      if (!form.value.level || form.value.level < 1) {
+        errors.level = 'Level is required (minimum 1)';
+      }
+      formErrors.value = errors;
+      return Object.keys(errors).length === 0;
+    };
 
-    async handleSubmit() {
-      this.validationErrors = {};
-      this.alertMessage = '';
-      this.isSubmitting = true;
+    const handleSubmit = async () => {
+      if (!validateForm()) {
+        message.warning('Please fill in all required fields');
+        return;
+      }
 
+      loading.value = true;
       try {
-        const positionStore = usePositionStore();
+        const data = {
+          title: form.value.title?.trim(),
+          department_id: form.value.department_id,
+          reports_to_position_id: form.value.reports_to_position_id || null,
+          level: form.value.level,
+          is_manager: form.value.is_manager,
+          is_active: form.value.is_active,
+        };
 
-        if (this.isEditMode) {
-          await positionStore.updatePosition(this.currentId, this.formData);
-          this.alertMessage = 'Position updated successfully!';
-          this.$emit('position-updated');
+        let response;
+        if (isEditing.value) {
+          response = await positionService.updatePosition(props.editingRecord.id, data);
         } else {
-          await positionStore.createPosition(this.formData);
-          this.alertMessage = 'Position created successfully!';
-          this.$emit('position-added');
+          response = await positionService.createPosition(data);
         }
 
-        this.alertClass = 'alert-success';
-
-        setTimeout(() => {
-          this.closeModal();
-        }, 1500);
-      } catch (error) {
-        if (error.errors) {
-          this.validationErrors = error.errors;
-          this.alertMessage = 'Please fix the validation errors';
+        if (response.success) {
+          message.success(isEditing.value ? 'Position updated successfully' : 'Position created successfully');
+          emit('saved', response);
+          handleClose();
         } else {
-          this.alertMessage = error.message || `Failed to ${this.isEditMode ? 'update' : 'create'} position`;
+          message.error(response.message || 'Failed to save position');
         }
-        this.alertClass = 'alert-danger';
-      } finally {
-        this.isSubmitting = false;
-      }
-    },
-
-    async deletePosition() {
-      this.isSubmitting = true;
-
-      try {
-        const positionStore = usePositionStore();
-        await positionStore.deletePosition(this.deleteId);
-
-        if (this.deleteModalInstance) {
-          this.deleteModalInstance.hide();
-        }
-
-        this.$emit('position-updated');
-        this.$message.success('Position deleted successfully');
       } catch (error) {
-        this.$message.error(error.message || 'Failed to delete position');
+        if (error.status === 422 && error.errors) {
+          Object.keys(error.errors).forEach(field => {
+            if (Array.isArray(error.errors[field]) && error.errors[field].length > 0) {
+              formErrors.value[field] = error.errors[field][0];
+            }
+          });
+          message.error('Please correct the errors and try again');
+        } else {
+          message.error(error.message || 'Failed to save position');
+        }
       } finally {
-        this.isSubmitting = false;
-        this.deleteId = null;
+        loading.value = false;
       }
-    },
-  },
-  mounted() {
-    const modalEl = document.getElementById('add_position_modal');
-    if (modalEl) {
-      modalEl.addEventListener('hidden.bs.modal', () => {
-        this.resetForm();
-      });
-      modalEl.addEventListener('show.bs.modal', () => {
-        this.loadDropdowns();
-      });
-    }
-  },
+    };
+
+    const handleClose = () => {
+      resetForm();
+      emit('close');
+    };
+
+    const handleAfterClose = () => {
+      const backdrops = document.querySelectorAll('.ant-modal-mask, .ant-modal-wrap');
+      const openModals = document.querySelectorAll('.ant-modal-wrap:not([style*="display: none"])');
+      if (openModals.length === 0) {
+        backdrops.forEach(el => {
+          if (el.style.display !== 'none') {
+            el.style.display = 'none';
+          }
+        });
+      }
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+
+    const filterOption = (input, option) => {
+      return option.label.toLowerCase().includes(input.toLowerCase());
+    };
+
+    return {
+      form,
+      loading,
+      formErrors,
+      departmentOptions,
+      availableReportsTo,
+      isEditing,
+      modalTitle,
+      submitButtonText,
+      handleSubmit,
+      handleClose,
+      handleAfterClose,
+      onDepartmentChange,
+      filterOption,
+    };
+  }
 };
 </script>
+
+<template>
+  <a-modal
+    :open="visible"
+    :title="modalTitle"
+    :confirmLoading="loading"
+    @cancel="handleClose"
+    @afterClose="handleAfterClose"
+    :footer="null"
+    :width="650"
+    :maskClosable="false"
+    :destroyOnClose="true"
+    centered
+  >
+    <form @submit.prevent="handleSubmit">
+      <!-- Title -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="position-title">
+            Title <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-input
+            id="position-title"
+            v-model:value="form.title"
+            placeholder="Enter position title"
+            :status="formErrors.title ? 'error' : ''"
+            class="input-long"
+          />
+          <div v-if="formErrors.title" class="error-feedback">
+            {{ formErrors.title }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Department -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="position-department">
+            Department <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-select
+            id="position-department"
+            v-model:value="form.department_id"
+            placeholder="Select department"
+            :status="formErrors.department_id ? 'error' : ''"
+            :options="departmentOptions"
+            show-search
+            :filter-option="filterOption"
+            class="input-long"
+            @change="onDepartmentChange"
+          />
+          <div v-if="formErrors.department_id" class="error-feedback">
+            {{ formErrors.department_id }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Reports To -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="position-reports-to">
+            Reports To :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-select
+            id="position-reports-to"
+            v-model:value="form.reports_to_position_id"
+            placeholder="None"
+            :options="availableReportsTo"
+            show-search
+            :filter-option="filterOption"
+            allowClear
+            class="input-long"
+          />
+          <div class="field-hint">Select the position this one reports to</div>
+        </div>
+      </div>
+
+      <!-- Level -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="position-level">
+            Level <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-input-number
+            id="position-level"
+            v-model:value="form.level"
+            :min="1"
+            :status="formErrors.level ? 'error' : ''"
+            class="input-short"
+          />
+          <div v-if="formErrors.level" class="error-feedback">
+            {{ formErrors.level }}
+          </div>
+          <div class="field-hint">1 = Department Head, 2 = Manager, 3+ = Staff</div>
+        </div>
+      </div>
+
+      <!-- Is Manager -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">
+            Is Manager :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-switch v-model:checked="form.is_manager" />
+        </div>
+      </div>
+
+      <!-- Active -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">
+            Active :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-switch v-model:checked="form.is_active" />
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a-button @click="handleClose" :disabled="loading">
+          Cancel
+        </a-button>
+        <a-button type="primary" html-type="submit" :loading="loading">
+          {{ submitButtonText }}
+        </a-button>
+      </div>
+    </form>
+  </a-modal>
+</template>
+
+<style scoped>
+:deep(.ant-modal-content) {
+  padding: 0 !important;
+}
+
+:deep(.ant-modal-header) {
+  padding: 16px 24px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  background: #fff;
+}
+
+:deep(.ant-modal-title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+:deep(.ant-modal-body) {
+  padding: 24px !important;
+  margin-top: 0 !important;
+}
+
+:deep(.ant-modal-close) {
+  top: 12px;
+  right: 12px;
+}
+
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-label-col {
+  flex: 0 0 120px;
+  min-width: 120px;
+  padding-top: 6px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
+  display: block;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.input-short {
+  width: 200px !important;
+  max-width: 200px;
+}
+
+.input-long {
+  width: 100% !important;
+  max-width: 400px;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin-top: 4px;
+}
+
+.error-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  font-size: 0.875em;
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+.text-danger {
+  color: #ff4d4f;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .form-input-col {
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .input-short,
+  .input-long {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  :deep(.ant-picker),
+  :deep(.ant-select) {
+    width: 100% !important;
+  }
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+:deep(.input-short.ant-input-number) {
+  width: 200px !important;
+}
+
+:deep(.input-long.ant-select) {
+  width: 100% !important;
+  max-width: 400px;
+}
+
+:deep(.input-long.ant-input) {
+  width: 100% !important;
+  max-width: 400px;
+}
+
+:deep(.ant-select-selector) {
+  min-width: inherit;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+:deep(.ant-select-selection-item) {
+  line-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+:deep(.ant-select-selection-placeholder) {
+  line-height: 30px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+</style>

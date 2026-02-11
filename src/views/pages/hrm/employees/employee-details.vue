@@ -962,9 +962,8 @@
                               <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                   <h6 class="mb-0">
-                                    <span class="badge me-2"
-                                      :class="allocation.allocation_type === 'grant' ? 'badge-primary' : 'badge-secondary'">
-                                      {{ allocation.allocation_type === 'grant' ? 'Grant' : 'Org Funded' }}
+                                    <span class="badge badge-primary me-2">
+                                      Grant
                                     </span>
                                     Allocation #{{ index + 1 }} ({{ (parseFloat(allocation.level_of_effort) *
                                       100).toFixed(0)
@@ -974,15 +973,6 @@
 
                                 <!-- Common allocation details -->
                                 <div class="row">
-                                  <div class="col-md-3">
-                                    <span class="d-inline-flex align-items-center">
-                                      Allocation Type
-                                    </span>
-                                    <h6 class="d-flex align-items-center fw-medium mt-1">
-                                      {{ allocation.allocation_type || 'N/A' }}
-                                    </h6>
-                                  </div>
-
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
                                       Level of Effort
@@ -1025,7 +1015,7 @@
                                 </div>
 
                                 <!-- Grant specific details -->
-                                <div v-if="allocation.allocation_type === 'grant' && allocation.position_slot"
+                                <div v-if="allocation.position_slot"
                                   class="row mt-3">
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
@@ -1068,7 +1058,7 @@
                                 </div>
 
                                 <!-- Grant position and salary details -->
-                                <div v-if="allocation.allocation_type === 'grant' && allocation.position_slot"
+                                <div v-if="allocation.position_slot"
                                   class="row mt-3">
                                   <div class="col-md-3">
                                     <span class="d-inline-flex align-items-center">
@@ -1708,6 +1698,7 @@
     @grantPositionAdded="fetchEmployeeDetails" />
 </template>
 <script>
+import moment from 'moment';
 import { useEmployeeStore } from '@/stores/employeeStore';
 import { employmentService } from '@/services/employment.service';
 import { Modal } from 'bootstrap';
@@ -1872,14 +1863,7 @@ export default {
 
     formatDate(date) {
       if (!date) return '';
-      const userLocale = navigator.language || 'en-GB';
-      // force DMY for any US‐style locale
-      const localeToUse = userLocale === 'en-US' ? 'en-GB' : userLocale;
-      return new Intl.DateTimeFormat(localeToUse, {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric'
-      }).format(new Date(date));
+      return moment(date).format('DD/MM/YYYY');
     },
 
     formatThaiDate(date) {

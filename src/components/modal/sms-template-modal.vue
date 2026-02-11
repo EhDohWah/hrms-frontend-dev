@@ -20,11 +20,12 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Template Content</label>
-                  <ckeditor
-                    :editor="editor"
-                    v-model="editorData"
-                    :config="editorConfig"
-                  ></ckeditor>
+                  <QuillEditor
+                    v-model:content="editorData"
+                    contentType="html"
+                    theme="snow"
+                    :toolbar="defaultToolbar"
+                  />
                 </div>
               </div>
               <div class="col-md-12">
@@ -72,11 +73,12 @@
               <div class="col-md-12">
                 <div class="mb-3">
                   <label class="form-label">Template Content</label>
-                  <ckeditor
-                    :editor="editor"
-                    v-model="editorData"
-                    :config="editorConfig"
-                  ></ckeditor>
+                  <QuillEditor
+                    v-model:content="editorData"
+                    contentType="html"
+                    theme="snow"
+                    :toolbar="defaultToolbar"
+                  />
                 </div>
               </div>
               <div class="col-md-12">
@@ -141,7 +143,8 @@
   <!-- /Delete Modal -->
 </template>
 <script>
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { QuillEditor } from '@vueup/vue-quill';
+import { defaultToolbar } from '@/config/quill.config';
 import { useSelectMigration } from '@/composables/useSelectMigration';
 
 export default {
@@ -149,11 +152,13 @@ export default {
     const { filterOption, getModalPopupContainer } = useSelectMigration();
     return { filterOption, getModalPopupContainer };
   },
+  components: {
+    QuillEditor,
+  },
   data() {
     return {
-      editor: ClassicEditor,
-      editorData: " ",
-      editorConfig: {},
+      editorData: "",
+      defaultToolbar,
       StaSmsTem: ["Active", "Inactive"],
       EditStaSmsTem: ["Active", "Inactive"],
     };

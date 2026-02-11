@@ -598,7 +598,7 @@ export default {
 
     formatDate(dateString) {
       if (!dateString) return '-';
-      return moment(dateString).format('DD MMM YYYY');
+      return moment(dateString).format('DD/MM/YYYY');
     },
 
     toggleHeader() {

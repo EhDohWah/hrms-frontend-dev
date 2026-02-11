@@ -64,7 +64,7 @@ export default {
           label: 'Payroll',
           icon: 'ti ti-cash',
           route: '/payroll',
-          permission: 'payroll.read',
+          permission: 'employee_salary.read',
           colorClass: 'bg-info-light text-info',
         },
         {

@@ -10,8 +10,8 @@
                 <div class="d-flex align-items-center">
                     <index-breadcrumb :title="title" :text="text" :text1="text1" />
                     <!-- Read-Only Badge -->
-                    <span 
-                        v-if="isReadOnlyEmployeeTraining" 
+                    <span
+                        v-if="isReadOnlyEmployeeTraining"
                         class="badge bg-warning text-dark ms-3 d-flex align-items-center"
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
@@ -22,7 +22,7 @@
                 </div>
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
                     <div v-if="canEditEmployeeTraining" class="mb-2 me-2">
-                        <button class="btn btn-primary d-flex align-items-center" @click="openAddEmployeeTrainingModal">
+                        <button class="btn btn-primary d-flex align-items-center" @click="openCreateModal">
                             <i class="ti ti-circle-plus me-2"></i>Assign Employee to Training
                         </button>
                     </div>
@@ -185,12 +185,12 @@
                                             <i class="ti ti-eye"></i>
                                         </a>
                                         <!-- Edit -->
-                                        <a href="javascript:void(0);" @click="editEmployeeTraining(record)"
+                                        <a v-if="canEditEmployeeTraining" href="javascript:void(0);" @click="editEmployeeTraining(record)"
                                             class="me-2">
                                             <i class="ti ti-edit"></i>
                                         </a>
                                         <!-- Delete -->
-                                        <a href="javascript:void(0);" @click="confirmDeleteEmployeeTraining(record.id)">
+                                        <a v-if="canEditEmployeeTraining" href="javascript:void(0);" @click="confirmDeleteEmployeeTraining(record.id)">
                                             <i class="ti ti-trash"></i>
                                         </a>
                                     </div>
@@ -233,7 +233,6 @@
                         <div class="pagination-wrapper">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="pagination-info">
-                                    <!-- Optional: Additional info can go here -->
                                 </div>
                                 <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
                                     :show-size-changer="true" :show-quick-jumper="true"
@@ -250,85 +249,76 @@
         <layout-footer></layout-footer>
     </div>
 
-    <!-- Employee Training Modal -->
-    <employee-training-modal ref="employeeTrainingModal" @employee-training-added="handleEmployeeTrainingAdded"
-        @employee-training-updated="handleEmployeeTrainingUpdated" />
+    <!-- Employee Training Modal (lazy-loaded) -->
+    <employee-training-modal :visible="modalVisible" :editing-record="editingRecord" @saved="handleSaved" @close="closeModal" />
 
     <!-- View Employee Training Modal -->
-    <div class="modal fade" id="view_employee_training_modal" tabindex="-1"
-        aria-labelledby="viewEmployeeTrainingModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="viewEmployeeTrainingModalLabel">Employee Training Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <a-modal
+        v-model:open="viewModalVisible"
+        title="Employee Training Details"
+        :footer="null"
+        :width="650"
+        centered
+        :destroyOnClose="true"
+    >
+        <div v-if="viewingEmployeeTraining" class="view-details">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Employee Name</label>
+                    <p class="form-control-plaintext">{{ viewingEmployeeTraining.employee_name }}</p>
                 </div>
-                <div class="modal-body" v-if="viewingEmployeeTraining">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Employee Name</label>
-                            <p class="form-control-plaintext">{{ viewingEmployeeTraining.employee_name }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Staff ID</label>
-                            <p class="form-control-plaintext">{{ viewingEmployeeTraining.staff_id }}</p>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-medium">Training Program</label>
-                            <p class="form-control-plaintext">{{ viewingEmployeeTraining.training_title }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Organizer</label>
-                            <p class="form-control-plaintext">{{ viewingEmployeeTraining.organizer }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Status</label>
-                            <p class="form-control-plaintext">
-                                <span :class="getStatusBadgeClass(viewingEmployeeTraining.status)">
-                                    {{ viewingEmployeeTraining.status }}
-                                </span>
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Start Date</label>
-                            <p class="form-control-plaintext">{{ formatDate(viewingEmployeeTraining.start_date) }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">End Date</label>
-                            <p class="form-control-plaintext">{{ formatDate(viewingEmployeeTraining.end_date) }}</p>
-                        </div>
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Staff ID</label>
+                    <p class="form-control-plaintext">{{ viewingEmployeeTraining.staff_id }}</p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                <div class="col-md-12">
+                    <label class="form-label fw-medium">Training Program</label>
+                    <p class="form-control-plaintext">{{ viewingEmployeeTraining.training_title }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Organizer</label>
+                    <p class="form-control-plaintext">{{ viewingEmployeeTraining.organizer }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Status</label>
+                    <p class="form-control-plaintext">
+                        <span :class="getStatusBadgeClass(viewingEmployeeTraining.status)">
+                            {{ viewingEmployeeTraining.status }}
+                        </span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Start Date</label>
+                    <p class="form-control-plaintext">{{ formatDate(viewingEmployeeTraining.start_date) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">End Date</label>
+                    <p class="form-control-plaintext">{{ formatDate(viewingEmployeeTraining.end_date) }}</p>
                 </div>
             </div>
         </div>
-    </div>
+    </a-modal>
 </template>
 
 <script>
-import { Modal } from 'bootstrap'; // ✅ Selective import
 import { useEmployeeTrainingStore } from '@/stores/employeeTrainingStore';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-import EmployeeTrainingModal from '@/components/modal/employee-training-modal.vue';
-import { message } from 'ant-design-vue';
+import { Modal, message } from 'ant-design-vue';
 import { usePermissions } from '@/composables/usePermissions';
+import moment from 'moment';
 
 export default {
     name: 'EmployeeTrainingList',
     components: {
         indexBreadcrumb,
-        EmployeeTrainingModal
     },
     setup() {
-        // Initialize permission checks for employee_training module
-        const { 
-            canRead, 
-            canEdit, 
-            isReadOnly, 
-            accessLevelText, 
-            accessLevelBadgeClass 
+        const {
+            canRead,
+            canEdit,
+            isReadOnly,
+            accessLevelText,
+            accessLevelBadgeClass
         } = usePermissions('employee_training');
 
         return {
@@ -348,7 +338,11 @@ export default {
             // Data
             employeeTrainingStore: useEmployeeTrainingStore(),
             viewingEmployeeTraining: null,
-            viewModalInstance: null,
+            viewModalVisible: false,
+
+            // Modal state
+            modalVisible: false,
+            editingRecord: null,
 
             // Search
             searchText: '',
@@ -410,7 +404,6 @@ export default {
     },
 
     computed: {
-        // Permission checks - primary source for reactivity
         canEditEmployeeTraining() {
             try {
                 const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
@@ -485,7 +478,7 @@ export default {
                 await this.employeeTrainingStore.fetchEmployeeTrainings(params);
             } catch (error) {
                 console.error('Error fetching employee trainings:', error);
-                this.showError('Failed to load employee training records');
+                message.error('Failed to load employee training records');
             }
         },
 
@@ -495,22 +488,17 @@ export default {
                 await this.employeeTrainingStore.searchEmployeeTrainings(this.searchText);
             } catch (error) {
                 console.error('Search error:', error);
-                this.showError(error.message || 'Search failed');
+                message.error(error.message || 'Search failed');
             } finally {
                 this.searchLoading = false;
             }
         },
 
         handleTableChange(pagination, filters, sorter) {
-            // Update filters in store
             if (filters.status) {
                 this.employeeTrainingStore.updateFilters({ status: filters.status });
             }
-
-            // Update sorting
             this.employeeTrainingStore.updateSorting(sorter);
-
-            // Fetch with new params
             const params = this.employeeTrainingStore.buildApiParams();
             this.fetchEmployeeTrainings(params);
         },
@@ -542,28 +530,40 @@ export default {
             this.fetchEmployeeTrainings();
         },
 
-        openAddEmployeeTrainingModal() {
-            this.$refs.employeeTrainingModal.openAddEmployeeTrainingModal();
+        // Modal methods
+        openCreateModal() {
+            this.editingRecord = null;
+            this.modalVisible = true;
         },
 
         editEmployeeTraining(record) {
-            this.$refs.employeeTrainingModal.openEditEmployeeTrainingModal(record);
+            this.editingRecord = record;
+            this.modalVisible = true;
+        },
+
+        closeModal() {
+            this.modalVisible = false;
+            this.editingRecord = null;
+        },
+
+        handleSaved() {
+            this.closeModal();
+            this.fetchEmployeeTrainings();
         },
 
         viewEmployeeTraining(record) {
             this.viewingEmployeeTraining = record;
-            this.viewModalInstance = new Modal(document.getElementById('view_employee_training_modal'));
-            this.viewModalInstance.show();
+            this.viewModalVisible = true;
         },
 
         async confirmDeleteEmployeeTraining(id) {
-            // Use Ant Design Modal.confirm instead of SweetAlert
-            this.$confirm({
-                title: 'Are you sure?',
+            Modal.confirm({
+                title: 'Delete Employee Training',
                 content: 'This will delete the employee training record.',
-                okText: 'Yes, delete it!',
+                okText: 'Delete',
                 okType: 'danger',
                 cancelText: 'Cancel',
+                centered: true,
                 onOk: async () => {
                     try {
                         await this.employeeTrainingStore.deleteEmployeeTraining(id);
@@ -581,13 +581,13 @@ export default {
                 return;
             }
 
-            // Use Ant Design Modal.confirm instead of SweetAlert
-            this.$confirm({
-                title: 'Are you sure?',
+            Modal.confirm({
+                title: 'Delete Selected Records',
                 content: `This will delete ${this.selectedRowKeys.length} employee training record(s).`,
-                okText: 'Yes, delete them!',
+                okText: 'Delete',
                 okType: 'danger',
                 cancelText: 'Cancel',
+                centered: true,
                 onOk: async () => {
                     try {
                         await this.employeeTrainingStore.deleteSelectedEmployeeTrainings(this.selectedRowKeys);
@@ -601,23 +601,13 @@ export default {
             });
         },
 
-        async handleEmployeeTrainingAdded() {
-            await this.fetchEmployeeTrainings();
-            message.success('Employee training added successfully');
-        },
-
-        async handleEmployeeTrainingUpdated() {
-            await this.fetchEmployeeTrainings();
-            message.success('Employee training updated successfully');
-        },
-
         onSelectChange(selectedRowKeys) {
             this.selectedRowKeys = selectedRowKeys;
         },
 
         formatDate(date) {
             if (!date) return 'N/A';
-            return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            return moment(date).format('DD/MM/YYYY');
         },
 
         getStatusBadgeClass(status) {
@@ -637,7 +627,7 @@ export default {
 
         toggleHeader() {
             const collapseBtn = document.getElementById('collapse-header');
-            
+
             if (collapseBtn) {
                 collapseBtn.classList.toggle('active');
                 document.body.classList.toggle('header-collapse');
@@ -650,7 +640,7 @@ export default {
 </script>
 
 <style scoped>
-/* Primary color styling for search input button - following LEAVES_ADMIN_STYLING_FIX.md */
+/* Primary color styling for search input button */
 .search-input-primary :deep(.ant-input-search-button) {
     background-color: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
@@ -667,7 +657,7 @@ export default {
     border-color: var(--primary-color) !important;
 }
 
-/* Action Icons - simplified styling from reference implementations */
+/* Action Icons */
 .action-icon a {
     color: #666;
     font-size: 16px;
@@ -818,5 +808,18 @@ export default {
 /* Ant Design Dropdown Fix */
 :deep(.ant-picker-dropdown) {
     z-index: 9999 !important;
+}
+
+/* View details styling */
+.view-details .form-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 2px;
+}
+
+.view-details .form-control-plaintext {
+    font-size: 0.95rem;
+    padding: 0;
+    margin-bottom: 0;
 }
 </style>

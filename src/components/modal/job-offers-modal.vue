@@ -393,7 +393,7 @@ export default {
               v-model:value="form.date"
               class="input-short"
               placeholder="Select date"
-              format="DD MMM YYYY"
+              format="DD/MM/YYYY"
               :status="formErrors.date ? 'error' : ''"
               @change="handleFormChange"
             />
@@ -457,7 +457,7 @@ export default {
               v-model:value="form.acceptance_deadline"
               class="input-short"
               placeholder="Select deadline"
-              format="DD MMM YYYY"
+              format="DD/MM/YYYY"
               :status="formErrors.acceptance_deadline ? 'error' : ''"
               @change="handleFormChange"
             />

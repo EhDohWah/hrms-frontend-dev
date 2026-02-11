@@ -250,7 +250,7 @@ export default {
           title: "Created Date",
           dataIndex: "created_at",
           render: (text) => {
-            return text ? moment(text).format('DD MMM YYYY') : '';
+            return text ? moment(text).format('DD/MM/YYYY') : '';
           },
           sorter: {
             compare: (a, b) => {
@@ -346,7 +346,7 @@ export default {
     },
     
     booking_range(start, end) {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
+      return start.format("DD/MM/YYYY") + " - " + end.format("DD/MM/YYYY");
     },
     
     toggleHeader() {

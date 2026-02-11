@@ -60,6 +60,7 @@
 
 <script>
 import { leaveService } from '@/services/leave.service';
+import { formatDate } from '@/utils/date.utils';
 
 export default {
   name: 'LeaveSummaryWidget',
@@ -119,9 +120,9 @@ export default {
     
     formatDates(start, end) {
       if (!start) return '';
-      const startDate = new Date(start).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const startDate = formatDate(new Date(start));
       if (!end || start === end) return startDate;
-      const endDate = new Date(end).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const endDate = formatDate(new Date(end));
       return `${startDate} - ${endDate}`;
     },
     

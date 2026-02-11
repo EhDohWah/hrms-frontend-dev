@@ -24,6 +24,7 @@ export const ROLE_MENU_ACCESS = {
             'User Management',
             'Lookups',
             'Organization Structure',
+            'Letter Templates',
             'File Uploads',
             'Recycle Bin',
         ],
@@ -31,6 +32,7 @@ export const ROLE_MENU_ACCESS = {
             'User Management': ['Users', 'Roles'],
             'Lookups': ['Lookup List'],
             'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments'],
+            'Letter Templates': ['Template List'],
             'File Uploads': ['File Uploads List'],
             'Recycle Bin': ['Recycle Bin List'],
         },
@@ -86,14 +88,15 @@ export const ROLE_MENU_ACCESS = {
             'Tax',
             'Lookups',
             'Organization Structure',
+            'Letter Templates',
             'Recycle Bin',
             'File Uploads'
         ],
         allowedSubMenus: {
             'User Management': ['Users', 'Roles'],
-            'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
-            'Travel': ['Travel (Admin)', 'Travel Requests'],
-            'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
+            'Leaves': ['Leave Request List', 'Leave Types', 'Leave Balances'],
+            'Travel': ['Travel Request List'],
+            'Attendance': ['Attendance List'],
             'Recruitment': ['Interviews', 'Job Offers'],
             'Employee': ['Employees', 'Employment Records', 'Employee Resignation'],
             'Employment': ['Employment List', 'Employment History'],
@@ -102,6 +105,7 @@ export const ROLE_MENU_ACCESS = {
             'Reports': ['Report List'],
             'Grants': ['Grants List', 'Grant Position'],
             'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments'],
+            'Letter Templates': ['Template List'],
             'Recycle Bin': ['Recycle Bin List'],
             'Lookups': ['Lookup List'],
             'File Uploads': ['File Uploads List']
@@ -151,12 +155,13 @@ export const ROLE_MENU_ACCESS = {
             'Job Offers',
             'Tax',
             'Organization Structure',
+            'Letter Templates',
             'File Uploads'
         ],
         allowedSubMenus: {
-            'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
-            'Travel': ['Travel (Admin)', 'Travel (Employee)'],
-            'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
+            'Leaves': ['Leave Request List', 'Leave Types', 'Leave Balances'],
+            'Travel': ['Travel Request List'],
+            'Attendance': ['Attendance List'],
             'Recruitment': ['Interviews', 'Job Offers'],
             'Employee': ['Employees', 'Employment Records', 'Site Location'],
             'Employment': ['Employment List', 'Employment History'],
@@ -164,6 +169,7 @@ export const ROLE_MENU_ACCESS = {
             'Training': ['Training List', 'Employee Training'],
             'Reports': ['Report List'],
             'Organization Structure': ['Sites', 'Departments', 'Positions', 'Section Departments'],
+            'Letter Templates': ['Template List'],
             'File Uploads': ['File Uploads List']
         },
         permissions: [
@@ -209,9 +215,9 @@ export const ROLE_MENU_ACCESS = {
             'Tax'
         ],
         allowedSubMenus: {
-            'Leaves': ['Leaves (Admin)', 'Leave Types'],
-            'Travel': ['Travel (Admin)', 'Travel (Employee)'],
-            'Attendance': ['Attendance (Admin)', 'Timesheets', 'Schedule Timing'],
+            'Leaves': ['Leave Request List', 'Leave Types'],
+            'Travel': ['Travel Request List'],
+            'Attendance': ['Attendance List'],
             'Recruitment': ['Interviews', 'Job Offers'],
             'Employee': ['Employees', 'Site Location'],
             'Training': ['Training List', 'Employee Training']
@@ -243,8 +249,8 @@ export const ROLE_MENU_ACCESS = {
             'Travel'
         ],
         allowedSubMenus: {
-            'Leaves': ['Leaves (Admin)', 'Leave Types', 'Leave Balances'],
-            'Travel': ['Travel (Admin)', 'Travel Requests'],
+            'Leaves': ['Leave Request List', 'Leave Types', 'Leave Balances'],
+            'Travel': ['Travel Request List'],
             'Training': ['Training List', 'Employee Training']
         },
         permissions: [

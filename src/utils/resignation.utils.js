@@ -13,7 +13,7 @@ export const dateUtils = {
      * @param {string} format - Moment.js format string
      * @returns {string} Formatted date
      */
-    formatDate(date, format = 'DD MMM YYYY') {
+    formatDate(date, format = 'DD/MM/YYYY') {
         if (!date) return '';
         return moment(date).format(format);
     },
@@ -241,13 +241,13 @@ export const dataMapper = {
 
     /**
      * Transform acknowledgement data for API calls
+     * Backend expects: { action: 'acknowledge' | 'reject' }
      * @param {Object} acknowledgementData - Acknowledgement data
      * @returns {Object} Backend-formatted acknowledgement data
      */
     mapAcknowledgementForAPI(acknowledgementData) {
         return {
-            acknowledgement_status: acknowledgementData.status,
-            acknowledged_by: acknowledgementData.acknowledgedBy
+            action: acknowledgementData.action
         };
     }
 };

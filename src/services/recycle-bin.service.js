@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '@/config/api.config';
 
 class RecycleBinService {
 
-    // Fetch all deleted records (both manifest-based and legacy)
+    // Fetch all deleted records (both soft-deleted and legacy)
     async getAllDeletedRecords() {
         return await apiService.get(API_ENDPOINTS.RECYCLE_BIN.LIST);
     }
@@ -14,28 +14,26 @@ class RecycleBinService {
         return await apiService.get(API_ENDPOINTS.RECYCLE_BIN.STATS);
     }
 
-    // ─── Manifest-based operations (Employee, Grant, Department) ────────
+    // ─── Soft-delete operations (Employee, Grant, Department) ─────────
 
-    // Restore a manifest-based deletion by its deletion key
-    async restoreByKey(deletionKey) {
-        const endpoint = API_ENDPOINTS.RECYCLE_BIN.RESTORE_BY_KEY.replace(':deletionKey', deletionKey);
+    // Restore a soft-deleted record by model type and ID
+    async restore(modelType, id) {
+        const endpoint = `${API_ENDPOINTS.RECYCLE_BIN.RESTORE}/${modelType}/${id}`;
         return await apiService.post(endpoint);
     }
 
-    // Bulk restore manifest-based deletions by their deletion keys
-    async bulkRestoreByKeys(deletionKeys) {
-        return await apiService.post(API_ENDPOINTS.RECYCLE_BIN.BULK_RESTORE_KEYS, {
-            deletion_keys: deletionKeys
-        });
+    // Bulk restore soft-deleted records
+    async bulkRestore(items) {
+        return await apiService.post(API_ENDPOINTS.RECYCLE_BIN.BULK_RESTORE, { items });
     }
 
-    // Permanently delete a manifest-based deletion by its key
-    async permanentDeleteByKey(deletionKey) {
-        const endpoint = API_ENDPOINTS.RECYCLE_BIN.PERMANENT_DELETE_BY_KEY.replace(':deletionKey', deletionKey);
+    // Permanently delete a soft-deleted record
+    async permanentDelete(modelType, id) {
+        const endpoint = `${API_ENDPOINTS.RECYCLE_BIN.PERMANENT_DELETE}/${modelType}/${id}`;
         return await apiService.delete(endpoint);
     }
 
-    // ─── Legacy operations (Interview, JobOffer) ────────────────────────
+    // ─── Legacy operations (Interview, JobOffer) ──────────────────────
 
     // Restore a legacy flat record
     async restoreLegacy(restoreData) {

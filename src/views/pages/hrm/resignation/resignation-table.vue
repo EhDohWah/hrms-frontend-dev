@@ -1,11 +1,22 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+/**
+ * Resignation Table Component
+ *
+ * Displays resignation records in an Ant Design table.
+ * Emits 'edit' event to parent (resignation-list) for modal handling.
+ * Exposes fetchResignations() for parent to trigger refreshes.
+ */
+import { ref, onMounted } from 'vue';
 import { useAssetUrl } from '@/composables/useAssetUrl';
 import { resignationService } from '@/services/resignation.service';
 import { message } from 'ant-design-vue';
-import { FilePdfOutlined, DownloadOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import { FilePdfOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons-vue';
+import dayjs from 'dayjs';
 
 const { getUserAvatar } = useAssetUrl();
+
+// Emits
+const emit = defineEmits(['edit']);
 
 // State
 const data = ref([]);
@@ -42,13 +53,13 @@ const columns = [
     title: 'Submission Date',
     dataIndex: 'submissionDate',
     key: 'submissionDate',
-    sorter: (a, b) => new Date(a.submissionDate) - new Date(b.submissionDate),
+    sorter: (a, b) => new Date(a.rawResignationDate) - new Date(b.rawResignationDate),
   },
   {
     title: 'Last Working Date',
     dataIndex: 'lastWorkingDate',
     key: 'lastWorkingDate',
-    sorter: (a, b) => new Date(a.lastWorkingDate) - new Date(b.lastWorkingDate),
+    sorter: (a, b) => new Date(a.rawLastWorkingDate) - new Date(b.rawLastWorkingDate),
   },
   {
     title: 'Status',
@@ -95,8 +106,7 @@ const canDownloadLetter = (record) => {
 // Format date for display
 const formatDate = (dateString) => {
   if (!dateString) return '-';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+  return dayjs(dateString).format('DD/MM/YYYY');
 };
 
 // Fetch resignations from API
@@ -116,8 +126,10 @@ const fetchResignations = async () => {
         reason: item.reason || '-',
         submissionDate: formatDate(item.resignationDate),
         lastWorkingDate: formatDate(item.lastWorkingDate),
+        rawResignationDate: item.resignationDate,
+        rawLastWorkingDate: item.lastWorkingDate,
         status: item.acknowledgementStatus || 'Pending',
-        image: null, // Employee image not included in resignation response
+        image: null,
       }));
     }
   } catch (error) {
@@ -147,10 +159,9 @@ const downloadRecommendationLetter = async (record) => {
   }
 };
 
-// Edit resignation (emit event or open modal)
+// Edit resignation - emit to parent which handles modal
 const editResignation = (record) => {
-  // This will be connected to the edit modal
-  console.log('Edit resignation:', record);
+  emit('edit', record);
 };
 
 // Delete resignation
@@ -168,6 +179,11 @@ const deleteResignation = async (record) => {
 // Lifecycle
 onMounted(() => {
   fetchResignations();
+});
+
+// Expose fetchResignations so parent can trigger refreshes
+defineExpose({
+  fetchResignations
 });
 </script>
 
@@ -237,8 +253,6 @@ onMounted(() => {
             <a
               href="javascript:void(0);"
               class="me-2"
-              data-bs-toggle="modal"
-              data-bs-target="#edit_resignation"
               @click="editResignation(record)"
             >
               <EditOutlined />

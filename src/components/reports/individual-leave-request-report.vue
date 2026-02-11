@@ -64,7 +64,7 @@ export default {
             startDate: start,
             endDate: end,
             locale: {
-                format: 'DD-MM-YYYY'
+                format: 'DD/MM/YYYY'
             },
             ranges: {
                 Today: [moment(), moment()],
@@ -83,7 +83,7 @@ export default {
             // Update the input's value and set custom data attributes.
             const formattedStart = start.format('YYYY-MM-DD');
             const formattedEnd = end.format('YYYY-MM-DD');
-            this.$refs.dateInput.value = `${start.format('DD-MM-YYYY')} - ${end.format('DD-MM-YYYY')}`;
+            this.$refs.dateInput.value = `${start.format('DD/MM/YYYY')} - ${end.format('DD/MM/YYYY')}`;
             this.$refs.dateInput.dataset.startDate = formattedStart;
             this.$refs.dateInput.dataset.endDate = formattedEnd;
         });
@@ -91,7 +91,7 @@ export default {
         // Set the initial value for the input immediately
         const initialStart = start.format('YYYY-MM-DD');
         const initialEnd = end.format('YYYY-MM-DD');
-        this.$refs.dateInput.value = `${start.format('DD-MM-YYYY')} - ${end.format('DD-MM-YYYY')}`;
+        this.$refs.dateInput.value = `${start.format('DD/MM/YYYY')} - ${end.format('DD/MM/YYYY')}`;
         this.$refs.dateInput.dataset.startDate = initialStart;
         this.$refs.dateInput.dataset.endDate = initialEnd;
     },

@@ -1,472 +1,441 @@
-<template>
-  <!-- Bootstrap Modal -->
-  <div class="modal fade" id="training_modal" tabindex="-1" aria-labelledby="trainingModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <!-- Bootstrap Modal Header -->
-        <div class="modal-header">
-          <h4 class="modal-title" id="trainingModalLabel">
-            {{ isEditMode ? 'Edit Training Program' : 'Add New Training Program' }}
-          </h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <!-- Alert Message -->
-        <div v-if="alertMessage" :class="['alert', alertClass, 'mx-3', 'mt-3', 'mb-0']" role="alert">
-          {{ alertMessage }}
-        </div>
-
-        <!-- Bootstrap Form -->
-        <form @submit.prevent="handleSubmit">
-          <div class="modal-body">
-            <!-- Form Section: Training Information -->
-            <div class="form-section">
-              <div class="section-header">
-                <i class="ti ti-notebook"></i>
-                <h6>Training Information</h6>
-              </div>
-
-              <div class="row g-3">
-                <!-- Training Title -->
-                <div class="col-md-12">
-                  <label class="form-label required">Training Title</label>
-                  <input type="text" class="form-control" v-model="formData.title"
-                    :class="{ 'is-invalid': errors.title }" placeholder="Enter training title" maxlength="200" required>
-                  <div class="invalid-feedback" v-if="errors.title">
-                    {{ errors.title }}
-                  </div>
-                  <small class="text-muted">{{ formData.title?.length || 0 }}/200 characters</small>
-                </div>
-
-                <!-- Organizer -->
-                <div class="col-md-12">
-                  <label class="form-label required">Organizer</label>
-                  <input type="text" class="form-control" v-model="formData.organizer"
-                    :class="{ 'is-invalid': errors.organizer }" placeholder="Enter organizer name or organization"
-                    maxlength="100" required>
-                  <div class="invalid-feedback" v-if="errors.organizer">
-                    {{ errors.organizer }}
-                  </div>
-                  <small class="text-muted">{{ formData.organizer?.length || 0 }}/100 characters</small>
-                </div>
-
-                <!-- Start Date -->
-                <div class="col-md-6">
-                  <label class="form-label required">Start Date</label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                      :clearable="false" :input-format="displayFormat" v-model="formData.start_date"
-                      :class="{ 'is-invalid': errors.start_date }"
-                      @update:model-value="handleDateChange('start_date', $event)" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                  <div class="invalid-feedback" v-if="errors.start_date">
-                    {{ errors.start_date }}
-                  </div>
-                </div>
-
-                <!-- End Date -->
-                <div class="col-md-6">
-                  <label class="form-label required">End Date</label>
-                  <div class="input-icon-end position-relative">
-                    <date-picker class="form-control datetimepicker" placeholder="dd/mm/yyyy" :editable="true"
-                      :clearable="false" :input-format="displayFormat" v-model="formData.end_date"
-                      :class="{ 'is-invalid': errors.end_date }"
-                      @update:model-value="handleDateChange('end_date', $event)" />
-                    <span class="input-icon-addon">
-                      <i class="ti ti-calendar text-gray-7"></i>
-                    </span>
-                  </div>
-                  <div class="invalid-feedback" v-if="errors.end_date">
-                    {{ errors.end_date }}
-                  </div>
-                </div>
-
-                <!-- Duration Display -->
-                <div class="col-md-12" v-if="formData.start_date && formData.end_date">
-                  <div class="alert alert-info mb-0">
-                    <i class="ti ti-calendar-time me-2"></i>
-                    <strong>Duration:</strong> {{ calculateDuration(formData.start_date, formData.end_date) }}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bootstrap Modal Footer -->
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal" :disabled="isSubmitting">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-              {{ isSubmitting ? 'Saving...' : 'Save Training' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
-import { Modal } from 'bootstrap'; // ✅ Selective import
-import { useTrainingStore } from '@/stores/trainingStore';
+import { ref, watch, computed } from 'vue';
 import { trainingService } from '@/services/training.service';
+import { message } from 'ant-design-vue';
+import dayjs from 'dayjs';
 
 export default {
   name: 'TrainingModal',
-
-  emits: ['training-added', 'training-updated'],
-
-  data() {
-    return {
-      trainingStore: useTrainingStore(),
-      modalInstance: null,
-      isEditMode: false,
-      editingTrainingId: null,
-
-      formData: {
-        title: '',
-        organizer: '',
-        start_date: '',
-        end_date: ''
-      },
-
-      errors: {},
-      alertMessage: '',
-      alertClass: '',
-      isSubmitting: false,
-
-      // Date picker format
-      displayFormat: 'dd/MM/yyyy',
-      inputFormat: 'yyyy-MM-dd'
-    };
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
+    },
+    editingRecord: {
+      type: Object,
+      default: null
+    }
   },
+  emits: ['saved', 'close'],
+  setup(props, { emit }) {
+    const form = ref({
+      title: '',
+      organizer: '',
+      start_date: null,
+      end_date: null,
+    });
 
-  methods: {
-    /**
-     * Handle date picker changes
-     */
-    handleDateChange(fieldName, newValue) {
-      try {
-        const safeDate = this.safeConvertToDate(newValue);
-        this.formData[fieldName] = safeDate;
-      } catch (error) {
-        console.error('Error handling date change:', error);
-      }
-    },
+    const loading = ref(false);
+    const formErrors = ref({});
 
-    /**
-     * Safe date conversion helper
-     */
-    safeConvertToDate(dateValue) {
-      if (!dateValue) return null;
+    const isEditing = computed(() => !!props.editingRecord);
+    const modalTitle = computed(() => isEditing.value ? 'Edit Training Program' : 'Add New Training Program');
+    const submitButtonText = computed(() => isEditing.value ? 'Save Changes' : 'Add Training');
 
-      try {
-        if (dateValue instanceof Date) {
-          return isNaN(dateValue.getTime()) ? null : dateValue;
-        }
+    const duration = computed(() => {
+      if (!form.value.start_date || !form.value.end_date) return null;
+      const start = dayjs(form.value.start_date);
+      const end = dayjs(form.value.end_date);
+      if (!start.isValid() || !end.isValid()) return null;
+      const days = end.diff(start, 'day') + 1;
+      if (days < 1) return null;
+      return `${days} ${days === 1 ? 'day' : 'days'}`;
+    });
 
-        if (typeof dateValue === 'string') {
-          const parsedDate = new Date(dateValue);
-          return isNaN(parsedDate.getTime()) ? null : parsedDate;
-        }
-
-        return null;
-      } catch (error) {
-        console.error('Error converting date:', error);
-        return null;
-      }
-    },
-
-    /**
-     * Open modal in add mode
-     */
-    openAddTrainingModal() {
-      this.isEditMode = false;
-      this.editingTrainingId = null;
-      this.resetForm();
-      this.openModal();
-    },
-
-    /**
-     * Open modal in edit mode
-     */
-    openEditTrainingModal(training) {
-      this.isEditMode = true;
-      this.editingTrainingId = training.id;
-      this.populateForm(training);
-      this.openModal();
-    },
-
-    /**
-     * Open the modal
-     */
-    openModal() {
-      this.modalInstance = new Modal(document.getElementById('training_modal'));
-      this.modalInstance.show();
-    },
-
-    /**
-     * Close the modal
-     */
-    closeModal() {
-      if (this.modalInstance) {
-        this.modalInstance.hide();
-      }
-    },
-
-    /**
-     * Reset form to initial state
-     */
-    resetForm() {
-      this.formData = {
+    const resetForm = () => {
+      form.value = {
         title: '',
         organizer: '',
-        start_date: '',
-        end_date: ''
+        start_date: null,
+        end_date: null,
       };
-      this.errors = {};
-      this.alertMessage = '';
-      this.alertClass = '';
-      this.isSubmitting = false;
-    },
+      formErrors.value = {};
+    };
 
-    /**
-     * Populate form with training data for editing
-     */
-    populateForm(training) {
-      this.formData = {
-        title: training.title || '',
-        organizer: training.organizer || '',
-        start_date: training.start_date || '',
-        end_date: training.end_date || ''
-      };
-      this.errors = {};
-      this.alertMessage = '';
-      this.alertClass = '';
-    },
+    watch(() => props.editingRecord, (newVal) => {
+      if (newVal) {
+        form.value = {
+          title: newVal.title || '',
+          organizer: newVal.organizer || '',
+          start_date: newVal.start_date ? dayjs(newVal.start_date) : null,
+          end_date: newVal.end_date ? dayjs(newVal.end_date) : null,
+        };
+      } else {
+        resetForm();
+      }
+    }, { immediate: true });
 
-    /**
-     * Handle form submission
-     */
-    async handleSubmit() {
-      // Clear previous errors and alerts
-      this.errors = {};
-      this.alertMessage = '';
+    watch(() => props.visible, (newVal) => {
+      if (newVal && !props.editingRecord) {
+        resetForm();
+      }
+    });
 
-      // Validate form
-      const validation = trainingService.validateTrainingData(this.formData);
-      if (!validation.isValid) {
-        this.errors = validation.errors;
-        this.alertMessage = 'Please fix the errors below';
-        this.alertClass = 'alert-danger';
+    const validateForm = () => {
+      const errors = {};
+      if (!form.value.title?.trim()) {
+        errors.title = 'Training title is required';
+      }
+      if (!form.value.organizer?.trim()) {
+        errors.organizer = 'Organizer is required';
+      }
+      if (!form.value.start_date) {
+        errors.start_date = 'Start date is required';
+      }
+      if (!form.value.end_date) {
+        errors.end_date = 'End date is required';
+      }
+      if (form.value.start_date && form.value.end_date) {
+        const start = dayjs(form.value.start_date);
+        const end = dayjs(form.value.end_date);
+        if (end.isBefore(start)) {
+          errors.end_date = 'End date must be after start date';
+        }
+      }
+      formErrors.value = errors;
+      return Object.keys(errors).length === 0;
+    };
+
+    const handleSubmit = async () => {
+      if (!validateForm()) {
+        message.warning('Please fill in all required fields');
         return;
       }
 
-      this.isSubmitting = true;
-
+      loading.value = true;
       try {
-        if (this.isEditMode) {
-          // Update existing training
-          await this.trainingStore.updateTraining(this.editingTrainingId, this.formData);
-          this.showSuccessAndClose('Training updated successfully', 'training-updated');
+        const data = {
+          title: form.value.title?.trim(),
+          organizer: form.value.organizer?.trim(),
+          start_date: form.value.start_date ? dayjs(form.value.start_date).format('YYYY-MM-DD') : null,
+          end_date: form.value.end_date ? dayjs(form.value.end_date).format('YYYY-MM-DD') : null,
+        };
+
+        let response;
+        if (isEditing.value) {
+          response = await trainingService.updateTraining(props.editingRecord.id, data);
         } else {
-          // Create new training
-          await this.trainingStore.createTraining(this.formData);
-          this.showSuccessAndClose('Training created successfully', 'training-added');
+          response = await trainingService.createTraining(data);
+        }
+
+        if (response.success) {
+          message.success(isEditing.value ? 'Training updated successfully' : 'Training created successfully');
+          emit('saved', response);
+          handleClose();
+        } else {
+          message.error(response.message || 'Failed to save training');
         }
       } catch (error) {
-        console.error('Error saving training:', error);
-
-        // Handle validation errors from backend
-        if (error.response && error.response.data && error.response.data.errors) {
-          this.errors = error.response.data.errors;
-          this.alertMessage = 'Please fix the errors below';
+        if (error.status === 422 && error.errors) {
+          Object.keys(error.errors).forEach(field => {
+            if (Array.isArray(error.errors[field]) && error.errors[field].length > 0) {
+              formErrors.value[field] = error.errors[field][0];
+            }
+          });
+          message.error('Please correct the errors and try again');
         } else {
-          this.alertMessage = error.message || 'Failed to save training. Please try again.';
+          message.error(error.message || 'Failed to save training');
         }
-
-        this.alertClass = 'alert-danger';
-        this.isSubmitting = false;
+      } finally {
+        loading.value = false;
       }
-    },
+    };
 
-    /**
-     * Show success message and close modal
-     */
-    showSuccessAndClose(message, emitEvent) {
-      this.alertMessage = message;
-      this.alertClass = 'alert-success';
+    const handleClose = () => {
+      resetForm();
+      emit('close');
+    };
 
-      setTimeout(() => {
-        this.closeModal();
-        this.$emit(emitEvent);
-        this.resetForm();
-      }, 1500);
-    },
+    const handleAfterClose = () => {
+      const backdrops = document.querySelectorAll('.ant-modal-mask, .ant-modal-wrap');
+      const openModals = document.querySelectorAll('.ant-modal-wrap:not([style*="display: none"])');
+      if (openModals.length === 0) {
+        backdrops.forEach(el => {
+          if (el.style.display !== 'none') {
+            el.style.display = 'none';
+          }
+        });
+      }
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
 
-    /**
-     * Calculate training duration
-     */
-    calculateDuration(startDate, endDate) {
-      if (!startDate || !endDate) return 'N/A';
-
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-
-      return `${days} ${days === 1 ? 'day' : 'days'}`;
-    }
-  },
-
-  /**
-   * Cleanup on component unmount
-   */
-  beforeUnmount() {
-    if (this.modalInstance) {
-      this.modalInstance.dispose();
-    }
+    return {
+      form,
+      loading,
+      formErrors,
+      isEditing,
+      modalTitle,
+      submitButtonText,
+      duration,
+      handleSubmit,
+      handleClose,
+      handleAfterClose,
+    };
   }
 };
 </script>
 
+<template>
+  <a-modal
+    :open="visible"
+    :title="modalTitle"
+    :confirmLoading="loading"
+    @cancel="handleClose"
+    @afterClose="handleAfterClose"
+    :footer="null"
+    :width="650"
+    :maskClosable="false"
+    :destroyOnClose="true"
+    centered
+  >
+    <form @submit.prevent="handleSubmit">
+      <!-- Title -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="training-title">
+            Title <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-input
+            id="training-title"
+            v-model:value="form.title"
+            placeholder="Enter training title"
+            :status="formErrors.title ? 'error' : ''"
+            :maxlength="200"
+            show-count
+            class="input-long"
+          />
+          <div v-if="formErrors.title" class="error-feedback">
+            {{ formErrors.title }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Organizer -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="training-organizer">
+            Organizer <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-input
+            id="training-organizer"
+            v-model:value="form.organizer"
+            placeholder="Enter organizer name or organization"
+            :status="formErrors.organizer ? 'error' : ''"
+            :maxlength="100"
+            show-count
+            class="input-long"
+          />
+          <div v-if="formErrors.organizer" class="error-feedback">
+            {{ formErrors.organizer }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Start Date -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="training-start-date">
+            Start Date <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-date-picker
+            id="training-start-date"
+            v-model:value="form.start_date"
+            format="DD/MM/YYYY"
+            placeholder="Select start date"
+            :status="formErrors.start_date ? 'error' : ''"
+            style="width: 200px;"
+          />
+          <div v-if="formErrors.start_date" class="error-feedback">
+            {{ formErrors.start_date }}
+          </div>
+        </div>
+      </div>
+
+      <!-- End Date -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="training-end-date">
+            End Date <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-date-picker
+            id="training-end-date"
+            v-model:value="form.end_date"
+            format="DD/MM/YYYY"
+            placeholder="Select end date"
+            :status="formErrors.end_date ? 'error' : ''"
+            style="width: 200px;"
+          />
+          <div v-if="formErrors.end_date" class="error-feedback">
+            {{ formErrors.end_date }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Duration Display -->
+      <div v-if="duration" class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">
+            Duration :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <div class="duration-badge">
+            <i class="ti ti-calendar-time me-1"></i>
+            {{ duration }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a-button @click="handleClose" :disabled="loading">
+          Cancel
+        </a-button>
+        <a-button type="primary" html-type="submit" :loading="loading">
+          {{ submitButtonText }}
+        </a-button>
+      </div>
+    </form>
+  </a-modal>
+</template>
+
 <style scoped>
-/* Modal Styling */
-.modal-content {
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+:deep(.ant-modal-content) {
+  padding: 0 !important;
 }
 
-.modal-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-  padding: 15px 20px;
+:deep(.ant-modal-header) {
+  padding: 16px 24px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  background: #fff;
 }
 
-.modal-title {
+:deep(.ant-modal-title) {
+  font-size: 18px;
   font-weight: 600;
-  color: #011b44;
+  color: #1a1a2e;
 }
 
-/* Form Section Styling */
-.form-section {
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e9ecef;
+:deep(.ant-modal-body) {
+  padding: 24px !important;
+  margin-top: 0 !important;
 }
 
-.form-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
-}
-
-.section-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-  color: #495057;
-}
-
-.section-header i {
-  font-size: 20px;
-  margin-right: 8px;
-  color: var(--bs-primary);
-}
-
-.section-header h6 {
-  margin: 0;
-  font-weight: 600;
-}
-
-/* Required Field Indicator */
-.form-label.required::after {
-  content: ' *';
-  color: #dc3545;
-}
-
-/* Form Control Styling */
-.form-control:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-.form-control.is-invalid {
-  border-color: #dc3545;
-}
-
-.form-control.is-invalid:focus {
-  border-color: #dc3545;
-  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
-}
-
-/* Alert Styling */
-.alert {
-  border-radius: 6px;
-}
-
-.alert-info {
-  background-color: #e7f3ff;
-  border-color: #b3d9ff;
-  color: #004085;
-}
-
-/* Button Styling */
-.btn-primary:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-/* Small Text */
-small.text-muted {
-  display: block;
-  margin-top: 4px;
-  font-size: 0.875rem;
-}
-
-/* Date picker styling */
-.input-icon-end {
-  position: relative;
-}
-
-.input-icon-addon {
-  position: absolute;
+:deep(.ant-modal-close) {
+  top: 12px;
   right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #6B7280;
-  z-index: 2;
 }
 
-.datetimepicker {
-  padding-right: 35px !important;
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-:deep(.mx-datepicker) {
-  width: 100%;
+.form-label-col {
+  flex: 0 0 120px;
+  min-width: 120px;
+  padding-top: 6px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
 }
 
-:deep(.mx-input) {
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
+  display: block;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.input-long {
   width: 100% !important;
-  padding: 7px 35px 7px 12px !important;
-  border-radius: 6px !important;
-  border: 1px solid #c9d2e2 !important;
-  font-size: 1em !important;
-  box-sizing: border-box !important;
-  background: #f7f8fa !important;
-  outline: none !important;
-  transition: border 0.2s !important;
+  max-width: 400px;
 }
 
-:deep(.mx-input:focus) {
-  border: 1.5px solid #4a7fff !important;
-  background: #fff !important;
+.error-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  font-size: 0.875em;
+  color: #ff4d4f;
+  font-weight: 500;
 }
 
-:deep(.mx-icon-calendar) {
-  display: none;
+.text-danger {
+  color: #ff4d4f;
+}
+
+.duration-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e7f3ff;
+  border: 1px solid #b3d9ff;
+  color: #004085;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .form-input-col {
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .input-long {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  :deep(.ant-picker),
+  :deep(.ant-select) {
+    width: 100% !important;
+  }
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+:deep(.input-long.ant-input) {
+  width: 100% !important;
+  max-width: 400px;
 }
 </style>

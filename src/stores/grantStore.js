@@ -9,6 +9,7 @@ export const useGrantStore = defineStore('grant', {
   state: () => ({
     grants: [],
     grantItems: [],
+    grantPositions: [],
     currentGrant: null,
     loading: false,
     error: null,
@@ -378,13 +379,13 @@ export const useGrantStore = defineStore('grant', {
       this.currentGrant = grant;
     },
 
-    async fetchGrantPositions() {
+    async fetchGrantPositions(params = {}) {
       try {
         this.loading = true;
         this.error = null;
-        const response = await grantService.getGrantPositions();
+        const response = await grantService.getGrantPositions(params);
         this.grantPositions = response.data || response;
-        return this.grantPositions;
+        return response;
       } catch (error) {
         this.error = error.message || 'Failed to fetch grant positions';
         console.error('Error fetching grant positions:', error);

@@ -8,9 +8,25 @@ export default {
   },
   data() {
     return {
-      Leavetype: ["Select", "Medical Leave", "Casual Leave", "Annual Leave"],
-      Addemployee: ["Sophie", "Cameron", "Doris", "Rufana", "Michael"],
-      Addemp: ["Select", "Sophie", "Cameron", "Doris"],
+      Leavetype: [
+        { value: "", label: "Select" },
+        { value: "Medical Leave", label: "Medical Leave" },
+        { value: "Casual Leave", label: "Casual Leave" },
+        { value: "Annual Leave", label: "Annual Leave" },
+      ],
+      Addemployee: [
+        { value: "Sophie", label: "Sophie" },
+        { value: "Cameron", label: "Cameron" },
+        { value: "Doris", label: "Doris" },
+        { value: "Rufana", label: "Rufana" },
+        { value: "Michael", label: "Michael" },
+      ],
+      Addemp: [
+        { value: "", label: "Select" },
+        { value: "Sophie", label: "Sophie" },
+        { value: "Cameron", label: "Cameron" },
+        { value: "Doris", label: "Doris" },
+      ],
     };
   },
   methods: {

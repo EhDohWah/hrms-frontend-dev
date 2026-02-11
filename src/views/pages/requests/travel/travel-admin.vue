@@ -10,8 +10,8 @@
         <div class="d-flex align-items-center">
           <index-breadcrumb :title="title" :text="text" :text1="text1" />
           <!-- Read-Only Badge -->
-          <span 
-            v-if="isReadOnlyTravelAdmin" 
+          <span
+            v-if="isReadOnly"
             class="badge bg-warning text-dark ms-3 d-flex align-items-center"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
@@ -21,20 +21,14 @@
           </span>
         </div>
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div v-if="canEditTravelAdmin" class="mb-2 me-2">
-            <button class="btn btn-primary d-flex align-items-center" @click="openAddTravelRequestModal"
-              :disabled="openingAddTravelRequest">
-              <template v-if="openingAddTravelRequest">
-                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Loading form...
-              </template>
-              <template v-else>
-                <i class="ti ti-circle-plus me-2"></i>Add New Travel Request
-              </template>
-            </button>
+          <div v-if="canEdit" class="mb-2 me-2">
+            <a href="javascript:void(0);" class="btn btn-primary d-flex align-items-center"
+              @click="openCreateModal">
+              <i class="ti ti-circle-plus me-2"></i>Add Travel Request
+            </a>
           </div>
-          <div v-if="canEditTravelAdmin" class="mb-2 me-2">
-            <button class="btn btn-danger d-flex align-items-center" @click="confirmDeleteSelectedTravelRequests"
+          <div v-if="canEdit" class="mb-2 me-2">
+            <button class="btn btn-danger d-flex align-items-center" @click="confirmDeleteSelected"
               :class="{ 'disabled': selectedRowKeys.length === 0 }">
               <i class="ti ti-trash me-2"></i>Delete Selected
             </button>
@@ -52,7 +46,6 @@
 
       <!-- Travel Request Statistics -->
       <div class="row statistics-row">
-        <!-- Total Requests -->
         <div class="col-lg-3 col-md-6 d-flex">
           <div class="card flex-fill statistics-card">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -65,18 +58,9 @@
                   <h4>{{ statistics.total }}</h4>
                 </div>
               </div>
-              <div>
-                <span class="badge badge-soft-primary badge-sm fw-normal">
-                  <i class="ti ti-arrow-wave-right-down"></i>
-                  100%
-                </span>
-              </div>
             </div>
           </div>
         </div>
-        <!-- /Total Requests -->
-
-        <!-- This Year -->
         <div class="col-lg-3 col-md-6 d-flex">
           <div class="card flex-fill statistics-card">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -89,18 +73,9 @@
                   <h4>{{ statistics.approved }}</h4>
                 </div>
               </div>
-              <div>
-                <span class="badge badge-soft-success badge-sm fw-normal">
-                  <i class="ti ti-arrow-wave-right-down"></i>
-                  {{ ((statistics.approved / statistics.total) * 100).toFixed(1) }}% of Total
-                </span>
-              </div>
             </div>
           </div>
         </div>
-        <!-- /This Year -->
-
-        <!-- Domestic -->
         <div class="col-lg-3 col-md-6 d-flex">
           <div class="card flex-fill statistics-card">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -110,21 +85,12 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">Domestic</p>
-                  <h4>{{ Math.floor(statistics.total * 0.7) }}</h4>
+                  <h4>{{ statistics.domestic }}</h4>
                 </div>
-              </div>
-              <div>
-                <span class="badge badge-soft-info badge-sm fw-normal">
-                  <i class="ti ti-arrow-wave-right-down"></i>
-                  70% of Total
-                </span>
               </div>
             </div>
           </div>
         </div>
-        <!-- /Domestic -->
-
-        <!-- International -->
         <div class="col-lg-3 col-md-6 d-flex">
           <div class="card flex-fill statistics-card">
             <div class="card-body d-flex align-items-center justify-content-between">
@@ -134,19 +100,12 @@
                 </div>
                 <div class="ms-2 overflow-hidden">
                   <p class="fs-12 fw-medium mb-1 text-truncate">International</p>
-                  <h4>{{ Math.floor(statistics.total * 0.3) }}</h4>
+                  <h4>{{ statistics.international }}</h4>
                 </div>
-              </div>
-              <div>
-                <span class="badge badge-soft-warning badge-sm fw-normal">
-                  <i class="ti ti-arrow-wave-right-down"></i>
-                  30% of Total
-                </span>
               </div>
             </div>
           </div>
         </div>
-        <!-- /International -->
       </div>
       <!-- /Travel Request Statistics -->
 
@@ -158,15 +117,10 @@
               <a-button class="me-2" @click="clearFilters">Clear filters</a-button>
               <a-button @click="clearAll">Clear filters and sorters</a-button>
             </div>
-            <div class="input-icon-end me-2">
-              <a-input-search v-model:value="searchStaffId" placeholder="Enter staff ID..." :loading="searchLoading"
-                enter-button="Search" @search="handleStaffIdSearch" style="width: 200px;"
-                class="search-input-primary" />
-            </div>
             <div class="input-icon-end">
-              <a-input-search v-model:value="searchEmployeeName" placeholder="Enter employee name..."
-                :loading="searchLoading" enter-button="Search" @search="handleEmployeeNameSearch" style="width: 200px;"
-                class="search-input-primary" />
+              <a-input-search v-model:value="searchTerm" placeholder="Search employee name or staff ID..."
+                :loading="searchLoading" enter-button="Search" @search="handleSearch"
+                style="width: 280px;" class="search-input-primary" />
             </div>
           </div>
         </div>
@@ -180,22 +134,16 @@
           <div v-else class="resize-observer-fix">
             <!-- TABLE WITHOUT PAGINATION -->
             <a-table :columns="columns" :data-source="tableData" :pagination="false"
-              :scroll="{ x: 1000, y: 'max-content' }" row-key="id" @change="handleTableChange"
-              :row-selection="rowSelection">
+              :scroll="{ x: 1200, y: 'max-content' }" row-key="id" @change="handleTableChange"
+              :row-selection="canEdit ? rowSelection : null">
               <!-- Custom cell rendering -->
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'action'">
                   <div class="action-icon d-inline-flex">
-                    <!-- View Travel Request -->
-                    <a href="javascript:void(0);" @click="viewTravelRequest(record)" class="me-2">
-                      <i class="ti ti-eye"></i>
-                    </a>
-                    <!-- Edit Travel Request -->
                     <a href="javascript:void(0);" @click="editTravelRequest(record)" class="me-2">
                       <i class="ti ti-edit"></i>
                     </a>
-                    <!-- Delete Travel Request -->
-                    <a href="javascript:void(0);" @click="confirmDeleteTravelRequest(record.id)">
+                    <a v-if="canEdit" href="javascript:void(0);" @click="confirmDeleteTravelRequest(record.id)">
                       <i class="ti ti-trash"></i>
                     </a>
                   </div>
@@ -258,14 +206,21 @@
                   <span v-else class="text-muted">-</span>
                 </template>
               </template>
+
+              <!-- Empty state -->
+              <template #emptyText>
+                <div class="d-flex flex-column align-items-center py-4">
+                  <i class="ti ti-plane-departure text-muted mb-3" style="font-size: 3rem;"></i>
+                  <h6 class="text-muted">No travel requests found</h6>
+                  <p class="text-muted">Start by adding your first travel request.</p>
+                </div>
+              </template>
             </a-table>
 
             <!-- SEPARATE PAGINATION COMPONENT -->
             <div class="pagination-wrapper">
               <div class="d-flex justify-content-between align-items-center">
-                <div class="pagination-info">
-                  <!-- Optional: Additional info can go here -->
-                </div>
+                <div class="pagination-info"></div>
                 <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
                   :show-size-changer="true" :show-quick-jumper="true" :page-size-options="['10', '20', '50', '100']"
                   :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
@@ -279,42 +234,49 @@
     <layout-footer></layout-footer>
   </div>
 
-  <!-- Travel Request Modal -->
-  <travel-request-modal @travel-request-added="fetchTravelRequests" @travel-request-updated="fetchTravelRequests"
-    ref="travelRequestModalRef"></travel-request-modal>
+  <!-- Travel Request Modal (Ant Design Vue) -->
+  <travel-request-modal :visible="modalVisible" :editing-record="editingRecord"
+    @saved="handleSaved" @close="closeModal" />
 </template>
 
 <script>
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-import TravelRequestModal from '@/components/modal/travel-request-modal.vue';
-import LayoutHeader from '@/views/layouts/layout-header.vue';
-import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
-import LayoutFooter from '@/views/layouts/layout-footer.vue';
-import { useTravelRequestStore } from '@/stores/travelRequestStore';
-import moment from 'moment';
-import { Modal, Table } from 'ant-design-vue';
+import { travelRequestService } from '@/services/travelRequest.service';
+import { useToast } from '@/composables/useToast';
 import { usePermissions } from '@/composables/usePermissions';
+import { Modal, Table } from 'ant-design-vue';
+import { ref } from 'vue';
+import dayjs from 'dayjs';
 
 export default {
-  name: 'TravelAdmin',
+  name: 'TravelRequestList',
   components: {
-    indexBreadcrumb,
-    TravelRequestModal,
-    LayoutHeader,
-    LayoutSidebar,
-    LayoutFooter,
+    indexBreadcrumb
   },
   setup() {
-    // Initialize permission checks for travel_admin module
-    const { 
-      canRead, 
-      canEdit, 
-      isReadOnly, 
-      accessLevelText, 
-      accessLevelBadgeClass 
+    const { showToast } = useToast();
+
+    const filteredInfo = ref({});
+    const sortedInfo = ref({});
+    const currentPage = ref(1);
+    const pageSize = ref(10);
+    const total = ref(0);
+
+    const {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     } = usePermissions('travel_admin');
 
     return {
+      showToast,
+      filteredInfo,
+      sortedInfo,
+      currentPage,
+      pageSize,
+      total,
       canRead,
       canEdit,
       isReadOnly,
@@ -326,59 +288,42 @@ export default {
     return {
       title: "Travel Requests",
       text: "Requests",
-      text1: "Travel Admin",
-      searchStaffId: '',
-      searchEmployeeName: '',
+      text1: "Travel Request List",
 
-      // Data properties (no store dependencies)
-      filteredInfo: {},
-      sortedInfo: {},
+      // Data
       travelRequests: [],
+      selectedRowKeys: [],
+      modalVisible: false,
+      editingRecord: null,
       loading: false,
       searchLoading: false,
-      selectedRowKeys: [],
 
-      // Statistics (local instead of store)
+      // Filters
+      searchTerm: '',
+
+      // Statistics
       statistics: {
         total: 0,
-        pending: 0,
         approved: 0,
-        rejected: 0
+        domestic: 0,
+        international: 0
       },
 
-      // SEPARATE PAGINATION PROPERTIES
-      currentPage: 1,
-      pageSize: 10,
-      total: 0,
-
-      // UI loading states for opening modals
-      openingAddTravelRequest: false,
+      // Formatting maps
+      transportationMap: {
+        'smru_vehicle': 'SMRU Vehicle',
+        'public_transportation': 'Public Transport',
+        'air': 'Air',
+        'other': 'Other'
+      },
+      accommodationMap: {
+        'smru_arrangement': 'SMRU Arrangement',
+        'self_arrangement': 'Self Arrangement',
+        'other': 'Other'
+      }
     };
   },
   computed: {
-    // Permission checks - primary source for reactivity
-    canEditTravelAdmin() {
-      try {
-        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
-        const hasEdit = Array.isArray(permissions) && permissions.includes('travel_admin.edit');
-        return hasEdit || (this.canEdit?.value ?? false);
-      } catch (e) {
-        console.error('[TravelAdmin] Error checking permissions:', e);
-        return this.canEdit?.value ?? false;
-      }
-    },
-    canReadTravelAdmin() {
-      try {
-        const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
-        const hasRead = Array.isArray(permissions) && permissions.includes('travel_admin.read');
-        return hasRead || (this.canRead?.value ?? false);
-      } catch (e) {
-        return this.canRead?.value ?? false;
-      }
-    },
-    isReadOnlyTravelAdmin() {
-      return this.canReadTravelAdmin && !this.canEditTravelAdmin;
-    },
     columns() {
       const filtered = this.filteredInfo || {};
       const sorted = this.sortedInfo || {};
@@ -404,14 +349,6 @@ export default {
           width: 150,
           sorter: true,
           sortOrder: sorted.columnKey === 'destination' && sorted.order,
-          filters: [
-            { text: 'Bangkok', value: 'Bangkok' },
-            { text: 'Chiang Mai', value: 'Chiang Mai' },
-            { text: 'Phuket', value: 'Phuket' },
-            { text: 'Mae Sot', value: 'Mae Sot' },
-            { text: 'International', value: 'International' }
-          ],
-          filteredValue: filtered.destination || null,
         },
         {
           title: 'Travel Dates',
@@ -426,16 +363,16 @@ export default {
           width: 200,
           sorter: true,
           sortOrder: sorted.columnKey === 'purpose' && sorted.order,
+          ellipsis: true,
         },
         {
           title: 'Transportation',
           key: 'transportation',
-          width: 120,
+          width: 140,
           filters: [
-            { text: 'Flight', value: 'flight' },
-            { text: 'Car', value: 'car' },
-            { text: 'Train', value: 'train' },
-            { text: 'Bus', value: 'bus' },
+            { text: 'SMRU Vehicle', value: 'smru_vehicle' },
+            { text: 'Public Transport', value: 'public_transportation' },
+            { text: 'Air', value: 'air' },
             { text: 'Other', value: 'other' },
           ],
           filteredValue: filtered.transportation || null,
@@ -444,11 +381,10 @@ export default {
         {
           title: 'Accommodation',
           key: 'accommodation',
-          width: 120,
+          width: 140,
           filters: [
-            { text: 'Hotel', value: 'hotel' },
-            { text: 'Guest House', value: 'guest_house' },
-            { text: 'Apartment', value: 'apartment' },
+            { text: 'SMRU Arrangement', value: 'smru_arrangement' },
+            { text: 'Self Arrangement', value: 'self_arrangement' },
             { text: 'Other', value: 'other' },
           ],
           filteredValue: filtered.accommodation || null,
@@ -464,7 +400,6 @@ export default {
       ];
     },
     tableData() {
-      // With server-side pagination, just return the travel requests as-is
       return this.travelRequests.map(request => ({
         ...request,
         key: request.id,
@@ -472,11 +407,8 @@ export default {
     },
     rowSelection() {
       return {
-        // fix the column to the left
         fixed: 'left',
-        // give it a more appropriate width for checkboxes
         columnWidth: 60,
-        // your existing config
         selectedRowKeys: this.selectedRowKeys,
         onChange: this.onSelectChange,
         hideDefaultSelections: false,
@@ -484,43 +416,30 @@ export default {
           Table.SELECTION_ALL,
           Table.SELECTION_NONE,
         ],
-      }
+      };
     },
   },
   mounted() {
     this.fetchTravelRequests();
   },
   methods: {
-    // PAGINATION EVENT HANDLERS - PRESERVE FILTERS AND SORTING
+    // =============================================
+    // PAGINATION HANDLERS
+    // =============================================
     handlePaginationChange(page, pageSize) {
-      console.log('Pagination change:', page, pageSize);
       this.currentPage = page;
       this.pageSize = pageSize || this.pageSize;
-
-      // Build complete parameters preserving current filters and sorting
-      const params = this.buildApiParams({
-        page: page,
-        per_page: this.pageSize
-      });
-
+      const params = this.buildApiParams({ page: page, per_page: this.pageSize });
       this.fetchTravelRequests(params);
     },
 
     handleSizeChange(current, size) {
-      console.log('Size change:', current, size);
-      this.currentPage = 1; // Reset to first page when changing page size
+      this.currentPage = 1;
       this.pageSize = size;
-
-      // Build complete parameters preserving current filters and sorting
-      const params = this.buildApiParams({
-        page: 1,
-        per_page: size
-      });
-
+      const params = this.buildApiParams({ page: 1, per_page: size });
       this.fetchTravelRequests(params);
     },
 
-    // Helper method to build complete API parameters
     buildApiParams(baseParams = {}) {
       const params = {
         page: this.currentPage,
@@ -528,14 +447,11 @@ export default {
         ...baseParams
       };
 
-      // Add sorting parameters ONLY when user has explicitly clicked on a column to sort
       if (this.sortedInfo && this.sortedInfo.field && this.sortedInfo.order) {
-        const sortField = this.mapSortField(this.sortedInfo.field);
-        params.sort_by = sortField;
+        params.sort_by = this.sortedInfo.field;
         params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
       }
 
-      // Add filter parameters
       if (this.filteredInfo && Object.keys(this.filteredInfo).length > 0) {
         if (this.filteredInfo.transportation && this.filteredInfo.transportation.length > 0) {
           params.filter_transportation = this.filteredInfo.transportation.join(',');
@@ -543,229 +459,150 @@ export default {
         if (this.filteredInfo.accommodation && this.filteredInfo.accommodation.length > 0) {
           params.filter_accommodation = this.filteredInfo.accommodation.join(',');
         }
-        if (this.filteredInfo.destination && this.filteredInfo.destination.length > 0) {
-          params.filter_destination = this.filteredInfo.destination.join(',');
-        }
+      }
+
+      if (this.searchTerm && this.searchTerm.trim()) {
+        params.search = this.searchTerm.trim();
       }
 
       return params;
     },
 
-    // TABLE CHANGE HANDLER (for sorting/filtering only)
+    // =============================================
+    // TABLE CHANGE (sort/filter)
+    // =============================================
     handleTableChange(pagination, filters, sorter) {
-      console.log('Table change (sorting/filtering):', filters, sorter);
-
-      // Check if there's actually a meaningful change
       const hasFilterChange = JSON.stringify(filters) !== JSON.stringify(this.filteredInfo);
       const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
 
-      // Only proceed if there's an actual filter or sort change
-      if (!hasFilterChange && !hasSorterChange) {
-        console.log('No meaningful change detected, skipping reload');
-        return;
-      }
+      if (!hasFilterChange && !hasSorterChange) return;
 
-      // Update filter state
       this.filteredInfo = filters;
 
-      // Only update sorter if it's a real sort operation (has field and order)
-      // Don't preserve old sorting when only filtering
       if (sorter && sorter.field && sorter.order) {
-        console.log('Applying sort:', sorter);
         this.sortedInfo = sorter;
       } else if (!sorter || (!sorter.field && !sorter.order)) {
-        console.log('Clearing sort (filtering only or no sort)');
         this.sortedInfo = {};
       }
 
-      // Reset to first page when filter/sort changes
       this.currentPage = 1;
-
-      // Build complete parameters
-      const params = this.buildApiParams({
-        page: 1,
-        per_page: this.pageSize
-      });
-
-      // Fetch travel requests with new parameters
+      const params = this.buildApiParams({ page: 1, per_page: this.pageSize });
       this.fetchTravelRequests(params);
     },
 
-    // Map frontend table field names to backend field names
-    mapSortField(field) {
-      const fieldMapping = {
-        'destination': 'destination',
-        'purpose': 'purpose',
-      };
-      return fieldMapping[field] || field;
-    },
-
-    async handleStaffIdSearch() {
-      // Validation: Check if search input is empty
-      if (!this.searchStaffId || this.searchStaffId.trim() === '') {
-        this.$message && this.$message.warning && this.$message.warning('Please enter a staff ID to search');
+    // =============================================
+    // SEARCH
+    // =============================================
+    async handleSearch() {
+      if (!this.searchTerm || this.searchTerm.trim() === '') {
+        this.$message && this.$message.warning && this.$message.warning('Please enter a search term');
         return;
       }
 
       this.searchLoading = true;
       try {
-        const travelRequestStore = useTravelRequestStore();
-        const response = await travelRequestStore.searchTravelRequestsByStaffId(this.searchStaffId);
-
-        // Update local data from store
-        this.travelRequests = travelRequestStore.travelRequests;
-        this.total = travelRequestStore.total;
-        this.currentPage = travelRequestStore.currentPage;
-        this.updateLocalStatistics();
-
-        this.$message && this.$message.success && this.$message.success('Search completed successfully');
-      } catch (error) {
-        console.error('Error fetching travel requests by staff ID:', error);
-        this.$message && this.$message.error && this.$message.error(error.message || 'Failed to search travel requests');
-        // Clear data on error
-        this.travelRequests = [];
-        this.total = 0;
-      } finally {
-        this.searchLoading = false;
-      }
-    },
-
-    async handleEmployeeNameSearch() {
-      // Validation: Check if search input is empty
-      if (!this.searchEmployeeName || this.searchEmployeeName.trim() === '') {
-        this.$message && this.$message.warning && this.$message.warning('Please enter an employee name to search');
-        return;
-      }
-
-      this.searchLoading = true;
-      try {
-        const params = this.buildApiParams({
-          page: 1,
-          per_page: this.pageSize,
-          search_employee: this.searchEmployeeName.trim()
-        });
-
+        this.currentPage = 1;
+        const params = this.buildApiParams({ page: 1, per_page: this.pageSize });
         await this.fetchTravelRequests(params);
-        this.$message && this.$message.success && this.$message.success('Search completed successfully');
-      } catch (error) {
-        console.error('Error searching travel requests by employee name:', error);
-        this.$message && this.$message.error && this.$message.error(error.message || 'Failed to search travel requests');
-        // Clear data on error
-        this.travelRequests = [];
-        this.total = 0;
       } finally {
         this.searchLoading = false;
       }
     },
 
+    // =============================================
+    // FETCH DATA
+    // =============================================
     async fetchTravelRequests(params = {}) {
       this.loading = true;
       try {
-        const travelRequestStore = useTravelRequestStore();
-
         const queryParams = {
           page: params.page || this.currentPage || 1,
           per_page: params.per_page || this.pageSize,
           ...params
         };
 
-        await travelRequestStore.fetchTravelRequests(queryParams);
+        const response = await travelRequestService.getTravelRequests(queryParams);
+        if (response.success) {
+          this.travelRequests = response.data || [];
 
-        // Update local data from store
-        this.travelRequests = travelRequestStore.travelRequests;
-        this.total = travelRequestStore.total;
-        this.currentPage = travelRequestStore.currentPage;
-        this.pageSize = travelRequestStore.pageSize;
-        this.statistics = travelRequestStore.statistics;
+          if (response.pagination) {
+            this.total = response.pagination.total || 0;
+            this.currentPage = response.pagination.current_page || 1;
+            this.pageSize = response.pagination.per_page || this.pageSize;
+          } else {
+            this.total = (response.data && response.data.length) || 0;
+          }
 
-        this.$message && this.$message.success && this.$message.success('Travel requests loaded successfully');
+          this.updateStatistics();
+        } else {
+          this.travelRequests = [];
+          this.total = 0;
+        }
       } catch (error) {
         console.error('Error fetching travel requests:', error);
+        this.showToast('Error loading travel requests', 'error');
         this.travelRequests = [];
         this.total = 0;
-        this.$message && this.$message.error && this.$message.error('Failed to load travel requests');
       } finally {
         this.loading = false;
       }
     },
 
+    updateStatistics() {
+      this.statistics.total = this.total;
+      this.statistics.approved = this.travelRequests.length;
+      this.statistics.domestic = Math.floor(this.total * 0.7);
+      this.statistics.international = Math.floor(this.total * 0.3);
+    },
+
+    // =============================================
+    // CLEAR FILTERS
+    // =============================================
     clearFilters() {
       this.filteredInfo = {};
       this.currentPage = 1;
-
-      const params = this.buildApiParams({
-        page: 1,
-        per_page: this.pageSize
-      });
-
+      const params = this.buildApiParams({ page: 1, per_page: this.pageSize });
       this.fetchTravelRequests(params);
     },
 
     clearAll() {
       this.filteredInfo = {};
       this.sortedInfo = {};
-      this.searchStaffId = '';
-      this.searchEmployeeName = '';
+      this.searchTerm = '';
       this.currentPage = 1;
-
-      const params = this.buildApiParams({
-        page: 1,
-        per_page: this.pageSize
-      });
-
-      this.fetchTravelRequests(params);
+      this.fetchTravelRequests({ page: 1, per_page: this.pageSize });
     },
 
-    toggleHeader() {
-      document.getElementById("collapse-header").classList.toggle("active");
-      document.body.classList.toggle("header-collapse");
+    // =============================================
+    // MODAL METHODS
+    // =============================================
+    openCreateModal() {
+      this.editingRecord = null;
+      this.modalVisible = true;
     },
 
-    // Row selection change handler
-    onSelectChange(selectedRowKeys) {
-      this.selectedRowKeys = selectedRowKeys;
-      console.log('selectedRowKeys changed: ', selectedRowKeys);
+    editTravelRequest(record) {
+      this.editingRecord = record;
+      this.modalVisible = true;
     },
 
-    // Confirm delete selected travel requests
-    confirmDeleteSelectedTravelRequests() {
-      if (this.selectedRowKeys.length === 0) {
-        this.$message && this.$message.warning && this.$message.warning('Please select at least one travel request to delete');
-        return;
-      }
-
-      Modal.confirm({
-        title: `Are you sure you want to delete ${this.selectedRowKeys.length} selected travel request(s)?`,
-        content: 'This will delete all selected travel requests and their associated data. This action cannot be undone.',
-        centered: true,
-        okText: 'Yes, Delete All',
-        okType: 'danger',
-        cancelText: 'Cancel',
-        onOk: () => {
-          this.deleteSelectedTravelRequests();
-        }
-      });
+    closeModal() {
+      this.modalVisible = false;
+      this.editingRecord = null;
     },
 
-    // Delete selected travel requests
-    async deleteSelectedTravelRequests() {
-      try {
-        const travelRequestStore = useTravelRequestStore();
-        await travelRequestStore.deleteSelectedTravelRequests(this.selectedRowKeys);
-        this.$message && this.$message.success && this.$message.success(`${this.selectedRowKeys.length} travel request(s) deleted successfully`);
-        this.selectedRowKeys = [];
-        this.fetchTravelRequests();
-      } catch (error) {
-        this.$message && this.$message.error && this.$message.error('Failed to delete travel requests');
-        console.error("Error deleting travel requests:", error);
-      }
+    async handleSaved() {
+      this.closeModal();
+      await this.fetchTravelRequests();
     },
 
-    // Confirm delete single travel request
+    // =============================================
+    // DELETE
+    // =============================================
     confirmDeleteTravelRequest(id) {
       Modal.confirm({
         title: 'Are you sure you want to delete this travel request?',
-        content: 'This will delete the travel request and all associated data. This action cannot be undone.',
+        content: 'This action cannot be undone.',
         centered: true,
         okText: 'Yes, Delete',
         okType: 'danger',
@@ -776,76 +613,73 @@ export default {
       });
     },
 
-    // Delete single travel request
     async deleteTravelRequest(id) {
       try {
-        const travelRequestStore = useTravelRequestStore();
-        await travelRequestStore.deleteTravelRequest(id);
-        this.$message && this.$message.success && this.$message.success('Travel request deleted successfully');
+        await travelRequestService.deleteTravelRequest(id);
+        this.showToast('Travel request deleted successfully', 'success');
         this.fetchTravelRequests();
       } catch (error) {
-        this.$message && this.$message.error && this.$message.error('Failed to delete travel request');
-        console.error("Error deleting travel request:", error);
+        console.error('Error deleting travel request:', error);
+        this.showToast('Error deleting travel request', 'error');
       }
     },
 
-    async openAddTravelRequestModal() {
+    confirmDeleteSelected() {
+      if (this.selectedRowKeys.length === 0) {
+        this.$message && this.$message.warning && this.$message.warning('Please select at least one travel request');
+        return;
+      }
+
+      Modal.confirm({
+        title: `Delete ${this.selectedRowKeys.length} selected travel request(s)?`,
+        content: 'This action cannot be undone.',
+        centered: true,
+        okText: 'Yes, Delete All',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: () => {
+          this.deleteSelected();
+        }
+      });
+    },
+
+    async deleteSelected() {
       try {
-        this.openingAddTravelRequest = true;
-        // Wait for modal DOM to be available
-        let attempts = 0;
-        while (!document.getElementById('add_travel_request') && attempts < 40) {
-          await new Promise(resolve => setTimeout(resolve, 25));
-          attempts++;
-        }
-
-        if (this.$refs.travelRequestModalRef) {
-          await this.$refs.travelRequestModalRef.openAddTravelRequestModal();
-        } else {
-          this.$message && this.$message.warning && this.$message.warning('Form is loading, please try again.');
-        }
-      } finally {
-        this.openingAddTravelRequest = false;
+        await travelRequestService.deleteSelectedTravelRequests(this.selectedRowKeys);
+        this.showToast(`${this.selectedRowKeys.length} travel request(s) deleted successfully`, 'success');
+        this.selectedRowKeys = [];
+        this.fetchTravelRequests();
+      } catch (error) {
+        console.error('Error deleting travel requests:', error);
+        this.showToast('Error deleting travel requests', 'error');
       }
     },
 
-    viewTravelRequest(request) {
-      // For now, just show an alert with basic info
-      // In the future, you can create a view modal
-      alert(`Travel Request Details:\nEmployee: ${request.employee?.first_name_en} ${request.employee?.last_name_en}\nDestination: ${request.destination}\nPurpose: ${request.purpose}`);
+    // =============================================
+    // ROW SELECTION
+    // =============================================
+    onSelectChange(selectedRowKeys) {
+      this.selectedRowKeys = selectedRowKeys;
     },
 
-    editTravelRequest(request) {
-      if (this.$refs.travelRequestModalRef) {
-        this.$refs.travelRequestModalRef.openEditTravelRequestModal(request);
-      }
-    },
-
-    // Format travel request data
+    // =============================================
+    // FORMATTING
+    // =============================================
     formatDate(date) {
-      return date ? moment(date).format("DD MMM YYYY") : 'N/A';
+      return date ? dayjs(date).format('DD/MM/YYYY') : '-';
     },
 
     formatTransportation(value) {
-      const travelRequestStore = useTravelRequestStore();
-      const options = travelRequestStore.transportationOptions;
-      const option = options.find(opt => opt.value === value);
-      return option ? option.label : value;
+      return this.transportationMap[value] || value || '-';
     },
 
     formatAccommodation(value) {
-      const travelRequestStore = useTravelRequestStore();
-      const options = travelRequestStore.accommodationOptions;
-      const option = options.find(opt => opt.value === value);
-      return option ? option.label : value;
+      return this.accommodationMap[value] || value || '-';
     },
 
-    updateLocalStatistics() {
-      // Calculate statistics from current travel requests array
-      this.statistics.total = this.total;
-      this.statistics.pending = 0; // For simple CRUD, no approval workflow
-      this.statistics.approved = this.travelRequests.length;
-      this.statistics.rejected = 0;
+    toggleHeader() {
+      document.getElementById("collapse-header").classList.toggle("active");
+      document.body.classList.toggle("header-collapse");
     }
   }
 };
@@ -936,7 +770,7 @@ export default {
   margin-left: 8px;
 }
 
-/* Fix dropdown placement - force dropdown to appear above */
+/* Fix dropdown placement */
 :deep(.ant-pagination-options-size-changer .ant-select) {
   z-index: 1000;
 }
@@ -947,18 +781,10 @@ export default {
   bottom: calc(100% + 4px) !important;
 }
 
-/* Force dropdown to appear above the trigger */
 :deep(.ant-select-dropdown) {
   z-index: 1050 !important;
 }
 
-/* Ensure pagination dropdowns appear above */
-.pagination-wrapper {
-  position: relative;
-  z-index: 100;
-}
-
-/* Override Ant Design dropdown placement */
 :deep(.ant-pagination .ant-select-dropdown) {
   position: absolute !important;
   bottom: calc(100% + 4px) !important;
@@ -967,7 +793,7 @@ export default {
   margin-top: 0 !important;
 }
 
-/* Container overflow fixes - only apply to table cards, not statistics */
+/* Container overflow fixes */
 .card:not(.statistics-card) {
   overflow: visible !important;
   margin-bottom: 20px;
@@ -991,7 +817,6 @@ export default {
   min-height: auto;
 }
 
-/* Ensure statistics row has proper spacing */
 .statistics-row {
   margin-bottom: 1rem;
 }
@@ -1000,7 +825,6 @@ export default {
   margin-bottom: 0.5rem;
 }
 
-/* Make statistics cards more compact */
 .statistics-card .avatar {
   width: 2.5rem;
   height: 2.5rem;
@@ -1019,12 +843,7 @@ export default {
   margin-bottom: 0.25rem !important;
 }
 
-.statistics-card .badge {
-  font-size: 0.65rem;
-  padding: 0.25rem 0.5rem;
-}
-
-/* Enhanced scrollbar styling - Match Ant Design Vue docs */
+/* Enhanced scrollbar styling */
 :deep(.ant-table-body)::-webkit-scrollbar {
   width: 16px !important;
   height: 16px !important;
@@ -1045,7 +864,7 @@ export default {
   background: #555 !important;
 }
 
-/* Fix for fixed columns - comprehensive solution */
+/* Fixed columns */
 :deep(.ant-table-fixed-left),
 :deep(.ant-table-fixed-right) {
   background-color: #ffffff !important;
@@ -1064,7 +883,6 @@ export default {
   background-color: #ffffff !important;
 }
 
-/* Fix for main table headers to match fixed headers */
 :deep(.ant-table-thead > tr > th) {
   background-color: #fafafa !important;
   color: #595959 !important;
@@ -1072,19 +890,16 @@ export default {
   border-bottom: 1px solid #e0e0e0 !important;
 }
 
-/* Ensure all table cells have consistent background */
 :deep(.ant-table-tbody > tr > td) {
   background-color: #ffffff !important;
 }
 
-/* Fix for table rows hover state - all tables */
 :deep(.ant-table-tbody > tr:hover > td),
 :deep(.ant-table-fixed-left .ant-table-tbody > tr:hover > td),
 :deep(.ant-table-fixed-right .ant-table-tbody > tr:hover > td) {
   background-color: #fafafa !important;
 }
 
-/* Fix for selection column */
 :deep(.ant-table-selection-column) {
   background-color: #ffffff !important;
   z-index: 3 !important;
@@ -1094,21 +909,10 @@ export default {
   padding-right: 0 !important;
 }
 
-/* Fix for selection column header */
 :deep(.ant-table-thead .ant-table-selection-column) {
   background-color: #fafafa !important;
 }
 
-/* Fix for fixed table selection columns */
-:deep(.ant-table-fixed-left .ant-table-selection-column) {
-  background-color: #ffffff !important;
-}
-
-:deep(.ant-table-fixed-left .ant-table-thead .ant-table-selection-column) {
-  background-color: #fafafa !important;
-}
-
-/* Fix for selected rows - ensure all selected cells have same background */
 :deep(.ant-table-row-selected > td),
 :deep(.ant-table-row-selected > td.ant-table-cell-fix-left),
 :deep(.ant-table-row-selected > td.ant-table-cell-fix-right),
@@ -1117,18 +921,15 @@ export default {
   z-index: 3 !important;
 }
 
-/* Fix for table container and layout */
 :deep(.ant-table-container) {
   border: 1px solid #e0e0e0;
   border-radius: 0;
 }
 
-/* Ensure proper table layout for fixed columns */
 :deep(.ant-table-layout-fixed table) {
   table-layout: auto !important;
 }
 
-/* Fix for table wrapper */
 :deep(.ant-table-wrapper) {
   background-color: #ffffff;
 }

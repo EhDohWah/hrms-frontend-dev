@@ -304,6 +304,7 @@ import BenefitSettingModal from '@/components/modal/benefit-setting-modal.vue';
 import { benefitSettingService } from '@/services/benefitSetting.service';
 import { Modal } from 'ant-design-vue';
 import Swal from 'sweetalert2';
+import moment from 'moment';
 import { usePermissions } from '@/composables/usePermissions';
 
 export default {
@@ -657,11 +658,7 @@ export default {
 
     formatDate(date) {
       if (!date) return 'N/A';
-      return new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
+      return moment(date).format('DD/MM/YYYY');
     }
   }
 };

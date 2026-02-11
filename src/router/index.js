@@ -12,6 +12,7 @@ const routeComponents = {
   // ============================================
   'pages/administration/departments/department-list': () => import('@/views/pages/administration/departments/department-list.vue'),
   'pages/administration/file-uploads/file-uploads-list': () => import('@/views/pages/administration/file-uploads/file-uploads-list.vue'),
+  'pages/administration/letter-templates/letter-templates-list': () => import('@/views/pages/administration/letter-templates/letter-templates-list.vue'),
   'pages/administration/lookups/lookup-list': () => import('@/views/pages/administration/lookups/lookup-list.vue'),
   'pages/administration/positions/position-list': () => import('@/views/pages/administration/positions/position-list.vue'),
   'pages/administration/recycle-bin/recycle-bin': () => import('@/views/pages/administration/recycle-bin/recycle-bin.vue'),
@@ -93,8 +94,7 @@ const routeComponents = {
   // ATTENDANCE & TIME MODULE
   // ============================================
   'pages/hrm/attendance/attendance-index': () => import('@/views/pages/hrm/attendance/attendance-index.vue'),
-  'pages/hrm/attendance/attendance-admin': () => import('@/views/pages/hrm/attendance/attendance-admin.vue'),
-  'pages/hrm/attendance/attendance-employee': () => import('@/views/pages/hrm/attendance/attendance-employee.vue'),
+  'pages/hrm/attendance/attendance-list': () => import('@/views/pages/hrm/attendance/attendance-list.vue'),
   'pages/hrm/attendance/timesheets-list': () => import('@/views/pages/hrm/attendance/timesheets-list.vue'),
   'pages/hrm/attendance/schedule-timing': () => import('@/views/pages/hrm/attendance/schedule-timing.vue'),
   'pages/hrm/attendance/overtime-list': () => import('@/views/pages/hrm/attendance/overtime-list.vue'),
@@ -104,8 +104,6 @@ const routeComponents = {
   // ============================================
   'pages/hrm/attendance/leaves/leave-index': () => import('@/views/pages/hrm/attendance/leaves/leave-index.vue'),
   'pages/hrm/attendance/leaves/leaves-admin': () => import('@/views/pages/hrm/attendance/leaves/leaves-admin.vue'),
-  'pages/hrm/attendance/leaves/leaves-employee': () => import('@/views/pages/hrm/attendance/leaves/leaves-employee.vue'),
-  'pages/hrm/attendance/leaves/leave-settings': () => import('@/views/pages/hrm/attendance/leaves/leave-settings.vue'),
   'pages/hrm/attendance/leaves/leave-types': () => import('@/views/pages/hrm/attendance/leaves/leave-types.vue'),
   'pages/hrm/attendance/leaves/leave-balances': () => import('@/views/pages/hrm/attendance/leaves/leave-balances.vue'),
 
@@ -151,7 +149,6 @@ const routeComponents = {
   // ============================================
   'pages/requests/travel/travel-index': () => import('@/views/pages/requests/travel/travel-index.vue'),
   'pages/requests/travel/travel-admin': () => import('@/views/pages/requests/travel/travel-admin.vue'),
-  'pages/requests/travel/travel-list': () => import('@/views/pages/requests/travel/travel-list.vue'),
   'pages/requests/travel/travel-details': () => import('@/views/pages/requests/travel/travel-details.vue'),
 
   // ============================================
@@ -367,6 +364,17 @@ const routes = [
     ]
   },
   {
+    path: '/letter-templates',
+    name: 'AdminLetterTemplates',
+    component: lazyView('pages/administration/letter-templates/letter-templates-list'),
+    beforeEnter: permissionGuard('letter_templates.read'),
+    meta: {
+      requiresAuth: true,
+      title: 'Letter Templates',
+      breadcrumb: 'Letter Templates'
+    }
+  },
+  {
     path: '/file-uploads',
     name: 'AdminFileUploads',
     component: lazyView('pages/administration/file-uploads/file-uploads-list'),
@@ -521,24 +529,15 @@ const routes = [
       {
         path: '',
         name: 'HrmAttendance',
-        redirect: '/attendance/attendance-admin'
+        redirect: '/attendance/attendance-list'
       },
       {
-        path: 'attendance-admin',
-        name: 'HrmAttendanceAdmin',
-        component: lazyView('pages/hrm/attendance/attendance-admin'),
+        path: 'attendance-list',
+        name: 'HrmAttendanceList',
+        component: lazyView('pages/hrm/attendance/attendance-list'),
         meta: {
-          title: 'Attendance Administration',
-          breadcrumb: 'Admin View'
-        }
-      },
-      {
-        path: 'attendance-employee',
-        name: 'HrmAttendanceEmployee',
-        component: lazyView('pages/hrm/attendance/attendance-employee'),
-        meta: {
-          title: 'My Attendance',
-          breadcrumb: 'My Attendance'
+          title: 'Attendance List',
+          breadcrumb: 'Attendance List'
         }
       },
       {
@@ -577,11 +576,11 @@ const routes = [
   {
     path: '/leave/admin',
     component: lazyView('pages/hrm/attendance/leaves/leave-index'),
-    beforeEnter: permissionGuard(['leaves_admin.read', 'leave_settings.read', 'leave_types.read', 'leave_balances.read']),
+    beforeEnter: permissionGuard(['leaves_admin.read', 'leave_types.read', 'leave_balances.read']),
     meta: {
       requiresAuth: true,
-      title: 'Leave Administration',
-      breadcrumb: 'Leave Admin'
+      title: 'Leave Management',
+      breadcrumb: 'Leaves'
     },
     children: [
       {
@@ -594,17 +593,8 @@ const routes = [
         name: 'HrmLeaveRequests',
         component: lazyView('pages/hrm/attendance/leaves/leaves-admin'),
         meta: {
-          title: 'Leave Requests',
-          breadcrumb: 'All Requests'
-        }
-      },
-      {
-        path: 'leave-settings',
-        name: 'HrmLeaveSettings',
-        component: lazyView('pages/hrm/attendance/leaves/leave-settings'),
-        meta: {
-          title: 'Leave Settings',
-          breadcrumb: 'Settings'
+          title: 'Leave Request List',
+          breadcrumb: 'Leave Requests'
         }
       },
       {
@@ -627,31 +617,10 @@ const routes = [
       },
     ]
   },
+  // Redirect old employee leave route to admin
   {
     path: '/leave/employee',
-    component: lazyView('pages/hrm/attendance/leaves/leave-index'),
-    beforeEnter: permissionGuard('leaves_employee.read'),
-    meta: {
-      requiresAuth: true,
-      title: 'My Leave',
-      breadcrumb: 'My Leave'
-    },
-    children: [
-      {
-        path: '',
-        name: 'HrmMyLeave',
-        redirect: '/leave/employee/leaves-employee'
-      },
-      {
-        path: 'leaves-employee',
-        name: 'HrmMyLeaveRequests',
-        component: lazyView('pages/hrm/attendance/leaves/leaves-employee'),
-        meta: {
-          title: 'My Leave Requests',
-          breadcrumb: 'My Requests'
-        }
-      },
-    ]
+    redirect: '/leave/admin/leaves-admin'
   },
 
   // ============================================
@@ -804,6 +773,7 @@ const routes = [
         path: 'employee-salary',
         name: 'PayrollSalaryList',
         component: lazyView('pages/finance-accounts/payroll/employee-salary'),
+        beforeEnter: permissionGuard('employee_salary.read'),
         meta: {
           title: 'Salary Management',
           breadcrumb: 'Employee Salary'
@@ -813,6 +783,7 @@ const routes = [
         path: 'add-employee-salary',
         name: 'PayrollSalaryCreate',
         component: lazyView('pages/finance-accounts/payroll/add-employee-salary'),
+        beforeEnter: permissionGuard('employee_salary.edit'),
         meta: {
           title: 'Add Salary Record',
           breadcrumb: 'Add Salary'
@@ -822,6 +793,7 @@ const routes = [
         path: 'payslip',
         name: 'PayrollPayslips',
         component: lazyView('pages/finance-accounts/payroll/payslip-index'),
+        beforeEnter: permissionGuard('employee_salary.read'),
         meta: {
           title: 'Payslip Generation',
           breadcrumb: 'Payslips'
@@ -831,6 +803,7 @@ const routes = [
         path: 'payroll',
         name: 'PayrollAdditions',
         component: lazyView('pages/finance-accounts/payroll/payroll-additions'),
+        beforeEnter: permissionGuard('payroll_items.read'),
         meta: {
           title: 'Salary Additions',
           breadcrumb: 'Additions'
@@ -840,6 +813,7 @@ const routes = [
         path: 'payroll-overtime',
         name: 'PayrollOvertime',
         component: lazyView('pages/finance-accounts/payroll/payroll-overtime'),
+        beforeEnter: permissionGuard('payroll_items.read'),
         meta: {
           title: 'Overtime Payments',
           breadcrumb: 'Overtime'
@@ -849,6 +823,7 @@ const routes = [
         path: 'payroll-deduction',
         name: 'PayrollDeductions',
         component: lazyView('pages/finance-accounts/payroll/payroll-deduction'),
+        beforeEnter: permissionGuard('payroll_items.read'),
         meta: {
           title: 'Salary Deductions',
           breadcrumb: 'Deductions'
@@ -858,43 +833,40 @@ const routes = [
         path: 'tax-settings',
         name: 'PayrollTaxSettings',
         component: lazyView('pages/finance-accounts/payroll/tax-settings'),
+        beforeEnter: permissionGuard('tax_settings.read'),
         meta: {
           title: 'Tax Configuration',
-          breadcrumb: 'Tax Settings',
-          requiresAuth: true
+          breadcrumb: 'Tax Settings'
         }
       },
       {
         path: 'benefit-settings',
         name: 'PayrollBenefitSettings',
         component: lazyView('pages/finance-accounts/payroll/benefit-settings-list'),
+        beforeEnter: permissionGuard('benefit_settings.read'),
         meta: {
           title: 'Benefits Configuration',
-          breadcrumb: 'Benefit Settings',
-          requiresAuth: true,
-          requiredPermissions: ['benefit-settings.read']
+          breadcrumb: 'Benefit Settings'
         }
       },
       {
         path: 'bulk-create',
         name: 'PayrollBulkCreate',
         component: lazyView('pages/finance-accounts/payroll/BulkPayrollCreate'),
+        beforeEnter: permissionGuard('employee_salary.edit'),
         meta: {
           title: 'Bulk Payroll Processing',
-          breadcrumb: 'Bulk Create',
-          requiresAuth: true,
-          requiredPermissions: ['payroll.bulk_create']
+          breadcrumb: 'Bulk Create'
         }
       },
       {
         path: 'bulk-progress/:batchId',
         name: 'PayrollBulkProgress',
         component: lazyView('pages/finance-accounts/payroll/BulkPayrollProgress'),
+        beforeEnter: permissionGuard('employee_salary.edit'),
         meta: {
           title: 'Payroll Processing Status',
-          breadcrumb: 'Processing Status',
-          requiresAuth: true,
-          requiredPermissions: ['payroll.bulk_create']
+          breadcrumb: 'Processing Status'
         }
       },
     ]
@@ -1084,22 +1056,22 @@ const routes = [
     beforeEnter: permissionGuard('travel_admin.read'),
     meta: {
       requiresAuth: true,
-      title: 'Travel Request Administration',
-      breadcrumb: 'Travel Admin'
+      title: 'Travel Request List',
+      breadcrumb: 'Travel Requests'
     },
     children: [
       {
         path: '',
-        name: 'TravelRequestAdminList',
+        name: 'TravelRequestList',
         component: lazyView('pages/requests/travel/travel-admin'),
         meta: {
-          title: 'All Travel Requests',
+          title: 'Travel Request List',
           breadcrumb: 'All Requests'
         }
       },
       {
         path: ':id',
-        name: 'TravelRequestAdminDetails',
+        name: 'TravelRequestDetails',
         component: lazyView('pages/requests/travel/travel-details'),
         meta: {
           title: 'Travel Request Details',
@@ -1108,36 +1080,10 @@ const routes = [
       }
     ]
   },
+  // Redirect old employee travel route to unified page
   {
     path: '/requests/travel',
-    name: 'TravelRequestEmployee',
-    component: lazyView('pages/requests/travel/travel-index'),
-    beforeEnter: permissionGuard('travel_employee.read'),
-    meta: {
-      requiresAuth: true,
-      title: 'My Travel Requests',
-      breadcrumb: 'My Travel'
-    },
-    children: [
-      {
-        path: '',
-        name: 'TravelRequestMyList',
-        component: lazyView('pages/requests/travel/travel-list'),
-        meta: {
-          title: 'My Travel Requests',
-          breadcrumb: 'My Requests'
-        }
-      },
-      {
-        path: ':id',
-        name: 'TravelRequestMyDetails',
-        component: lazyView('pages/requests/travel/travel-details'),
-        meta: {
-          title: 'Travel Request Details',
-          breadcrumb: 'Request Details'
-        }
-      }
-    ]
+    redirect: '/requests/travel/admin'
   },
 
   // ============================================

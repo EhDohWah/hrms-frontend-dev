@@ -295,7 +295,7 @@ export default {
 
     const formatDateForDisplay = (date) => {
       if (!date) return '-';
-      return dayjs(date).format('DD MMM YYYY');
+      return dayjs(date).format('DD/MM/YYYY');
     };
 
     // Validation
@@ -952,7 +952,7 @@ export default {
               <a-date-picker
                 v-model:value="basicInfo.date_of_birth"
                 placeholder="Select date"
-                format="DD MMM YYYY"
+                format="DD/MM/YYYY"
                 :status="formErrors.date_of_birth ? 'error' : ''"
                 class="input-short"
               />
@@ -1170,7 +1170,7 @@ export default {
                 <a-date-picker
                   v-model:value="personalFinance.identification_issue_date"
                   placeholder="Select date"
-                  format="DD MMM YYYY"
+                  format="DD/MM/YYYY"
                   class="input-short"
                 />
               </div>
@@ -1185,7 +1185,7 @@ export default {
                 <a-date-picker
                   v-model:value="personalFinance.identification_expiry_date"
                   placeholder="Select date"
-                  format="DD MMM YYYY"
+                  format="DD/MM/YYYY"
                   class="input-short"
                 />
               </div>
@@ -1333,7 +1333,7 @@ export default {
                 <a-date-picker
                   v-model:value="personalFinance.education_start_date"
                   placeholder="Select date"
-                  format="DD MMM YYYY"
+                  format="DD/MM/YYYY"
                   class="input-short"
                 />
               </div>
@@ -1348,7 +1348,7 @@ export default {
                 <a-date-picker
                   v-model:value="personalFinance.education_end_date"
                   placeholder="Select date"
-                  format="DD MMM YYYY"
+                  format="DD/MM/YYYY"
                   class="input-short"
                 />
               </div>
@@ -1532,7 +1532,7 @@ export default {
                   <a-date-picker
                     v-model:value="newChild.date_of_birth"
                     placeholder="Date of birth"
-                    format="DD MMM YYYY"
+                    format="DD/MM/YYYY"
                     size="small"
                     style="width: 100%;"
                   />

@@ -192,10 +192,6 @@
                     <router-link class="dropdown-item d-inline-flex align-items-center p-0 py-2" to="/pages/profile">
                       <i class="ti ti-user-circle me-1"></i>My Profile
                     </router-link>
-                    <router-link class="dropdown-item d-inline-flex align-items-center p-0 py-2"
-                      to="/general-settings/profile-settings">
-                      <i class="ti ti-settings me-1"></i>Settings
-                    </router-link>
                   </div>
                   <div class="card-footer">
                     <a class="dropdown-item d-inline-flex align-items-center p-0 py-2" href="#"
@@ -222,7 +218,6 @@
           </router-link>
           <div class="dropdown-divider"></div>
           <router-link class="dropdown-item" to="/pages/profile">My Profile</router-link>
-          <router-link class="dropdown-item" to="/general-settings/profile-settings">Settings</router-link>
           <a class="dropdown-item" href="#" @click.prevent="handleLogout">Logout</a>
         </div>
       </div>
@@ -240,6 +235,7 @@ import { notification as antNotification } from 'ant-design-vue';
 import eventBus from '@/plugins/eventBus';
 import { disconnectEcho, subscribeToNotifications, unsubscribeFromNotifications } from '@/plugins/echo';
 import { sanitizeNotificationHtml, escapeHtml } from '@/utils/sanitize';
+import { formatDate } from '@/utils/date.utils';
 
 export default {
   data() {
@@ -736,7 +732,7 @@ export default {
       if (diffInDays < 7) return `${diffInDays}d ago`;
 
       // For older notifications, show the actual date
-      return notificationDate.toLocaleDateString();
+      return formatDate(notificationDate);
     },
 
     handleNotificationClick(notification) {

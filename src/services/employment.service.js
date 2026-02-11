@@ -88,7 +88,6 @@ class EmploymentService extends BaseService {
      * @param {string} data.start_date - Start date for allocations
      * @param {string} [data.end_date] - End date for allocations (optional)
      * @param {Array} data.allocations - Array of allocation objects
-     * @param {string} data.allocations[].allocation_type - Type ('grant')
      * @param {number} data.allocations[].grant_item_id - Grant item ID
      * @param {number} data.allocations[].fte - FTE percentage (0-100)
      * 
@@ -103,8 +102,8 @@ class EmploymentService extends BaseService {
      *   employment_id: 456,
      *   start_date: '2026-01-15',
      *   allocations: [
-     *     { allocation_type: 'grant', grant_item_id: 789, fte: 60 },
-     *     { allocation_type: 'grant', grant_item_id: 790, fte: 40 }
+     *     { grant_item_id: 789, fte: 60 },
+     *     { grant_item_id: 790, fte: 40 }
      *   ]
      * });
      */

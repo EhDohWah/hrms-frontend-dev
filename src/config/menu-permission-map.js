@@ -204,74 +204,64 @@ export const MENU_PERMISSION_MAP = {
   // PAYROLL
   // ============================================================================
   'Payroll': {
-    readPermission: 'payroll.read',
-    writePermissions: ['payroll.create', 'payroll.update', 'payroll.delete', 'payroll.export']
+    readPermission: 'employee_salary.read',
+    writePermissions: ['employee_salary.edit']
   },
 
   'Employee Salary': {
-    readPermission: 'payroll.read',
-    writePermissions: ['payroll.create', 'payroll.update', 'payroll.delete']
+    readPermission: 'employee_salary.read',
+    writePermissions: ['employee_salary.edit']
   },
 
   'Payslip': {
-    readPermission: 'payroll.read',
-    writePermissions: ['payroll.create', 'payroll.export']
+    readPermission: 'employee_salary.read',
+    writePermissions: ['employee_salary.edit']
   },
 
   'Payroll Items': {
-    readPermission: 'payroll.read',
-    writePermissions: ['payroll.create', 'payroll.update', 'payroll.delete']
+    readPermission: 'payroll_items.read',
+    writePermissions: ['payroll_items.edit']
   },
 
   'Tax Settings': {
-    readPermission: 'tax.read',
-    writePermissions: ['tax.create', 'tax.update', 'tax.delete']
+    readPermission: 'tax_settings.read',
+    writePermissions: ['tax_settings.edit']
   },
 
   'Benefit Settings': {
-    readPermission: 'payroll.read',
-    writePermissions: ['payroll.create', 'payroll.update', 'payroll.delete']
+    readPermission: 'benefit_settings.read',
+    writePermissions: ['benefit_settings.edit']
   },
 
   // ============================================================================
-  // ATTENDANCE
+  // ATTENDANCE (uses attendance_admin module permissions)
   // ============================================================================
   'Attendance': {
-    readPermission: 'attendance.read',
-    writePermissions: ['attendance.create', 'attendance.update', 'attendance.delete', 'attendance.export']
+    readPermission: 'attendance_admin.read',
+    writePermissions: ['attendance_admin.edit']
   },
 
-  'Attendance (Admin)': {
-    readPermission: 'attendance.read',
-    writePermissions: ['attendance.create', 'attendance.update', 'attendance.delete', 'attendance.export']
-  },
-
-  'Timesheets': {
-    readPermission: 'attendance.read',
-    writePermissions: ['attendance.create', 'attendance.update', 'attendance.delete']
-  },
-
-  'Schedule Timing': {
-    readPermission: 'attendance.read',
-    writePermissions: ['attendance.create', 'attendance.update', 'attendance.delete']
+  'Attendance List': {
+    readPermission: 'attendance_admin.read',
+    writePermissions: ['attendance_admin.edit']
   },
 
   // ============================================================================
   // TRAINING
   // ============================================================================
   'Training': {
-    readPermission: 'training.read',
-    writePermissions: ['training.create', 'training.update', 'training.delete']
+    readPermission: 'training_list.read',
+    writePermissions: ['training_list.edit']
   },
 
   'Training List': {
-    readPermission: 'training.read',
-    writePermissions: ['training.create', 'training.update', 'training.delete', 'training.import', 'training.export']
+    readPermission: 'training_list.read',
+    writePermissions: ['training_list.edit']
   },
 
   'Employee Training': {
-    readPermission: 'training.read',
-    writePermissions: ['training.create', 'training.update', 'training.delete']
+    readPermission: 'employee_training.read',
+    writePermissions: ['employee_training.edit']
   },
 
   // ============================================================================
@@ -337,8 +327,8 @@ export const MENU_PERMISSION_MAP = {
   // TAX
   // ============================================================================
   'Tax': {
-    readPermission: 'tax.read',
-    writePermissions: ['tax.create', 'tax.update', 'tax.delete']
+    readPermission: 'tax_settings.read',
+    writePermissions: ['tax_settings.edit']
   },
 
   // ============================================================================
@@ -380,6 +370,19 @@ export const MENU_PERMISSION_MAP = {
   'Section Departments': {
     readPermission: 'admin.read',
     writePermissions: ['admin.create', 'admin.update', 'admin.delete']
+  },
+
+  // ============================================================================
+  // LETTER TEMPLATES
+  // ============================================================================
+  'Letter Templates': {
+    readPermission: 'letter_templates.read',
+    writePermissions: ['letter_templates.edit']
+  },
+
+  'Template List': {
+    readPermission: 'letter_templates.read',
+    writePermissions: ['letter_templates.edit']
   },
 
   // ============================================================================

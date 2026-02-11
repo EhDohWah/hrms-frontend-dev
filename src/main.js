@@ -42,7 +42,8 @@ import "@/assets/css/vue-form-wizard.css";
 
 // Other plugins
 import VueEasyLightbox from "vue-easy-lightbox";
-import CKEditor from '@ckeditor/ckeditor5-vue';
+// Quill editor styles (lightweight replacement for CKEditor)
+import '@vueup/vue-quill/dist/vue-quill.snow.css';
 import SimpleLineIcons from "vue-simple-line";
 
 // Essential CSS imports
@@ -166,7 +167,7 @@ app.use(VueApexCharts)
 app.use(FlagIcon)
 app.use(VueEasyLightbox)
 app.use(SimpleLineIcons)
-app.use(CKEditor)
+// CKEditor removed — replaced by QuillEditor (imported locally per component)
 
 // Permission Directives (v-permission, v-can-edit, v-can-read)
 app.use(PermissionPlugin)

@@ -52,8 +52,17 @@ export const useAuthStore = defineStore('auth', {
 
         // The backend directly returns the user object with roles and permissions
         if (response) {
+          // Preserve client-only cache-busting timestamp before overwriting
+          const storedUser = JSON.parse(localStorage.getItem(STORAGE_KEYS.USER) || '{}');
+          const cachedTimestamp = storedUser.profile_picture_updated_at;
+
           // Update user data in store
           this.user = response;
+
+          // Restore profile_picture_updated_at (client-only field, not from API)
+          if (cachedTimestamp) {
+            this.user.profile_picture_updated_at = cachedTimestamp;
+          }
 
           // Update roles if available
           if (response.roles && response.roles.length) {

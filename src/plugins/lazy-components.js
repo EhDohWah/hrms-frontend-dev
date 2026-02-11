@@ -65,16 +65,13 @@ export const lazyModals = {
   'grant-position-modal': () => import('@/components/modal/grant-position-modal.vue'),
   'grant-allocate-employee-modal': () => import('@/components/modal/grant-allocate-employee-modal.vue'),
   'leaves-admin-modal': () => import('@/components/modal/leaves-admin-modal.vue'),
-  'leave-settings-modal': () => import('@/components/modal/leave-settings-modal.vue'),
   'leave-type-modal': () => import('@/components/modal/leave-type-modal.vue'),
   'user-list-modal': () => import('@/components/modal/user-list-modal.vue'),
   'user-permission-modal': () => import('@/components/modal/user-permission-modal.vue'),
   'employee-upload-modal': () => import('@/components/modal/employee-upload-modal.vue'),
   'employee-training-modal': () => import('@/components/modal/employee-training-modal.vue'),
+  'attendance-modal': () => import('@/components/modal/attendance-modal.vue'),
   'employee-salary-modal': () => import('@/components/modal/employee-salary-modal.vue'),
-  'travel-employee-modal': () => import('@/components/modal/travel-employee-modal.vue'),
-  'attendence-admin-modal': () => import('@/components/modal/attendance-admin-modal.vue'),
-  'attendance-employee-modal': () => import('@/components/modal/attendance-employee-modal.vue'),
   'timesheets-modal': () => import('@/components/modal/timesheets-modal.vue'),
   'holidays-modal': () => import('@/components/modal/holidays-modal.vue'),
   'training-modal': () => import('@/components/modal/training-modal.vue'),
@@ -89,6 +86,15 @@ export const lazyModals = {
   'policy-modal': () => import('@/components/modal/policy-modal.vue'),
   'admin-dashboard-modal': () => import('@/components/modal/admin-dashboard-modal.vue'),
   'employee-dashboard-modal': () => import('@/components/modal/employee-dashboard-modal.vue'),
+  'resignation-modal': () => import('@/components/modal/resignation-modal.vue'),
+  'travel-request-modal': () => import('@/components/modal/travel-request-modal.vue'),
+  'lookup-modal': () => import('@/components/modal/lookup-modal.vue'),
+
+  // Organization Structure
+  'site-modal': () => import('@/components/modal/site-modal.vue'),
+  'department-modal': () => import('@/components/modal/department-modal.vue'),
+  'position-modal': () => import('@/components/modal/position-modal.vue'),
+  'section-department-modal': () => import('@/components/modal/section-department-modal.vue'),
 };
 
 /**
@@ -119,7 +125,6 @@ export const lazyPages = {
   'interviews-details': () => import('@/views/pages/recruitment/interviews/interviews-details.vue'),
   'grant-position-list': () => import('@/views/pages/grant/grant-position-list.vue'),
   'lookup-list': () => import('@/views/pages/administration/lookups/lookup-list.vue'),
-  'travel-request-list': () => import('@/views/pages/requests/travel/travel-list.vue'),
   'travel-request-details': () => import('@/views/pages/requests/travel/travel-details.vue'),
   'employee-training-list': () => import('@/views/pages/hrm/attendance/training/employee-training-list.vue'),
   'hr-manager-dashboard': () => import('@/views/pages/dashboard/hr-manager-dashboard/hr-manager-dashboard.vue'),

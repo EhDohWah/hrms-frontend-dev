@@ -69,7 +69,7 @@ export const lazyModals = {
   'employee-salary-modal': () => import('@/components/modal/employee-salary-modal.vue'),
   'employment-modal': () => import('@/components/modal/employment-modal.vue'),
   'employment-edit-modal': () => import('@/components/modal/employment-edit-modal.vue'),
-  'resignation-modal': () => import('@/components/modal/ResignationModal.vue'),
+  'resignation-modal': () => import('@/components/modal/resignation-modal.vue'),
 
   // Grant Management
   'grant-modal': () => import('@/components/modal/grant-modal.vue'),
@@ -80,17 +80,13 @@ export const lazyModals = {
 
   // Leave Management
   'leaves-admin-modal': () => import('@/components/modal/leaves-admin-modal.vue'),
-  'leaves-employee-modal': () => import('@/components/modal/leaves-employee-modal.vue'),
-  'leave-settings-modal': () => import('@/components/modal/leave-settings-modal.vue'),
   'leave-balance-modal': () => import('@/components/modal/leave-balance-modal.vue'),
 
   // Travel Management
   'travel-request-modal': () => import('@/components/modal/travel-request-modal.vue'),
-  'travel-employee-modal': () => import('@/components/modal/travel-employee-modal.vue'),
 
   // Attendance
-  'attendance-admin-modal': () => import('@/components/modal/attendance-admin-modal.vue'),
-  'attendance-employee-modal': () => import('@/components/modal/attendance-employee-modal.vue'),
+  'attendance-modal': () => import('@/components/modal/attendance-modal.vue'),
 
   // Training
   'employee-training-modal': () => import('@/components/modal/employee-training-modal.vue'),
@@ -158,19 +154,15 @@ export const lazyPages = {
 
   // Leave
   'leaves-admin': () => import('@/views/pages/hrm/attendance/leaves/leaves-admin.vue'),
-  'leaves-employee': () => import('@/views/pages/hrm/attendance/leaves/leaves-employee.vue'),
   'leave-types': () => import('@/views/pages/hrm/attendance/leaves/leave-types.vue'),
   'leave-balances': () => import('@/views/pages/hrm/attendance/leaves/leave-balances.vue'),
-  'leave-settings': () => import('@/views/pages/hrm/attendance/leaves/leave-settings.vue'),
 
   // Travel
-  'travel-list': () => import('@/views/pages/requests/travel/travel-list.vue'),
   'travel-admin': () => import('@/views/pages/requests/travel/travel-admin.vue'),
   'travel-details': () => import('@/views/pages/requests/travel/travel-details.vue'),
 
   // Attendance
-  'attendance-admin': () => import('@/views/pages/hrm/attendance/attendance-admin.vue'),
-  'attendance-employee': () => import('@/views/pages/hrm/attendance/attendance-employee.vue'),
+  'attendance-list': () => import('@/views/pages/hrm/attendance/attendance-list.vue'),
 
   // Training
   'training-list': () => import('@/views/pages/hrm/training/training-list.vue'),

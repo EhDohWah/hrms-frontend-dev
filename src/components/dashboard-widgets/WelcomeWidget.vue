@@ -32,6 +32,7 @@
 
 <script>
 import defaultAvatar from '@/assets/img/profiles/avatar-default.jpg';
+import { formatDateTime } from '@/utils/date.utils';
 
 export default {
   name: 'WelcomeWidget',
@@ -82,7 +83,7 @@ export default {
     lastLogin() {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (user.last_login_at) {
-        return new Date(user.last_login_at).toLocaleString();
+        return formatDateTime(new Date(user.last_login_at));
       }
       return 'First login';
     },

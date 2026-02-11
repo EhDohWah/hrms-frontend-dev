@@ -84,7 +84,6 @@
                   <thead>
                     <tr>
                       <th>Funding Source</th>
-                      <th>Allocation Type</th>
                       <th>Position Slot</th>
                       <th>LOE %</th>
                     </tr>
@@ -92,7 +91,6 @@
                   <tbody>
                     <tr v-for="allocation in selectedEmployee.allocations" :key="allocation.source">
                       <td>{{ allocation.source }}</td>
-                      <td>{{ allocation.allocation_type }}</td>
                       <td>{{ allocation.position_slot || '-' }}</td>
                       <td>{{ allocation.loe }}%</td>
                     </tr>
@@ -179,7 +177,6 @@ export default {
           allocations: [
             {
               source: "ACME General Fund",
-              allocation_type: "grant",
               position_slot: null,
               loe: 100
             }
@@ -202,13 +199,11 @@ export default {
           allocations: [
             {
               source: "IHRP-RAI3E",
-              allocation_type: "grant",
               position_slot: "Grant Position",
               loe: 80
             },
             {
               source: "BHF General Fund",
-              allocation_type: "grant",
               position_slot: null,
               loe: 20
             }
@@ -231,19 +226,16 @@ export default {
           allocations: [
             {
               source: "IHRP Grant Alpha",
-              allocation_type: "grant",
               position_slot: "Slot A",
               loe: 40
             },
             {
               source: "IHRP Grant Beta",
-              allocation_type: "grant",
               position_slot: "Slot B",
               loe: 35
             },
             {
               source: "IHRP Central Fund",
-              allocation_type: "grant",
               position_slot: null,
               loe: 25
             }

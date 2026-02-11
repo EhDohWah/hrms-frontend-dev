@@ -94,6 +94,7 @@ import LayoutHeader from '@/views/layouts/layout-header.vue';
 import LayoutSidebar from '@/views/layouts/layout-sidebar.vue';
 import LayoutFooter from '@/views/layouts/layout-footer.vue';
 import { notificationService } from '@/services/notification.service';
+import { formatDateTime } from '@/utils/date.utils';
 import { useNotificationStore } from '@/stores/notificationStore';
 import { message } from 'ant-design-vue';
 
@@ -193,13 +194,7 @@ export default {
       const diffInDays = Math.floor(diffInHours / 24);
       if (diffInDays < 7) return `${diffInDays}d ago`;
 
-      return notificationDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      return formatDateTime(notificationDate);
     },
 
     getNotificationIcon(type) {

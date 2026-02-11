@@ -1,243 +1,338 @@
-<template>
-  <!-- Add/Edit Department Modal -->
-  <div class="modal fade" id="add_department_modal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title" id="departmentModalLabel">
-            {{ isEditMode ? 'Edit Department' : 'Add New Department' }}
-          </h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <div v-if="alertMessage" class="alert mx-3 mt-3" :class="alertClass" role="alert">
-          {{ alertMessage }}
-        </div>
-
-        <form @submit.prevent="handleSubmit">
-          <div class="modal-body">
-            <div class="row g-3">
-              <!-- Name -->
-              <div class="col-md-12">
-                <label class="form-label">Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" v-model="formData.name"
-                  :class="{ 'is-invalid': validationErrors.name }" placeholder="Enter department name" required>
-                <div v-if="validationErrors.name" class="invalid-feedback">
-                  {{ validationErrors.name }}
-                </div>
-              </div>
-
-              <!-- Description -->
-              <div class="col-md-12">
-                <label class="form-label">Description</label>
-                <textarea class="form-control" v-model="formData.description" rows="3"
-                  placeholder="Enter description"></textarea>
-              </div>
-
-              <!-- Status -->
-              <div class="col-md-12">
-                  <label class="form-label">Status</label>
-                <select class="form-select" v-model="formData.is_active">
-                  <option :value="true">Active</option>
-                  <option :value="false">Inactive</option>
-                </select>
-                </div>
-              </div>
-            </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-              {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Delete Confirmation Modal -->
-  <div class="modal fade" id="delete_department_modal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h4 class="modal-title">Delete Department</h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <p>Are you sure you want to delete this department?</p>
-          <p class="text-info"><i class="ti ti-info-circle me-1"></i>The department and related data will be moved to the Recycle Bin and can be restored within 30 days.</p>
-          <p class="text-warning"><i class="ti ti-alert-triangle me-1"></i>Note: Departments with active employments or personnel actions cannot be deleted.</p>
-          <div v-if="deleteError" class="alert alert-danger mt-2">
-            <strong>Cannot delete:</strong>
-            <ul class="mb-0 mt-1">
-              <li v-for="(blocker, index) in deleteBlockers" :key="index">{{ blocker }}</li>
-            </ul>
-          </div>
-          </div>
-          <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-danger" @click="deleteDepartment" :disabled="isSubmitting">
-            <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-            {{ isSubmitting ? 'Deleting...' : 'Delete' }}
-            </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
-import { Modal } from 'bootstrap';
-import { useDepartmentStore } from '@/stores/departmentStore';
+import { ref, watch, computed } from 'vue';
+import { departmentService } from '@/services/department.service';
+import { message } from 'ant-design-vue';
 
 export default {
   name: 'DepartmentModal',
-  emits: ['department-added', 'department-updated'],
-  data() {
-    return {
-      isEditMode: false,
-      currentId: null,
-      formData: {
-        name: '',
-        description: '',
-        is_active: true,
-      },
-      validationErrors: {},
-      alertMessage: '',
-      alertClass: '',
-      isSubmitting: false,
-      addModalInstance: null,
-      deleteModalInstance: null,
-      deleteId: null,
-      deleteError: false,
-      deleteBlockers: [],
-    };
-  },
-  methods: {
-    setEditDepartment(record) {
-      this.isEditMode = true;
-      this.currentId = record.id;
-      this.formData = {
-        name: record.name || '',
-        description: record.description || '',
-        is_active: record.is_active !== undefined ? record.is_active : true,
-      };
-      this.validationErrors = {};
-      this.alertMessage = '';
-      this.openModal();
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
     },
-
-    openModal() {
-      if (!this.addModalInstance) {
-        this.addModalInstance = new Modal(document.getElementById('add_department_modal'));
-      }
-      this.addModalInstance.show();
-    },
-
-    closeModal() {
-      if (this.addModalInstance) {
-        this.addModalInstance.hide();
-      }
-      this.resetForm();
-    },
-
-    resetForm() {
-      this.isEditMode = false;
-      this.currentId = null;
-      this.formData = {
-        name: '',
-        description: '',
-        is_active: true,
-      };
-      this.validationErrors = {};
-      this.alertMessage = '';
-    },
-
-    confirmDeleteDepartment(departmentId) {
-      this.deleteId = departmentId;
-      this.deleteError = false;
-      this.deleteBlockers = [];
-      if (!this.deleteModalInstance) {
-        this.deleteModalInstance = new Modal(document.getElementById('delete_department_modal'));
-      }
-      this.deleteModalInstance.show();
-    },
-
-    async handleSubmit() {
-      this.validationErrors = {};
-      this.alertMessage = '';
-      this.isSubmitting = true;
-
-      try {
-        const departmentStore = useDepartmentStore();
-
-        if (this.isEditMode) {
-          await departmentStore.updateDepartment(this.currentId, this.formData);
-          this.alertMessage = 'Department updated successfully!';
-          this.$emit('department-updated');
-        } else {
-          await departmentStore.createDepartment(this.formData);
-          this.alertMessage = 'Department created successfully!';
-          this.$emit('department-added');
-        }
-
-        this.alertClass = 'alert-success';
-
-        setTimeout(() => {
-          this.closeModal();
-        }, 1500);
-      } catch (error) {
-        if (error.errors) {
-          this.validationErrors = error.errors;
-          this.alertMessage = 'Please fix the validation errors';
-        } else {
-          this.alertMessage = error.message || `Failed to ${this.isEditMode ? 'update' : 'create'} department`;
-        }
-        this.alertClass = 'alert-danger';
-      } finally {
-        this.isSubmitting = false;
-      }
-    },
-
-    async deleteDepartment() {
-      this.isSubmitting = true;
-      this.deleteError = false;
-      this.deleteBlockers = [];
-
-      try {
-        const departmentStore = useDepartmentStore();
-        await departmentStore.deleteDepartment(this.deleteId);
-
-        if (this.deleteModalInstance) {
-          this.deleteModalInstance.hide();
-        }
-
-        this.$emit('department-updated');
-        this.$message.success('Department moved to Recycle Bin');
-      } catch (error) {
-        const responseData = error.response?.data || error;
-
-        // Show blocker messages inline in the modal
-        if (responseData.blockers && responseData.blockers.length > 0) {
-          this.deleteError = true;
-          this.deleteBlockers = responseData.blockers;
-        } else {
-          this.$message.error(responseData.message || 'Failed to delete department');
-        }
-      } finally {
-        this.isSubmitting = false;
-      }
-    },
-  },
-  mounted() {
-    const modalEl = document.getElementById('add_department_modal');
-    if (modalEl) {
-      modalEl.addEventListener('hidden.bs.modal', () => {
-        this.resetForm();
-      });
+    editingRecord: {
+      type: Object,
+      default: null
     }
   },
+  emits: ['saved', 'close'],
+  setup(props, { emit }) {
+    const form = ref({
+      name: '',
+      description: '',
+      is_active: true,
+    });
+
+    const loading = ref(false);
+    const formErrors = ref({});
+
+    const isEditing = computed(() => !!props.editingRecord);
+    const modalTitle = computed(() => isEditing.value ? 'Edit Department' : 'Add New Department');
+    const submitButtonText = computed(() => isEditing.value ? 'Save Changes' : 'Add Department');
+
+    const resetForm = () => {
+      form.value = {
+        name: '',
+        description: '',
+        is_active: true,
+      };
+      formErrors.value = {};
+    };
+
+    watch(() => props.editingRecord, (newVal) => {
+      if (newVal) {
+        form.value = {
+          name: newVal.name || '',
+          description: newVal.description || '',
+          is_active: newVal.is_active !== undefined ? newVal.is_active : true,
+        };
+      } else {
+        resetForm();
+      }
+    }, { immediate: true });
+
+    watch(() => props.visible, (newVal) => {
+      if (newVal && !props.editingRecord) {
+        resetForm();
+      }
+    });
+
+    const validateForm = () => {
+      const errors = {};
+      if (!form.value.name?.trim()) {
+        errors.name = 'Department name is required';
+      }
+      formErrors.value = errors;
+      return Object.keys(errors).length === 0;
+    };
+
+    const handleSubmit = async () => {
+      if (!validateForm()) {
+        message.warning('Please fill in all required fields');
+        return;
+      }
+
+      loading.value = true;
+      try {
+        const data = {
+          name: form.value.name?.trim(),
+          description: form.value.description?.trim() || null,
+          is_active: form.value.is_active,
+        };
+
+        let response;
+        if (isEditing.value) {
+          response = await departmentService.updateDepartment(props.editingRecord.id, data);
+        } else {
+          response = await departmentService.createDepartment(data);
+        }
+
+        if (response.success) {
+          message.success(isEditing.value ? 'Department updated successfully' : 'Department created successfully');
+          emit('saved', response);
+          handleClose();
+        } else {
+          message.error(response.message || 'Failed to save department');
+        }
+      } catch (error) {
+        if (error.status === 422 && error.errors) {
+          Object.keys(error.errors).forEach(field => {
+            if (Array.isArray(error.errors[field]) && error.errors[field].length > 0) {
+              formErrors.value[field] = error.errors[field][0];
+            }
+          });
+          message.error('Please correct the errors and try again');
+        } else {
+          message.error(error.message || 'Failed to save department');
+        }
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const handleClose = () => {
+      resetForm();
+      emit('close');
+    };
+
+    const handleAfterClose = () => {
+      const backdrops = document.querySelectorAll('.ant-modal-mask, .ant-modal-wrap');
+      const openModals = document.querySelectorAll('.ant-modal-wrap:not([style*="display: none"])');
+      if (openModals.length === 0) {
+        backdrops.forEach(el => {
+          if (el.style.display !== 'none') {
+            el.style.display = 'none';
+          }
+        });
+      }
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+
+    return {
+      form,
+      loading,
+      formErrors,
+      isEditing,
+      modalTitle,
+      submitButtonText,
+      handleSubmit,
+      handleClose,
+      handleAfterClose,
+    };
+  }
 };
 </script>
+
+<template>
+  <a-modal
+    :open="visible"
+    :title="modalTitle"
+    :confirmLoading="loading"
+    @cancel="handleClose"
+    @afterClose="handleAfterClose"
+    :footer="null"
+    :width="550"
+    :maskClosable="false"
+    :destroyOnClose="true"
+    centered
+  >
+    <form @submit.prevent="handleSubmit">
+      <!-- Name -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="department-name">
+            Name <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-input
+            id="department-name"
+            v-model:value="form.name"
+            placeholder="Enter department name"
+            :status="formErrors.name ? 'error' : ''"
+            class="input-long"
+          />
+          <div v-if="formErrors.name" class="error-feedback">
+            {{ formErrors.name }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="department-description">
+            Description :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-textarea
+            id="department-description"
+            v-model:value="form.description"
+            placeholder="Enter description"
+            :rows="3"
+            style="width: 100%;"
+          />
+        </div>
+      </div>
+
+      <!-- Active -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label">
+            Active :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-switch v-model:checked="form.is_active" />
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a-button @click="handleClose" :disabled="loading">
+          Cancel
+        </a-button>
+        <a-button type="primary" html-type="submit" :loading="loading">
+          {{ submitButtonText }}
+        </a-button>
+      </div>
+    </form>
+  </a-modal>
+</template>
+
+<style scoped>
+:deep(.ant-modal-content) {
+  padding: 0 !important;
+}
+
+:deep(.ant-modal-header) {
+  padding: 16px 24px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  background: #fff;
+}
+
+:deep(.ant-modal-title) {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+:deep(.ant-modal-body) {
+  padding: 24px !important;
+  margin-top: 0 !important;
+}
+
+:deep(.ant-modal-close) {
+  top: 12px;
+  right: 12px;
+}
+
+.form-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.form-label-col {
+  flex: 0 0 120px;
+  min-width: 120px;
+  padding-top: 6px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.form-input-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
+  display: block;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.input-long {
+  width: 100% !important;
+  max-width: 400px;
+}
+
+.error-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  font-size: 0.875em;
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+.text-danger {
+  color: #ff4d4f;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .form-input-col {
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .input-long {
+    width: 100% !important;
+    max-width: 100%;
+  }
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+:deep(.input-long.ant-input) {
+  width: 100% !important;
+  max-width: 400px;
+}
+</style>

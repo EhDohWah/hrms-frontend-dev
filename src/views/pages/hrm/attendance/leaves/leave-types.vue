@@ -455,7 +455,7 @@ export default {
         // Methods
         const formatDate = (dateString) => {
             if (!dateString) return 'N/A';
-            return moment(dateString).format('DD MMM YYYY');
+            return moment(dateString).format('DD/MM/YYYY');
         };
 
         const updateStatistics = () => {

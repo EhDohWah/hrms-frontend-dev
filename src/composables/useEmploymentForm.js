@@ -448,7 +448,6 @@ export function useEmploymentForm(options = {}) {
       // Funding allocation data - required for create
       // Backend calculates allocated_amount
       allocations: fundingAllocations.map(allocation => ({
-        allocation_type: 'grant',
         grant_item_id: allocation.grant_item_id || allocation.grant_items_id || '',
         fte: allocation.fte // Send as percentage (0-100)
       }))

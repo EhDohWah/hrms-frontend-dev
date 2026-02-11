@@ -478,7 +478,7 @@ export default {
           // Format the interview data similar to fetchInterviews method
           const formattedInterview = {
             ...interviewData,
-            interview_date: interviewData.interview_date ? moment(interviewData.interview_date).format('DD MMM YYYY') : '',
+            interview_date: interviewData.interview_date ? moment(interviewData.interview_date).format('DD/MM/YYYY') : '',
           };
 
           // Update the interviews array with just this interview
@@ -551,7 +551,7 @@ export default {
 
           this.interviews = interviewsData.map(interview => ({
             ...interview,
-            interview_date: interview.interview_date ? moment(interview.interview_date).format('DD MMM YYYY') : '',
+            interview_date: interview.interview_date ? moment(interview.interview_date).format('DD/MM/YYYY') : '',
           }));
 
           // Update pagination properties from server response

@@ -43,6 +43,7 @@
 
 <script>
 import { notificationService } from '@/services/notification.service';
+import { formatDate } from '@/utils/date.utils';
 
 export default {
   name: 'SystemNotificationsWidget',
@@ -135,7 +136,7 @@ export default {
       // Less than 7 days
       if (diff < 604800000) return `${Math.floor(diff / 86400000)} days ago`;
       
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return formatDate(date);
     },
   },
 };

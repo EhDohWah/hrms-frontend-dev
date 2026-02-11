@@ -58,7 +58,6 @@ export function useAllocationManager(options = {}) {
    * Current allocation being added
    */
   const currentAllocation = reactive({
-    allocation_type: '',
     grant_id: '',
     grant_item_id: '',
     department_position_id: '',
@@ -71,7 +70,6 @@ export function useAllocationManager(options = {}) {
    * Data for editing an allocation
    */
   const editData = reactive({
-    allocation_type: '',
     grant_id: '',
     grant_item_id: '',
     department_position_id: '',
@@ -280,7 +278,6 @@ export function useAllocationManager(options = {}) {
       fundingAllocations.value = allocationsData.map(alloc => ({
         // Core fields
         id: alloc.id,
-        allocation_type: alloc.allocation_type || 'grant',
         grant_id: alloc.grant_id,
         grant_item_id: alloc.grant_item_id,
         fte: alloc.fte || 0,
@@ -410,8 +407,7 @@ export function useAllocationManager(options = {}) {
     editingIndex.value = index;
     Object.assign(editData, fundingAllocations.value[index]);
     
-    // Set allocation type and load grant positions
-    editData.allocation_type = 'grant';
+    // Load grant positions for the selected grant
     editGrantPositionOptions.value = grantPositions[editData.grant_id] || [];
   };
 
@@ -503,7 +499,6 @@ export function useAllocationManager(options = {}) {
    */
   const resetCurrentAllocation = () => {
     Object.assign(currentAllocation, {
-      allocation_type: '',
       grant_id: '',
       grant_item_id: '',
       department_position_id: '',
@@ -521,7 +516,6 @@ export function useAllocationManager(options = {}) {
     fundingAllocations.value = [];
     resetCurrentAllocation();
     Object.assign(editData, {
-      allocation_type: '',
       grant_id: '',
       grant_item_id: '',
       department_position_id: '',
@@ -546,7 +540,6 @@ export function useAllocationManager(options = {}) {
   const onGrantChange = (grantPositions = {}) => {
     console.log('Grant changed:', currentAllocation.grant_id);
 
-    currentAllocation.allocation_type = 'grant';
     currentAllocation.department_position_id = '';
     currentAllocation.department_id = '';
     currentAllocation.position_id = '';
@@ -579,8 +572,7 @@ export function useAllocationManager(options = {}) {
     editData.department_id = '';
     editData.position_id = '';
     editData.fte = 100;
-    editData.allocation_type = 'grant';
-    
+
     editGrantPositionOptions.value = grantPositions[editData.grant_id] || [];
   };
 
@@ -823,7 +815,6 @@ export function useAllocationManager(options = {}) {
       start_date: formatDateForAPI?.(data.start_date) || null,
       end_date: formatDateForAPI?.(data.end_date) || null,
       allocations: fundingAllocations.value.map(allocation => ({
-        allocation_type: 'grant',
         grant_item_id: allocation.grant_item_id || allocation.grant_items_id || '',
         fte: allocation.fte
       }))

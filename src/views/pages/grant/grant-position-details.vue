@@ -444,11 +444,10 @@ export default {
                         budgetLineDescription: alloc.budgetline_description || 'N/A',
                         levelOfEffort: alloc.level_of_effort ? Math.round(parseFloat(alloc.level_of_effort)) : 0,
                         rawLevelOfEffort: alloc.level_of_effort,
-                        startDate: alloc.start_date ? moment(alloc.start_date).format('DD MMM YYYY') : 'N/A',
-                        endDate: alloc.end_date ? moment(alloc.end_date).format('DD MMM YYYY') : 'N/A',
+                        startDate: alloc.start_date ? moment(alloc.start_date).format('DD/MM/YYYY') : 'N/A',
+                        endDate: alloc.end_date ? moment(alloc.end_date).format('DD/MM/YYYY') : 'N/A',
                         rawStartDate: alloc.start_date,
                         rawEndDate: alloc.end_date,
-                        allocationType: alloc.allocation_type || 'N/A',
                         allocatedAmount: alloc.allocated_amount ? parseFloat(alloc.allocated_amount).toFixed(2) : '0.00',
                         active: true // Assume active since it's returned in the response
                     }));

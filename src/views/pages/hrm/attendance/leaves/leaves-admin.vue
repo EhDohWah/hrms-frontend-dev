@@ -649,7 +649,7 @@ export default {
     };
 
     const formatDate = (date) => {
-      return dateUtils.formatDate(date, 'DD MMM YYYY');
+      return dateUtils.formatDate(date);
     };
 
     const getStatusConfig = (status) => {

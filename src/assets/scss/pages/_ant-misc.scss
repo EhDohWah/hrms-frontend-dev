@@ -184,10 +184,19 @@
 }
 
 // ==================
-// CK EDITOR
+// QUILL EDITOR
 // ==================
-.ck.ck-content.ck-editor__editable.ck-rounded-corners.ck-editor__editable_inline.ck-blurred {
-  height: 300px;
+.ql-editor {
+  min-height: 200px;
+}
+
+// Ensure Quill tooltips/pickers render above Ant Design modals (z-index 1000)
+.ql-tooltip {
+  z-index: 1060 !important;
+}
+
+.ql-picker-options {
+  z-index: 1060 !important;
 }
 
 // ==================

@@ -13,7 +13,7 @@ export const dateUtils = {
      * @param {string} format - Moment.js format string
      * @returns {string} Formatted date
      */
-    formatDate(date, format = 'DD MMM YYYY') {
+    formatDate(date, format = 'DD/MM/YYYY') {
         if (!date) return '';
         return moment(date).format(format);
     },
@@ -472,6 +472,8 @@ export const filterUtils = {
         if (filters.status) params.status = filters.status;
         if (filters.sortBy) params.sort_by = filters.sortBy;
         if (filters.sort_by) params.sort_by = filters.sort_by;
+        if (filters.sortOrder) params.sort_order = filters.sortOrder;
+        if (filters.sort_order) params.sort_order = filters.sort_order;
         if (filters.employeeId) params.employee_id = filters.employeeId;
         if (filters.employee_id) params.employee_id = filters.employee_id;
         if (filters.leaveTypeId) params.leave_type_id = filters.leaveTypeId;

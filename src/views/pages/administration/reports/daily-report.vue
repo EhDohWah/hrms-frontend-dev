@@ -31,7 +31,7 @@ export default {
 
         // Move the function declaration outside of the onMounted callback
         function booking_range(start, end) {
-        return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
+        return start.format("DD/MM/YYYY") + " - " + end.format("DD/MM/YYYY");
         }
 
         onMounted(() => {

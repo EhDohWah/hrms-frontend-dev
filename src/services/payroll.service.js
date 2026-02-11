@@ -172,6 +172,16 @@ class PayrollService {
   }
 
   /**
+   * Generate payslip PDF for a specific payroll record
+   * @param {Number} payrollId - Payroll record ID
+   * @returns {Promise<Blob>} PDF blob that opens in a new tab
+   */
+  async generatePayslip(payrollId) {
+    const endpoint = API_ENDPOINTS.PAYROLL.PAYSLIP.replace(':id', payrollId);
+    return await apiService.get(endpoint, { responseType: 'blob' });
+  }
+
+  /**
    * Get budget history for grant-centric view
    * @param {Object} params - { start_date, end_date, organization, department, page, per_page }
    * @returns {Promise} Budget history data grouped by employee and grant allocation

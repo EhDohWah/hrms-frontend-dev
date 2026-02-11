@@ -1,66 +1,63 @@
-<script>
-import "daterangepicker/daterangepicker.css";
-import "daterangepicker/daterangepicker.js";
-import { ref } from "vue";
-import { onMounted } from "vue";
-import moment from "moment";
-import DateRangePicker from "daterangepicker";
+<script setup>
+/**
+ * Resignation List Page
+ *
+ * Modernized to use:
+ * - <script setup> Composition API
+ * - Props-based modal pattern (matching employment-list, grant-list)
+ * - layout-footer component
+ * - Proper event handling between table and modal
+ */
+import { ref } from 'vue';
+import { resignationService } from '@/services/resignation.service';
+import { message } from 'ant-design-vue';
 
-export default {
-  data() {
-    return {
-      title: "Resignation",
-      text: "Performance",
-      text1: "Resignation",
-    };
-  },
-  methods: {
-    toggleHeader() {
-      document.getElementById("collapse-header").classList.toggle("active");
-      document.body.classList.toggle("header-collapse");
-    },
-  },
-  setup() {
-    const dateRangeInput = ref(null);
+// State for modal
+const resignationModalVisible = ref(false);
+const editingResignation = ref(null);
+const tableRef = ref(null);
 
-    // Move the function declaration outside of the onMounted callback
-    function booking_range(start, end) {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
+// Page data
+const title = 'Resignation';
+const text = 'Performance';
+const text1 = 'Resignation';
+
+// Modal handlers
+const openAddModal = () => {
+  editingResignation.value = null;
+  resignationModalVisible.value = true;
+};
+
+const openEditModal = async (record) => {
+  try {
+    // Fetch full resignation details for the edit form
+    const response = await resignationService.getResignationDetails(record.id);
+    if (response?.success && response.data) {
+      editingResignation.value = response.data;
+      resignationModalVisible.value = true;
+    } else {
+      message.error('Failed to load resignation details');
     }
+  } catch (error) {
+    console.error('Error loading resignation details:', error);
+    message.error('Failed to load resignation details');
+  }
+};
 
-    onMounted(() => {
-      if (dateRangeInput.value) {
-        const start = moment().subtract(6, "days");
-        const end = moment();
+const closeModal = () => {
+  resignationModalVisible.value = false;
+  editingResignation.value = null;
+};
 
-        new DateRangePicker(
-          dateRangeInput.value,
-          {
-            startDate: start,
-            endDate: end,
-            ranges: {
-              Today: [moment(), moment()],
-              Yesterday: [moment().subtract(1, "days"), moment().subtract(1, "days")],
-              "Last 7 Days": [moment().subtract(6, "days"), moment()],
-              "Last 30 Days": [moment().subtract(29, "days"), moment()],
-              "This Month": [moment().startOf("month"), moment().endOf("month")],
-              "Last Month": [
-                moment().subtract(1, "month").startOf("month"),
-                moment().subtract(1, "month").endOf("month"),
-              ],
-            },
-          },
-          booking_range
-        );
+const handleSaved = () => {
+  // Refresh the table data after create/update/acknowledge
+  tableRef.value?.fetchResignations();
+};
 
-        booking_range(start, end);
-      }
-    });
-
-    return {
-      dateRangeInput,
-    };
-  },
+// Header collapse toggle
+const toggleHeader = () => {
+  document.getElementById('collapse-header')?.classList.toggle('active');
+  document.body.classList.toggle('header-collapse');
 };
 </script>
 
@@ -81,10 +78,10 @@ export default {
             <a
               href="javascript:void(0);"
               class="btn btn-primary d-flex align-items-center"
-              data-bs-toggle="modal"
-              data-bs-target="#new_resignation"
-              ><i class="ti ti-circle-plus me-2"></i>Add Resignation</a
+              @click="openAddModal"
             >
+              <i class="ti ti-circle-plus me-2"></i>Add Resignation
+            </a>
           </div>
           <div class="head-icons ms-2">
             <a
@@ -111,71 +108,30 @@ export default {
               class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3"
             >
               <h5 class="d-flex align-items-center">Resignation List</h5>
-              <div class="d-flex align-items-center flex-wrap row-gap-3">
-                <div class="input-icon position-relative me-2">
-                  <span class="input-icon-addon">
-                    <i class="ti ti-calendar"></i>
-                  </span>
-                  <input
-                    type="text"
-                    class="form-control date-range bookingrange"
-                    ref="dateRangeInput"
-                    placeholder="dd/mm/yyyy - dd/mm/yyyy "
-                  />
-                </div>
-                <div class="dropdown">
-                  <a
-                    href="javascript:void(0);"
-                    class="dropdown-toggle btn btn-white d-inline-flex align-items-center fs-12"
-                    data-bs-toggle="dropdown"
-                  >
-                    <p class="fs-12 d-inline-flex me-1">Sort By :</p>
-                    Last 7 Days
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end p-3">
-                    <li>
-                      <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                        >Last 7 Days</a
-                      >
-                    </li>
-                    <li>
-                      <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                        >Created Date</a
-                      >
-                    </li>
-                    <li>
-                      <a href="javascript:void(0);" class="dropdown-item rounded-1"
-                        >Due Date</a
-                      >
-                    </li>
-                  </ul>
-                </div>
-              </div>
             </div>
             <div class="card-body p-0">
               <div class="custom-datatable-filter table-responsive">
-                <resignation-table></resignation-table>
+                <resignation-table
+                  ref="tableRef"
+                  @edit="openEditModal"
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
-      <!-- /Resignation List  -->
+      <!-- /Resignation List -->
     </div>
 
-    <!-- Footer -->
-    <div
-      class="footer d-sm-flex align-items-center justify-content-between bg-white border-top p-3"
-    >
-      <p class="mb-0">2014 - 2025 &copy; SmartHR.</p>
-      <p>
-        Designed &amp; Developed By
-        <a href="javascript:void(0);" class="text-primary">Dreams</a>
-      </p>
-    </div>
-    <!-- /Footer -->
+    <layout-footer></layout-footer>
   </div>
   <!-- /Page Wrapper -->
 
-  <resignation-modal></resignation-modal>
+  <!-- Resignation Modal (props-based) -->
+  <resignation-modal
+    :visible="resignationModalVisible"
+    :editing-resignation="editingResignation"
+    @saved="handleSaved"
+    @close="closeModal"
+  />
 </template>

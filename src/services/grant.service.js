@@ -208,10 +208,21 @@ class GrantService extends BaseService {
     return result;
   }
 
-  // Get grant positions
-  async getGrantPositions() {
+  // Get grant positions with optional search and pagination
+  async getGrantPositions(params = {}) {
+    const queryParams = new URLSearchParams();
+
+    // Add parameters to query string, filtering out empty values
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        queryParams.append(key, params[key]);
+      }
+    });
+
+    const queryString = queryParams.toString();
+    const endpoint = `${API_ENDPOINTS.GRANT.GRANT_POSITIONS}${queryString ? `?${queryString}` : ''}`;
     return await this.handleApiResponse(
-      () => apiService.get(API_ENDPOINTS.GRANT.GRANT_POSITIONS),
+      () => apiService.get(endpoint),
       'fetch grant positions'
     );
   }

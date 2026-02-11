@@ -1,510 +1,519 @@
-<template>
-  <!-- Bootstrap Modal -->
-  <div class="modal fade" id="employee_training_modal" tabindex="-1" aria-labelledby="employeeTrainingModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-      <div class="modal-content">
-        <!-- Bootstrap Modal Header -->
-        <div class="modal-header">
-          <h4 class="modal-title" id="employeeTrainingModalLabel">
-            {{ isEditMode ? 'Edit Employee Training' : 'Assign Employee to Training' }}
-          </h4>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-
-        <!-- Alert Message -->
-        <div v-if="alertMessage" :class="['alert', alertClass, 'mx-3', 'mt-3', 'mb-0']" role="alert">
-          {{ alertMessage }}
-        </div>
-
-        <!-- Bootstrap Form -->
-        <form @submit.prevent="handleSubmit">
-          <div class="modal-body">
-            <!-- Form Section: Assignment Information -->
-            <div class="form-section">
-              <div class="section-header">
-                <i class="ti ti-user-check"></i>
-                <h6>Training Assignment</h6>
-              </div>
-
-              <div class="row g-3">
-                <!-- Employee Selection -->
-                <div class="col-md-12">
-                  <label class="form-label required">Employee</label>
-                  <a-select v-model:value="formData.employee_id" show-search placeholder="Select employee"
-                    style="width: 100%" :class="{ 'is-invalid': errors.employee_id }"
-                    :filter-option="filterEmployeeOption" :options="employeeOptions" :disabled="isEditMode"
-                    :get-popup-container="(triggerNode) => triggerNode.parentNode" :loading="loadingEmployees">
-                    <template #notFoundContent>
-                      <div class="text-center py-3">
-                        <i class="ti ti-users-off"></i>
-                        <p class="mt-2">No employees found</p>
-                      </div>
-                    </template>
-                  </a-select>
-                  <div class="invalid-feedback d-block" v-if="errors.employee_id">
-                    {{ errors.employee_id }}
-                  </div>
-                  <small class="text-muted" v-if="isEditMode">Employee cannot be changed after creation</small>
-                </div>
-
-                <!-- Training Program Selection -->
-                <div class="col-md-12">
-                  <label class="form-label required">Training Program</label>
-                  <a-select v-model:value="formData.training_id" show-search placeholder="Select training program"
-                    style="width: 100%" :class="{ 'is-invalid': errors.training_id }"
-                    :filter-option="filterTrainingOption" :options="trainingOptions" :disabled="isEditMode"
-                    :get-popup-container="(triggerNode) => triggerNode.parentNode" :loading="loadingTrainings">
-                    <template #notFoundContent>
-                      <div class="text-center py-3">
-                        <i class="ti ti-notebook-off"></i>
-                        <p class="mt-2">No training programs found</p>
-                      </div>
-                    </template>
-                  </a-select>
-                  <div class="invalid-feedback d-block" v-if="errors.training_id">
-                    {{ errors.training_id }}
-                  </div>
-                  <small class="text-muted" v-if="isEditMode">Training program cannot be changed after creation</small>
-                </div>
-
-                <!-- Status Selection -->
-                <div class="col-md-12">
-                  <label class="form-label required">Status</label>
-                  <select v-model="formData.status" class="form-select" :class="{ 'is-invalid': errors.status }"
-                    required>
-                    <option value="">Select status</option>
-                    <option value="Pending">Pending</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
-                  </select>
-                  <div class="invalid-feedback" v-if="errors.status">
-                    {{ errors.status }}
-                  </div>
-                </div>
-
-                <!-- Training Details Display (when training is selected) -->
-                <div class="col-md-12" v-if="selectedTrainingDetails">
-                  <div class="alert alert-info mb-0">
-                    <h6 class="alert-heading">
-                      <i class="ti ti-info-circle me-2"></i>Training Details
-                    </h6>
-                    <hr>
-                    <div class="row">
-                      <div class="col-md-6">
-                        <strong>Training:</strong> {{ selectedTrainingDetails.title }}
-                      </div>
-                      <div class="col-md-6">
-                        <strong>Organizer:</strong> {{ selectedTrainingDetails.organizer }}
-                      </div>
-                      <div class="col-md-6 mt-2">
-                        <strong>Start Date:</strong> {{ formatDate(selectedTrainingDetails.start_date) }}
-                      </div>
-                      <div class="col-md-6 mt-2">
-                        <strong>End Date:</strong> {{ formatDate(selectedTrainingDetails.end_date) }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bootstrap Modal Footer -->
-          <div class="modal-footer">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal" :disabled="isSubmitting">Cancel</button>
-            <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
-              <span v-if="isSubmitting" class="spinner-border spinner-border-sm me-2"></span>
-              {{ isSubmitting ? 'Saving...' : 'Save Assignment' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script>
-import { Modal } from 'bootstrap'; // ✅ Selective import
-import { useEmployeeTrainingStore } from '@/stores/employeeTrainingStore';
+import { ref, watch, computed } from 'vue';
+import { employeeTrainingService } from '@/services/employeeTraining.service';
 import { useTrainingStore } from '@/stores/trainingStore';
 import { useSharedDataStore } from '@/stores/sharedDataStore';
-import { employeeTrainingService } from '@/services/employeeTraining.service';
 import { message } from 'ant-design-vue';
+import dayjs from 'dayjs';
 
 export default {
   name: 'EmployeeTrainingModal',
-
-  emits: ['employee-training-added', 'employee-training-updated'],
-
-  data() {
-    return {
-      employeeTrainingStore: useEmployeeTrainingStore(),
-      trainingStore: useTrainingStore(),
-      sharedDataStore: useSharedDataStore(),
-
-      modalInstance: null,
-      isEditMode: false,
-      editingEmployeeTrainingId: null,
-
-      formData: {
-        employee_id: null,
-        training_id: null,
-        status: 'Pending'
-      },
-
-      errors: {},
-      alertMessage: '',
-      alertClass: '',
-      isSubmitting: false,
-
-      loadingEmployees: false,
-      loadingTrainings: false
-    };
-  },
-
-  computed: {
-    employeeOptions() {
-      return this.sharedDataStore.employees.map(emp => ({
-        value: emp.id,
-        label: `${emp.name || 'Unknown'} (${emp.staff_id || 'N/A'})`.trim(),
-        searchText: `${emp.name || ''} ${emp.staff_id || ''}`.toLowerCase()
-      }));
+  props: {
+    visible: {
+      type: Boolean,
+      default: false
     },
-
-    trainingOptions() {
-      return this.trainingStore.trainings.map(training => ({
-        value: training.id,
-        label: `${training.title} - ${training.organizer} (${this.formatDateShort(training.start_date)})`,
-        searchText: `${training.title} ${training.organizer}`.toLowerCase(),
-        details: training
-      }));
-    },
-
-    selectedTrainingDetails() {
-      if (!this.formData.training_id) return null;
-      const training = this.trainingStore.trainings.find(t => t.id === this.formData.training_id);
-      return training || null;
+    editingRecord: {
+      type: Object,
+      default: null
     }
   },
+  emits: ['saved', 'close'],
+  setup(props, { emit }) {
+    const trainingStore = useTrainingStore();
+    const sharedDataStore = useSharedDataStore();
 
-  methods: {
-    /**
-     * Open modal in add mode
-     */
-    async openAddEmployeeTrainingModal() {
-      this.isEditMode = false;
-      this.editingEmployeeTrainingId = null;
-      this.resetForm();
-      await this.loadRequiredData();
-      this.openModal();
-    },
+    const form = ref({
+      employee_id: null,
+      training_id: null,
+      status: 'Pending',
+    });
 
-    /**
-     * Open modal in edit mode
-     */
-    async openEditEmployeeTrainingModal(employeeTraining) {
-      this.isEditMode = true;
-      this.editingEmployeeTrainingId = employeeTraining.id;
-      this.populateForm(employeeTraining);
-      await this.loadRequiredData();
-      this.openModal();
-    },
+    const loading = ref(false);
+    const formErrors = ref({});
+    const loadingEmployees = ref(false);
+    const loadingTrainings = ref(false);
 
-    /**
-     * Load required dropdown data
-     */
-    async loadRequiredData() {
+    const isEditing = computed(() => !!props.editingRecord);
+    const modalTitle = computed(() => isEditing.value ? 'Edit Employee Training' : 'Assign Employee to Training');
+    const submitButtonText = computed(() => isEditing.value ? 'Save Changes' : 'Assign Training');
+
+    const statusOptions = [
+      { value: 'Pending', label: 'Pending' },
+      { value: 'In Progress', label: 'In Progress' },
+      { value: 'Completed', label: 'Completed' },
+      { value: 'Cancelled', label: 'Cancelled' },
+    ];
+
+    const employeeOptions = computed(() => {
+      return sharedDataStore.employees.map(emp => ({
+        value: emp.id,
+        label: `${emp.name || 'Unknown'} (${emp.staff_id || 'N/A'})`.trim(),
+        searchText: `${emp.name || ''} ${emp.staff_id || ''}`.toLowerCase(),
+      }));
+    });
+
+    const trainingOptions = computed(() => {
+      return trainingStore.trainings.map(training => ({
+        value: training.id,
+        label: `${training.title} - ${training.organizer} (${training.start_date ? dayjs(training.start_date).format('DD/MM/YYYY') : 'N/A'})`,
+        searchText: `${training.title} ${training.organizer}`.toLowerCase(),
+      }));
+    });
+
+    const selectedTrainingDetails = computed(() => {
+      if (!form.value.training_id) return null;
+      return trainingStore.trainings.find(t => t.id === form.value.training_id) || null;
+    });
+
+    const filterOption = (input, option) => {
+      return option.searchText?.includes(input.toLowerCase());
+    };
+
+    const resetForm = () => {
+      form.value = {
+        employee_id: null,
+        training_id: null,
+        status: 'Pending',
+      };
+      formErrors.value = {};
+    };
+
+    const loadRequiredData = async () => {
       try {
-        // Load employees if not already loaded
-        if (!this.sharedDataStore.isEmployeesLoaded) {
-          this.loadingEmployees = true;
-          await this.sharedDataStore.fetchEmployees();
-          this.loadingEmployees = false;
+        if (!sharedDataStore.isEmployeesLoaded) {
+          loadingEmployees.value = true;
+          await sharedDataStore.fetchEmployees();
+          loadingEmployees.value = false;
         }
-
-        // Load trainings if not already loaded
-        if (this.trainingStore.trainings.length === 0) {
-          this.loadingTrainings = true;
-          await this.trainingStore.fetchTrainings({ per_page: 100 }); // Load all trainings for dropdown
-          this.loadingTrainings = false;
+        if (trainingStore.trainings.length === 0) {
+          loadingTrainings.value = true;
+          await trainingStore.fetchTrainings({ per_page: 100 });
+          loadingTrainings.value = false;
         }
       } catch (error) {
         console.error('Error loading required data:', error);
-        message.error('Failed to load required data. Please try again.');
+        message.error('Failed to load required data');
+        loadingEmployees.value = false;
+        loadingTrainings.value = false;
       }
-    },
+    };
 
-    /**
-     * Open the modal
-     */
-    openModal() {
-      this.modalInstance = new Modal(document.getElementById('employee_training_modal'));
-      this.modalInstance.show();
-    },
-
-    /**
-     * Close the modal
-     */
-    closeModal() {
-      if (this.modalInstance) {
-        this.modalInstance.hide();
+    watch(() => props.editingRecord, (newVal) => {
+      if (newVal) {
+        form.value = {
+          employee_id: newVal.employee_id,
+          training_id: newVal.training_id,
+          status: newVal.status || 'Pending',
+        };
+      } else {
+        resetForm();
       }
-    },
+    }, { immediate: true });
 
-    /**
-     * Reset form to initial state
-     */
-    resetForm() {
-      this.formData = {
-        employee_id: null,
-        training_id: null,
-        status: 'Pending'
-      };
-      this.errors = {};
-      this.alertMessage = '';
-      this.alertClass = '';
-      this.isSubmitting = false;
-    },
+    watch(() => props.visible, async (newVal) => {
+      if (newVal) {
+        if (!props.editingRecord) {
+          resetForm();
+        }
+        await loadRequiredData();
+      }
+    });
 
-    /**
-     * Populate form with employee training data for editing
-     */
-    populateForm(employeeTraining) {
-      this.formData = {
-        employee_id: employeeTraining.employee_id,
-        training_id: employeeTraining.training_id,
-        status: employeeTraining.status || 'Pending'
-      };
-      this.errors = {};
-      this.alertMessage = '';
-      this.alertClass = '';
-    },
+    const validateForm = () => {
+      const errors = {};
+      if (!form.value.employee_id) {
+        errors.employee_id = 'Employee is required';
+      }
+      if (!form.value.training_id) {
+        errors.training_id = 'Training program is required';
+      }
+      if (!form.value.status) {
+        errors.status = 'Status is required';
+      }
+      formErrors.value = errors;
+      return Object.keys(errors).length === 0;
+    };
 
-    /**
-     * Handle form submission
-     */
-    async handleSubmit() {
-      // Clear previous errors and alerts
-      this.errors = {};
-      this.alertMessage = '';
-
-      // Validate form
-      const validation = employeeTrainingService.validateEmployeeTrainingData(this.formData);
-      if (!validation.isValid) {
-        this.errors = validation.errors;
-        this.alertMessage = 'Please fix the errors below';
-        this.alertClass = 'alert-danger';
+    const handleSubmit = async () => {
+      if (!validateForm()) {
+        message.warning('Please fill in all required fields');
         return;
       }
 
-      this.isSubmitting = true;
-
+      loading.value = true;
       try {
-        if (this.isEditMode) {
-          // Update existing employee training
-          await this.employeeTrainingStore.updateEmployeeTraining(this.editingEmployeeTrainingId, this.formData);
-          this.showSuccessAndClose('Employee training updated successfully', 'employee-training-updated');
+        const data = {
+          employee_id: form.value.employee_id,
+          training_id: form.value.training_id,
+          status: form.value.status,
+        };
+
+        let response;
+        if (isEditing.value) {
+          response = await employeeTrainingService.updateEmployeeTraining(props.editingRecord.id, data);
         } else {
-          // Create new employee training
-          await this.employeeTrainingStore.createEmployeeTraining(this.formData);
-          this.showSuccessAndClose('Employee training created successfully', 'employee-training-added');
+          response = await employeeTrainingService.createEmployeeTraining(data);
+        }
+
+        if (response.success) {
+          message.success(isEditing.value ? 'Employee training updated successfully' : 'Employee training assigned successfully');
+          emit('saved', response);
+          handleClose();
+        } else {
+          message.error(response.message || 'Failed to save employee training');
         }
       } catch (error) {
-        console.error('Error saving employee training:', error);
-
-        // Handle validation errors from backend
-        if (error.response && error.response.data && error.response.data.errors) {
-          this.errors = error.response.data.errors;
-          this.alertMessage = 'Please fix the errors below';
-          this.alertClass = 'alert-danger';
+        if (error.status === 422 && error.errors) {
+          Object.keys(error.errors).forEach(field => {
+            if (Array.isArray(error.errors[field]) && error.errors[field].length > 0) {
+              formErrors.value[field] = error.errors[field][0];
+            }
+          });
+          message.error('Please correct the errors and try again');
         } else {
-          // Use Ant Design message for general errors
-          const errorMessage = error.message || 'Failed to save employee training. Please try again.';
-          message.error(errorMessage);
+          message.error(error.message || 'Failed to save employee training');
         }
-
-        this.isSubmitting = false;
+      } finally {
+        loading.value = false;
       }
-    },
+    };
 
-    /**
-     * Show success message and close modal
-     */
-    showSuccessAndClose(successMessage, emitEvent) {
-      // Use Ant Design message notification
-      message.success(successMessage);
+    const handleClose = () => {
+      resetForm();
+      emit('close');
+    };
 
-      // Close modal and emit event
-      this.closeModal();
-      this.$emit(emitEvent);
-      this.resetForm();
-    },
+    const handleAfterClose = () => {
+      const backdrops = document.querySelectorAll('.ant-modal-mask, .ant-modal-wrap');
+      const openModals = document.querySelectorAll('.ant-modal-wrap:not([style*="display: none"])');
+      if (openModals.length === 0) {
+        backdrops.forEach(el => {
+          if (el.style.display !== 'none') {
+            el.style.display = 'none';
+          }
+        });
+      }
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
 
-    /**
-     * Filter employee options for search
-     */
-    filterEmployeeOption(input, option) {
-      return option.searchText.includes(input.toLowerCase());
-    },
-
-    /**
-     * Filter training options for search
-     */
-    filterTrainingOption(input, option) {
-      return option.searchText.includes(input.toLowerCase());
-    },
-
-    /**
-     * Format date for display
-     */
-    formatDate(date) {
+    const formatDate = (date) => {
       if (!date) return 'N/A';
-      return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-    },
+      return dayjs(date).format('DD/MM/YYYY');
+    };
 
-    /**
-     * Format date short version
-     */
-    formatDateShort(date) {
-      if (!date) return 'N/A';
-      return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    }
-  },
-
-  /**
-   * Cleanup on component unmount
-   */
-  beforeUnmount() {
-    if (this.modalInstance) {
-      this.modalInstance.dispose();
-    }
+    return {
+      form,
+      loading,
+      formErrors,
+      isEditing,
+      modalTitle,
+      submitButtonText,
+      statusOptions,
+      employeeOptions,
+      trainingOptions,
+      selectedTrainingDetails,
+      loadingEmployees,
+      loadingTrainings,
+      filterOption,
+      handleSubmit,
+      handleClose,
+      handleAfterClose,
+      formatDate,
+    };
   }
 };
 </script>
 
+<template>
+  <a-modal
+    :open="visible"
+    :title="modalTitle"
+    :confirmLoading="loading"
+    @cancel="handleClose"
+    @afterClose="handleAfterClose"
+    :footer="null"
+    :width="650"
+    :maskClosable="false"
+    :destroyOnClose="true"
+    centered
+  >
+    <form @submit.prevent="handleSubmit">
+      <!-- Employee -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="et-employee">
+            Employee <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-select
+            id="et-employee"
+            v-model:value="form.employee_id"
+            show-search
+            placeholder="Select employee"
+            :filter-option="filterOption"
+            :options="employeeOptions"
+            :disabled="isEditing"
+            :loading="loadingEmployees"
+            :status="formErrors.employee_id ? 'error' : ''"
+            class="input-long"
+          >
+            <template #notFoundContent>
+              <div class="text-center py-3">
+                <i class="ti ti-users-off"></i>
+                <p class="mt-2 mb-0">No employees found</p>
+              </div>
+            </template>
+          </a-select>
+          <div v-if="formErrors.employee_id" class="error-feedback">
+            {{ formErrors.employee_id }}
+          </div>
+          <div v-if="isEditing" class="hint-text">Employee cannot be changed after creation</div>
+        </div>
+      </div>
+
+      <!-- Training Program -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="et-training">
+            Training <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-select
+            id="et-training"
+            v-model:value="form.training_id"
+            show-search
+            placeholder="Select training program"
+            :filter-option="filterOption"
+            :options="trainingOptions"
+            :disabled="isEditing"
+            :loading="loadingTrainings"
+            :status="formErrors.training_id ? 'error' : ''"
+            class="input-long"
+          >
+            <template #notFoundContent>
+              <div class="text-center py-3">
+                <i class="ti ti-notebook-off"></i>
+                <p class="mt-2 mb-0">No training programs found</p>
+              </div>
+            </template>
+          </a-select>
+          <div v-if="formErrors.training_id" class="error-feedback">
+            {{ formErrors.training_id }}
+          </div>
+          <div v-if="isEditing" class="hint-text">Training program cannot be changed after creation</div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="form-row mb-3">
+        <div class="form-label-col">
+          <label class="form-label" for="et-status">
+            Status <span class="text-danger">*</span> :
+          </label>
+        </div>
+        <div class="form-input-col">
+          <a-select
+            id="et-status"
+            v-model:value="form.status"
+            :options="statusOptions"
+            :status="formErrors.status ? 'error' : ''"
+            style="width: 200px;"
+          />
+          <div v-if="formErrors.status" class="error-feedback">
+            {{ formErrors.status }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Training Details Panel -->
+      <div v-if="selectedTrainingDetails" class="training-details-panel mb-3">
+        <div class="panel-header">
+          <i class="ti ti-info-circle me-2"></i>Training Details
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <strong>Training:</strong> {{ selectedTrainingDetails.title }}
+            </div>
+            <div class="col-md-6 mb-2">
+              <strong>Organizer:</strong> {{ selectedTrainingDetails.organizer }}
+            </div>
+            <div class="col-md-6">
+              <strong>Start Date:</strong> {{ formatDate(selectedTrainingDetails.start_date) }}
+            </div>
+            <div class="col-md-6">
+              <strong>End Date:</strong> {{ formatDate(selectedTrainingDetails.end_date) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="d-flex justify-content-end gap-2 mt-4">
+        <a-button @click="handleClose" :disabled="loading">
+          Cancel
+        </a-button>
+        <a-button type="primary" html-type="submit" :loading="loading">
+          {{ submitButtonText }}
+        </a-button>
+      </div>
+    </form>
+  </a-modal>
+</template>
+
 <style scoped>
-/* Modal Styling */
-.modal-content {
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+:deep(.ant-modal-content) {
+  padding: 0 !important;
 }
 
-.modal-header {
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
-  padding: 15px 20px;
+:deep(.ant-modal-header) {
+  padding: 16px 24px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #e5e5e5 !important;
+  background: #fff;
 }
 
-.modal-title {
+:deep(.ant-modal-title) {
+  font-size: 18px;
   font-weight: 600;
-  color: #011b44;
+  color: #1a1a2e;
 }
 
-/* Form Section Styling */
-.form-section {
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e9ecef;
+:deep(.ant-modal-body) {
+  padding: 24px !important;
+  margin-top: 0 !important;
 }
 
-.form-section:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+:deep(.ant-modal-close) {
+  top: 12px;
+  right: 12px;
 }
 
-.section-header {
+.form-row {
   display: flex;
-  align-items: center;
-  margin-bottom: 16px;
-  color: #495057;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.section-header i {
-  font-size: 20px;
-  margin-right: 8px;
-  color: var(--bs-primary);
+.form-label-col {
+  flex: 0 0 120px;
+  min-width: 120px;
+  padding-top: 6px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
 }
 
-.section-header h6 {
-  margin: 0;
-  font-weight: 600;
+.form-input-col {
+  flex: 1;
+  min-width: 0;
 }
 
-/* Required Field Indicator */
-.form-label.required::after {
-  content: ' *';
-  color: #dc3545;
-}
-
-/* Form Control Styling */
-.form-control:focus,
-.form-select:focus {
-  border-color: var(--bs-primary);
-  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
-}
-
-.form-control.is-invalid,
-.form-select.is-invalid {
-  border-color: #dc3545;
-}
-
-/* Ant Design Select Styling */
-:deep(.ant-select) {
-  font-size: 14px;
-}
-
-:deep(.ant-select-selector) {
-  border-radius: 6px !important;
-  min-height: 38px !important;
-  padding: 4px 11px !important;
-}
-
-:deep(.ant-select-focused .ant-select-selector) {
-  border-color: var(--bs-primary) !important;
-  box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25) !important;
-}
-
-:deep(.is-invalid .ant-select-selector) {
-  border-color: #dc3545 !important;
-}
-
-/* Ant Design Dropdown */
-:deep(.ant-select-dropdown) {
-  z-index: 1060 !important;
-  /* Higher than modal */
-  border-radius: 6px;
-}
-
-/* Alert Styling */
-.alert {
-  border-radius: 6px;
-}
-
-.alert-info {
-  background-color: #e7f3ff;
-  border-color: #b3d9ff;
-  color: #004085;
-}
-
-.alert-info .alert-heading {
-  color: #004085;
-  font-size: 1rem;
-  margin-bottom: 10px;
-}
-
-/* Button Styling */
-.btn-primary:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-/* Small Text */
-small.text-muted {
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0;
   display: block;
+  text-align: right;
+  color: #262626;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.input-long {
+  width: 100% !important;
+  max-width: 400px;
+}
+
+.error-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  font-size: 0.875em;
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+.hint-text {
   margin-top: 4px;
-  font-size: 0.875rem;
+  font-size: 0.875em;
+  color: #8c8c8c;
+}
+
+.text-danger {
+  color: #ff4d4f;
+}
+
+.training-details-panel {
+  margin-left: 136px;
+  border: 1px solid #b3d9ff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.training-details-panel .panel-header {
+  background-color: #e7f3ff;
+  color: #004085;
+  padding: 8px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid #b3d9ff;
+}
+
+.training-details-panel .panel-body {
+  background-color: #f0f7ff;
+  padding: 12px;
+  font-size: 13px;
+  color: #004085;
+}
+
+@media (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-label-col {
+    flex: 1;
+    min-width: 100%;
+    padding-top: 0;
+    justify-content: flex-start;
+  }
+
+  .form-label {
+    text-align: left;
+  }
+
+  .form-input-col {
+    flex: 1;
+    min-width: 100%;
+  }
+
+  .input-long {
+    width: 100% !important;
+    max-width: 100%;
+  }
+
+  .training-details-panel {
+    margin-left: 0;
+  }
+
+  :deep(.ant-picker),
+  :deep(.ant-select) {
+    width: 100% !important;
+  }
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}
+
+:deep(.input-long.ant-select) {
+  width: 100% !important;
+  max-width: 400px;
 }
 </style>

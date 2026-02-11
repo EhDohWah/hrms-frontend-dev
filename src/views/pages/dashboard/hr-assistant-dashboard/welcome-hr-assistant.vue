@@ -279,7 +279,7 @@ export default {
         });
 
         const formatDate = (dateString) => {
-            return moment(dateString).format('DD MMM YYYY');
+            return moment(dateString).format('DD/MM/YYYY');
         };
 
         return {

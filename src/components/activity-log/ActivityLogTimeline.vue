@@ -148,6 +148,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { formatDateTime } from '@/utils/date.utils';
 import { useActivityLogStore } from '@/stores/activityLogStore';
 import { activityLogService } from '@/services/activityLog.service';
 
@@ -281,7 +282,7 @@ const formatRelativeTime = (dateString) => {
 
 const formatFullDate = (dateString) => {
   if (!dateString) return '';
-  return new Date(dateString).toLocaleString();
+  return formatDateTime(dateString);
 };
 
 const getShortSubjectType = (subjectType) => {

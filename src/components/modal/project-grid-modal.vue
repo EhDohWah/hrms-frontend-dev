@@ -157,11 +157,12 @@
                   <div class="col-md-12">
                     <div class="mb-0">
                       <label class="form-label">Description</label>
-                      <ckeditor
-                        :editor="editor"
-                        v-model="editorData"
-                        :config="editorConfig"
-                      ></ckeditor>
+                      <QuillEditor
+                        v-model:content="editorData"
+                        contentType="html"
+                        theme="snow"
+                        :toolbar="defaultToolbar"
+                      />
                     </div>
                   </div>
                 </div>
@@ -435,11 +436,12 @@
                   <div class="col-md-12">
                     <div class="mb-0">
                       <label class="form-label">Description</label>
-                      <ckeditor
-                        :editor="editor"
-                        v-model="editorData"
-                        :config="editorConfig"
-                      ></ckeditor>
+                      <QuillEditor
+                        v-model:content="editorData"
+                        contentType="html"
+                        theme="snow"
+                        :toolbar="defaultToolbar"
+                      />
                     </div>
                   </div>
                 </div>
@@ -623,7 +625,8 @@ const currentDate = ref(new Date());
 const currentDateOne = ref(new Date());
 const currentDateTwo = ref(new Date());
 const currentDateThree = ref(new Date());
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { QuillEditor } from '@vueup/vue-quill';
+import { defaultToolbar } from '@/config/quill.config';
 export default {
   setup() {
     const { filterOption, getModalPopupContainer } = useSelectMigration();
@@ -631,12 +634,12 @@ export default {
   },
   components: {
     Vue3TagsInput,
+    QuillEditor,
   },
   data() {
     return {
-      editor: ClassicEditor,
-      editorData: " ",
-      editorConfig: {},
+      editorData: "",
+      defaultToolbar,
       startdate: currentDate,
       startdateOne: currentDateOne,
       startdateTwo: currentDateTwo,

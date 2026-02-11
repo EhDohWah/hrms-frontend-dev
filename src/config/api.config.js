@@ -177,6 +177,16 @@ export const API_ENDPOINTS = {
         DETAILS: '/employments/:id',
     },
 
+    // Letter Template endpoints
+    LETTER_TEMPLATE: {
+        LIST: '/letter-templates',
+        CREATE: '/letter-templates',
+        UPDATE: '/letter-templates/:id',
+        DELETE: '/letter-templates/:id',
+        DETAILS: '/letter-templates/:id',
+        GENERATE_PDF: '/letter-templates/:id/generate-pdf',
+    },
+
     // Holiday endpoints
     HOLIDAY: {
         LIST: '/holidays',
@@ -404,7 +414,8 @@ export const API_ENDPOINTS = {
         BULK_PREVIEW: '/payrolls/bulk/preview',
         BULK_CREATE_NEW: '/payrolls/bulk/create',
         BULK_STATUS: '/payrolls/bulk/status/:batchId',
-        BULK_ERRORS: '/payrolls/bulk/errors/:batchId'
+        BULK_ERRORS: '/payrolls/bulk/errors/:batchId',
+        PAYSLIP: '/payrolls/:id/payslip'
     },
 
     // Employee grant allocation endpoints
@@ -520,14 +531,14 @@ export const API_ENDPOINTS = {
     RECYCLE_BIN: {
         LIST: '/recycle-bin',
         STATS: '/recycle-bin/stats',
-        // Manifest-based operations (Employee, Grant, Department with cascading children)
-        RESTORE_BY_KEY: '/recycle-bin/restore/:deletionKey',
-        BULK_RESTORE_KEYS: '/recycle-bin/bulk-restore-keys',
-        PERMANENT_DELETE_BY_KEY: '/recycle-bin/permanent/:deletionKey',
-        // Legacy operations (Interview, JobOffer flat records)
+        // Soft-delete operations (Employee, Grant, Department)
+        RESTORE: '/recycle-bin/restore',
+        BULK_RESTORE: '/recycle-bin/bulk-restore',
+        PERMANENT_DELETE: '/recycle-bin/permanent',
+        // Legacy operations (Interview, JobOffer flat records via deleted_models)
         RESTORE_LEGACY: '/recycle-bin/restore-legacy',
         BULK_RESTORE_LEGACY: '/recycle-bin/bulk-restore-legacy',
-        PERMANENT_DELETE_LEGACY: '/recycle-bin/:deletedRecordId'
+        PERMANENT_DELETE_LEGACY: '/recycle-bin/legacy/:deletedRecordId'
     },
 
     // Tax Settings endpoints
@@ -625,6 +636,16 @@ export const API_ENDPOINTS = {
         BY_CATEGORY: '/admin/modules/by-category',
         PERMISSIONS: '/admin/modules/permissions',
         DETAILS: '/admin/modules/:id'
+    },
+
+    // Attendance endpoints (daily check-in/check-out)
+    ATTENDANCE: {
+        LIST: '/attendances',
+        CREATE: '/attendances',
+        UPDATE: '/attendances/:id',
+        DELETE: '/attendances/:id',
+        DETAILS: '/attendances/:id',
+        OPTIONS: '/attendances/options',
     }
 
 };

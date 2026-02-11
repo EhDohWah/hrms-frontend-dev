@@ -311,7 +311,7 @@ export default {
           displayName: role.display_name || this.getDisplayName(role.name),
           isProtected: role.is_protected || ['admin', 'hr-manager'].includes(role.name),
           created_at: role.created_at,
-          CreatedDate: moment(role.created_at).format('DD MMM YYYY')
+          CreatedDate: moment(role.created_at).format('DD/MM/YYYY')
         }));
         
       } catch (error) {

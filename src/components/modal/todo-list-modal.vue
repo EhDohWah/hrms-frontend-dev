@@ -38,11 +38,12 @@
               <div class="col-lg-12">
                 <div class="mb-3 summer-description-box notes-summernote">
                   <label class="form-label">Descriptions</label>
-                  <ckeditor
-                    :editor="editor"
-                    v-model="editorData"
-                    :config="editorConfig"
-                  ></ckeditor>
+                  <QuillEditor
+                    v-model:content="editorData"
+                    contentType="html"
+                    theme="snow"
+                    :toolbar="defaultToolbar"
+                  />
                 </div>
               </div>
               <div class="col-12">
@@ -118,11 +119,12 @@
               <div class="col-lg-12">
                 <div class="mb-3 summer-description-box notes-summernote">
                   <label class="form-label">Descriptions</label>
-                  <ckeditor
-                    :editor="editor"
-                    v-model="editorData"
-                    :config="editorConfig"
-                  ></ckeditor>
+                  <QuillEditor
+                    v-model:content="editorData"
+                    contentType="html"
+                    theme="snow"
+                    :toolbar="defaultToolbar"
+                  />
                 </div>
               </div>
               <div class="col-12">
@@ -281,17 +283,20 @@
 <script>
 import { useSelectMigration } from '@/composables/useSelectMigration';
 
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { QuillEditor } from '@vueup/vue-quill';
+import { defaultToolbar } from '@/config/quill.config';
 export default {
   setup() {
     const { filterOption, getModalPopupContainer } = useSelectMigration();
     return { filterOption, getModalPopupContainer };
   },
+  components: {
+    QuillEditor,
+  },
   data() {
     return {
-      editor: ClassicEditor,
-      editorData: " ",
-      editorConfig: {},
+      editorData: "",
+      defaultToolbar,
       HoldTodo: ["Select", "Completed", "Pending", "Onhold", "Inprogress"],
       Sophtodo: ["Select", "Sophie", "Cameron", "Doris", "Rufana"],
       ProTodo: ["Select", "Medium", "High", "Low"],

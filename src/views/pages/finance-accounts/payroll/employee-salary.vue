@@ -65,6 +65,19 @@
             </div>
           </div>
           <div class="d-flex align-items-center flex-wrap row-gap-2">
+            <!-- Search Input -->
+            <div class="me-3">
+              <a-input-search
+                v-model:value="searchQuery"
+                placeholder="Search by Staff ID or Name"
+                style="min-width: 220px"
+                allow-clear
+                class="search-input-primary"
+                :loading="searchLoading"
+                @search="handleSearch"
+                @pressEnter="handleSearch"
+              />
+            </div>
 
             <!-- Filters Section -->
             <div class="filters-wrapper">
@@ -196,9 +209,9 @@
           <!-- STANDARD VIEW TABLE -->
           <div v-else-if="viewMode === 'standard'" class="resize-observer-fix">
             <a-table
-              v-if="tableData && tableData.length > 0"
+              v-if="employeeSalaryData && employeeSalaryData.length > 0"
               :columns="columns"
-              :data-source="tableData"
+              :data-source="employeeSalaryData"
               :row-key="record => record.employment_id"
               :pagination="false"
               :scroll="{ x: 'max-content' }"
@@ -323,10 +336,13 @@
                           <a href="javascript:void(0);" class="inner-action-btn view" title="View">
                             <i class="ti ti-eye"></i>
                           </a>
+                          <a href="javascript:void(0);" class="inner-action-btn payslip" title="Generate Payslip" @click="generatePayslip(innerRecord)">
+                            <i class="ti ti-file-type-pdf"></i>
+                          </a>
                           <a v-if="canEdit" href="javascript:void(0);" class="inner-action-btn edit" title="Edit">
                             <i class="ti ti-edit"></i>
                           </a>
-                          <a v-if="canEdit" href="javascript:void(0);" class="inner-action-btn delete" title="Delete">
+                          <a v-if="canEdit" href="javascript:void(0);" class="inner-action-btn delete" title="Delete" @click="confirmDeletePayroll(innerRecord.id)">
                             <i class="ti ti-trash"></i>
                           </a>
                         </div>
@@ -470,7 +486,8 @@
                       class="text-danger"
                       data-bs-toggle="tooltip"
                       data-bs-placement="top"
-                      title="Delete"
+                      title="Delete All Payrolls"
+                      @click="confirmDeleteEmploymentPayrolls(record)"
                     >
                       <i class="ti ti-trash"></i>
                     </a>
@@ -498,7 +515,7 @@
             </div>
 
             <!-- SEPARATE PAGINATION COMPONENT -->
-            <div v-if="tableData && tableData.length > 0" class="pagination-wrapper">
+            <div v-if="employeeSalaryData && employeeSalaryData.length > 0" class="pagination-wrapper">
               <div class="d-flex justify-content-between align-items-center">
                 <div class="pagination-info">
                   <!-- Optional: Additional info can go here -->
@@ -664,12 +681,14 @@
 </template>
 <script>
 import { ref, reactive, computed, onMounted, nextTick } from "vue";
+import { Modal } from 'ant-design-vue';
 import { payrollService } from '@/services/payroll.service';
 import { useLookupStore } from "@/stores/lookupStore";
 import { useSharedDataStore } from "@/stores/sharedDataStore";
 import { usePermissions } from '@/composables/usePermissions';
 import dayjs from 'dayjs';
 import * as bootstrap from 'bootstrap';
+import moment from 'moment';
 
 // Helper function to parse currency strings for sorting
 const parseCurrency = (value) => {
@@ -702,7 +721,9 @@ export default {
 
       // Reactive state
       payrolls: [],
+      employeeSalaryData: [],
       loading: false,
+      searchLoading: false,
       error: null,
 
       // Search and filters
@@ -767,6 +788,8 @@ export default {
 
     // Outer table columns - Employee and Employment information
     columns() {
+      const sorted = this.sortedInfo || {};
+
       return [
         {
           title: 'Organization',
@@ -774,70 +797,72 @@ export default {
           key: 'organization',
           width: 100,
           fixed: 'left',
-          sorter: false,
+          sorter: true,
+          sortOrder: sorted.columnKey === 'organization' && sorted.order,
         },
         {
           title: 'Initial',
           dataIndex: 'initial',
           key: 'initial',
           width: 80,
-          sorter: false,
         },
         {
           title: 'Name',
           dataIndex: 'short_name',
           key: 'short_name',
           width: 150,
-          sorter: false,
+          sorter: true,
+          sortOrder: sorted.columnKey === 'short_name' && sorted.order,
         },
         {
           title: 'Full Name',
           dataIndex: 'full_name',
           key: 'full_name',
           width: 200,
-          sorter: false,
+          sorter: true,
+          sortOrder: sorted.columnKey === 'full_name' && sorted.order,
         },
         {
           title: 'Pay Method',
           dataIndex: 'pay_method',
           key: 'pay_method',
           width: 120,
-          sorter: false,
         },
         {
           title: 'PVD/SVF',
           dataIndex: 'pvd_svf',
           key: 'pvd_svf',
           width: 100,
-          sorter: false,
         },
         {
           title: 'Status',
           dataIndex: 'employee_status',
           key: 'employee_status',
           width: 120,
-          sorter: false,
+          sorter: true,
+          sortOrder: sorted.columnKey === 'employee_status' && sorted.order,
         },
         {
           title: 'Total Gross',
           dataIndex: 'total_gross_salary',
           key: 'total_gross_salary',
           width: 130,
-          sorter: false,
+          sorter: true,
+          sortOrder: sorted.columnKey === 'total_gross_salary' && sorted.order,
         },
         {
           title: 'Total Net',
           dataIndex: 'total_net_salary',
           key: 'total_net_salary',
           width: 130,
-          sorter: false,
+          sorter: true,
+          sortOrder: sorted.columnKey === 'total_net_salary' && sorted.order,
         },
         {
           title: 'Allocations',
           dataIndex: 'funding_count',
           key: 'funding_count',
           width: 110,
-          sorter: false,
         },
         {
           title: 'Actions',
@@ -1015,105 +1040,6 @@ export default {
       ];
     },
 
-    // Map API data to table format - Group by employment
-    tableData() {
-      // Group payrolls by employment_id
-      const groupedByEmployment = {};
-
-      this.payrolls.forEach(payroll => {
-        const employmentId = payroll.employment_id;
-        const employee = payroll.employment?.employee;
-        const employment = payroll.employment;
-
-        if (!groupedByEmployment[employmentId]) {
-          // Get PVD/SVF status
-          const hasPvd = employment?.pvd === true || employment?.pvd === 1;
-          const hasSvf = employment?.saving_fund === true || employment?.saving_fund === 1;
-          let pvdSvfStatus = '-';
-          if (hasPvd && hasSvf) {
-            pvdSvfStatus = 'PVD/SVF';
-          } else if (hasPvd) {
-            pvdSvfStatus = 'PVD';
-          } else if (hasSvf) {
-            pvdSvfStatus = 'SVF';
-          }
-
-          // Create new employment group
-          groupedByEmployment[employmentId] = {
-            employment_id: employmentId,
-            organization: employee?.organization || 'N/A',
-            staff_id: employee?.staff_id || 'N/A',
-            initial: employee?.initial_en || this.getInitials(this.getEmployeeName(payroll)),
-            short_name: employee?.first_name_en || 'N/A',
-            full_name: this.getEmployeeName(payroll),
-            employeeName: this.getEmployeeName(payroll),
-            department: employment?.department?.name || 'N/A',
-            position: employment?.position?.title || 'N/A',
-            pay_method: employment?.pay_method || 'N/A',
-            pvd_svf: pvdSvfStatus,
-            employee_status: employee?.status || 'N/A',
-            start_date: employment?.start_date || null,
-            Image: this.getEmployeeImage(payroll),
-            payrolls: [], // Array to hold payroll records for this employment
-            total_gross_salary: 0,
-            total_net_salary: 0,
-            funding_count: 0,
-          };
-        }
-
-        // Get grant name from funding allocation
-        const fundingAllocation = payroll.employee_funding_allocation;
-        const grantName = fundingAllocation?.grant_item?.grant?.name || 
-                         fundingAllocation?.grant_item?.grant?.code ||
-                         this.getFundingSourcesLabel(fundingAllocation?.allocation_type);
-
-        // Add payroll to this employment's payroll array with all fields
-        groupedByEmployment[employmentId].payrolls.push({
-          id: payroll.id,
-          pay_period_date: payroll.pay_period_date,
-          grant_name: grantName,
-          allocation_type: this.getFundingSourcesLabel(fundingAllocation?.allocation_type),
-          fte: fundingAllocation?.fte || 'N/A',
-          // Salary fields
-          gross_salary: payroll.gross_salary,
-          gross_salary_by_FTE: payroll.gross_salary_by_FTE,
-          compensation_refund: payroll.compensation_refund,
-          thirteen_month_salary: payroll.thirteen_month_salary,
-          thirteen_month_salary_accured: payroll.thirteen_month_salary_accured,
-          // Benefits
-          pvd: payroll.pvd,
-          saving_fund: payroll.saving_fund,
-          // Social security
-          employer_social_security: payroll.employer_social_security,
-          employee_social_security: payroll.employee_social_security,
-          // Health welfare
-          employer_health_welfare: payroll.employer_health_welfare,
-          employee_health_welfare: payroll.employee_health_welfare,
-          // Tax and bonus
-          tax: payroll.tax,
-          salary_bonus: payroll.salary_bonus,
-          notes: payroll.notes,
-          // Totals
-          total_salary: payroll.total_salary,
-          total_pvd: payroll.total_pvd,
-          total_saving_fund: payroll.total_saving_fund,
-          total_income: payroll.total_income,
-          employer_contribution: payroll.employer_contribution,
-          total_deduction: payroll.total_deduction,
-          net_salary: payroll.net_salary,
-        });
-
-        // Calculate totals
-        groupedByEmployment[employmentId].total_gross_salary += parseFloat(payroll.gross_salary) || 0;
-        groupedByEmployment[employmentId].total_net_salary += parseFloat(payroll.net_salary) || 0;
-        groupedByEmployment[employmentId].funding_count = groupedByEmployment[employmentId].payrolls.length;
-      });
-
-      // Convert grouped object to array
-      return Object.values(groupedByEmployment);
-    },
-
-
     // Current sort label
     currentSortLabel() {
       const option = this.sortOptions.find(opt => opt.key === this.selectedSortBy);
@@ -1162,15 +1088,18 @@ export default {
       await this.$nextTick();
       this.initializeTooltips();
 
-      // Load lookup and department data (will skip departments if no permission)
-      await this.initializeFilterData();
-
-      // Fetch initial data
-      await this.fetchPayrolls();
+      // Load filter data and payrolls in parallel (not sequentially)
+      await Promise.all([
+        this.initializeFilterData().catch(err => {
+          // Don't block the page if filter data fails
+          if (err.status !== 403) {
+            console.error('[EmployeeSalary] Filter data error:', err);
+          }
+        }),
+        this.fetchPayrolls(),
+      ]);
     } catch (error) {
       console.error('[EmployeeSalary] Error during component mount:', error);
-      // Don't block the page from loading if filter data fails
-      // The page can still function without department/organization filters
       if (error.status !== 403) {
         this.error = error.message || 'An error occurred while initializing the page';
       }
@@ -1178,16 +1107,87 @@ export default {
   },
 
   methods: {
+    // =================== DELETE ===================
+
+    // Confirm delete a single payroll record
+    confirmDeletePayroll(payrollId) {
+      Modal.confirm({
+        title: 'Are you sure you want to delete this payroll record?',
+        content: 'The record will be moved to the recycle bin and can be restored within 90 days.',
+        centered: true,
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
+        onOk: () => {
+          this.deletePayroll(payrollId);
+        },
+      });
+    },
+
+    // Delete a single payroll record
+    async deletePayroll(payrollId) {
+      try {
+        const response = await payrollService.deletePayroll(payrollId);
+        this.$message.success(response.data?.message || 'Payroll moved to recycle bin');
+        // Refresh the list
+        const params = this.buildApiParams();
+        await this.fetchPayrolls(params);
+      } catch (error) {
+        console.error('Error deleting payroll:', error);
+        const message = error.response?.data?.message || error.message || 'Failed to delete payroll';
+        this.$message.error(message);
+      }
+    },
+
+    // Confirm delete all payrolls for an employment row
+    confirmDeleteEmploymentPayrolls(record) {
+      const count = record.payrolls?.length || 0;
+      Modal.confirm({
+        title: `Delete all ${count} payroll record(s) for ${record.employeeName}?`,
+        content: 'All payroll records will be moved to the recycle bin and can be restored within 90 days.',
+        centered: true,
+        okText: 'Yes, Delete All',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        onOk: async () => {
+          try {
+            const payrollIds = record.payrolls.map(p => p.id);
+            // Delete each payroll record
+            await Promise.all(payrollIds.map(id => payrollService.deletePayroll(id)));
+            this.$message.success(`${count} payroll record(s) moved to recycle bin`);
+            // Refresh the list
+            const params = this.buildApiParams();
+            await this.fetchPayrolls(params);
+          } catch (error) {
+            console.error('Error deleting payrolls:', error);
+            this.$message.error('Failed to delete some payroll records');
+          }
+        },
+      });
+    },
+
+    // =================== PAYSLIP ===================
+
+    async generatePayslip(payrollRecord) {
+      try {
+        const blob = await payrollService.generatePayslip(payrollRecord.id);
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      } catch (error) {
+        console.error('Error generating payslip:', error);
+        this.$message?.error?.('Failed to generate payslip. Please try again.') ||
+          alert('Failed to generate payslip. Please try again.');
+      }
+    },
+
     // =================== API METHODS ===================
 
-    // Build API parameters from current state
-    buildApiParams() {
-      // Ensure 1-based pagination and valid sizes
-      const current = Number(this.currentPage) || 1;
-      const perPage = Number(this.pageSize) || 10;
+    // Build API parameters from current state (matching grants/employees pattern)
+    buildApiParams(overrides = {}) {
       const params = {
-        page: current < 1 ? 1 : current,
-        per_page: perPage < 1 ? 10 : perPage,
+        page: this.currentPage || 1,
+        per_page: this.pageSize || 10,
+        ...overrides,
       };
 
       // Add search parameter
@@ -1211,8 +1211,12 @@ export default {
         params.filter_date_range = `${startDate},${endDate}`;
       }
 
-      // Add sorting parameters
-      if (this.selectedSortBy) {
+      // Add sorting from table column headers (sortedInfo)
+      if (this.sortedInfo?.columnKey && this.sortedInfo?.order) {
+        params.sort_by = this.mapSortField(this.sortedInfo.columnKey);
+        params.sort_order = this.sortedInfo.order === 'ascend' ? 'asc' : 'desc';
+      } else if (this.selectedSortBy) {
+        // Fallback to dropdown sort
         params.sort_by = this.selectedSortBy;
         params.sort_order = this.selectedSortOrder;
       }
@@ -1220,17 +1224,33 @@ export default {
       return params;
     },
 
+    // Map frontend column keys to backend sort fields
+    mapSortField(field) {
+      const fieldMapping = {
+        'organization': 'organization',
+        'short_name': 'employee_name',
+        'full_name': 'employee_name',
+        'employee_status': 'status',
+        'total_gross_salary': 'gross_salary',
+        'total_net_salary': 'net_salary',
+      };
+      return fieldMapping[field] || field;
+    },
+
     // Fetch payrolls from API
-    async fetchPayrolls() {
+    async fetchPayrolls(params = {}) {
       this.loading = true;
       this.error = null;
 
       try {
-        const params = this.buildApiParams();
-        const response = await payrollService.getPayrolls(params);
+        const queryParams = this.buildApiParams(params);
+        const response = await payrollService.getPayrolls(queryParams);
 
         if (response.success) {
           this.payrolls = response.data || [];
+
+          // Transform data once (not on every render like a computed)
+          this.employeeSalaryData = this.transformPayrollData(this.payrolls);
 
           // Update pagination info from API response
           if (response.pagination) {
@@ -1238,7 +1258,6 @@ export default {
             this.pageSize = response.pagination.per_page || 10;
             this.total = response.pagination.total || 0;
           } else {
-            // Default pagination if not provided
             this.total = this.payrolls.length;
           }
 
@@ -1251,67 +1270,120 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching payrolls:', error);
-        // Only show error if it's not a 404 or empty result
         if (error.response?.status !== 404 && error.response?.status !== 200) {
           this.error = error.message || 'An error occurred while fetching payrolls';
         }
         this.payrolls = [];
+        this.employeeSalaryData = [];
         this.total = 0;
       } finally {
         this.loading = false;
-        // Wait for DOM to stabilize before allowing ResizeObserver
         await this.$nextTick();
       }
     },
 
-    // Search payrolls by staff ID
-    async handleStaffIdSearch(staffId) {
-      this.loading = true;
-      this.error = null;
+    // Transform raw payroll data into grouped employee salary rows
+    transformPayrollData(payrolls) {
+      const groupedByEmployment = {};
 
-      try {
-        const params = {
-          staff_id: staffId,
-          page: 1,
-          per_page: this.pageSize,
-        };
+      payrolls.forEach(payroll => {
+        const employmentId = payroll.employment_id;
+        const employee = payroll.employment?.employee;
+        const employment = payroll.employment;
 
-        const response = await payrollService.searchPayrolls(params);
-
-        if (response.success) {
-          this.payrolls = response.data || [];
-          this.currentPage = 1;
-
-          if (response.pagination) {
-            this.total = response.pagination.total;
+        if (!groupedByEmployment[employmentId]) {
+          // Get PVD/SVF status
+          const hasPvd = employment?.pvd === true || employment?.pvd === 1;
+          const hasSvf = employment?.saving_fund === true || employment?.saving_fund === 1;
+          let pvdSvfStatus = '-';
+          if (hasPvd && hasSvf) {
+            pvdSvfStatus = 'PVD/SVF';
+          } else if (hasPvd) {
+            pvdSvfStatus = 'PVD';
+          } else if (hasSvf) {
+            pvdSvfStatus = 'SVF';
           }
-        } else {
-          throw new Error(response.message || 'No payrolls found for this staff ID');
+
+          groupedByEmployment[employmentId] = {
+            employment_id: employmentId,
+            organization: employee?.organization || 'N/A',
+            staff_id: employee?.staff_id || 'N/A',
+            initial: employee?.initial_en || this.getInitials(this.getEmployeeName(payroll)),
+            short_name: employee?.first_name_en || 'N/A',
+            full_name: this.getEmployeeName(payroll),
+            employeeName: this.getEmployeeName(payroll),
+            department: employment?.department?.name || 'N/A',
+            position: employment?.position?.title || 'N/A',
+            pay_method: employment?.pay_method || 'N/A',
+            pvd_svf: pvdSvfStatus,
+            employee_status: employee?.status || 'N/A',
+            start_date: employment?.start_date || null,
+            Image: this.getEmployeeImage(payroll),
+            payrolls: [],
+            total_gross_salary: 0,
+            total_net_salary: 0,
+            funding_count: 0,
+          };
         }
-      } catch (error) {
-        console.error('Error searching payrolls:', error);
-        this.error = error.message || 'An error occurred while searching payrolls';
-        this.payrolls = [];
-        this.total = 0;
-      } finally {
-        this.loading = false;
-      }
+
+        // Get grant name from funding allocation
+        const fundingAllocation = payroll.employee_funding_allocation;
+        const grantName = fundingAllocation?.grant_item?.grant?.name ||
+                         fundingAllocation?.grant_item?.grant?.code ||
+                         'Grant Funded';
+
+        groupedByEmployment[employmentId].payrolls.push({
+          id: payroll.id,
+          pay_period_date: payroll.pay_period_date,
+          grant_name: grantName,
+          fte: fundingAllocation?.fte || 'N/A',
+          gross_salary: payroll.gross_salary,
+          gross_salary_by_FTE: payroll.gross_salary_by_FTE,
+          compensation_refund: payroll.compensation_refund,
+          thirteen_month_salary: payroll.thirteen_month_salary,
+          thirteen_month_salary_accured: payroll.thirteen_month_salary_accured,
+          pvd: payroll.pvd,
+          saving_fund: payroll.saving_fund,
+          employer_social_security: payroll.employer_social_security,
+          employee_social_security: payroll.employee_social_security,
+          employer_health_welfare: payroll.employer_health_welfare,
+          employee_health_welfare: payroll.employee_health_welfare,
+          tax: payroll.tax,
+          salary_bonus: payroll.salary_bonus,
+          notes: payroll.notes,
+          total_salary: payroll.total_salary,
+          total_pvd: payroll.total_pvd,
+          total_saving_fund: payroll.total_saving_fund,
+          total_income: payroll.total_income,
+          employer_contribution: payroll.employer_contribution,
+          total_deduction: payroll.total_deduction,
+          net_salary: payroll.net_salary,
+        });
+
+        groupedByEmployment[employmentId].total_gross_salary += parseFloat(payroll.gross_salary) || 0;
+        groupedByEmployment[employmentId].total_net_salary += parseFloat(payroll.net_salary) || 0;
+        groupedByEmployment[employmentId].funding_count = groupedByEmployment[employmentId].payrolls.length;
+      });
+
+      return Object.values(groupedByEmployment);
     },
 
     // =================== EVENT HANDLERS ===================
 
     // Handle pagination change
     handlePaginationChange(page, pageSize) {
-      this.currentPage = Number(page) > 0 ? Number(page) : 1;
-      this.pageSize = Number(pageSize) > 0 ? Number(pageSize) : this.pageSize;
-      this.fetchPayrolls();
+      this.currentPage = page;
+      this.pageSize = pageSize || this.pageSize;
+      const params = this.buildApiParams({ page, per_page: this.pageSize });
+      this.fetchPayrolls(params);
     },
 
     // Handle page size change
     handlePageSizeChange(current, size) {
-      this.currentPage = 1; // Reset to first page when changing page size
+      this.currentPage = 1;
       this.pageSize = size;
-      this.fetchPayrolls();
+      const params = this.buildApiParams({ page: 1, per_page: size });
+      this.fetchPayrolls(params);
     },
 
     // Handle row expand/collapse
@@ -1325,37 +1397,42 @@ export default {
       }
     },
 
-    // Handle table sorting and filtering changes
+    // Handle table sorting and filtering changes (matching grants/employees pattern)
     handleTableChange(pagination, filters, sorter) {
-      // Update pagination
-      if (pagination) {
-        const nextPage = Number(pagination.current);
-        const nextSize = Number(pagination.pageSize);
-        this.currentPage = nextPage > 0 ? nextPage : 1;
-        this.pageSize = nextSize > 0 ? nextSize : this.pageSize;
-      }
+      // Check for actual changes to avoid duplicate requests
+      const hasSorterChange = JSON.stringify(sorter) !== JSON.stringify(this.sortedInfo);
 
-      // Update sorting
-      if (sorter && sorter.field) {
-        this.selectedSortBy = sorter.field;
-        this.selectedSortOrder = sorter.order === 'ascend' ? 'asc' : 'desc';
-      }
+      if (!hasSorterChange) return;
 
-      // Fetch updated data
-      this.fetchPayrolls();
+      // Update sort state
+      this.sortedInfo = sorter;
+
+      // Reset to first page when sorting changes
+      this.currentPage = 1;
+
+      const params = this.buildApiParams({ page: 1, per_page: this.pageSize });
+      this.fetchPayrolls(params);
     },
 
     // Handle search input
     async handleSearch() {
-      // Reset to first page when searching
       this.currentPage = 1;
-      await this.fetchPayrolls();
+      this.searchLoading = true;
+      try {
+        const params = this.buildApiParams({ page: 1, per_page: this.pageSize });
+        await this.fetchPayrolls(params);
+      } finally {
+        this.searchLoading = false;
+      }
     },
 
-    // Handle filter changes
+    // Handle filter changes (dropdown filters)
     async handleFilterChange() {
-      this.currentPage = 1; // Reset to first page
-      await this.fetchPayrolls();
+      this.currentPage = 1;
+      // Clear column sort when using dropdown sort to avoid conflicts
+      this.sortedInfo = {};
+      const params = this.buildApiParams({ page: 1, per_page: this.pageSize });
+      await this.fetchPayrolls(params);
     },
 
     // Clear all filters
@@ -1367,11 +1444,14 @@ export default {
       this.budgetHistoryRange = null;
       this.selectedSortBy = 'created_at';
       this.selectedSortOrder = 'desc';
+      this.sortedInfo = {};
+      this.filteredInfo = {};
       this.currentPage = 1;
       this.monthFilters = {};
 
       if (this.viewMode === 'standard') {
-        await this.fetchPayrolls();
+        const params = this.buildApiParams({ page: 1, per_page: this.pageSize });
+        await this.fetchPayrolls(params);
       } else {
         this.budgetHistoryData = [];
         this.budgetHistoryMonths = [];
@@ -1400,23 +1480,9 @@ export default {
     // Get funding sources from employee funding allocation
     getFundingSources(payroll) {
       if (payroll.employee_funding_allocation) {
-        const allocation = payroll.employee_funding_allocation;
-        // All allocations are now grant type
-        if (false) {
-          return 'Organization Funded';
-        } else if (allocation.allocation_type === 'grant') {
-          return 'Grant Funded';
-        }
-        return allocation.allocation_type;
+        return 'Grant Funded';
       }
       return 'General Fund';
-    },
-
-    // Get funding source label by type
-    getFundingSourcesLabel(allocationType) {
-      if (!allocationType) return 'General Fund';
-      if (allocationType === 'grant') return 'Grant Funded';
-      return allocationType;
     },
 
     // Get employee image
@@ -1436,12 +1502,7 @@ export default {
     // Format date for display
     formatDate(dateString) {
       if (!dateString) return 'N/A';
-      const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
+      return moment(dateString).format('DD/MM/YYYY');
     },
 
     // Format currency for display
@@ -1784,21 +1845,27 @@ export default {
 
   // Expose refs for template access
   setup() {
+    // Table filter/sort state (matching grants, employees, interviews pattern)
+    const filteredInfo = ref({});
+    const sortedInfo = ref({});
+
     // Initialize permission checks for employee_salary module
-    const { 
-      canRead, 
-      canEdit, 
-      isReadOnly, 
-      accessLevelText, 
-      accessLevelBadgeClass 
+    const {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     } = usePermissions('employee_salary');
-    
+
     // Check if user has permission to access departments
-    const { 
-      canRead: canReadDepartments 
+    const {
+      canRead: canReadDepartments
     } = usePermissions('departments');
 
     return {
+      filteredInfo,
+      sortedInfo,
       canRead,
       canEdit,
       isReadOnly,
@@ -1839,6 +1906,12 @@ export default {
   left: 12px;
   color: #6c757d;
   z-index: 1;
+}
+
+/* =================== SEARCH INPUT =================== */
+.search-input-primary :deep(.ant-input-search-button) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
 }
 
 /* =================== ANT DESIGN SELECT CUSTOMIZATION =================== */
@@ -2185,6 +2258,15 @@ export default {
 .inner-action-btn.delete:hover {
   background: rgba(220, 53, 69, 0.1);
   color: #dc3545;
+}
+
+.inner-action-btn.payslip {
+  color: #e74c3c;
+}
+
+.inner-action-btn.payslip:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #c0392b;
 }
 
 /* =================== TABLE HEADER STYLING =================== */

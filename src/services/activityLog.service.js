@@ -1,4 +1,5 @@
 // activityLog.service.js
+import moment from 'moment';
 import { apiService } from '@/services/api.service';
 import { API_ENDPOINTS } from '@/config/api.config';
 import { BaseService } from '@/services/base.service';
@@ -127,11 +128,10 @@ class ActivityLogService extends BaseService {
     if (diffDays < 7) return `${diffDays}d ago`;
 
     // For older dates, return formatted date
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-    });
+    if (date.getFullYear() !== now.getFullYear()) {
+      return moment(date).format('DD/MM/YYYY');
+    }
+    return moment(date).format('DD/MM/YYYY');
   }
 
   /**

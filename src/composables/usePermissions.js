@@ -56,9 +56,11 @@ const MODULE_NAME_MAP = {
   'leave_request': 'leaves',
   'leave-request': 'leaves',
   
-  // Attendance variations
+  // Attendance variations (uses attendance_admin permission module)
   'attendance': 'attendance_admin',
   'attendance-admin': 'attendance_admin',
+  'attendance-list': 'attendance_admin',
+  'attendance_admin': 'attendance_admin',
   
   // Department variations
   'department': 'departments',
@@ -88,16 +90,33 @@ const MODULE_NAME_MAP = {
   'grants': 'grants_list',
   
   // Training variations
-  'training': 'trainings',
-  'training_list': 'trainings',
+  'training': 'training_list',
+  'training_list': 'training_list',
+  'trainings': 'training_list',
   
   // Travel variations
   'travel': 'travels',
   'travel_request': 'travels',
   
   // Payroll variations
-  'payroll': 'payroll',
-  'salary': 'payroll',
+  'payroll': 'employee_salary',
+  'salary': 'employee_salary',
+  'employee_salary': 'employee_salary',
+  'employee-salary': 'employee_salary',
+
+  // Payroll Items variations
+  'payroll_items': 'payroll_items',
+  'payroll-items': 'payroll_items',
+
+  // Tax variations
+  'tax': 'tax_settings',
+  'tax_settings': 'tax_settings',
+  'tax-settings': 'tax_settings',
+
+  // Benefit Settings variations
+  'benefit': 'benefit_settings',
+  'benefit_settings': 'benefit_settings',
+  'benefit-settings': 'benefit_settings',
   
   // Resignation variations
   'resignation': 'employee_resignation',
@@ -109,6 +128,12 @@ const MODULE_NAME_MAP = {
   'employee_funding_allocation': 'employee_funding_allocations',
   'funding-allocation': 'employee_funding_allocations',
   'funding_allocation': 'employee_funding_allocations',
+
+  // Lookup variations
+  'lookup': 'lookup_list',
+  'lookups': 'lookup_list',
+  'lookup_list': 'lookup_list',
+  'lookup-list': 'lookup_list',
 
   // Termination variations
   'termination': 'terminations',
@@ -127,6 +152,12 @@ const MODULE_NAME_MAP = {
   'asset': 'assets',
   'company_asset': 'assets',
   
+  // Letter Template variations
+  'letter_template': 'letter_templates',
+  'letter-template': 'letter_templates',
+  'letter_template_list': 'letter_templates',
+  'template': 'letter_templates',
+
   // Document variations
   'document': 'documents',
   'file': 'documents',

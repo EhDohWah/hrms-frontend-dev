@@ -231,11 +231,12 @@
               <div class="col-lg-12">
                 <div class="mb-3">
                   <label class="form-label">Descriptions</label>
-                  <ckeditor
-                    :editor="editor"
-                    v-model="editorData"
-                    :config="editorConfig"
-                  ></ckeditor>
+                  <QuillEditor
+                    v-model:content="editorData"
+                    contentType="html"
+                    theme="snow"
+                    :toolbar="defaultToolbar"
+                  />
                 </div>
               </div>
               <div class="col-md-12">
@@ -315,7 +316,8 @@
 <script>
 import { useSelectMigration } from '@/composables/useSelectMigration';
 
-import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import { QuillEditor } from '@vueup/vue-quill';
+import { defaultToolbar } from '@/config/quill.config';
 import Vue3TagsInput from "vue3-tags-input";
 import { ref } from "vue";
 const currentDate = ref(new Date());
@@ -328,12 +330,12 @@ export default {
   },
   components: {
     Vue3TagsInput,
+    QuillEditor,
   },
   data() {
     return {
-      editor: ClassicEditor,
-      editorData: " ",
-      editorConfig: {},
+      editorData: "",
+      defaultToolbar,
       startdate: currentDate,
       startdateOne: currentDateOne,
       startdateTwo: currentDateTwo,

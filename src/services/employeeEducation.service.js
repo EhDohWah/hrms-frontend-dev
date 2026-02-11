@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { apiService } from './api.service';
 import { API_ENDPOINTS } from '../config/api.config';
 
@@ -97,13 +98,7 @@ class EmployeeEducationService {
     // Helper method to format date for display
     formatDateForDisplay(date) {
         if (!date) return '';
-        const userLocale = navigator.language || 'en-GB';
-        const localeToUse = userLocale === 'en-US' ? 'en-GB' : userLocale;
-        return new Intl.DateTimeFormat(localeToUse, {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
-        }).format(new Date(date));
+        return moment(date).format('DD/MM/YYYY');
     }
 
     // Helper method to format date for API (YYYY-MM-DD)

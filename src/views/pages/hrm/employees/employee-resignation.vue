@@ -272,14 +272,13 @@
     <!-- /Page Wrapper -->
 
     <!-- Add/Edit Resignation Modal -->
-    <ResignationModal :show="showModal" :isEditing="isEditing" :resignation="selectedResignation" 
-        :isReadOnly="isReadOnlyModal" @close="closeModal" @save="handleSave" />
+    <resignation-modal :visible="resignationModalVisible" :editing-resignation="editingResignation"
+        @close="closeModal" @saved="handleSaved" />
 
 </template>
 
 <script>
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-import ResignationModal from '@/components/modal/ResignationModal.vue';
 import { resignationService } from '@/services/resignation.service';
 import { statusUtils, dateUtils, exportUtils } from '@/utils/resignation.utils';
 import { useToast } from '@/composables/useToast';
@@ -290,8 +289,7 @@ import { ref } from 'vue';
 export default {
     name: 'EmployeeResignation',
     components: {
-        indexBreadcrumb,
-        ResignationModal
+        indexBreadcrumb
     },
     setup() {
         const { showToast } = useToast();
@@ -343,12 +341,10 @@ export default {
                 currentMonth: 0
             },
             selectedRowKeys: [],
-            showModal: false,
-            isEditing: false,
-            selectedResignation: null,
+            resignationModalVisible: false,
+            editingResignation: null,
             loading: false,
             searchLoading: false,
-            isReadOnlyModal: false, // Track if modal is in read-only mode
 
             // Filters and sorting
             searchTerm: '',
@@ -662,41 +658,30 @@ export default {
 
         // Modal methods
         openCreateModal() {
-            this.selectedResignation = null;
-            this.isEditing = false;
-            this.isReadOnlyModal = false;
-            this.showModal = true;
+            this.editingResignation = null;
+            this.resignationModalVisible = true;
         },
 
         editResignation(resignation) {
-            this.selectedResignation = resignation;
-            this.isEditing = true;
-            this.isReadOnlyModal = false; // Edit mode - not read-only
-            this.showModal = true;
+            this.editingResignation = resignation;
+            this.resignationModalVisible = true;
         },
 
         viewResignation(resignation) {
-            // Open modal in read-only mode for viewing
-            this.selectedResignation = resignation;
-            this.isEditing = true; // Set to true to populate form data
-            this.isReadOnlyModal = true; // Set read-only flag
-            this.showModal = true;
+            // Open modal in edit mode for viewing (modal handles display)
+            this.editingResignation = resignation;
+            this.resignationModalVisible = true;
         },
 
         closeModal() {
-            this.showModal = false;
-            this.selectedResignation = null;
-            this.isEditing = false;
-            this.isReadOnlyModal = false;
+            this.resignationModalVisible = false;
+            this.editingResignation = null;
         },
 
-        async handleSave(resignationData) {
+        async handleSaved() {
+            this.closeModal();
             await this.fetchResignations();
             await this.fetchStatistics();
-            this.showToast(
-                this.isEditing ? 'Resignation updated successfully' : 'Resignation added successfully',
-                'success'
-            );
         },
 
         // Row selection change handler

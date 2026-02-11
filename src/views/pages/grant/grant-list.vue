@@ -649,7 +649,7 @@ export default {
           ]
         }
       }, (start, end) => {
-        return start.format('M/D/YYYY') + ' - ' + end.format('M/D/YYYY');
+        return start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY');
       });
     }
 
@@ -1128,7 +1128,7 @@ export default {
               organization: grant.organization,
               description: grant.description,
               startDate: grant.startDate || moment(new Date()).format('DD/MM/YYYY'),
-              endDate: grant.end_date ? moment(grant.end_date).format('DD MMM YYYY') : '',
+              endDate: grant.end_date ? moment(grant.end_date).format('DD/MM/YYYY') : '',
               isoEndDate,
               items: this.mapGrantItems(grant.grant_items)
             };

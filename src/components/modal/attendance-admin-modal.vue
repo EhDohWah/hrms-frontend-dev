@@ -13,7 +13,11 @@ export default {
     return {
       startdate: currentDate,
       dateFormat: "dd-MM-yyyy",
-      Status: ["Select", "Present", "Absent"],
+      Status: [
+        { label: "Select", value: "" },
+        { label: "Present", value: "Present" },
+        { label: "Absent", value: "Absent" },
+      ],
     };
   },
   methods: {

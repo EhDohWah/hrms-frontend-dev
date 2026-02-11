@@ -37,27 +37,31 @@
         <div class="card">
           <div class="card-header d-flex align-items-center justify-content-between flex-wrap row-gap-3">
             <h5>Grant Positions List</h5>
-
-            <!-- Table Operations -->
-            <div class="table-operations">
-
-              <a-dropdown>
-                <a-button>
-                  View: <strong>{{ viewMode === 'all' ? ' All' : ' Vacant' }}</strong>
-                  <i class="ti ti-chevron-down ms-1"></i>
-                </a-button>
-                <template #overlay>
-                  <a-menu @click="onViewModeChange">
-                    <a-menu-item key="all">All Positions</a-menu-item>
-                    <a-menu-item key="vacant">Vacant Positions</a-menu-item>
-                  </a-menu>
-                </template>
-              </a-dropdown>
-
-              <a-button @click="clearFilters">Clear filters</a-button>
-              <a-button @click="clearAll">Clear filters and sorters</a-button>
+            <div class="d-flex align-items-center flex-wrap row-gap-2">
+              <!-- Table Operations -->
+              <div class="me-2">
+                <a-dropdown>
+                  <a-button>
+                    View: <strong>{{ viewMode === 'all' ? ' All' : ' Vacant' }}</strong>
+                    <i class="ti ti-chevron-down ms-1"></i>
+                  </a-button>
+                  <template #overlay>
+                    <a-menu @click="onViewModeChange">
+                      <a-menu-item key="all">All Positions</a-menu-item>
+                      <a-menu-item key="vacant">Vacant Positions</a-menu-item>
+                    </a-menu>
+                  </template>
+                </a-dropdown>
+                <a-button class="ms-2" @click="clearFilters">Clear filters</a-button>
+                <a-button class="ms-2" @click="clearAll">Clear filters and sorters</a-button>
+              </div>
+              <!-- Search Input -->
+              <div class="input-icon-end">
+                <a-input-search v-model:value="searchTerm" placeholder="Search grant code or position..."
+                  :loading="searchLoading" enter-button="Search" @search="handleSearch" style="width: 280px;"
+                  class="search-input-primary" />
+              </div>
             </div>
-            <!-- /Table Operations -->
           </div>
           <div class="card-body">
             <div v-if="loading" class="text-center my-3">
@@ -66,8 +70,8 @@
               </div>
               <p class="mt-2">Loading grant positions...</p>
             </div>
-            <div v-else>
-              <a-table :columns="columns" :data-source="tableData" :pagination="pagination"
+            <div v-else class="resize-observer-fix">
+              <a-table :columns="columns" :data-source="tableData" :pagination="false"
                 :scroll="{ x: 'max-content' }" row-key="id" @change="handleTableChange">
                 <template #bodyCell="{ column, record }">
                   <template v-if="column.dataIndex === 'actions'">
@@ -75,16 +79,21 @@
                       <router-link :to="`/grant/grant-position-details/${record.id}`" class="me-2">
                         <i class="ti ti-eye"></i>
                       </router-link>
-                      <!-- <a href="javascript:void(0);" class="me-2" @click="openEditGrantPositionModal(record)">
-                        <i class="ti ti-edit"></i>
-                      </a>
-                      <a href="javascript:void(0);" @click="deleteGrantPosition(record.id)">
-                        <i class="ti ti-trash"></i>
-                      </a> -->
                     </div>
                   </template>
                 </template>
               </a-table>
+
+              <!-- Separate Pagination Component -->
+              <div class="pagination-wrapper">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="pagination-info"></div>
+                  <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
+                    :show-size-changer="true" :show-quick-jumper="true" :page-size-options="['10', '20', '50', '100']"
+                    :show-total="(total, range) => `${range[0]}-${range[1]} of ${total} items`"
+                    @change="handlePaginationChange" @show-size-change="handleSizeChange" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -115,8 +124,7 @@ import { Modal as AntModal } from 'ant-design-vue';
 import GrantPositionModal from '@/components/modal/grant-position-modal.vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useGrantStore } from '@/stores/grantStore';
-import { ref, computed } from 'vue';
-import { onMounted } from 'vue';
+import { ref } from 'vue';
 import { usePermissions } from '@/composables/usePermissions';
 
 export default {
@@ -127,12 +135,12 @@ export default {
   },
   setup() {
     // Initialize permission checks for grant_positions module
-    const { 
-      canRead, 
-      canEdit, 
-      isReadOnly, 
-      accessLevelText, 
-      accessLevelBadgeClass 
+    const {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     } = usePermissions('grant_positions');
 
     const filteredInfo = ref({});
@@ -142,22 +150,12 @@ export default {
     const total = ref(0);
     const grantStore = useGrantStore();
 
-    const pagination = computed(() => ({
-      total: total.value,
-      current: currentPage.value,
-      pageSize: pageSize.value,
-      showSizeChanger: true,
-      pageSizeOptions: ['10', '20', '50', '100'],
-      showTotal: (total) => `Total ${total} items`
-    }));
-
     return {
       filteredInfo,
       sortedInfo,
       currentPage,
       pageSize,
       total,
-      pagination,
       grantStore,
       canRead,
       canEdit,
@@ -171,8 +169,9 @@ export default {
       title: 'Grant Positions',
       text: 'Grants',
       text1: 'Grant Positions',
-      grantPositions: [], // Default empty array for immediate render
+      grantPositions: [],
       loading: false,
+      searchLoading: false,
       searchTerm: '',
       notificationTitle: '',
       notificationMessage: '',
@@ -305,7 +304,6 @@ export default {
     }
   },
   mounted() {
-    // Non-blocking data fetch - page renders immediately while data loads
     this.fetchGrantPositions();
   },
   methods: {
@@ -317,76 +315,84 @@ export default {
         document.body.classList.remove("header-collapse");
       }
     },
+
     getUniqueValues(field) {
       const values = [...new Set(this.grantPositions.map(item => item[field]))];
       return values.map(value => ({ text: value, value }));
     },
 
-    handleTableChange(pagination, filters, sorter) {
-      console.log('Various parameters', pagination, filters, sorter);
-      this.currentPage = pagination.current;
-      this.pageSize = pagination.pageSize;
-      this.filteredInfo = filters;
-      this.sortedInfo = sorter;
+    // Build API params preserving current search and pagination state
+    buildApiParams(overrides = {}) {
+      const params = {
+        page: this.currentPage,
+        per_page: this.pageSize,
+        ...overrides
+      };
 
-      // Update total based on filtered data
-      let filteredData = this.grantPositions;
-
-      // Apply view mode filter (all vs vacant)
-      if (this.viewMode === 'vacant') {
-        filteredData = filteredData.filter(pos => pos.manPower > pos.recruited);
+      // Add search parameter if present
+      if (this.searchTerm && this.searchTerm.trim()) {
+        params.search = this.searchTerm.trim();
       }
 
-      // Apply column filters
-      Object.keys(filters).forEach(key => {
-        const filterValues = filters[key];
-        if (filterValues && filterValues.length > 0) {
-          if (key === 'status') {
-            filteredData = filteredData.filter(record =>
-              filterValues.includes(record.status)
-            );
-          } else if (key === 'code') {
-            filteredData = filteredData.filter(record =>
-              filterValues.some(value => record.code.includes(value))
-            );
-          } else if (key === 'budgetLine') {
-            filteredData = filteredData.filter(record =>
-              filterValues.some(value => record.budgetLine.includes(value))
-            );
-          }
-        }
-      });
+      return params;
+    },
 
-      this.total = filteredData.length;
+    // Handle table sorting/filtering changes (client-side column filters still work)
+    handleTableChange(pagination, filters, sorter) {
+      this.filteredInfo = filters;
+      this.sortedInfo = sorter;
+    },
+
+    // Server-side pagination: page change
+    handlePaginationChange(page, pageSize) {
+      this.currentPage = page;
+      this.pageSize = pageSize || this.pageSize;
+      this.fetchGrantPositions(this.buildApiParams({ page, per_page: this.pageSize }));
+    },
+
+    // Server-side pagination: page size change
+    handleSizeChange(current, size) {
+      this.currentPage = 1;
+      this.pageSize = size;
+      this.fetchGrantPositions(this.buildApiParams({ page: 1, per_page: size }));
+    },
+
+    // Search handler - triggered by search button or Enter key
+    handleSearch() {
+      this.searchLoading = true;
+      this.currentPage = 1;
+      this.filteredInfo = {};
+      this.sortedInfo = {};
+
+      this.fetchGrantPositions(this.buildApiParams({ page: 1 }));
     },
 
     clearFilters() {
-      this.filteredInfo = null;
-      // Reset total to match current view mode
-      this.total = this.viewMode === 'all' ?
-        this.grantPositions.length :
-        this.grantPositions.filter(pos => pos.manPower > pos.recruited).length;
+      this.filteredInfo = {};
     },
 
     clearAll() {
-      this.filteredInfo = null;
-      this.sortedInfo = null;
-      // Reset total to match current view mode
-      this.total = this.viewMode === 'all' ?
-        this.grantPositions.length :
-        this.grantPositions.filter(pos => pos.manPower > pos.recruited).length;
+      this.filteredInfo = {};
+      this.sortedInfo = {};
+      this.searchTerm = '';
+      this.currentPage = 1;
+      this.fetchGrantPositions(this.buildApiParams({ page: 1 }));
     },
 
-    async fetchGrantPositions() {
+    async fetchGrantPositions(params = {}) {
       this.loading = true;
 
       try {
-        await this.grantStore.fetchGrantPositions();
+        // Build default params if none provided (initial load)
+        const queryParams = Object.keys(params).length > 0
+          ? params
+          : this.buildApiParams();
+
+        const response = await this.grantStore.fetchGrantPositions(queryParams);
 
         if (this.grantStore.grantPositions) {
           // Transform the API response to match our table structure
           const positions = [];
-
 
           this.grantStore.grantPositions.forEach(grant => {
             grant.positions.forEach(position => {
@@ -399,21 +405,33 @@ export default {
                 manPower: parseInt(position.manpower),
                 recruited: position.recruited,
                 finding: position.finding,
-                status: 'Active', // Default status since it's not in the API response
+                status: grant.status || 'Active',
                 grant_id: grant.grant_id
               });
             });
           });
 
           this.grantPositions = positions;
-          this.total = positions.length;
+
+          // Update pagination from server response
+          if (response && response.pagination) {
+            this.total = response.pagination.total;
+            this.currentPage = response.pagination.current_page;
+            this.pageSize = response.pagination.per_page;
+          } else {
+            this.total = positions.length;
+          }
+
           this.$message.success('Grant positions loaded successfully');
         }
       } catch (error) {
         console.error('Error fetching grant positions:', error);
+        this.grantPositions = [];
+        this.total = 0;
         this.$message.error('Failed to load grant positions');
       } finally {
         this.loading = false;
+        this.searchLoading = false;
       }
     },
 
@@ -428,32 +446,22 @@ export default {
     async handleGrantPositionSubmit(response) {
       this.loading = true;
       try {
-        // Check if the submission was successful
         if (response.success) {
-
-          // Display success message
           this.$message.success(response.message || 'Grant position saved successfully');
-
-          // Refresh the grant positions list to show the updated data
           try {
             await this.fetchGrantPositions();
           } catch (fetchError) {
-
             this.$message.warning('Position saved but could not refresh the list');
           }
         } else {
-          // Log the failure and display an error message to the user
           this.$message.error(response.message || 'Failed to save grant position');
-
         }
       } catch (error) {
-
         this.$message.error('An unexpected error occurred while processing your request');
       } finally {
         this.loading = false;
       }
     },
-
 
     async deleteGrantPosition(id) {
       try {
@@ -467,12 +475,8 @@ export default {
             onOk: async () => {
               this.loading = true;
               try {
-                // await this.grantStore.deleteGrantPosition(id);
-
-                // For dummy data, remove from the local array
                 this.grantPositions = this.grantPositions.filter(pos => pos.id !== id);
                 this.total = this.grantPositions.length;
-
                 this.$message.success('Grant position deleted successfully');
                 resolve();
               } catch (error) {
@@ -505,15 +509,6 @@ export default {
 
     onViewModeChange({ key }) {
       this.viewMode = key;
-      this.currentPage = 1;
-
-      // Update total based on the new view mode
-      if (key === 'vacant') {
-        this.total = this.grantPositions.filter(pos => pos.manPower > pos.recruited).length;
-      } else {
-        this.total = this.grantPositions.length;
-      }
-
       // Reset filters when changing view mode
       this.filteredInfo = {};
     }
@@ -527,19 +522,77 @@ export default {
   padding: 0px;
 }
 
-.table-operations {
-  margin-bottom: 16px;
-}
-
-.table-operations>button {
-  margin-right: 8px;
-}
-
 :deep(.ant-select-selector) {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   min-width: 80px;
+}
+
+/* Primary color styling for search input button */
+.search-input-primary :deep(.ant-input-search-button) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:hover) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+.search-input-primary :deep(.ant-input-search-button:focus) {
+  background-color: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+}
+
+/* Pagination wrapper styling */
+.pagination-wrapper {
+  margin-top: 20px;
+  padding: 20px 16px;
+  border-top: 1px solid #e8e8e8;
+  position: relative;
+  z-index: 100;
+}
+
+.pagination-info {
+  color: #666;
+  font-size: 14px;
+}
+
+/* Ensure pagination is not overlapping */
+.resize-observer-fix {
+  position: relative;
+  min-height: 100px;
+}
+
+/* Ant Design pagination customization */
+:deep(.ant-pagination) {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+:deep(.ant-pagination-total-text) {
+  margin-right: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+:deep(.ant-pagination-options) {
+  margin-left: 16px;
+}
+
+/* Container overflow fixes */
+.card-body {
+  overflow: visible !important;
+  padding-bottom: 0;
+}
+
+.card {
+  overflow: visible !important;
+  margin-bottom: 20px;
 }
 </style>

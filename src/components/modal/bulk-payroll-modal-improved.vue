@@ -279,244 +279,11 @@
                                     </template>
                                 </a-alert>
 
-                                <!-- Employee Details - Two Column Layout -->
-                                <a-card v-if="previewData.employees && previewData.employees.length > 0" :bordered="false" class="employee-details-card">
-                                    <template #title>
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div>
-                                                <unordered-list-outlined class="me-2" />
-                                                <span>Employee Breakdown</span>
-                                            </div>
-                                            <a-badge :count="filteredPreviewEmployees.length" :number-style="{ backgroundColor: '#52c41a' }" />
-                                        </div>
-                                    </template>
-
-                                    <a-row :gutter="16">
-                                        <!-- Left Column: Employee List -->
-                                        <a-col :xs="24" :md="10">
-                                            <a-card size="small" :body-style="{ padding: '12px' }" class="employee-list-card">
-                                                <!-- Search Input -->
-                                                <a-input-search
-                                                    v-model:value="previewSearchQuery"
-                                                    placeholder="Search employees..."
-                                                    size="large"
-                                                    class="mb-3"
-                                                    allow-clear
-                                                >
-                                                    <template #prefix>
-                                                        <search-outlined />
-                                                    </template>
-                                                </a-input-search>
-
-                                                <!-- Employee List -->
-                                                <div class="employee-list-modern">
-                                                    <a-list
-                                                        :data-source="filteredPreviewEmployees"
-                                                        :locale="{ emptyText: 'No employees found' }"
-                                                    >
-                                                        <template #renderItem="{ item, index }">
-                                                            <a-list-item
-                                                                class="employee-list-item-modern"
-                                                                :class="{ 'selected': selectedEmployeeIndex === index }"
-                                                                @click="selectEmployee(index)"
-                                                            >
-                                                                <a-list-item-meta>
-                                                                    <template #avatar>
-                                                                        <a-avatar :style="{ backgroundColor: getOrgColor(item.organization) }">
-                                                                            {{ item.name.charAt(0) }}
-                                                                        </a-avatar>
-                                                                    </template>
-                                                                    <template #title>
-                                                                        <div class="d-flex align-items-center justify-content-between">
-                                                                            <span class="employee-name-modern">{{ item.name }}</span>
-                                                                            <a-badge v-if="item.has_warnings" count="!" />
-                                                                        </div>
-                                                                    </template>
-                                                                    <template #description>
-                                                                        <div class="employee-meta-modern">
-                                                                            <a-tag size="small">{{ item.staff_id }}</a-tag>
-                                                                            <span class="text-muted small ms-1">{{ item.position }}</span>
-                                                                        </div>
-                                                                        <div class="employee-salary-modern text-success fw-bold mt-1">
-                                                                            ฿{{ formatCurrency(item.total_net) }}
-                                                                        </div>
-                                                                    </template>
-                                                                </a-list-item-meta>
-                                                            </a-list-item>
-                                                        </template>
-                                                    </a-list>
-                                                </div>
-
-                                                <!-- Pagination Info -->
-                                                <div v-if="filteredPreviewEmployees.length > 0" class="text-center mt-2 pt-2 border-top">
-                                                    <small class="text-muted">
-                                                        Showing {{ filteredPreviewEmployees.length }} of {{ previewData.employees.length }} employees
-                                                    </small>
-                                                </div>
-                                            </a-card>
-                                        </a-col>
-
-                                        <!-- Right Column: Employee Detail -->
-                                        <a-col :xs="24" :md="14">
-                                            <a-card size="small" :body-style="{ padding: '12px' }" class="employee-detail-card">
-                                                <!-- Empty State -->
-                                                <a-empty
-                                                    v-if="selectedEmployeeIndex === null"
-                                                    description="Select an employee to view detailed breakdown"
-                                                    :image="emptyImage"
-                                                />
-
-                                                <!-- Employee Details -->
-                                                <div v-else-if="selectedEmployee" class="employee-detail-content">
-                                                    <!-- Employee Header -->
-                                                    <a-descriptions :column="1" bordered size="small" class="mb-3">
-                                                        <a-descriptions-item label="Name">
-                                                            <strong>{{ selectedEmployee.name }}</strong>
-                                                        </a-descriptions-item>
-                                                        <a-descriptions-item label="Staff ID">
-                                                            <a-tag color="blue">{{ selectedEmployee.staff_id }}</a-tag>
-                                                        </a-descriptions-item>
-                                                        <a-descriptions-item label="Department">
-                                                            {{ selectedEmployee.department }}
-                                                        </a-descriptions-item>
-                                                        <a-descriptions-item label="Position">
-                                                            {{ selectedEmployee.position }}
-                                                        </a-descriptions-item>
-                                                        <a-descriptions-item label="Organization">
-                                                            <a-tag :color="selectedEmployee.organization === 'SMRU' ? 'blue' : 'green'">
-                                                                {{ selectedEmployee.organization }}
-                                                            </a-tag>
-                                                        </a-descriptions-item>
-                                                    </a-descriptions>
-
-                                                    <!-- Total Summary -->
-                                                    <a-card size="small" class="mb-3 summary-highlight-card">
-                                                        <a-row :gutter="16">
-                                                            <a-col :span="8">
-                                                                <a-statistic
-                                                                    title="Gross"
-                                                                    :value="parseFloat(selectedEmployee.total_gross)"
-                                                                    :precision="2"
-                                                                    prefix="฿"
-                                                                    :value-style="{ fontSize: '18px', color: '#1890ff' }"
-                                                                />
-                                                            </a-col>
-                                                            <a-col :span="8">
-                                                                <a-statistic
-                                                                    title="Deductions"
-                                                                    :value="parseFloat(selectedEmployee.total_deductions)"
-                                                                    :precision="2"
-                                                                    prefix="฿"
-                                                                    :value-style="{ fontSize: '18px', color: '#ff4d4f' }"
-                                                                />
-                                                            </a-col>
-                                                            <a-col :span="8">
-                                                                <a-statistic
-                                                                    title="Net Salary"
-                                                                    :value="parseFloat(selectedEmployee.total_net)"
-                                                                    :precision="2"
-                                                                    prefix="฿"
-                                                                    :value-style="{ fontSize: '18px', color: '#52c41a', fontWeight: 'bold' }"
-                                                                />
-                                                            </a-col>
-                                                        </a-row>
-                                                    </a-card>
-
-                                                    <!-- Allocation Breakdown -->
-                                                    <a-divider orientation="left">
-                                                        <fund-outlined class="me-1" />
-                                                        Grant Allocations ({{ selectedEmployee.allocations.length }})
-                                                    </a-divider>
-
-                                                    <div class="allocations-container-modern">
-                                                        <a-collapse v-model:activeKey="activeAllocations" accordion>
-                                                            <a-collapse-panel
-                                                                v-for="(alloc, idx) in selectedEmployee.allocations"
-                                                                :key="idx"
-                                                                :header="`${alloc.grant_code} - ${alloc.grant_name}`"
-                                                            >
-                                                                <template #extra>
-                                                                    <a-tag color="cyan">FTE: {{ alloc.fte }}</a-tag>
-                                                                    <a-tag v-if="alloc.needs_advance" color="warning">
-                                                                        <swap-outlined /> Advance
-                                                                    </a-tag>
-                                                                </template>
-
-                                                                <!-- Allocation Details -->
-                                                                <a-descriptions :column="2" bordered size="small" class="mb-3">
-                                                                    <a-descriptions-item label="Base Salary" :span="2">
-                                                                        <strong>฿{{ formatCurrency(alloc.base_salary) }}</strong>
-                                                                    </a-descriptions-item>
-                                                                    <a-descriptions-item label="Gross (by FTE)" :span="2">
-                                                                        <a-tag color="blue">฿{{ formatCurrency(alloc.gross_salary_by_fte) }}</a-tag>
-                                                                    </a-descriptions-item>
-                                                                </a-descriptions>
-
-                                                                <!-- Earnings Breakdown -->
-                                                                <a-card size="small" title="Earnings Breakdown" class="mb-2">
-                                                                    <a-descriptions :column="1" size="small" bordered>
-                                                                        <a-descriptions-item label="Position Allowance">
-                                                                            ฿{{ formatCurrency(alloc.earnings.position_allowance) }}
-                                                                        </a-descriptions-item>
-                                                                        <a-descriptions-item label="Special Allowance">
-                                                                            ฿{{ formatCurrency(alloc.earnings.special_allowance) }}
-                                                                        </a-descriptions-item>
-                                                                        <a-descriptions-item label="Hardship Allowance">
-                                                                            ฿{{ formatCurrency(alloc.earnings.hardship_allowance) }}
-                                                                        </a-descriptions-item>
-                                                                        <a-descriptions-item label="Gross Salary">
-                                                                            <strong class="text-primary">฿{{ formatCurrency(alloc.gross_salary) }}</strong>
-                                                                        </a-descriptions-item>
-                                                                    </a-descriptions>
-                                                                </a-card>
-
-                                                                <!-- Deductions Breakdown -->
-                                                                <a-card size="small" title="Deductions Breakdown" class="mb-2">
-                                                                    <a-descriptions :column="1" size="small" bordered>
-                                                                        <a-descriptions-item label="Income Tax">
-                                                                            ฿{{ formatCurrency(alloc.deductions.tax) }}
-                                                                        </a-descriptions-item>
-                                                                        <a-descriptions-item label="Social Security">
-                                                                            ฿{{ formatCurrency(alloc.deductions.employee_ss) }}
-                                                                        </a-descriptions-item>
-                                                                        <a-descriptions-item label="Health & Welfare">
-                                                                            ฿{{ formatCurrency(alloc.deductions.employee_hw) }}
-                                                                        </a-descriptions-item>
-                                                                        <a-descriptions-item label="Total Deductions">
-                                                                            <strong class="text-danger">฿{{ formatCurrency(alloc.deductions.total) }}</strong>
-                                                                        </a-descriptions-item>
-                                                                    </a-descriptions>
-                                                                </a-card>
-
-                                                                <!-- Tax Calculation -->
-                                                                <a-card v-if="alloc.tax_calculation" size="small" title="Tax Calculation" class="mb-2">
-                                                                    <a-descriptions :column="1" size="small" bordered>
-                                                                        <a-descriptions-item label="Taxable Income">
-                                                                            ฿{{ formatCurrency(alloc.tax_calculation.taxable_income) }}
-                                                                        </a-descriptions-item>
-                                                                        <a-descriptions-item label="Tax Rate">
-                                                                            {{ alloc.tax_calculation.tax_rate }}%
-                                                                        </a-descriptions-item>
-                                                                        <a-descriptions-item label="Tax Amount">
-                                                                            ฿{{ formatCurrency(alloc.tax_calculation.tax_amount) }}
-                                                                        </a-descriptions-item>
-                                                                    </a-descriptions>
-                                                                </a-card>
-
-                                                                <!-- Net Salary for Allocation -->
-                                                                <a-alert type="success" show-icon class="mt-2">
-                                                                    <template #message>
-                                                                        <strong>Net Salary: ฿{{ formatCurrency(alloc.net_salary) }}</strong>
-                                                                    </template>
-                                                                </a-alert>
-                                                            </a-collapse-panel>
-                                                        </a-collapse>
-                                                    </div>
-                                                </div>
-                                            </a-card>
-                                        </a-col>
-                                    </a-row>
-                                </a-card>
+                                <!-- Employee Payroll Preview Table -->
+                                <PayrollPreviewTable
+                                    v-if="previewData.employees && previewData.employees.length > 0"
+                                    :employees="previewData.employees"
+                                />
 
                                 <!-- Ready to Process Banner -->
                                 <a-alert type="success" show-icon class="mt-3">
@@ -785,6 +552,7 @@
 import { Modal } from 'bootstrap';
 import { ref, reactive, computed, createVNode, h, nextTick, onMounted, onUnmounted } from 'vue';
 import { Empty } from 'ant-design-vue';
+import PayrollPreviewTable from '@/components/shared/PayrollPreviewTable.vue';
 import moment from 'moment';
 import { payrollService } from '@/services/payroll.service';
 import { message, Modal as AntModal } from 'ant-design-vue';
@@ -824,6 +592,27 @@ export default {
         TeamOutlined,
         EyeOutlined,
         CheckCircleOutlined,
+        InfoCircleOutlined,
+        ClockCircleOutlined,
+        BankOutlined,
+        LoadingOutlined,
+        UserOutlined,
+        FileTextOutlined,
+        DollarOutlined,
+        SwapOutlined,
+        SearchOutlined,
+        UnorderedListOutlined,
+        FundOutlined,
+        CloseCircleOutlined,
+        SyncOutlined,
+        DownloadOutlined,
+        CloseOutlined,
+        LeftOutlined,
+        RightOutlined,
+        CalculatorOutlined,
+        CheckOutlined,
+        ExclamationCircleOutlined,
+        PayrollPreviewTable,
     },
 
     setup(props, { emit }) {
@@ -1530,6 +1319,19 @@ export default {
     background: #ffffff;
     display: flex;
     justify-content: flex-end;
+}
+
+/* Fix icon vertical alignment in footer buttons */
+.modal-footer :deep(.ant-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modal-footer :deep(.ant-btn .anticon) {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
 }
 
 /* Ant Design Steps Styling */

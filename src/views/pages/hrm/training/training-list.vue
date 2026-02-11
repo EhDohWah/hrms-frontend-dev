@@ -10,8 +10,8 @@
                 <div class="d-flex align-items-center">
                     <index-breadcrumb :title="title" :text="text" :text1="text1" />
                     <!-- Read-Only Badge -->
-                    <span 
-                        v-if="isReadOnlyTraining" 
+                    <span
+                        v-if="isReadOnlyTraining"
                         class="badge bg-warning text-dark ms-3 d-flex align-items-center"
                         data-bs-toggle="tooltip"
                         data-bs-placement="top"
@@ -22,7 +22,7 @@
                 </div>
                 <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
                     <div v-if="canEditTraining" class="mb-2 me-2">
-                        <button class="btn btn-primary d-flex align-items-center" @click="openAddTrainingModal">
+                        <button class="btn btn-primary d-flex align-items-center" @click="openCreateModal">
                             <i class="ti ti-circle-plus me-2"></i>Add New Training
                         </button>
                     </div>
@@ -183,11 +183,11 @@
                                             <i class="ti ti-eye"></i>
                                         </a>
                                         <!-- Edit Training -->
-                                        <a href="javascript:void(0);" @click="editTraining(record)" class="me-2">
+                                        <a v-if="canEditTraining" href="javascript:void(0);" @click="editTraining(record)" class="me-2">
                                             <i class="ti ti-edit"></i>
                                         </a>
                                         <!-- Delete Training -->
-                                        <a href="javascript:void(0);" @click="confirmDeleteTraining(record.id)">
+                                        <a v-if="canEditTraining" href="javascript:void(0);" @click="confirmDeleteTraining(record.id)">
                                             <i class="ti ti-trash"></i>
                                         </a>
                                     </div>
@@ -225,7 +225,6 @@
                         <div class="pagination-wrapper">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="pagination-info">
-                                    <!-- Optional: Additional info can go here -->
                                 </div>
                                 <a-pagination v-model:current="currentPage" v-model:page-size="pageSize" :total="total"
                                     :show-size-changer="true" :show-quick-jumper="true"
@@ -242,86 +241,77 @@
         <layout-footer></layout-footer>
     </div>
 
-    <!-- Training Modal -->
-    <training-modal ref="trainingModal" @training-added="handleTrainingAdded"
-        @training-updated="handleTrainingUpdated" />
+    <!-- Training Modal (lazy-loaded) -->
+    <training-modal :visible="modalVisible" :editing-record="editingRecord" @saved="handleSaved" @close="closeModal" />
 
     <!-- View Training Modal -->
-    <div class="modal fade" id="view_training_modal" tabindex="-1" aria-labelledby="viewTrainingModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="viewTrainingModalLabel">Training Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <a-modal
+        v-model:open="viewModalVisible"
+        title="Training Details"
+        :footer="null"
+        :width="650"
+        centered
+        :destroyOnClose="true"
+    >
+        <div v-if="viewingTraining" class="view-details">
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <label class="form-label fw-medium">Training Title</label>
+                    <p class="form-control-plaintext">{{ viewingTraining.title }}</p>
                 </div>
-                <div class="modal-body" v-if="viewingTraining">
-                    <div class="row g-3">
-                        <div class="col-md-12">
-                            <label class="form-label fw-medium">Training Title</label>
-                            <p class="form-control-plaintext">{{ viewingTraining.title }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Organizer</label>
-                            <p class="form-control-plaintext">{{ viewingTraining.organizer }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Status</label>
-                            <p class="form-control-plaintext">
-                                <span :class="getStatusBadgeClass(viewingTraining)">{{
-                                    getTrainingStatus(viewingTraining)
-                                    }}</span>
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Start Date</label>
-                            <p class="form-control-plaintext">{{ formatDate(viewingTraining.start_date) }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">End Date</label>
-                            <p class="form-control-plaintext">{{ formatDate(viewingTraining.end_date) }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Duration</label>
-                            <p class="form-control-plaintext">{{ calculateDuration(viewingTraining.start_date,
-                                viewingTraining.end_date) }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-medium">Created By</label>
-                            <p class="form-control-plaintext">{{ viewingTraining.created_by }}</p>
-                        </div>
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Organizer</label>
+                    <p class="form-control-plaintext">{{ viewingTraining.organizer }}</p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Status</label>
+                    <p class="form-control-plaintext">
+                        <span :class="getStatusBadgeClass(viewingTraining)">{{
+                            getTrainingStatus(viewingTraining)
+                            }}</span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Start Date</label>
+                    <p class="form-control-plaintext">{{ formatDate(viewingTraining.start_date) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">End Date</label>
+                    <p class="form-control-plaintext">{{ formatDate(viewingTraining.end_date) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Duration</label>
+                    <p class="form-control-plaintext">{{ calculateDuration(viewingTraining.start_date,
+                        viewingTraining.end_date) }}</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-medium">Created By</label>
+                    <p class="form-control-plaintext">{{ viewingTraining.created_by }}</p>
                 </div>
             </div>
         </div>
-    </div>
+    </a-modal>
 </template>
 
 <script>
-import { Modal } from 'bootstrap'; // ✅ Selective import
 import { useTrainingStore } from '@/stores/trainingStore';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
-import TrainingModal from '@/components/modal/training-modal.vue';
-import { message } from 'ant-design-vue';
+import { Modal, message } from 'ant-design-vue';
 import { usePermissions } from '@/composables/usePermissions';
+import moment from 'moment';
 
 export default {
     name: 'TrainingList',
     components: {
         indexBreadcrumb,
-        TrainingModal
     },
     setup() {
-        // Initialize permission checks for training module
-        const { 
-            canRead, 
-            canEdit, 
-            isReadOnly, 
-            accessLevelText, 
-            accessLevelBadgeClass 
+        const {
+            canRead,
+            canEdit,
+            isReadOnly,
+            accessLevelText,
+            accessLevelBadgeClass
         } = usePermissions('training');
 
         return {
@@ -341,7 +331,11 @@ export default {
             // Data
             trainingStore: useTrainingStore(),
             viewingTraining: null,
-            viewModalInstance: null,
+            viewModalVisible: false,
+
+            // Modal state
+            modalVisible: false,
+            editingRecord: null,
 
             // Search
             searchText: '',
@@ -403,11 +397,10 @@ export default {
     },
 
     computed: {
-        // Permission checks - primary source for reactivity
         canEditTraining() {
             try {
                 const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
-                const hasEdit = Array.isArray(permissions) && permissions.includes('training.edit');
+                const hasEdit = Array.isArray(permissions) && permissions.includes('training_list.edit');
                 return hasEdit || (this.canEdit?.value ?? false);
             } catch (e) {
                 console.error('[TrainingList] Error checking permissions:', e);
@@ -417,7 +410,7 @@ export default {
         canReadTraining() {
             try {
                 const permissions = JSON.parse(localStorage.getItem('permissions') || '[]');
-                const hasRead = Array.isArray(permissions) && permissions.includes('training.read');
+                const hasRead = Array.isArray(permissions) && permissions.includes('training_list.read');
                 return hasRead || (this.canRead?.value ?? false);
             } catch (e) {
                 return this.canRead?.value ?? false;
@@ -497,15 +490,10 @@ export default {
         },
 
         handleTableChange(pagination, filters, sorter) {
-            // Update filters in store
             if (filters.organizer) {
                 this.trainingStore.updateFilters({ organizer: filters.organizer });
             }
-
-            // Update sorting
             this.trainingStore.updateSorting(sorter);
-
-            // Fetch with new params
             const params = this.trainingStore.buildApiParams();
             this.fetchTrainings(params);
         },
@@ -537,28 +525,40 @@ export default {
             this.fetchTrainings();
         },
 
-        openAddTrainingModal() {
-            this.$refs.trainingModal.openAddTrainingModal();
+        // Modal methods
+        openCreateModal() {
+            this.editingRecord = null;
+            this.modalVisible = true;
         },
 
         editTraining(record) {
-            this.$refs.trainingModal.openEditTrainingModal(record);
+            this.editingRecord = record;
+            this.modalVisible = true;
+        },
+
+        closeModal() {
+            this.modalVisible = false;
+            this.editingRecord = null;
+        },
+
+        handleSaved() {
+            this.closeModal();
+            this.fetchTrainings();
         },
 
         viewTraining(record) {
             this.viewingTraining = record;
-            this.viewModalInstance = new Modal(document.getElementById('view_training_modal'));
-            this.viewModalInstance.show();
+            this.viewModalVisible = true;
         },
 
         async confirmDeleteTraining(id) {
-            // Use Ant Design Modal.confirm instead of SweetAlert
-            this.$confirm({
-                title: 'Are you sure?',
+            Modal.confirm({
+                title: 'Delete Training',
                 content: 'This will delete the training program and all associated employee training records.',
-                okText: 'Yes, delete it!',
+                okText: 'Delete',
                 okType: 'danger',
                 cancelText: 'Cancel',
+                centered: true,
                 onOk: async () => {
                     try {
                         await this.trainingStore.deleteTraining(id);
@@ -576,13 +576,13 @@ export default {
                 return;
             }
 
-            // Use Ant Design Modal.confirm instead of SweetAlert
-            this.$confirm({
-                title: 'Are you sure?',
+            Modal.confirm({
+                title: 'Delete Selected Trainings',
                 content: `This will delete ${this.selectedRowKeys.length} training program(s) and all associated records.`,
-                okText: 'Yes, delete them!',
+                okText: 'Delete',
                 okType: 'danger',
                 cancelText: 'Cancel',
+                centered: true,
                 onOk: async () => {
                     try {
                         await this.trainingStore.deleteSelectedTrainings(this.selectedRowKeys);
@@ -594,16 +594,6 @@ export default {
                     }
                 }
             });
-        },
-
-        async handleTrainingAdded() {
-            await this.fetchTrainings();
-            message.success('Training added successfully');
-        },
-
-        async handleTrainingUpdated() {
-            await this.fetchTrainings();
-            message.success('Training updated successfully');
         },
 
         onSelectChange(selectedRowKeys) {
@@ -622,7 +612,7 @@ export default {
 
         formatDate(date) {
             if (!date) return 'N/A';
-            return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+            return moment(date).format('DD/MM/YYYY');
         },
 
         calculateDuration(startDate, endDate) {
@@ -672,7 +662,7 @@ export default {
 
         toggleHeader() {
             const collapseBtn = document.getElementById('collapse-header');
-            
+
             if (collapseBtn) {
                 collapseBtn.classList.toggle('active');
                 document.body.classList.toggle('header-collapse');
@@ -685,7 +675,7 @@ export default {
 </script>
 
 <style scoped>
-/* Primary color styling for search input button - following LEAVES_ADMIN_STYLING_FIX.md */
+/* Primary color styling for search input button */
 .search-input-primary :deep(.ant-input-search-button) {
     background-color: var(--primary-color) !important;
     border-color: var(--primary-color) !important;
@@ -702,7 +692,7 @@ export default {
     border-color: var(--primary-color) !important;
 }
 
-/* Action Icons - simplified styling from reference implementations */
+/* Action Icons */
 .action-icon a {
     color: #666;
     font-size: 16px;
@@ -853,5 +843,18 @@ export default {
 /* Ant Design Dropdown Fix */
 :deep(.ant-picker-dropdown) {
     z-index: 9999 !important;
+}
+
+/* View details styling */
+.view-details .form-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 2px;
+}
+
+.view-details .form-control-plaintext {
+    font-size: 0.95rem;
+    padding: 0;
+    margin-bottom: 0;
 }
 </style>

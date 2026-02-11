@@ -66,7 +66,7 @@ export default {
   mounted() {
     // Define the booking_range function for formatting
     const booking_range = (start, end) => {
-      return start.format("M/D/YYYY") + " - " + end.format("M/D/YYYY");
+      return start.format("DD/MM/YYYY") + " - " + end.format("DD/MM/YYYY");
     };
 
     // Access the date range input using $refs

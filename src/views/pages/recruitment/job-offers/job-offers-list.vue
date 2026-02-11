@@ -90,10 +90,10 @@
                                 <template v-if="column.dataIndex === 'actions'">
                                     <div class="action-icon d-inline-flex">
                                         <!-- View Job Offer - Always visible -->
-                                        <a 
-                                            href="javascript:void(0);" 
+                                        <a
+                                            href="javascript:void(0);"
                                             class="me-2"
-                                            @click="openJobOfferModal(record.custom_offer_id)"
+                                            @click="openJobOfferModal(record.custom_offer_id, record)"
                                             data-bs-toggle="tooltip"
                                             data-bs-placement="top"
                                             title="View Details"
@@ -168,7 +168,16 @@
     />
 
     <!-- Job Offer Report Modal -->
-    <job-offer-report-modal ref="jobOfferReportModal" :pdf-url="pdfUrl" />
+    <job-offer-report-modal
+        :visible="reportModalVisible"
+        :pdf-url="pdfUrl"
+        :loading="reportModalLoading"
+        :error="reportModalError"
+        :offer-info="reportOfferInfo"
+        @close="handleReportModalClose"
+        @download="handleReportModalDownload"
+        @retry="handleReportModalRetry"
+    />
 
     <!-- Notification Toast - z-index 2000 to appear above modals -->
     <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
@@ -186,7 +195,7 @@
 
 <script>
 import { Toast } from 'bootstrap';
-import { Modal as AntModal } from 'ant-design-vue';
+import { Modal as AntModal, message } from 'ant-design-vue';
 import JobOffersModal from '@/components/modal/job-offers-modal.vue';
 import indexBreadcrumb from '@/components/breadcrumb/index-breadcrumb.vue';
 import { useJobOfferStore } from '@/stores/jobOfferStore';
@@ -215,6 +224,12 @@ export default {
         const jobOfferModalVisible = ref(false);
         const editingJobOffer = ref(null);
 
+        // Report modal state
+        const reportModalVisible = ref(false);
+        const reportModalLoading = ref(false);
+        const reportModalError = ref(null);
+        const reportOfferInfo = ref({ candidateName: '', offerId: '' });
+
         // Initialize permission checks for job_offers module
         const {
             canRead,
@@ -233,6 +248,10 @@ export default {
             jobOfferStore,
             jobOfferModalVisible,
             editingJobOffer,
+            reportModalVisible,
+            reportModalLoading,
+            reportModalError,
+            reportOfferInfo,
             canRead,
             canEdit,
             isReadOnly,
@@ -354,33 +373,81 @@ export default {
         this.fetchJobOffers();
     },
     methods: {
-        async openJobOfferModal(custom_offer_id) {
+        async openJobOfferModal(custom_offer_id, record) {
+            // Find the record from tableData if not passed directly
+            const offerRecord = record || this.jobOffers.find(j => j.custom_offer_id === custom_offer_id);
+
+            // Set context info for modal title
+            this.reportOfferInfo = {
+                candidateName: offerRecord?.candidate_name || '',
+                offerId: custom_offer_id
+            };
+
+            // Show modal immediately with loading state
+            this.reportModalVisible = true;
+            this.reportModalLoading = true;
+            this.reportModalError = null;
+            this.revokePdfUrl();
+
             try {
                 const blob = await jobOfferService.generateJobOfferPDF(custom_offer_id);
-                const url = URL.createObjectURL(blob);
-                console.log('🔍 this.pdfUrl:', url);
-                this.pdfUrl = url;
-                // now that the prop is set, show the modal
-                this.$refs.jobOfferReportModal.openModal();
+                this.pdfUrl = URL.createObjectURL(blob);
             } catch (err) {
-                console.error('Error generating PDF', err);
-                this.$message.error('Failed to generate job offer PDF');
+                console.error('Error generating PDF:', err);
+                this.reportModalError = err.message || 'Could not generate the job offer PDF. Please try again.';
+            } finally {
+                this.reportModalLoading = false;
             }
         },
 
         async downloadJobOfferPDF(custom_offer_id) {
+            const hideLoading = message.loading('Downloading PDF...', 0);
             try {
                 const blob = await jobOfferService.generateJobOfferPDF(custom_offer_id);
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                console.log('🔍 a.href:', a.href);
                 a.download = `job-offer-${custom_offer_id}.pdf`;
                 a.click();
-                this.$message.success('Job offer PDF downloaded successfully');
+                URL.revokeObjectURL(url);
+                message.success('Job offer PDF downloaded successfully');
             } catch (error) {
                 console.error('Error downloading job offer PDF:', error);
-                this.$message.error('Failed to download job offer PDF');
+                message.error('Failed to download job offer PDF');
+            } finally {
+                hideLoading();
+            }
+        },
+
+        // Revoke the current blob URL to prevent memory leaks
+        revokePdfUrl() {
+            if (this.pdfUrl) {
+                URL.revokeObjectURL(this.pdfUrl);
+                this.pdfUrl = null;
+            }
+        },
+
+        handleReportModalClose() {
+            this.reportModalVisible = false;
+            this.reportModalError = null;
+            // Revoke blob URL after modal close animation completes
+            setTimeout(() => {
+                this.revokePdfUrl();
+            }, 300);
+        },
+
+        handleReportModalDownload() {
+            if (!this.pdfUrl) return;
+            const a = document.createElement('a');
+            a.href = this.pdfUrl;
+            a.download = `job-offer-${this.reportOfferInfo.offerId || 'report'}.pdf`;
+            a.click();
+            message.success('Job offer PDF downloaded successfully');
+        },
+
+        handleReportModalRetry() {
+            if (this.reportOfferInfo.offerId) {
+                this.openJobOfferModal(this.reportOfferInfo.offerId);
             }
         },
 

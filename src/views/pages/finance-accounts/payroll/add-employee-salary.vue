@@ -96,20 +96,6 @@
                   placeholder="Select pay period date" style="width: 200px" format="YYYY-MM-DD"
                   :disabled="!selectedEmployeeFilter || calculationsLoading" />
               </div>
-              <div class="filter-item">
-                <label class="filter-label">
-                  <i class="ti ti-cash me-1"></i>
-                  Funding Type
-                </label>
-                <a-select v-model:value="fundingTypeFilter" @change="applyFilters" placeholder="All Types" allow-clear
-                  style="width: 200px">
-                  <a-select-option value="">All Types</a-select-option>
-                  <a-select-option value="grant">
-                    <a-tag color="green" class="me-1">GRANT</a-tag>
-                    Grant Funded
-                  </a-select-option>
-                </a-select>
-              </div>
               <div class="filter-item align-self-end">
                 <a-button @click="resetFilters" type="default" class="reset-btn">
                   <template #icon><i class="ti ti-refresh"></i></template>
@@ -331,13 +317,6 @@
                       <span class="percentage-cell">{{ text }}%</span>
                     </template>
 
-                    <!-- Funding type with badge -->
-                    <template v-else-if="column.dataIndex === 'allocationType'">
-                      <a-tag color="green">
-                        Grant
-                      </a-tag>
-                    </template>
-
                     <!-- Actions column -->
                     <template v-else-if="column.dataIndex === 'action'">
                       <a-space>
@@ -462,7 +441,6 @@ const calculationsLoading = ref(false);
 // Filter states
 const selectedEmployeeFilter = ref('');
 const departmentFilter = ref('');
-const fundingTypeFilter = ref('');
 const quickSearch = ref('');
 
 // Table states
@@ -554,12 +532,6 @@ const columns = ref([
     dataIndex: 'fundingSource',
     key: 'fundingSource',
     width: 200,
-  },
-  {
-    title: 'Funding Type',
-    dataIndex: 'allocationType',
-    key: 'allocationType',
-    width: 140,
   },
   {
     title: 'LOE %',
@@ -731,9 +703,8 @@ const rowSelection = {
       key: 'grant-funded',
       text: 'Select Grant Funded',
       onSelect: () => {
-        const grantRows = filteredTableData.value.filter(row => row.allocationType === 'grant');
-        selectedRowKeys.value = grantRows.map(row => row.key);
-        message.success(`Selected ${grantRows.length} grant funded entries`);
+        selectedRowKeys.value = filteredTableData.value.map(row => row.key);
+        message.success(`Selected ${filteredTableData.value.length} grant funded entries`);
       },
     },
   ],
@@ -864,12 +835,11 @@ const updateTableWithEmployeeData = () => {
 
     // Get funding source information
     let fundingSource = 'Unknown';
-    let allocationType = allocation.allocation_type;
 
-    // All allocations are now grant type with grant_item
+    // All allocations are grant type with grant_item
     if (allocation.grant_item?.grant) {
       fundingSource = allocation.grant_item.grant.name || 'Grant Funded';
-    } else if (allocation.allocation_type === 'grant' && allocation.position_slot) {
+    } else if (allocation.position_slot) {
       fundingSource = allocation.position_slot.grant_item?.grant?.name || 'Grant Position Slot';
     }
 
@@ -894,7 +864,6 @@ const updateTableWithEmployeeData = () => {
       positionSalary: parseFloat(employee.employment?.position_salary || 0),
       payMethod: employee.employment?.pay_method || 'Bank',
       fundingSource: fundingSource,
-      allocationType: allocationType,
       positionSlot: allocation.position_slot?.slot_number || '-',
       loe: parseFloat(allocation.level_of_effort) * 100,
       salaryByFte: salaryByFte,
@@ -966,7 +935,6 @@ const applyFilters = () => {
 const resetFilters = () => {
   selectedEmployeeFilter.value = '';
   departmentFilter.value = '';
-  fundingTypeFilter.value = '';
   quickSearch.value = '';
   selectedRowKeys.value = [];
   Object.keys(editableData).forEach(key => delete editableData[key]);
@@ -1013,10 +981,6 @@ const applyQuickSearchFilter = () => {
   // Apply other filters
   if (departmentFilter.value) {
     filtered = filtered.filter(row => row.department === departmentFilter.value);
-  }
-
-  if (fundingTypeFilter.value) {
-    filtered = filtered.filter(row => row.allocationType === fundingTypeFilter.value);
   }
 
   // Apply quick search
@@ -1224,7 +1188,6 @@ const submitForm = async () => {
       return {
         allocation_id: row.allocationId,
         employment_id: selectedEmployeeData.value.employment.id,
-        allocation_type: 'grant', // All allocations are grant type now
         level_of_effort: parseFloat(row.loe) / 100, // Convert percentage back to decimal
         funding_source: row.fundingSource,
         salary_by_fte: parseFloat(row.salaryByFte) || 0,
@@ -1287,7 +1250,7 @@ onMounted(() => {
 });
 
 // Watch for filter changes
-watch([departmentFilter, fundingTypeFilter, quickSearch], () => {
+watch([departmentFilter, quickSearch], () => {
   applyFilters();
 });
 </script>
@@ -1637,21 +1600,6 @@ watch([departmentFilter, fundingTypeFilter, quickSearch], () => {
   min-width: 200px !important;
   max-width: 200px !important;
   width: 200px !important;
-} */
-
-/* :deep(.ant-table-cell[data-index="allocationType"]) {
-  min-width: 140px !important;
-  max-width: 140px !important;
-  width: 140px !important;
-  text-align: center;
-} */
-
-/* Ensure funding type tags don't overflow */
-/* :deep(.ant-table-cell[data-index="allocationType"] .ant-tag) {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 } */
 
 /* Loading Spinner */

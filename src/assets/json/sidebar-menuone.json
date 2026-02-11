@@ -385,14 +385,9 @@
                 "active_link": "/leave/admin/leave-settings"
               },
               {
-                "menuValue": "Attendance (Admin)",
-                "route": "/attendance/attendance-admin",
-                "active_link": "/attendance/attendance-admin"
-              },
-              {
-                "menuValue": "Attendance (Employee)",
-                "route": "/attendance/attendance-employee",
-                "active_link": "/attendance/attendance-employee"
+                "menuValue": "Attendance List",
+                "route": "/attendance/attendance-list",
+                "active_link": "/attendance/attendance-list"
               },
               {
                 "menuValue": "Timesheets",

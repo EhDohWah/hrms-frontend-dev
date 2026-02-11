@@ -4,13 +4,22 @@
     <div class="d-flex justify-content-between align-items-center mb-2">
       <div class="d-flex align-items-center gap-2">
         <p class="mb-0 fw-bold">Funding Allocations</p>
-        <!-- FTE indicator -->
+        <!-- FTE indicator badge - always visible when allocations exist -->
         <span
           v-if="savedAllocations.length > 0 || isEditMode"
           class="badge"
           :class="fteStatusBadgeClass"
         >
           {{ totalFte.toFixed(0) }}% FTE
+        </span>
+        <!-- Inline FTE hint in edit mode - no layout shift -->
+        <span v-if="isEditMode && totalFte !== 100" class="fte-hint">
+          <template v-if="totalFte < 100">
+            ({{ (100 - totalFte).toFixed(0) }}% remaining)
+          </template>
+          <template v-else>
+            ({{ (totalFte - 100).toFixed(0) }}% over limit)
+          </template>
         </span>
       </div>
 
@@ -35,17 +44,18 @@
           {{ grantsLoading ? 'Loading...' : 'Add Allocation' }}
         </a-button>
 
-        <!-- Save button (edit mode) -->
-        <a-button
-          v-if="isEditMode"
-          type="primary"
-          size="small"
-          @click="saveChanges"
-          :loading="saving"
-          :disabled="!canSave"
-        >
-          Save
-        </a-button>
+        <!-- Save button (edit mode) with tooltip when disabled -->
+        <a-tooltip v-if="isEditMode" :title="!canSave ? saveDisabledReason : ''">
+          <a-button
+            type="primary"
+            size="small"
+            @click="saveChanges"
+            :loading="saving"
+            :disabled="!canSave"
+          >
+            Save
+          </a-button>
+        </a-tooltip>
 
         <!-- Cancel button (edit mode) -->
         <a-button
@@ -57,31 +67,6 @@
           Cancel
         </a-button>
       </div>
-    </div>
-
-    <!-- FTE hint (only when editing and FTE != 100) -->
-    <div v-if="isEditMode && totalFte !== 100" class="fte-hint mb-2">
-      <template v-if="totalFte < 100">
-        {{ (100 - totalFte).toFixed(0) }}% remaining to reach 100%
-      </template>
-      <template v-else>
-        {{ (totalFte - 100).toFixed(0) }}% over 100% limit
-      </template>
-    </div>
-
-    <!-- Validation feedback (only when editing and has issues preventing save) -->
-    <div v-if="isEditMode && hasValidationIssues && !canSave" class="validation-feedback mb-2">
-      <a-alert
-        type="warning"
-        show-icon
-        :message="validationMessages.length === 1 ? validationMessages[0] : 'Please fix the following issues:'"
-      >
-        <template v-if="validationMessages.length > 1" #description>
-          <ul class="mb-0 ps-3">
-            <li v-for="(msg, index) in validationMessages" :key="index">{{ msg }}</li>
-          </ul>
-        </template>
-      </a-alert>
     </div>
 
     <!-- Allocations Table -->
@@ -157,8 +142,7 @@
               :max="100"
               :precision="0"
               :step="5"
-              style="width: 80px"
-              addon-after="%"
+              class="fte-input"
               @change="() => onFteChange(record)"
             />
           </template>
@@ -183,6 +167,23 @@
           </template>
         </template>
 
+        <!-- Status Column -->
+        <template v-else-if="column.dataIndex === 'status'">
+          <template v-if="isEditMode && !record.isNew">
+            <a-select
+              v-model:value="record.status"
+              style="width: 100%"
+              size="small"
+              :options="statusOptions"
+            />
+          </template>
+          <template v-else>
+            <a-tag :color="getStatusColor(record.status)">
+              {{ getStatusLabel(record.status) }}
+            </a-tag>
+          </template>
+        </template>
+
         <!-- Actions Column -->
         <template v-else-if="column.dataIndex === 'actions'">
           <div class="action-links">
@@ -202,7 +203,16 @@
               <span v-else class="text-muted">-</span>
             </template>
             <template v-else>
-              <span class="text-muted">-</span>
+              <a-popconfirm
+                title="Delete this allocation?"
+                @confirm="deleteAllocation(record)"
+                ok-text="Yes"
+                cancel-text="No"
+              >
+                <a href="javascript:void(0);" class="text-danger">
+                  <i class="ti ti-trash"></i>
+                </a>
+              </a-popconfirm>
             </template>
           </div>
         </template>
@@ -296,23 +306,28 @@ const tableData = computed(() => {
   return savedAllocations.value;
 });
 
-// Total FTE calculation
+// Total FTE calculation - only count active allocations
 const totalFte = computed(() => {
   const rows = isEditMode.value ? editableRows.value : savedAllocations.value;
-  return rows.reduce((sum, row) => sum + (row.fte || 0), 0);
+  return rows
+    .filter(row => row.status === 'active')
+    .reduce((sum, row) => sum + (row.fte || 0), 0);
 });
 
 // Can save?
 const canSave = computed(() => {
   if (!isEditMode.value) return false;
 
-  // All rows must have grant_id, grant_item_id, and valid FTE
-  for (const row of editableRows.value) {
+  const activeRows = editableRows.value.filter(r => r.status === 'active');
+
+  // All active rows must have grant_id, grant_item_id, and valid FTE
+  for (const row of activeRows) {
     if (!row.grant_id || !row.grant_item_id) return false;
     if (!row.fte || row.fte <= 0) return false;
   }
 
-  // Total must equal 100%
+  // Active FTE total must equal 100% (or 0% if no active rows)
+  if (activeRows.length === 0) return editableRows.value.length > 0;
   return Math.abs(totalFte.value - 100) < 0.01;
 });
 
@@ -322,8 +337,11 @@ const validationMessages = computed(() => {
 
   if (!isEditMode.value) return messages;
 
+  // Only validate active rows
   for (let i = 0; i < editableRows.value.length; i++) {
     const row = editableRows.value[i];
+    if (row.status !== 'active') continue;
+
     const rowNum = i + 1;
 
     if (!row.grant_id) {
@@ -337,8 +355,9 @@ const validationMessages = computed(() => {
     }
   }
 
-  // FTE total validation (only show if row validations pass)
-  if (editableRows.value.length > 0 && messages.length === 0) {
+  // FTE total validation (only show if row validations pass and there are active rows)
+  const activeRows = editableRows.value.filter(r => r.status === 'active');
+  if (activeRows.length > 0 && messages.length === 0) {
     if (totalFte.value < 100) {
       messages.push(`Total FTE is ${totalFte.value.toFixed(0)}% - needs ${(100 - totalFte.value).toFixed(0)}% more to reach 100%`);
     } else if (totalFte.value > 100) {
@@ -351,6 +370,12 @@ const validationMessages = computed(() => {
 
 // Check if there are validation issues (for UI display)
 const hasValidationIssues = computed(() => validationMessages.value.length > 0);
+
+// Tooltip text for disabled Save button
+const saveDisabledReason = computed(() => {
+  if (!hasValidationIssues.value) return '';
+  return validationMessages.value.join(' · ');
+});
 
 // Can add another row?
 const canAddAnother = computed(() => {
@@ -370,11 +395,12 @@ const fteStatusBadgeClass = computed(() => {
 // Table columns
 const columns = computed(() => {
   const cols = [
-    { title: 'Grant', dataIndex: 'grant_name', key: 'grant_name', width: 180 },
-    { title: 'Position', dataIndex: 'position_name', key: 'position_name', width: 160 },
-    { title: 'Budget Line', dataIndex: 'budget_line_code', key: 'budget_line_code', width: 110 },
-    { title: 'FTE', dataIndex: 'fte', key: 'fte', width: 90, align: 'right' },
-    { title: 'Amount', dataIndex: 'allocated_amount', key: 'allocated_amount', width: 120, align: 'right' }
+    { title: 'Grant', dataIndex: 'grant_name', key: 'grant_name', width: 200 },
+    { title: 'Grant Position', dataIndex: 'position_name', key: 'position_name', width: 200 },
+    { title: 'Budget Line', dataIndex: 'budget_line_code', key: 'budget_line_code', width: 120 },
+    { title: 'FTE %', dataIndex: 'fte', key: 'fte', width: 110, align: 'center' },
+    { title: 'Amount', dataIndex: 'allocated_amount', key: 'allocated_amount', width: 130, align: 'right' },
+    { title: 'Status', dataIndex: 'status', key: 'status', width: 130, align: 'center' }
   ];
 
   if (!props.readonly) {
@@ -399,6 +425,30 @@ const formatCurrency = (value) => {
 
 const filterOption = (input, option) => {
   return option.label.toLowerCase().includes(input.toLowerCase());
+};
+
+// Status dropdown options for edit mode
+const statusOptions = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' }
+];
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'active': return 'green';
+    case 'inactive': return 'orange';
+    case 'closed': return 'red';
+    default: return 'default';
+  }
+};
+
+const getStatusLabel = (status) => {
+  switch (status) {
+    case 'active': return 'Active';
+    case 'inactive': return 'Inactive';
+    case 'closed': return 'Closed';
+    default: return status || 'Unknown';
+  }
 };
 
 const getPositionOptions = (grantId) => {
@@ -433,13 +483,14 @@ const loadAllocations = async () => {
         return {
           id: alloc.id,
           rowKey: `saved-${alloc.id}`,
-          grant_id: grantId,
-          grant_item_id: alloc.grant_item_id,
+          grant_id: grantId ? Number(grantId) : null,
+          grant_item_id: alloc.grant_item_id ? Number(alloc.grant_item_id) : null,
           fte: alloc.fte || 0,
           allocated_amount: alloc.allocated_amount || 0,
           grant_name: alloc.grant_name || alloc.grant_item?.grant?.name || 'Unknown',
           budget_line_code: alloc.budgetline_code || alloc.grant_item?.budgetline_code || '',
-          position_name: alloc.grant_position || alloc.grant_item?.grant_position || ''
+          position_name: alloc.grant_position || alloc.grant_item?.grant_position || '',
+          status: alloc.status || 'active'
         };
       });
     }
@@ -459,15 +510,17 @@ const loadGrantStructure = async () => {
     const response = await employeeFundingAllocationService.getGrantStructure();
 
     if (response.data) {
+      // Normalize IDs to Number to prevent type mismatch with allocation data
       grantOptions.value = (response.data.grants || []).map(g => ({
-        value: g.id,
+        value: Number(g.id),
         label: g.name || g.code || `Grant ${g.id}`
       }));
 
       const positionsMap = {};
       (response.data.grants || []).forEach(grant => {
-        positionsMap[grant.id] = (grant.grant_items || grant.items || []).map(item => ({
-          value: item.id,
+        const grantId = Number(grant.id);
+        positionsMap[grantId] = (grant.grant_items || grant.items || []).map(item => ({
+          value: Number(item.id),
           label: item.name || item.grant_position || 'Position',
           budget_line_code: item.budgetline_code || item.budget_line_code || ''
         }));
@@ -547,13 +600,35 @@ const enterEditMode = async () => {
     }
   }
 
+  // Ensure saved allocation grants/positions exist in dropdown options
+  // This prevents selects from showing raw IDs when the grant structure
+  // doesn't include a specific grant (e.g., deactivated grants)
+  savedAllocations.value.forEach(alloc => {
+    if (alloc.grant_id && !grantOptions.value.find(g => g.value === alloc.grant_id)) {
+      grantOptions.value.push({ value: alloc.grant_id, label: alloc.grant_name || `Grant ${alloc.grant_id}` });
+    }
+    if (alloc.grant_id && alloc.grant_item_id) {
+      if (!grantPositions.value[alloc.grant_id]) {
+        grantPositions.value[alloc.grant_id] = [];
+      }
+      if (!grantPositions.value[alloc.grant_id].find(p => p.value === alloc.grant_item_id)) {
+        grantPositions.value[alloc.grant_id].push({
+          value: alloc.grant_item_id,
+          label: alloc.position_name || `Position ${alloc.grant_item_id}`,
+          budget_line_code: alloc.budget_line_code || ''
+        });
+      }
+    }
+  });
+
   // Clone saved allocations to editable rows
   editableRows.value = savedAllocations.value.map(alloc => ({
     ...alloc,
     rowKey: `edit-${alloc.id}`,
     isNew: false,
     calculating: false,
-    calculated_amount: alloc.allocated_amount
+    calculated_amount: alloc.allocated_amount,
+    status: alloc.status || 'active'
   }));
 
   rowsToDelete.value = [];
@@ -582,7 +657,8 @@ const addNewRow = () => {
     allocated_amount: null,
     calculated_amount: null,
     calculating: false,
-    isNew: true
+    isNew: true,
+    status: 'active'
   };
 
   editableRows.value.push(newRow);
@@ -602,6 +678,23 @@ const removeRow = (row) => {
 
   if (calculateTimeouts[row.rowKey]) {
     clearTimeout(calculateTimeouts[row.rowKey]);
+  }
+};
+
+// Delete a single allocation (view mode)
+const deleteAllocation = async (row) => {
+  if (!row.id) return;
+  try {
+    const response = await employeeFundingAllocationService.delete(row.id);
+    if (response.success) {
+      message.success('Allocation deleted successfully');
+      await loadAllocations();
+      emit('allocation-changed');
+    } else {
+      message.error(response.message || 'Failed to delete allocation');
+    }
+  } catch (error) {
+    message.error(error.response?.data?.message || 'Failed to delete allocation');
   }
 };
 
@@ -659,7 +752,8 @@ const saveChanges = async () => {
       updates: existingRows.map(row => ({
         id: row.id,
         grant_item_id: row.grant_item_id,
-        fte: row.fte  // Already in percentage (e.g., 60)
+        fte: row.fte,  // Already in percentage (e.g., 60)
+        status: row.status
       })),
       creates: newRows.map(row => ({
         grant_item_id: row.grant_item_id,
@@ -719,11 +813,21 @@ onMounted(() => {
   margin-right: 0;
 }
 
-/* FTE hint - subtle inline text */
+/* FTE input - wider to prevent number being hidden by arrows */
+.fte-input {
+  width: 90px !important;
+}
+
+/* Remove the addon and use suffix-style display */
+.fte-input :deep(.ant-input-number-input) {
+  text-align: center;
+  padding-right: 4px;
+}
+
+/* FTE hint - inline next to badge, no layout shift */
 .fte-hint {
   font-size: 12px;
   color: #8c8c8c;
-  display: inline-block;
 }
 
 /* Badge styles - subtle backgrounds matching Ant Design */
@@ -750,17 +854,4 @@ onMounted(() => {
   color: #1890ff;
 }
 
-/* Validation feedback styling */
-.validation-feedback {
-  font-size: 13px;
-}
-
-.validation-feedback ul {
-  margin-top: 4px;
-  font-size: 12px;
-}
-
-.validation-feedback li {
-  margin-bottom: 2px;
-}
 </style>

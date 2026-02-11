@@ -50,7 +50,7 @@
                   ><i class="fa-solid fa-caret-up me-1"></i>+2.1%</span
                 >
               </h3>
-              <router-link to="/attendance/attendance-employee" class="link-default"
+              <router-link to="/attendance/attendance-list" class="link-default"
                 >View Details</router-link
               >
             </div>

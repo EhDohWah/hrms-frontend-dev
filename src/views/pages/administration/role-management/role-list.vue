@@ -203,7 +203,7 @@ export default {
           title: "Created Date",
           dataIndex: "created_at",
           render: (text) => {
-            return text ? moment(text).format('DD MMM YYYY') : '-';
+            return text ? moment(text).format('DD/MM/YYYY') : '-';
           },
           sorter: {
             compare: (a, b) => {

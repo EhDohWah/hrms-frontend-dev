@@ -839,7 +839,7 @@ export default {
         first_name_en: emp.first_name_en || 'N/A',
         last_name_en: emp.last_name_en || 'N/A',
         gender: emp.gender || 'N/A',
-        date_of_birth: emp.date_of_birth ? moment(emp.date_of_birth).format("DD MMM YYYY") : 'N/A',
+        date_of_birth: emp.date_of_birth ? moment(emp.date_of_birth).format("DD/MM/YYYY") : 'N/A',
         age: emp.date_of_birth ? moment().diff(moment(emp.date_of_birth), 'years') : 'N/A',
         status: emp.status || 'N/A',
         id_type: emp.identification_type || 'N/A',
@@ -847,8 +847,8 @@ export default {
         social_security_number: emp.social_security_number || 'N/A',
         tax_number: emp.tax_number || 'N/A',
         mobile_phone: emp.mobile_phone || 'N/A',
-        joiningDate: emp.employment?.start_date ? moment(emp.employment.start_date).format("DD MMM YYYY") : "N/A",
-        created_at: moment(emp.created_at).format("DD MMM YYYY"),
+        joiningDate: emp.employment?.start_date ? moment(emp.employment.start_date).format("DD/MM/YYYY") : "N/A",
+        created_at: moment(emp.created_at).format("DD/MM/YYYY"),
         active: emp.employment?.active === 1
       }));
     },

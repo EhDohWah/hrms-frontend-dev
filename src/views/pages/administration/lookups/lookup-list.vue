@@ -9,8 +9,8 @@
         <div class="d-flex align-items-center">
           <index-breadcrumb :title="title" :text="text" :text1="text1" />
           <!-- Read-Only Badge -->
-          <span 
-            v-if="isReadOnly" 
+          <span
+            v-if="isReadOnly"
             class="badge bg-warning text-dark ms-3 d-flex align-items-center"
             data-bs-toggle="tooltip"
             data-bs-placement="top"
@@ -22,7 +22,7 @@
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <!-- Add Lookup Button - Only visible if user can edit -->
           <div v-if="canEdit" class="mb-2">
-            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_lookup"
+            <a href="javascript:void(0);" @click="openCreateModal"
               class="btn btn-primary d-flex align-items-center">
               <i class="ti ti-circle-plus me-2"></i>Add Lookup
             </a>
@@ -84,7 +84,7 @@
             </div>
 
             <a-table v-else class="table datatable thead-light" :columns="columns" :data-source="data"
-              :row-selection="canEdit ? rowSelection : null" 
+              :row-selection="canEdit ? rowSelection : null"
               :pagination="paginationConfig"
               @change="handleChange">
                 <template #bodyCell="{ column, record }">
@@ -99,26 +99,32 @@
                   </template>
                   <template v-if="column.key === 'action'">
                     <div class="action-icon d-inline-flex">
-                    <!-- View - Always visible -->
-                    <a href="javascript:void(0);" class="me-2" title="View Lookup" @click="editLookup(record)">
-                      <i class="ti ti-eye"></i>
-                    </a>
                     <!-- Edit - Only visible if user can edit -->
-                    <a 
-                      v-if="canEdit" 
-                      href="javascript:void(0);" 
-                      class="me-2" 
-                      title="Edit Lookup" 
+                    <a
+                      v-if="canEdit"
+                      href="javascript:void(0);"
+                      class="me-2"
+                      title="Edit Lookup"
                       @click="editLookup(record)"
                     >
                       <i class="ti ti-edit"></i>
                     </a>
+                    <!-- View - Visible for read-only users -->
+                    <a
+                      v-if="!canEdit"
+                      href="javascript:void(0);"
+                      class="me-2"
+                      title="View Lookup"
+                      @click="viewLookup(record)"
+                    >
+                      <i class="ti ti-eye"></i>
+                    </a>
                     <!-- Delete - Only visible if user can edit -->
-                    <a 
-                      v-if="canEdit" 
-                      href="javascript:void(0);" 
-                      title="Delete Lookup" 
-                      @click="confirmDeleteLookup(record.id)"
+                    <a
+                      v-if="canEdit"
+                      href="javascript:void(0);"
+                      title="Delete Lookup"
+                      @click="confirmDeleteLookup(record)"
                     >
                       <i class="ti ti-trash"></i>
                     </a>
@@ -138,13 +144,46 @@
     </div>
   </div>
   <!-- /Page Wrapper -->
-  <lookup-modal ref="lookupModal" @lookup-added="onLookupChanged" @lookup-updated="onLookupChanged"></lookup-modal>
+
+  <!-- Lookup Modal (lazy-loaded) -->
+  <lookup-modal
+    :visible="modalVisible"
+    :editing-record="editingRecord"
+    @saved="handleSaved"
+    @close="closeModal"
+  />
+
+  <!-- View Lookup Modal (read-only) -->
+  <a-modal
+    v-model:open="viewModalVisible"
+    title="Lookup Details"
+    :footer="null"
+    :width="450"
+    centered
+    :destroyOnClose="true"
+  >
+    <div v-if="viewRecord" class="py-2">
+      <div class="mb-3">
+        <label class="text-muted small d-block mb-1">Type</label>
+        <span class="badge badge-primary p-2 fs-10">{{ viewRecord.type }}</span>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small d-block mb-1">Value</label>
+        <span class="fw-medium">{{ viewRecord.value }}</span>
+      </div>
+      <div class="mb-3">
+        <label class="text-muted small d-block mb-1">Created Date</label>
+        <span>{{ viewRecord.created_at || 'N/A' }}</span>
+      </div>
+    </div>
+  </a-modal>
 </template>
 
 <script>
+import { Modal, message } from 'ant-design-vue';
 import moment from "moment";
 import { useLookupStore } from "@/stores/lookupStore";
-import LookupModal from "@/components/modal/lookup-modal.vue";
+import { lookupService } from "@/services/lookup.service";
 import { usePermissions } from '@/composables/usePermissions';
 
 const rowSelection = {
@@ -154,19 +193,15 @@ const rowSelection = {
 };
 
 export default {
-  components: {
-    LookupModal
-  },
   setup() {
-    // Initialize permission checks for lookups module
-    const { 
-      canRead, 
-      canEdit, 
-      isReadOnly, 
-      accessLevelText, 
-      accessLevelBadgeClass 
+    const {
+      canRead,
+      canEdit,
+      isReadOnly,
+      accessLevelText,
+      accessLevelBadgeClass
     } = usePermissions('lookups');
-    
+
     return {
       canRead,
       canEdit,
@@ -190,6 +225,11 @@ export default {
       availableFilterTypes: [],
       searchValue: '',
       searchTimeout: null,
+      // Modal state
+      modalVisible: false,
+      editingRecord: null,
+      viewModalVisible: false,
+      viewRecord: null,
     };
   },
   computed: {
@@ -259,7 +299,7 @@ export default {
           title: "Created Date",
           dataIndex: "created_at",
           render: (text) => {
-            return moment(text).format('DD MMM YYYY');
+            return moment(text).format('DD/MM/YYYY');
           },
           sorter: {
             compare: (a, b) => {
@@ -281,6 +321,56 @@ export default {
     this.fetchLookupTypes();
   },
   methods: {
+    // Modal methods
+    openCreateModal() {
+      this.editingRecord = null;
+      this.modalVisible = true;
+    },
+
+    editLookup(record) {
+      this.editingRecord = { ...record };
+      this.modalVisible = true;
+    },
+
+    viewLookup(record) {
+      this.viewRecord = { ...record };
+      this.viewModalVisible = true;
+    },
+
+    closeModal() {
+      this.modalVisible = false;
+      this.editingRecord = null;
+    },
+
+    async handleSaved() {
+      this.closeModal();
+      await this.fetchLookups();
+      await this.fetchLookupTypes();
+    },
+
+    confirmDeleteLookup(record) {
+      Modal.confirm({
+        title: 'Confirm Delete',
+        content: `Are you sure you want to delete this lookup (${record.type}: ${record.value})? This action cannot be undone.`,
+        okText: 'Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        centered: true,
+        onOk: async () => {
+          try {
+            await lookupService.deleteLookup(record.id);
+            message.success('Lookup deleted successfully');
+            await this.fetchLookups();
+            await this.fetchLookupTypes();
+          } catch (error) {
+            console.error('Error deleting lookup:', error);
+            message.error(error.message || 'Failed to delete lookup');
+          }
+        },
+      });
+    },
+
+    // Data methods
     async fetchLookupTypes() {
       try {
         await this.lookupStore.fetchLookupTypes();
@@ -293,7 +383,6 @@ export default {
     async fetchLookups() {
       this.loading = true;
       try {
-        // Set filters in store
         this.lookupStore.setSearchTerm(this.searchValue);
         this.lookupStore.setFilterType(this.selectedFilterType);
 
@@ -310,26 +399,13 @@ export default {
           updated_by: lookup.updated_by || ''
         }));
 
-        this.$message.success('Lookups loaded successfully');
+        message.success('Lookups loaded successfully');
       } catch (error) {
         console.error('Error loading lookups:', error);
-        this.$message.error('Failed to load lookups');
+        message.error('Failed to load lookups');
       } finally {
         this.loading = false;
       }
-    },
-
-    editLookup(record) {
-      this.$refs.lookupModal.setEditLookup(record);
-    },
-
-    confirmDeleteLookup(lookupId) {
-      this.$refs.lookupModal.confirmDeleteLookup(lookupId);
-    },
-
-    async onLookupChanged() {
-      await this.fetchLookups();
-      await this.fetchLookupTypes();
     },
 
     toggleHeader() {
@@ -340,9 +416,8 @@ export default {
     handleChange(pagination, filters, sorter) {
       this.filteredInfo = filters;
       this.sortedInfo = sorter;
-      
-      // Handle pagination changes
-      if (pagination.current !== this.lookupStore.pagination.current_page || 
+
+      if (pagination.current !== this.lookupStore.pagination.current_page ||
           pagination.pageSize !== this.lookupStore.pagination.per_page) {
         this.lookupStore.pagination.current_page = pagination.current;
         if (pagination.pageSize !== this.lookupStore.pagination.per_page) {
@@ -401,7 +476,7 @@ export default {
         return [];
       }
       const values = [...new Set(this.data.map(item => item.value))];
-      return values.slice(0, 50).map(value => ({ text: value, value: value })); // Limit to 50 for performance
+      return values.slice(0, 50).map(value => ({ text: value, value: value }));
     },
   },
 };

@@ -374,7 +374,7 @@ export default {
 
     const formatTimestamp = (timestamp) => {
       if (!timestamp) return 'N/A';
-      return moment(timestamp).format('DD MMM YYYY, HH:mm:ss');
+      return moment(timestamp).format('DD/MM/YYYY HH:mm');
     };
 
     const fetchBatchStatus = async () => {

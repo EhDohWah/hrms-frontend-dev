@@ -257,7 +257,7 @@ export default {
               v-model:value="form.date"
               class="input-short"
               placeholder="Select date"
-              format="DD MMM YYYY"
+              format="DD/MM/YYYY"
               :status="formErrors.date ? 'error' : ''"
             />
             <span class="tooltip-icon" title="Select the date of the holiday">

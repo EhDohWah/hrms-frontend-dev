@@ -390,10 +390,10 @@ export default {
           sortOrder: sorted.columnKey === 'pass_probation_date' && sorted.order
         },
         {
-          title: 'Salary',
+          title: 'Pass Prob. Salary',
           dataIndex: 'pass_probation_salary',
           key: 'pass_probation_salary',
-          width: 120,
+          width: 150,
           align: 'right',
           sorter: true,
           sortOrder: sorted.columnKey === 'pass_probation_salary' && sorted.order
@@ -858,7 +858,7 @@ export default {
 
     formatDate(dateString) {
       if (!dateString) return '';
-      return moment(dateString).format('YYYY-MM-DD');
+      return moment(dateString).format('DD/MM/YYYY');
     },
 
     // Handle row expand/collapse - only one row expanded at a time

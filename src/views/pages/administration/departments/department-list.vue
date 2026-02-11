@@ -22,7 +22,7 @@
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
           <!-- Add Department Button - Only visible if user can edit -->
           <div v-if="canEdit" class="mb-2">
-            <a href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#add_department_modal"
+            <a href="javascript:void(0);" @click="openCreateModal"
               class="btn btn-primary d-flex align-items-center">
               <i class="ti ti-circle-plus me-2"></i>Add Department
             </a>
@@ -131,14 +131,15 @@
     </div>
   </div>
   <!-- /Page Wrapper -->
-  <DepartmentModal ref="departmentModal" @department-added="fetchDepartments" @department-updated="fetchDepartments"></DepartmentModal>
+  <department-modal :visible="modalVisible" :editing-record="editingRecord" @saved="handleSaved" @close="closeModal" />
 </template>
 
 <script>
 import moment from "moment";
 import { useDepartmentStore } from "@/stores/departmentStore";
-import DepartmentModal from "@/components/modal/department-modal.vue";
+import { departmentService } from "@/services/department.service";
 import { usePermissions } from '@/composables/usePermissions';
+import { Modal, message } from 'ant-design-vue';
 
 const rowSelection = {
   onChange: () => {},
@@ -147,9 +148,6 @@ const rowSelection = {
 };
 
 export default {
-  components: {
-    DepartmentModal
-  },
   setup() {
     // Initialize permission checks for departments module
     const { 
@@ -181,6 +179,8 @@ export default {
       departmentStore: useDepartmentStore(),
       searchValue: '',
       searchTimeout: null,
+      modalVisible: false,
+      editingRecord: null,
     };
   },
   computed: {
@@ -258,7 +258,7 @@ export default {
           title: "Created Date",
           dataIndex: "created_at",
           render: (text) => {
-            return moment(text).format('DD MMM YYYY');
+            return moment(text).format('DD/MM/YYYY');
           },
           sorter: {
             compare: (a, b) => {
@@ -303,12 +303,57 @@ export default {
       }
     },
 
+    openCreateModal() {
+      this.editingRecord = null;
+      this.modalVisible = true;
+    },
+
     editDepartment(record) {
-      this.$refs.departmentModal.setEditDepartment(record);
+      this.editingRecord = record;
+      this.modalVisible = true;
+    },
+
+    closeModal() {
+      this.modalVisible = false;
+      this.editingRecord = null;
+    },
+
+    handleSaved() {
+      this.closeModal();
+      this.fetchDepartments();
     },
 
     confirmDeleteDepartment(departmentId) {
-      this.$refs.departmentModal.confirmDeleteDepartment(departmentId);
+      Modal.confirm({
+        title: 'Delete Department',
+        content: 'Are you sure you want to delete this department? It will be moved to the Recycle Bin and can be restored within 90 days. Departments with active employments or personnel actions cannot be deleted.',
+        okText: 'Delete',
+        okType: 'danger',
+        cancelText: 'Cancel',
+        centered: true,
+        onOk: async () => {
+          try {
+            const response = await departmentService.deleteDepartment(departmentId);
+            if (response.success) {
+              message.success('Department moved to Recycle Bin');
+              this.fetchDepartments();
+            } else {
+              message.error(response.message || 'Failed to delete department');
+            }
+          } catch (error) {
+            const responseData = error.response?.data || error;
+            if (responseData.blockers && responseData.blockers.length > 0) {
+              Modal.error({
+                title: 'Cannot Delete Department',
+                content: 'Blockers: ' + responseData.blockers.join(', '),
+                centered: true,
+              });
+            } else {
+              message.error(responseData.message || error.message || 'Failed to delete department');
+            }
+          }
+        },
+      });
     },
 
     toggleHeader() {

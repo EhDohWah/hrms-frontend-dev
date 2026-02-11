@@ -7,36 +7,9 @@
       <!-- Breadcrumb -->
       <div class="d-md-flex d-block align-items-center justify-content-between page-breadcrumb mb-3">
         <index-breadcrumb :title="title" :text="text" :text1="text1" />
-
         <div class="d-flex my-xl-auto right-content align-items-center flex-wrap">
-          <div class="dropdown me-2 mb-2">
-            <a href="javascript:void(0);" class="dropdown-toggle btn btn-white d-inline-flex align-items-center"
-              data-bs-toggle="dropdown">
-              <i class="ti ti-bell me-1"></i>Notifications
-              <span class="badge bg-danger rounded-pill ms-1">3</span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end p-3">
-              <li>
-                <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                  <i class="ti ti-user-check me-1"></i>Profile updated successfully
-                </a>
-              </li>
-              <li>
-                <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                  <i class="ti ti-mail me-1"></i>Email verification sent
-                </a>
-              </li>
-              <li>
-                <a href="javascript:void(0);" class="dropdown-item rounded-1">
-                  <i class="ti ti-shield-lock me-1"></i>Password changed successfully
-                </a>
-              </li>
-            </ul>
-          </div>
-
           <div class="head-icons ms-2">
-            <a href="javascript:void(0);" class="" data-bs-toggle="tooltip" data-bs-placement="top"
-              data-bs-original-title="Collapse" id="collapse-header" @click="toggleHeader">
+            <a href="javascript:void(0);" id="collapse-header" @click="toggleHeader">
               <i class="ti ti-chevrons-up"></i>
             </a>
           </div>
@@ -44,154 +17,205 @@
       </div>
       <!-- /Breadcrumb -->
 
-      <div class="card">
-        <div class="card-body">
-          <!-- Loading Overlay -->
-          <div v-if="isLoading"
-            class="position-absolute w-100 h-100 top-0 start-0 bg-white bg-opacity-75 d-flex align-items-center justify-content-center"
-            style="z-index: 10; left: 0;">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-          </div>
-
-          <div class="border-bottom mb-4 pb-3">
-            <h4>Profile</h4>
-          </div>
-
-          <!-- Profile Picture Section -->
-          <div class="border-bottom mb-4 pb-4">
-            <h6 class="mb-3 text-primary">Profile Picture</h6>
-            <div class="d-flex align-items-center flex-wrap row-gap-3 bg-light w-100 rounded p-4">
-              <div
-                class="d-flex align-items-center justify-content-center avatar avatar-xxl rounded-circle border border-primary me-4 flex-shrink-0 text-dark frames">
-                <img v-if="profileImage" :src="profileImage" alt="Profile" class="img-fluid rounded-circle" />
-                <i v-else class="ti ti-photo text-gray-3 fs-16"></i>
-              </div>
-              <div class="profile-upload">
-                <div class="mb-3">
-                  <p class="fs-12 text-muted">
-                    Recommended image size is 40px x 40px
-                  </p>
+      <a-spin :spinning="isLoading">
+        <div class="row">
+          <!-- Left Column: Profile Picture + Account Info -->
+          <div class="col-12 col-lg-4 mb-4">
+            <!-- Profile Picture Card -->
+            <div class="card mb-4">
+              <div class="card-body text-center">
+                <div class="profile-avatar-wrap mb-3">
+                  <a-avatar :size="100" :src="profileImage" class="profile-avatar">
+                    <template #icon>
+                      <i class="ti ti-user" style="font-size: 48px;"></i>
+                    </template>
+                  </a-avatar>
                 </div>
-                <div class="profile-uploader d-flex align-items-center">
-                  <div class="drag-upload-btn btn btn-primary me-3">
-                    <i class="ti ti-upload me-1"></i> Upload
-                    <input type="file" class="form-control image-sign" @change="handleImageUpload" />
+                <h5 class="mb-1">{{ username || 'User' }}</h5>
+                <p class="text-muted mb-3">{{ email }}</p>
+                <div class="d-flex flex-column align-items-center gap-2">
+                  <div class="upload-btn-wrap">
+                    <a-button @click="triggerFileInput">
+                      <i class="ti ti-upload me-1"></i> Choose Photo
+                    </a-button>
+                    <input
+                      ref="fileInput"
+                      type="file"
+                      accept="image/*"
+                      class="d-none"
+                      @change="handleImageUpload"
+                    />
                   </div>
-                  <button class="btn btn-primary" @click="saveProfilePicture" :disabled="isLoading">
+                  <a-button
+                    v-if="selectedFile"
+                    type="primary"
+                    :loading="savingPicture"
+                    @click="saveProfilePicture"
+                  >
                     <i class="ti ti-device-floppy me-1"></i> Save Picture
-                  </button>
+                  </a-button>
+                  <span v-if="selectedFile" class="text-muted small">{{ selectedFile.name }}</span>
                 </div>
+                <p class="text-muted small mt-3 mb-0">Max file size: 2MB. Supported: JPG, PNG</p>
               </div>
             </div>
-          </div>
 
-          <!-- Username, Email, and Change Password in two equal columns -->
-          <div class="border-bottom mb-4 pb-4">
-            <div class="row">
-              <!-- Left column: Username & Email -->
-              <div class="col-12 col-md-6 mb-4 mb-md-0">
-                <!-- Username Section -->
-                <h6 class="mb-3 text-primary">Username</h6>
-                <div class="input-group mb-4">
-                  <span class="input-group-text bg-light">
-                    <i class="ti ti-user"></i>
-                  </span>
-                  <input type="text" class="form-control" v-model="username" placeholder="Enter your username" />
-                  <button class="btn btn-primary" @click="saveUsername" :disabled="isLoading">
-                    <i class="ti ti-device-floppy me-1"></i> Save
-                  </button>
-                </div>
-
-                <!-- Email Section -->
-                <h6 class="mb-3 text-primary">Email</h6>
-                <div class="input-group">
-                  <span class="input-group-text bg-light">
-                    <i class="ti ti-mail"></i>
-                  </span>
-                  <input type="email" class="form-control" v-model="email" placeholder="Enter your email" />
-                  <button class="btn btn-primary" @click="saveEmail" :disabled="isLoading">
-                    <i class="ti ti-device-floppy me-1"></i> Save
-                  </button>
-                </div>
+            <!-- Account Info Card -->
+            <div class="card">
+              <div class="card-header">
+                <h6 class="card-title mb-0">
+                  <i class="ti ti-user-circle me-2"></i>Account Information
+                </h6>
               </div>
+              <div class="card-body">
+                <!-- Username -->
+                <div class="mb-4">
+                  <label class="form-label fw-medium">Username</label>
+                  <div class="d-flex gap-2">
+                    <a-input
+                      v-model:value="username"
+                      placeholder="Enter your username"
+                      :maxlength="255"
+                      class="flex-grow-1"
+                    >
+                      <template #prefix>
+                        <i class="ti ti-user text-muted"></i>
+                      </template>
+                    </a-input>
+                    <a-button type="primary" :loading="savingUsername" @click="saveUsername">
+                      Save
+                    </a-button>
+                  </div>
+                </div>
 
-              <!-- Right column: Change Password -->
-              <div class="col-12 col-md-6">
-                <h6 class="mb-3 text-primary">Change Password</h6>
-                <div class="card shadow-sm border">
-                  <div class="card-body">
-                    <div class="mb-3">
-                      <label class="form-label">Current Password</label>
-                      <div class="input-group">
-                        <span class="input-group-text bg-light">
-                          <i class="ti ti-lock"></i>
-                        </span>
-                        <input :type="showPassword ? 'text' : 'password'" class="form-control" v-model="currentPassword"
-                          placeholder="Enter current password" />
-                        <span @click="toggleShow" class="input-group-text bg-light cursor-pointer">
-                          <i class="ti" :class="{
-                            'ti-eye': showPassword,
-                            'ti-eye-off': !showPassword
-                          }"></i>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="mb-3">
-                      <label class="form-label">New Password</label>
-                      <div class="input-group">
-                        <span class="input-group-text bg-light">
-                          <i class="ti ti-lock"></i>
-                        </span>
-                        <input :type="showPassword1 ? 'text' : 'password'" class="form-control" v-model="newPassword"
-                          placeholder="Enter new password" />
-                        <span @click="toggleShow1" class="input-group-text bg-light cursor-pointer">
-                          <i class="ti" :class="{
-                            'ti-eye': showPassword1,
-                            'ti-eye-off': !showPassword1
-                          }"></i>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div class="mb-3">
-                      <label class="form-label">Confirm Password</label>
-                      <div class="input-group">
-                        <span class="input-group-text bg-light">
-                          <i class="ti ti-lock"></i>
-                        </span>
-                        <input :type="showPassword2 ? 'text' : 'password'" class="form-control"
-                          v-model="confirmPassword" placeholder="Confirm new password" />
-                        <span @click="toggleShow2" class="input-group-text bg-light cursor-pointer">
-                          <i class="ti" :class="{
-                            'ti-eye': showPassword2,
-                            'ti-eye-off': !showPassword2
-                          }"></i>
-                        </span>
-                      </div>
-                    </div>
-
-                    <button class="btn btn-primary w-100" @click="savePassword" :disabled="isLoading">
-                      <i class="ti ti-device-floppy me-1"></i> Save Password
-                    </button>
+                <!-- Email -->
+                <div>
+                  <label class="form-label fw-medium">Email Address</label>
+                  <div class="d-flex gap-2">
+                    <a-input
+                      v-model:value="email"
+                      placeholder="Enter your email"
+                      type="email"
+                      class="flex-grow-1"
+                    >
+                      <template #prefix>
+                        <i class="ti ti-mail text-muted"></i>
+                      </template>
+                    </a-input>
+                    <a-button type="primary" :loading="savingEmail" @click="saveEmail">
+                      Save
+                    </a-button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <!-- End of two-column row -->
+
+          <!-- Right Column: Change Password -->
+          <div class="col-12 col-lg-8 mb-4">
+            <div class="card h-100">
+              <div class="card-header">
+                <h6 class="card-title mb-0">
+                  <i class="ti ti-lock me-2"></i>Change Password
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-12 col-md-8 col-lg-6">
+                    <!-- Current Password -->
+                    <div class="mb-3">
+                      <label class="form-label fw-medium">Current Password</label>
+                      <a-input-password
+                        v-model:value="currentPassword"
+                        placeholder="Enter current password"
+                        :status="passwordErrors.currentPassword ? 'error' : ''"
+                      >
+                        <template #prefix>
+                          <i class="ti ti-lock text-muted"></i>
+                        </template>
+                      </a-input-password>
+                      <div v-if="passwordErrors.currentPassword" class="error-feedback">
+                        {{ passwordErrors.currentPassword }}
+                      </div>
+                    </div>
+
+                    <!-- New Password -->
+                    <div class="mb-3">
+                      <label class="form-label fw-medium">New Password</label>
+                      <a-input-password
+                        v-model:value="newPassword"
+                        placeholder="Enter new password"
+                        :status="passwordErrors.newPassword ? 'error' : ''"
+                      >
+                        <template #prefix>
+                          <i class="ti ti-lock text-muted"></i>
+                        </template>
+                      </a-input-password>
+                      <div v-if="passwordErrors.newPassword" class="error-feedback">
+                        {{ passwordErrors.newPassword }}
+                      </div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-4">
+                      <label class="form-label fw-medium">Confirm New Password</label>
+                      <a-input-password
+                        v-model:value="confirmPassword"
+                        placeholder="Confirm new password"
+                        :status="passwordErrors.confirmPassword ? 'error' : ''"
+                      >
+                        <template #prefix>
+                          <i class="ti ti-lock text-muted"></i>
+                        </template>
+                      </a-input-password>
+                      <div v-if="passwordErrors.confirmPassword" class="error-feedback">
+                        {{ passwordErrors.confirmPassword }}
+                      </div>
+                    </div>
+
+                    <a-button type="primary" :loading="savingPassword" @click="savePassword" block>
+                      <i class="ti ti-device-floppy me-1"></i> Update Password
+                    </a-button>
+                  </div>
+
+                  <!-- Password Requirements -->
+                  <div class="col-12 col-md-4 col-lg-6 mt-4 mt-md-0">
+                    <div class="password-requirements">
+                      <div class="req-header">
+                        <i class="ti ti-shield-check me-1"></i> Password Requirements
+                      </div>
+                      <ul class="req-list">
+                        <li :class="{ met: newPassword.length >= 8 }">
+                          <i class="ti" :class="newPassword.length >= 8 ? 'ti-check' : 'ti-point'"></i>
+                          At least 8 characters
+                        </li>
+                        <li :class="{ met: /[A-Z]/.test(newPassword) }">
+                          <i class="ti" :class="/[A-Z]/.test(newPassword) ? 'ti-check' : 'ti-point'"></i>
+                          One uppercase letter
+                        </li>
+                        <li :class="{ met: /[a-z]/.test(newPassword) }">
+                          <i class="ti" :class="/[a-z]/.test(newPassword) ? 'ti-check' : 'ti-point'"></i>
+                          One lowercase letter
+                        </li>
+                        <li :class="{ met: /\d/.test(newPassword) }">
+                          <i class="ti" :class="/\d/.test(newPassword) ? 'ti-check' : 'ti-point'"></i>
+                          One number
+                        </li>
+                        <li :class="{ met: /[@$!%*?&]/.test(newPassword) }">
+                          <i class="ti" :class="/[@$!%*?&]/.test(newPassword) ? 'ti-check' : 'ti-point'"></i>
+                          One special character (@$!%*?&)
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </a-spin>
     </div>
-    <div class="footer d-sm-flex align-items-center justify-content-between border-top bg-white p-3">
-      <p class="mb-0">2014 - 2025 &copy; SmartHR.</p>
-      <p>
-        Designed &amp; Developed By
-        <a href="javascript:void(0);" class="text-primary">Dreams</a>
-      </p>
-    </div>
+    <layout-footer></layout-footer>
   </div>
   <!-- /Page Wrapper -->
 </template>
@@ -206,11 +230,8 @@ export default {
   data() {
     return {
       title: "Profile",
-      text: "Pages",
+      text: "Dashboard",
       text1: "Profile",
-      showPassword: false,
-      showPassword1: false,
-      showPassword2: false,
       username: "",
       email: "",
       currentPassword: "",
@@ -219,62 +240,49 @@ export default {
       profileImage: null,
       selectedFile: null,
       isLoading: false,
+      savingPicture: false,
+      savingUsername: false,
+      savingEmail: false,
+      savingPassword: false,
+      passwordErrors: {},
     };
   },
 
   mounted() {
     this.fetchUserDetails();
     this.initProfileListener();
-
-    // Listen for profile updates from other tabs or WebSocket
     window.addEventListener('profile-updated', this.handleProfileUpdate);
   },
 
   beforeUnmount() {
-    // Cleanup event listener
     window.removeEventListener('profile-updated', this.handleProfileUpdate);
   },
-  
+
   methods: {
     toggleHeader() {
       document.getElementById("collapse-header").classList.toggle("active");
       document.body.classList.toggle("header-collapse");
     },
-    toggleShow() {
-      this.showPassword = !this.showPassword;
+
+    triggerFileInput() {
+      this.$refs.fileInput.click();
     },
-    toggleShow1() {
-      this.showPassword1 = !this.showPassword1;
-    },
-    toggleShow2() {
-      this.showPassword2 = !this.showPassword2;
-    },
-    /**
-     * Initialize profile update listener for real-time updates
-     */
+
     initProfileListener() {
       const authStore = useAuthStore();
       if (authStore.user?.id) {
         initProfileUpdateListener(authStore.user.id);
       }
     },
-    /**
-     * Handle profile update events from WebSocket or other tabs
-     */
+
     handleProfileUpdate(event) {
       const { updateType, data, message: eventMessage } = event.detail;
-
-      // Update local form fields based on update type
       switch (updateType) {
         case 'name':
-          if (data?.name) {
-            this.username = data.name;
-          }
+          if (data?.name) this.username = data.name;
           break;
         case 'email':
-          if (data?.email) {
-            this.email = data.email;
-          }
+          if (data?.email) this.email = data.email;
           break;
         case 'profile_picture':
           if (data?.profile_picture) {
@@ -282,12 +290,11 @@ export default {
           }
           break;
       }
-
-      // Show notification if message provided
       if (eventMessage) {
         message.success(eventMessage);
       }
     },
+
     async fetchUserDetails() {
       try {
         this.isLoading = true;
@@ -307,9 +314,14 @@ export default {
         this.isLoading = false;
       }
     },
+
     handleImageUpload(event) {
       const file = event.target.files[0];
       if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          message.warning('File size must be less than 2MB');
+          return;
+        }
         this.selectedFile = file;
         this.profileImage = URL.createObjectURL(file);
       }
@@ -320,21 +332,21 @@ export default {
         message.warning('Please select an image first');
         return;
       }
-
       try {
-        this.isLoading = true;
+        this.savingPicture = true;
         const response = await userService.updateProfilePicture(this.selectedFile);
-
         if (response && response.success) {
-          // Refresh global state
           const authStore = useAuthStore();
           await authStore.updateUserData();
-          if (!authStore.user) {
-            console.error('Failed to update user data in store');
-            throw new Error('Failed to update user data');
+
+          // Update profile image to server URL with cache-busting (replace stale blob URL)
+          if (authStore.user?.profile_picture) {
+            const t = authStore.user.profile_picture_updated_at || Date.now();
+            this.profileImage = `${import.meta.env.VITE_PUBLIC_URL}/storage/${authStore.user.profile_picture}?t=${t}`;
           }
-          // Note: Real-time notification will be received via WebSocket
+
           message.success('Profile picture updated successfully');
+          this.selectedFile = null;
         } else {
           throw new Error(response.message || 'Failed to update profile picture');
         }
@@ -342,8 +354,7 @@ export default {
         message.error(error.message || 'Failed to update profile picture');
         console.error('Error updating profile picture:', error);
       } finally {
-        this.isLoading = false;
-        this.selectedFile = null;
+        this.savingPicture = false;
       }
     },
 
@@ -352,16 +363,12 @@ export default {
         message.warning('Username cannot be empty');
         return;
       }
-
       try {
-        this.isLoading = true;
+        this.savingUsername = true;
         const response = await userService.updateUsername(this.username);
-
         if (response && response.success) {
-          // Refresh global state
           const authStore = useAuthStore();
           await authStore.updateUserData();
-          // Note: Real-time notification will be received via WebSocket
           message.success('Username updated successfully');
         } else {
           throw new Error(response.message || 'Failed to update username');
@@ -370,7 +377,7 @@ export default {
         message.error(error.message || 'Failed to update username');
         console.error('Error updating username:', error);
       } finally {
-        this.isLoading = false;
+        this.savingUsername = false;
       }
     },
 
@@ -379,23 +386,17 @@ export default {
         message.warning('Email cannot be empty');
         return;
       }
-
-      // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(this.email)) {
         message.warning('Please enter a valid email address');
         return;
       }
-
       try {
-        this.isLoading = true;
+        this.savingEmail = true;
         const response = await userService.updateEmail(this.email);
-
         if (response && response.success) {
-          // Refresh global state
           const authStore = useAuthStore();
           await authStore.updateUserData();
-          // Note: Real-time notification will be received via WebSocket
           message.success('Email updated successfully');
         } else {
           throw new Error(response.message || 'Failed to update email');
@@ -404,65 +405,153 @@ export default {
         message.error(error.message || 'Failed to update email');
         console.error('Error updating email:', error);
       } finally {
-        this.isLoading = false;
+        this.savingEmail = false;
       }
     },
 
     async savePassword() {
-      // Validate password fields
+      this.passwordErrors = {};
+      let hasError = false;
+
       if (!this.currentPassword) {
-        message.warning('Current password is required');
-        return;
+        this.passwordErrors.currentPassword = 'Current password is required';
+        hasError = true;
       }
-
       if (!this.newPassword) {
-        message.warning('New password is required');
-        return;
+        this.passwordErrors.newPassword = 'New password is required';
+        hasError = true;
+      } else if (this.newPassword.length < 8) {
+        this.passwordErrors.newPassword = 'Password must be at least 8 characters';
+        hasError = true;
+      } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(this.newPassword)) {
+        this.passwordErrors.newPassword = 'Password must include uppercase, lowercase, number, and special character';
+        hasError = true;
+      }
+      if (!this.confirmPassword) {
+        this.passwordErrors.confirmPassword = 'Please confirm your new password';
+        hasError = true;
+      } else if (this.newPassword !== this.confirmPassword) {
+        this.passwordErrors.confirmPassword = 'Passwords do not match';
+        hasError = true;
       }
 
-      if (this.newPassword.length < 6) {
-        message.warning('New password must be at least 6 characters');
-        return;
-      }
-
-      if (this.newPassword !== this.confirmPassword) {
-        message.warning('New password and confirmation do not match');
+      if (hasError) {
+        message.warning('Please fix the errors before submitting');
         return;
       }
 
       try {
-        this.isLoading = true;
-        const passwordData = {
+        this.savingPassword = true;
+        const response = await userService.updatePassword({
           current_password: this.currentPassword,
           new_password: this.newPassword,
-          confirm_password: this.confirmPassword
-        };
-
-        const response = await userService.updatePassword(passwordData);
-
+          confirm_password: this.confirmPassword,
+        });
         if (response && response.success) {
-          // Note: Real-time notification will be received via WebSocket
           message.success(response.message || 'Password updated successfully');
-          // Clear password fields after successful update
           this.currentPassword = '';
           this.newPassword = '';
           this.confirmPassword = '';
+          this.passwordErrors = {};
         } else {
           throw new Error(response.error || 'Failed to update password');
         }
       } catch (error) {
+        if (error.errors) {
+          Object.keys(error.errors).forEach(field => {
+            if (Array.isArray(error.errors[field]) && error.errors[field].length > 0) {
+              const mappedField = field === 'current_password' ? 'currentPassword'
+                : field === 'new_password' ? 'newPassword'
+                : field === 'confirm_password' ? 'confirmPassword' : field;
+              this.passwordErrors[mappedField] = error.errors[field][0];
+            }
+          });
+        }
         message.error(error.message || 'Failed to update password');
         console.error('Error updating password:', error);
       } finally {
-        this.isLoading = false;
+        this.savingPassword = false;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style scoped>
-.cursor-pointer {
-  cursor: pointer;
+.profile-avatar-wrap {
+  display: inline-block;
+  position: relative;
+}
+
+.profile-avatar {
+  border: 3px solid #e8e8e8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.upload-btn-wrap {
+  position: relative;
+}
+
+.error-feedback {
+  margin-top: 4px;
+  font-size: 0.875em;
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+.password-requirements {
+  background-color: #f8f9fb;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.password-requirements .req-header {
+  background-color: #f0f5ff;
+  border-bottom: 1px solid #d6e4ff;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1a1a2e;
+}
+
+.password-requirements .req-list {
+  list-style: none;
+  padding: 12px 16px;
+  margin: 0;
+}
+
+.password-requirements .req-list li {
+  padding: 5px 0;
+  font-size: 13px;
+  color: #8c8c8c;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.password-requirements .req-list li.met {
+  color: #52c41a;
+}
+
+.password-requirements .req-list li.met i {
+  color: #52c41a;
+}
+
+.card-header {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 24px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.gap-2 {
+  gap: 0.5rem;
 }
 </style>

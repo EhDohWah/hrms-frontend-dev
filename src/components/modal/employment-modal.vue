@@ -15,7 +15,7 @@
  * - saved: When employment is successfully created/updated
  * - close: When modal is closed
  */
-import { ref, computed, watch, shallowRef, markRaw, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, watch, markRaw, onMounted, onBeforeUnmount } from 'vue';
 import { message } from 'ant-design-vue';
 import { InfoCircleOutlined } from '@ant-design/icons-vue';
 import dayjs from 'dayjs';
@@ -89,11 +89,11 @@ export default {
     // ============================================
     // DROPDOWN DATA
     // ============================================
-    const employeeTreeData = shallowRef([]);
-    const departments = shallowRef([]);
-    const positions = shallowRef([]);
-    const workLocations = shallowRef([]);
-    const sectionDepartments = shallowRef([]);
+    const employeeTreeData = ref([]);
+    const departments = ref([]);
+    const positions = ref([]);
+    const workLocations = ref([]);
+    const sectionDepartments = ref([]);
     const positionsLoading = ref(false);
 
     // Pay methods (hardcoded)
@@ -109,16 +109,17 @@ export default {
     const modalTitle = computed(() => isEditing.value ? 'Edit Employment' : 'Add Employment');
 
     // Convert dropdown data to options format
+    // Use Number() to ensure consistent type matching with form values
     const departmentOptions = computed(() =>
-      departments.value.map(d => ({ value: d.id, label: d.name }))
+      departments.value.map(d => ({ value: Number(d.id), label: d.name }))
     );
 
     const positionOptions = computed(() =>
-      positions.value.map(p => ({ value: p.id, label: p.title }))
+      positions.value.map(p => ({ value: Number(p.id), label: p.title }))
     );
 
     const workLocationOptions = computed(() =>
-      workLocations.value.map(w => ({ value: w.id, label: w.name }))
+      workLocations.value.map(w => ({ value: Number(w.id), label: w.name }))
     );
 
     const sectionDepartmentOptions = computed(() =>
@@ -130,9 +131,7 @@ export default {
     // ============================================
     const loadDropdownData = async () => {
       try {
-        console.log('📥 Loading employment modal data...');
-
-        // Load from shared store
+        // Load from shared store (uses internal caching, won't re-fetch if cached)
         await sharedDataStore.loadAllDropdownData({
           includeEmployees: true,
           includeDepartments: true,
@@ -141,7 +140,8 @@ export default {
           force: false
         });
 
-        // Copy data from shared store
+        // Always copy data from shared store to local refs
+        // This ensures local refs are in sync even if previously cleared
         employeeTreeData.value = sharedDataStore.getEmployeeTreeData;
         departments.value = sharedDataStore.getDepartments;
         positions.value = sharedDataStore.getPositions;
@@ -154,7 +154,6 @@ export default {
         sectionDepartments.value = lookupStore.getLookupsByType('section_department');
 
         dataLoaded.value = true;
-        console.log('✅ Employment modal data loaded');
       } catch (error) {
         console.error('❌ Error loading employment modal data:', error);
         message.error('Failed to load form data');
@@ -407,53 +406,58 @@ export default {
     // WATCHERS
     // ============================================
 
-    // Watch for editingEmployment changes (Edit mode)
-    watch(() => props.editingEmployment, async (newVal) => {
-      if (newVal) {
-        console.log('📥 Loading employment data for editing:', newVal.id);
+    // Populate form with employment data for editing
+    const populateEditForm = (employmentData) => {
+      // Use Number() to ensure type consistency with dropdown option values
+      const deptId = employmentData.department_id || employmentData.department?.id || '';
+      const posId = employmentData.position_id || employmentData.position?.id || '';
+      const siteId = employmentData.site_id || employmentData.site?.id || '';
 
-        // Populate form data
-        formData.value = {
-          employee_id: newVal.employee_id || newVal.employee?.id || '',
-          pay_method: newVal.pay_method || '',
-          department_id: newVal.department_id || newVal.department?.id || '',
-          position_id: newVal.position_id || newVal.position?.id || '',
-          site_id: newVal.site_id || newVal.site?.id || '',
-          section_department: newVal.section_department || '',
-          start_date: newVal.start_date ? dayjs(newVal.start_date) : null,
-          end_date: newVal.end_date ? dayjs(newVal.end_date) : null,
-          pass_probation_date: newVal.pass_probation_date ? dayjs(newVal.pass_probation_date) : null,
-          probation_salary: newVal.probation_salary,
-          pass_probation_salary: newVal.pass_probation_salary,
-          status: newVal.status !== undefined ? newVal.status : true,
-          health_welfare: newVal.health_welfare || false,
-          saving_fund: newVal.saving_fund || false,
-          pvd: newVal.pvd || false
+      formData.value = {
+        employee_id: employmentData.employee_id || employmentData.employee?.id || '',
+        pay_method: employmentData.pay_method || '',
+        department_id: deptId ? Number(deptId) : '',
+        position_id: posId ? Number(posId) : '',
+        site_id: siteId ? Number(siteId) : '',
+        section_department: employmentData.section_department || '',
+        start_date: employmentData.start_date ? dayjs(employmentData.start_date) : null,
+        end_date: employmentData.end_date ? dayjs(employmentData.end_date) : null,
+        pass_probation_date: employmentData.pass_probation_date ? dayjs(employmentData.pass_probation_date) : null,
+        probation_salary: employmentData.probation_salary,
+        pass_probation_salary: employmentData.pass_probation_salary,
+        status: employmentData.status !== undefined ? employmentData.status : true,
+        health_welfare: employmentData.health_welfare || false,
+        saving_fund: employmentData.saving_fund || false,
+        pvd: employmentData.pvd || false
+      };
+
+      // Set employee info for display
+      if (employmentData.employee) {
+        selectedEmployeeInfo.value = {
+          name: `${employmentData.employee.first_name_en || ''} ${employmentData.employee.last_name_en || ''}`.trim(),
+          staff_id: employmentData.employee.staff_id,
+          organization: employmentData.employee.organization,
+          status: employmentData.employee.status
         };
+      }
+    };
 
-        // Set employee info for display
-        if (newVal.employee) {
-          selectedEmployeeInfo.value = {
-            name: `${newVal.employee.first_name_en || ''} ${newVal.employee.last_name_en || ''}`.trim(),
-            staff_id: newVal.employee.staff_id,
-            organization: newVal.employee.organization,
-            status: newVal.employee.status
-          };
-        }
+    // Single watcher on visible — handles both Add and Edit mode
+    // This eliminates the race condition between two concurrent watchers
+    watch(() => props.visible, async (isVisible) => {
+      if (!isVisible) return;
 
-        // Load positions for selected department
+      // Always load dropdown data when modal opens
+      await loadDropdownData();
+
+      // If editing, populate form after dropdown data is ready
+      if (props.editingEmployment) {
+        populateEditForm(props.editingEmployment);
+
+        // Load department-specific positions after form is populated
         if (formData.value.department_id) {
           await loadPositionsForDepartment(formData.value.department_id);
         }
-      } else {
-        resetForm();
-      }
-    }, { immediate: true });
-
-    // Watch visibility to load dropdown data
-    watch(() => props.visible, async (newVal) => {
-      if (newVal && !dataLoaded.value) {
-        await loadDropdownData();
       }
     });
 
@@ -691,7 +695,7 @@ export default {
             <a-date-picker
               :value="formData.start_date"
               placeholder="Select start date"
-              format="DD MMM YYYY"
+              format="DD/MM/YYYY"
               :status="formErrors.start_date ? 'error' : ''"
               class="input-short"
               @change="handleStartDateChange"
@@ -713,7 +717,7 @@ export default {
           <a-date-picker
             v-model:value="formData.end_date"
             placeholder="Select end date"
-            format="DD MMM YYYY"
+            format="DD/MM/YYYY"
             class="input-short"
           />
         </div>
@@ -729,7 +733,7 @@ export default {
             <a-date-picker
               v-model:value="formData.pass_probation_date"
               placeholder="Select probation pass date"
-              format="DD MMM YYYY"
+              format="DD/MM/YYYY"
               class="input-short"
             />
             <span class="tooltip-icon" title="Auto-calculated as start date + 3 months if not provided">

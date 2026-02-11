@@ -314,7 +314,7 @@ export default {
               v-model:value="form.end_date"
               class="input-short"
               placeholder="Select date"
-              format="DD MMM YYYY"
+              format="DD/MM/YYYY"
             />
             <span class="tooltip-icon" title="Select the end date when this grant project will conclude">
               <info-circle-outlined style="color: rgba(0, 0, 0, 0.45); cursor: help;" />

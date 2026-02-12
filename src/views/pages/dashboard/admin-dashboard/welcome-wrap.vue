@@ -249,8 +249,12 @@
 </template>
 <script>
 import { empDepartment } from "./data";
+import VueApexCharts from "vue3-apexcharts";
 
 export default {
+  components: {
+    apexchart: VueApexCharts,
+  },
   data() {
     return {
       empDepartment: empDepartment,

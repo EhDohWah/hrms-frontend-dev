@@ -5,6 +5,7 @@ import { ref } from "vue";
 import { onMounted } from "vue";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
+import VueApexCharts from "vue3-apexcharts";
 
 import {
     taskReports,
@@ -15,6 +16,9 @@ import {
 } from "./data";
 
 export default {
+    components: {
+        apexchart: VueApexCharts,
+    },
     data() {
         return {
             title: "Task Report",

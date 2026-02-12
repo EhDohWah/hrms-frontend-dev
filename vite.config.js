@@ -38,6 +38,18 @@ export default defineConfig(({ mode }) => ({
     },
     // Disable source maps in production for security
     sourcemap: mode !== 'production',
+    // Split vendor bundle into cacheable chunks for better caching and parallel loading
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-vue': ['vue', 'vue-router', 'pinia'],
+          'vendor-antd': ['ant-design-vue'],
+          'vendor-bootstrap': ['bootstrap', 'bootstrap-vue-3'],
+          'vendor-charts': ['vue3-apexcharts'],
+          'vendor-utils': ['sweetalert2', 'moment', 'dompurify', 'nprogress'],
+        },
+      },
+    },
   },
   // Environment-aware flag for conditional logging
   define: {

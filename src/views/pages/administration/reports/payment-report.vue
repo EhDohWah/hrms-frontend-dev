@@ -5,12 +5,16 @@ import { ref } from "vue";
 import { onMounted } from "vue";
 import moment from "moment";
 import DateRangePicker from "daterangepicker";
+import VueApexCharts from "vue3-apexcharts";
 
 import {
     paymentReport
 } from "./data";
 
 export default {
+    components: {
+        apexchart: VueApexCharts,
+    },
     data() {
         return {
             title: "Payment Report",

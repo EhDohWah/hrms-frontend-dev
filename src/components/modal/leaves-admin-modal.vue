@@ -1437,8 +1437,8 @@ export default {
       const message = `Leave request created successfully!\n\nEmployee: ${employeeName} (${leaveData.employee.staff_id})\nLeave Type: ${leaveType}\nDuration: ${totalDays} days\nStatus: ${leaveData.status}\nRequest ID: #${leaveData.id}`;
 
       // Show external notification if available
-      if (this.$swal) {
-        this.$swal.fire({
+      if (window.Swal) {
+        window.Swal.fire({
           icon: 'success',
           title: 'Leave Request Created!',
           html: message.replace(/\n/g, '<br>'),

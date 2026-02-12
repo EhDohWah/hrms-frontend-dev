@@ -253,3 +253,7 @@
     </div>
   </div>
 </template>
+<script setup>
+import CircleProgress from "vue3-circle-progress";
+import "vue3-circle-progress/dist/circle-progress.css";
+</script>

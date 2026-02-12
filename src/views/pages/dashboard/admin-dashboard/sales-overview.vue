@@ -316,8 +316,12 @@
 </template>
 <script>
 import { salesIncome } from "./data";
+import VueApexCharts from "vue3-apexcharts";
 
 export default {
+  components: {
+    apexchart: VueApexCharts,
+  },
   data() {
     return {
       salesIncome: salesIncome,

@@ -234,8 +234,12 @@
 </template>
 <script>
 import { leaveChart } from "./data";
+import VueApexCharts from "vue3-apexcharts";
 
 export default {
+  components: {
+    apexchart: VueApexCharts,
+  },
   data() {
     return {
       leaveChart: leaveChart,

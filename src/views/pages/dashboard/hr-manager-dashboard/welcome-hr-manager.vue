@@ -266,9 +266,12 @@
 import { empDepartment } from "./data";
 import { useEmployeeStore } from '@/stores/employeeStore';
 import { computed, onMounted, ref } from 'vue';
+import VueApexCharts from "vue3-apexcharts";
 
 export default {
-
+  components: {
+    apexchart: VueApexCharts,
+  },
   setup() {
     const employeeStore = useEmployeeStore();
     const employees = ref([]);

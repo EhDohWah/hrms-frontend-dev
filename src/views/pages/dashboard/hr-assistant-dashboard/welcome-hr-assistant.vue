@@ -227,8 +227,12 @@ import { empDepartment } from "../hr-manager-dashboard/data";
 import { useEmployeeStore } from '@/stores/employeeStore';
 import { computed, onMounted, ref } from 'vue';
 import moment from 'moment';
+import VueApexCharts from "vue3-apexcharts";
 
 export default {
+    components: {
+        apexchart: VueApexCharts,
+    },
     setup() {
         const employeeStore = useEmployeeStore();
         const employees = ref([]);

@@ -1,10 +1,12 @@
 /**
  * HRMS Vue Application Entry Point
- * 
+ *
  * This file initializes the Vue application with optimized component loading.
  * Heavy components are lazy-loaded to improve initial load time and memory usage.
- * 
- * @version 2.0.0 - Optimized for memory performance
+ * Non-essential plugins (ApexCharts, CircleProgress, TagsInput, Lightbox) are
+ * imported locally in the components that use them, not registered globally.
+ *
+ * @version 3.0.0 - Bundle splitting & dead code removal
  */
 
 import { createApp } from 'vue';
@@ -16,48 +18,21 @@ import { createPinia } from 'pinia';
 import { BootstrapVue3, BToastPlugin } from 'bootstrap-vue-3'
 import Antd from 'ant-design-vue';
 import 'ant-design-vue/dist/reset.css';
-import VueSweetalert2 from 'vue-sweetalert2'
 import 'sweetalert2/dist/sweetalert2.min.css'
 
-// Essential icons and UI components
-import VueFeather from 'vue-feather';
-import FlagIcon from 'vue-flag-icon';
-import { IconHome } from '@tabler/icons-vue';
-
-// Form components (used frequently)
-// NOTE: vue3-select2-component removed - using Ant Design Vue Select instead
+// Form components (used frequently across 29+ files)
 import DatePicker from 'vue3-datepicker'
-import VCalendar from 'v-calendar';
-import Vue3TagsInput from "vue3-tags-input";
 
-// Charts (lazy load the actual charts, but register the plugin)
-import VueApexCharts from "vue3-apexcharts";
-import StarRating from 'vue-star-rating'
-import CircleProgress from "vue3-circle-progress";
-import "vue3-circle-progress/dist/circle-progress.css";
-
-// Form wizard
-import VueFormWizard from "vue3-form-wizard";
-import "@/assets/css/vue-form-wizard.css";
-
-// Other plugins
-import VueEasyLightbox from "vue-easy-lightbox";
 // Quill editor styles (lightweight replacement for CKEditor)
 import '@vueup/vue-quill/dist/vue-quill.snow.css';
-import SimpleLineIcons from "vue-simple-line";
 
 // Essential CSS imports
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import 'ionicons-npm/css/ionicons.css';
-import '@/assets/css/feather.css'
 import '@/assets/css/sticky.css'
 import '@/assets/css/tabler-icons.css'
 import '@/assets/css/font-display-override.css'
-import '@/assets/css/vue-form-wizard.css';
-import "boxicons/css/boxicons.min.css";
-import "v-calendar/dist/style.css";
 import 'nprogress/nprogress.css'; // Base NProgress styles
 import '@/assets/css/nprogress-custom.css'; // Custom NProgress styling (overrides base)
 import '@/assets/scss/main.scss'
@@ -138,13 +113,6 @@ registerLazyComponents(app);
 // Form components
 // NOTE: vue-select removed - using Ant Design Vue's a-select instead
 app.component('date-picker', DatePicker);
-app.component('vue3-tags-input', Vue3TagsInput);
-
-// UI components
-app.component(VueFeather.name, VueFeather);
-app.component('star-rating', StarRating);
-app.component('circle-progress', CircleProgress);
-app.component('IconHome', IconHome);
 
 // ============================================================================
 // USE PLUGINS
@@ -154,20 +122,6 @@ app.component('IconHome', IconHome);
 app.use(BootstrapVue3)
 app.use(BToastPlugin)
 app.use(Antd)
-app.use(VueSweetalert2)
-
-// Form & Calendar
-app.use(VCalendar)
-app.use(VueFormWizard)
-
-// Charts
-app.use(VueApexCharts)
-
-// Other
-app.use(FlagIcon)
-app.use(VueEasyLightbox)
-app.use(SimpleLineIcons)
-// CKEditor removed — replaced by QuillEditor (imported locally per component)
 
 // Permission Directives (v-permission, v-can-edit, v-can-read)
 app.use(PermissionPlugin)

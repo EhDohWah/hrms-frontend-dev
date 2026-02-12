@@ -245,7 +245,15 @@
 </template>
 <script>
 import { performanceCharts } from "./data";
+import VueApexCharts from "vue3-apexcharts";
+import CircleProgress from "vue3-circle-progress";
+import "vue3-circle-progress/dist/circle-progress.css";
+
 export default {
+  components: {
+    apexchart: VueApexCharts,
+    CircleProgress,
+  },
   data() {
     return {
       performanceCharts: performanceCharts,

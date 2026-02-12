@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /login
+Allow: /forgot-password
+Disallow: /dashboard
+Disallow: /administration
+Disallow: /hrm
+Disallow: /payroll
+Disallow: /grant
+Disallow: /recruitment
+Disallow: /api/

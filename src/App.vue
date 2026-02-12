@@ -1,8 +1,8 @@
 <template>
   <div id="app">
-    <div class="main-wrapper">
+    <main class="main-wrapper">
       <router-view />
-    </div>
+    </main>
     
     <!-- Permission Error Toast -->
     <div 

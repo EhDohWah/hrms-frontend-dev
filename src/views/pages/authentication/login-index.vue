@@ -176,9 +176,9 @@ const handleLogin = async () => {
 
                     <!-- Email Input -->
                     <div class="mb-3">
-                      <label class="form-label">Email Address</label>
+                      <label class="form-label" for="login-email">Email Address</label>
                       <div class="input-group" :class="{ 'is-invalid': v$.email.$error }">
-                        <input type="email" v-model="formData.email" class="form-control form-control-login"
+                        <input type="email" id="login-email" v-model="formData.email" class="form-control form-control-login"
                           :class="{ 'is-invalid': v$.email.$error }" />
                         <span class="input-group-text">
                           <i class="ti ti-mail"></i>
@@ -191,9 +191,9 @@ const handleLogin = async () => {
 
                     <!-- Password Input -->
                     <div class="mb-3">
-                      <label class="form-label">Password</label>
+                      <label class="form-label" for="login-password">Password</label>
                       <div class="input-group" :class="{ 'is-invalid': v$.password.$error }">
-                        <input :type="showPassword ? 'text' : 'password'" v-model="formData.password"
+                        <input :type="showPassword ? 'text' : 'password'" id="login-password" v-model="formData.password"
                           class="form-control form-control-login" :class="{ 'is-invalid': v$.password.$error }" />
                         <span class="input-group-text">
                           <i @click="togglePassword" class="ti" :class="{
@@ -228,8 +228,8 @@ const handleLogin = async () => {
               <!-- Footer with logos -->
               <div class="footer mt-4">
                 <div class="d-flex justify-content-center align-items-center">
-                  <img src="@/assets/img/smru-logo.png" alt="SMRU Logo" class="me-4" style="max-height: 50px;" />
-                  <img src="@/assets/img/bhf-logo.png" alt="BHF Logo" style="max-height: 50px;" />
+                  <img src="@/assets/img/smru-logo.png" alt="SMRU Logo" class="me-4" width="142" height="50" style="max-height: 50px;" />
+                  <img src="@/assets/img/bhf-logo.png" alt="BHF Logo" width="70" height="50" style="max-height: 50px;" />
                 </div>
                 <div class="text-center mt-2">
                   <small class="text-muted">&copy; 2026 SMRU/BHF HR Management System</small>
